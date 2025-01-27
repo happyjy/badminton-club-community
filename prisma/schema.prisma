@@ -13,9 +13,13 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  created_at DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  kakaoId          String   @unique
+  email            String?  @unique
+  nickname         String
+  thumbnailImageUrl String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

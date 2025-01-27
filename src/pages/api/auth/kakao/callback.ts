@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,13 +35,43 @@ export default async function handler(
     });
 
     const userData = await userResponse.json();
-    console.log('카카오 사용자 정보:', userData);
+    // console.log('카카오 사용자 정보:', userData);
+    // console.log('nickname', userData.kakao_account.profile.nickname);
+    // console.log(
+    //   'thumbnail_image_url',
+    //   userData.kakao_account.profile.thumbnail_image_url
+    // );
+    // console.log('email', userData.kakao_account.email);
 
-    // 여기서 userData를 활용하여 필요한 처리를 할 수 있습니다
-    // userData는 다음과 같은 정보를 포함합니다:
-    // - id: 카카오 회원번호
-    // - properties: 닉네임 등의 정보
-    // - kakao_account: 이메일, 프로필 이미지 등
+    // Prisma client 초기화
+    const prisma = new PrismaClient();
+
+    try {
+      // 사용자 정보 저장 또는 업데이트
+      const user = await prisma.user.upsert({
+        where: {
+          kakaoId: userData.id.toString(),
+        },
+        update: {
+          email: userData.kakao_account.email,
+          nickname: userData.kakao_account.profile.nickname,
+          thumbnailImageUrl: userData.kakao_account.profile.thumbnail_image_url,
+        },
+        create: {
+          kakaoId: userData.id.toString(),
+          email: userData.kakao_account.email,
+          nickname: userData.kakao_account.profile.nickname,
+          thumbnailImageUrl: userData.kakao_account.profile.thumbnail_image_url,
+        },
+      });
+
+      console.log('사용자 정보 저장 완료:', user);
+    } catch (dbError) {
+      console.error('데이터베이스 저장 오류:', dbError);
+      throw dbError;
+    } finally {
+      await prisma.$disconnect();
+    }
 
     // 로그인 성공 후 리다이렉트
     res.redirect('/');
