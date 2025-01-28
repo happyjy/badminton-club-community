@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { getSession } from '@/lib/session';
 
 type ApiResponse = {
   workouts?: any[];
@@ -14,10 +15,18 @@ export default async function handler(
     return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
   }
 
+  const session = await getSession(req);
   const prisma = new PrismaClient();
 
   try {
     const workouts = await prisma.workout.findMany({
+      include: {
+        WorkoutParticipant: {
+          where: {
+            userId: session?.id,
+          },
+        },
+      },
       orderBy: {
         date: 'asc',
       },

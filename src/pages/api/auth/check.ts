@@ -9,5 +9,12 @@ export default async function handler(
 
   return res.status(200).json({
     isAuthenticated: !!session,
+    user: session
+      ? {
+          id: session.id,
+          email: session.email,
+          nickname: session.nickname,
+        }
+      : null,
   });
 }
