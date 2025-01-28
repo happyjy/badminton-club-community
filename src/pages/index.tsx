@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { GetServerSideProps } from 'next';
 import { getSession } from '@/lib/session';
+import { getKakaoCallbackUrl } from '@/constants/urls';
 
 // 서버 사이드 렌더링 함수
 // getServerSideProps를 사용하여 서버 사이드에서 세션을 확인합니다.
@@ -26,9 +27,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
 export default function Home() {
   const handleKakaoLogin = () => {
     const currentHost = window.location.host;
-    const redirectUri = currentHost.includes('localhost')
-      ? process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI
-      : process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI_FOR_NEXTWORK;
+    const redirectUri = getKakaoCallbackUrl(currentHost);
 
     const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code`;
 

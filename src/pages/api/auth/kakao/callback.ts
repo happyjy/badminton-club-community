@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { sign } from 'jsonwebtoken';
 import cookie from 'cookie';
+import { getBaseUrl, getKakaoCallbackUrl } from '@/constants/urls';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -25,9 +26,7 @@ export default async function handler(
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         client_id: process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID!,
-        redirect_uri: req.headers.host?.includes('localhost')
-          ? process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI!
-          : process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI_FOR_NEXTWORK!,
+        redirect_uri: getKakaoCallbackUrl(req.headers.host),
         code: code.toString(),
       }),
     });
@@ -91,11 +90,7 @@ export default async function handler(
       );
 
       // 리다이렉트 주소를 동적으로 생성
-      const host = req.headers.host;
-      const baseUrl = host?.includes('localhost')
-        ? 'http://localhost:3000'
-        : `http://${host}`;
-
+      const baseUrl = getBaseUrl(req.headers.host);
       const redirectUrl = `${baseUrl}/workouts`;
 
       res.redirect(redirectUrl);
