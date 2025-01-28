@@ -25,7 +25,9 @@ export default async function handler(
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         client_id: process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID!,
-        redirect_uri: process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI!,
+        redirect_uri: req.headers.host?.includes('localhost')
+          ? process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI!
+          : process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI_FOR_NEXTWORK!,
         code: code.toString(),
       }),
     });
@@ -88,7 +90,15 @@ export default async function handler(
         })
       );
 
-      res.redirect('/workouts');
+      // 리다이렉트 주소를 동적으로 생성
+      const host = req.headers.host;
+      const baseUrl = host?.includes('localhost')
+        ? 'http://localhost:3000'
+        : `http://${host}`;
+
+      const redirectUrl = `${baseUrl}/workouts`;
+
+      res.redirect(redirectUrl);
     } catch (dbError) {
       console.error('데이터베이스 저장 오류:', dbError);
       throw dbError;

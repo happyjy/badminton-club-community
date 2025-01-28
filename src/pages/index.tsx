@@ -25,10 +25,14 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
 
 export default function Home() {
   const handleKakaoLogin = () => {
-    const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
-    const REDIRECT_URI = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI;
+    const currentHost = window.location.host;
+    const redirectUri = currentHost.includes('localhost')
+      ? process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI
+      : process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI_FOR_NEXTWORK;
 
-    window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code`;
+
+    window.location.href = KAKAO_AUTH_URL;
   };
 
   return (
