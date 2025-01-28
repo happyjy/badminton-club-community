@@ -1,4 +1,27 @@
 import Image from 'next/image';
+import { GetServerSideProps } from 'next';
+import { getSession } from '@/lib/session';
+
+// 서버 사이드 렌더링 함수
+// getServerSideProps를 사용하여 서버 사이드에서 세션을 확인합니다.
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+  const session = await getSession(req);
+
+  if (session) {
+    // 세션이 있으면 리다이렉트
+    // 로그인 되어 있다면 root페이지로 이동해도 workouts페이지로 이동
+    return {
+      redirect: {
+        destination: '/workouts',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {},
+  };
+};
 
 export default function Home() {
   const handleKakaoLogin = () => {
