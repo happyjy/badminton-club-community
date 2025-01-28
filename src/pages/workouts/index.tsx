@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { withAuth } from '@/lib/withAuth';
 import { useRouter } from 'next/router';
+import Navigation from '@/components/Navigation';
 
 interface User {
   id: number;
@@ -108,70 +109,76 @@ export function WorkoutsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">운동 목록</h1>
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {workouts.length > 0 ? (
-          workouts.map((workout) => {
-            // 현재 로그인한 사용자의 참여 여부 확인
-            const isParticipating = user
-              ? workout.WorkoutParticipant.some(
-                  (participant) => participant.userId === user.id
-                )
-              : false;
+    <>
+      <Navigation />
+      <div className="max-w-7xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-6">오늘 운동 가니？🤔</h1>
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {workouts.length > 0 ? (
+            workouts.map((workout) => {
+              // 현재 로그인한 사용자의 참여 여부 확인
+              const isParticipating = user
+                ? workout.WorkoutParticipant.some(
+                    (participant) => participant.userId === user.id
+                  )
+                : false;
 
-            return (
-              <div
-                key={workout.id}
-                className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white"
-              >
+              return (
                 <div
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/workouts/${workout.id}`)}
+                  key={workout.id}
+                  className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white"
                 >
-                  <h2 className="font-semibold text-xl mb-2">
-                    {workout.title}
-                  </h2>
-                  <p className="text-gray-600 mb-4">{workout.description}</p>
-                  <div className="space-y-2 text-sm text-gray-500">
-                    <p>
-                      📅 날짜:{' '}
-                      {new Date(workout.date).toLocaleDateString('ko-KR')}
-                    </p>
-                    <p>
-                      ⏰ 시간:{' '}
-                      {new Date(workout.startTime).toLocaleTimeString('ko-KR')}{' '}
-                      - {new Date(workout.endTime).toLocaleTimeString('ko-KR')}
-                    </p>
-                    <p>📍 장소: {workout.location}</p>
-                    <p>👥 최대 인원: {workout.maxParticipants}명</p>
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/workouts/${workout.id}`)}
+                  >
+                    <h2 className="font-semibold text-xl mb-2">
+                      {workout.title}
+                    </h2>
+                    <p className="text-gray-600 mb-4">{workout.description}</p>
+                    <div className="space-y-2 text-sm text-gray-500">
+                      <p>
+                        📅 날짜:{' '}
+                        {new Date(workout.date).toLocaleDateString('ko-KR')}
+                      </p>
+                      <p>
+                        ⏰ 시간:{' '}
+                        {new Date(workout.startTime).toLocaleTimeString(
+                          'ko-KR'
+                        )}{' '}
+                        -{' '}
+                        {new Date(workout.endTime).toLocaleTimeString('ko-KR')}
+                      </p>
+                      <p>📍 장소: {workout.location}</p>
+                      <p>👥 최대 인원: {workout.maxParticipants}명</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleParticipate(workout.id, isParticipating);
+                      }}
+                      className={`w-full py-2 px-4 rounded-lg ${
+                        isParticipating
+                          ? 'bg-red-500 hover:bg-red-600 text-white'
+                          : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      }`}
+                    >
+                      {isParticipating ? '참여 취소' : '참여하기'}
+                    </button>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleParticipate(workout.id, isParticipating);
-                    }}
-                    className={`w-full py-2 px-4 rounded-lg ${
-                      isParticipating
-                        ? 'bg-red-500 hover:bg-red-600 text-white'
-                        : 'bg-blue-500 hover:bg-blue-600 text-white'
-                    }`}
-                  >
-                    {isParticipating ? '참여 취소' : '참여하기'}
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <p className="col-span-full text-center text-gray-500">
-            등록된 운동이 없습니다.
-          </p>
-        )}
+              );
+            })
+          ) : (
+            <p className="col-span-full text-center text-gray-500">
+              등록된 운동이 없습니다.
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
