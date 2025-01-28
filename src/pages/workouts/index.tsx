@@ -110,7 +110,7 @@ export function WorkoutsPage() {
 
   return (
     <>
-      <Navigation />
+      {/* <Navigation /> */}
       <div className="max-w-7xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">오늘 운동 가니？🤔</h1>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
