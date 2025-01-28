@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { withAuth } from '@/lib/withAuth';
+import { useRouter } from 'next/router';
 
 interface Workout {
   id: number;
@@ -16,6 +17,7 @@ export function WorkoutsPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchWorkouts = async () => {
@@ -64,7 +66,8 @@ export function WorkoutsPage() {
           workouts.map((workout) => (
             <div
               key={workout.id}
-              className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white"
+              className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white cursor-pointer"
+              onClick={() => router.push(`/workouts/${workout.id}`)}
             >
               <h2 className="font-semibold text-xl mb-2">{workout.title}</h2>
               <p className="text-gray-600 mb-4">{workout.description}</p>
