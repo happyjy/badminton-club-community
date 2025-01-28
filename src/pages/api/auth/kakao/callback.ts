@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { sign } from 'jsonwebtoken';
+import cookie from 'cookie';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export default async function handler(
   req: NextApiRequest,
@@ -66,15 +70,31 @@ export default async function handler(
       });
 
       console.log('사용자 정보 저장 완료:', user);
+
+      // JWT 토큰 생성
+      const token = sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: '7d',
+      });
+
+      // 쿠키에 토큰 저장
+      res.setHeader(
+        'Set-Cookie',
+        cookie.serialize('auth-token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7, // 7일
+          path: '/',
+        })
+      );
+
+      res.redirect('/workouts');
     } catch (dbError) {
       console.error('데이터베이스 저장 오류:', dbError);
       throw dbError;
     } finally {
       await prisma.$disconnect();
     }
-
-    // 로그인 성공 후 리다이렉트
-    res.redirect('/workouts');
   } catch (error) {
     console.error('카카오 로그인 에러:', error);
     res.status(500).json({ error: '로그인 처리 중 오류가 발생했습니다.' });

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { withAuth } from '@/lib/withAuth';
 
 interface Workout {
   id: number;
@@ -11,7 +12,7 @@ interface Workout {
   location: string;
 }
 
-export default function WorkoutsPage() {
+export function WorkoutsPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,3 +91,5 @@ export default function WorkoutsPage() {
     </div>
   );
 }
+
+export default withAuth(WorkoutsPage);
