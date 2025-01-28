@@ -74,7 +74,7 @@ export default async function handler(
     }
 
     // 로그인 성공 후 리다이렉트
-    res.redirect('/');
+    res.redirect('/workouts');
   } catch (error) {
     console.error('카카오 로그인 에러:', error);
     res.status(500).json({ error: '로그인 처리 중 오류가 발생했습니다.' });
