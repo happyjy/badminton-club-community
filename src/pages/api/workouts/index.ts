@@ -5,7 +5,7 @@ import { Workout, ApiResponse } from '@/types';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse<Workout[]>>
+  res: NextApiResponse<ApiResponse<'workouts', Workout[]>>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
@@ -28,7 +28,7 @@ export default async function handler(
       },
     });
 
-    return res.status(200).json({ data: workouts, status: 200 });
+    return res.status(200).json({ workouts, status: 200 });
   } catch (error) {
     console.error('운동 목록 조회 중 오류 발생:', error);
     return res.status(500).json({

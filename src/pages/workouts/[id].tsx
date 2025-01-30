@@ -2,27 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 import Image from 'next/image';
-
-interface WorkoutParticipant {
-  User: {
-    id: number;
-    nickname: string;
-    thumbnailImageUrl: string | null;
-  };
-  status: string;
-}
-
-interface Workout {
-  id: number;
-  title: string;
-  description: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  maxParticipants: number;
-  location: string;
-  WorkoutParticipant: WorkoutParticipant[];
-}
+import { Workout } from '@/types';
 
 function WorkoutDetailPage() {
   const router = useRouter();

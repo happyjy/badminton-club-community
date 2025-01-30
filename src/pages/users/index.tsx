@@ -1,12 +1,6 @@
 import { useEffect, useState } from 'react';
 import '@/styles/globals.css';
-
-interface User {
-  id: number;
-  email: string;
-  name: string | null;
-  created_at: string;
-}
+import { User } from '@/types';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);

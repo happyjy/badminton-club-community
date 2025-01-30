@@ -16,7 +16,7 @@ export default async function handler(
   try {
     const workout = await prisma.workout.findUnique({
       where: {
-        id: String(id),
+        id: Number(id),
       },
       include: {
         WorkoutParticipant: {
@@ -37,7 +37,7 @@ export default async function handler(
       return res.status(404).json({ error: '운동을 찾을 수 없습니다' });
     }
 
-    return res.status(200).json({ data: workout, status: 200 });
+    return res.status(200).json({ workout });
   } catch (error) {
     console.error('운동 상세 정보 조회 중 오류 발생:', error);
     return res

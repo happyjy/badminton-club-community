@@ -1,25 +1,7 @@
 import { useEffect, useState } from 'react';
 import { withAuth } from '@/lib/withAuth';
 import { useRouter } from 'next/router';
-
-interface User {
-  id: number;
-}
-
-interface Workout {
-  id: number;
-  title: string;
-  description: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  maxParticipants: number;
-  location: string;
-  WorkoutParticipant: Array<{
-    userId: number;
-    status: string;
-  }>;
-}
+import { Workout, User } from '@/types';
 
 export function WorkoutsPage() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
@@ -109,11 +91,10 @@ export function WorkoutsPage() {
 
   return (
     <>
-      {/* <Navigation /> */}
       <div className="max-w-7xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">오늘 운동 가니？🤔</h1>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {workouts.length > 0 ? (
+          {workouts?.length > 0 ? (
             workouts.map((workout) => {
               // 현재 로그인한 사용자의 참여 여부 확인
               const isParticipating = user
