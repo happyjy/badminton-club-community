@@ -1,10 +1,12 @@
-import type { NextConfig } from 'next';
+import { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
-  // 카카오 이미지 도메인 설정(설정하지 않으면 카카오 이미지 도메인을 로드할 수 없음)
+const config: NextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  // Vercel에서 자동으로 이미지 최적화를 지원합니다
   images: {
     domains: ['k.kakaocdn.net', 'img1.kakaocdn.net', 't1.kakaocdn.net'],
   },
 };
 
-export default nextConfig;
+export default config;
