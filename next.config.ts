@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   // 카카오 이미지 도메인 설정(설정하지 않으면 카카오 이미지 도메인을 로드할 수 없음)
   images: {
-    domains: ['k.kakaocdn.net'],
+    domains: ['k.kakaocdn.net', 'img1.kakaocdn.net', 't1.kakaocdn.net'],
   },
 };
 
