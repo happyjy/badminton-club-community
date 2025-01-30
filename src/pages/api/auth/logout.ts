@@ -1,12 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import cookie from 'cookie';
+import { ApiResponse } from '@/types';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<ApiResponse<'logout', { success: boolean }>>
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
+    return res.status(405).json({
+      error: '허용되지 않는 메소드입니다',
+      status: 405,
+    });
   }
 
   // 쿠키 삭제
@@ -21,5 +25,9 @@ export default async function handler(
     })
   );
 
-  return res.status(200).json({ message: '로그아웃 되었습니다' });
+  return res.status(200).json({
+    data: { logout: { success: true } },
+    status: 200,
+    message: '로그아웃 되었습니다',
+  });
 }

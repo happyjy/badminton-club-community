@@ -8,15 +8,20 @@ export default function Navigation() {
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
       });
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error('로그아웃 처리 중 오류가 발생했습니다');
+        throw new Error(data.error || '로그아웃 처리 중 오류가 발생했습니다');
       }
 
       router.push('/');
     } catch (error) {
       console.error('로그아웃 오류:', error);
-      alert('로그아웃 처리 중 오류가 발생했습니다');
+      alert(
+        error instanceof Error
+          ? error.message
+          : '로그아웃 처리 중 오류가 발생했습니다'
+      );
     }
   };
 
