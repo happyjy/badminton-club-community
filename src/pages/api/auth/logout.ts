@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import cookie from 'cookie';
+import { serialize } from 'cookie';
 import { ApiResponse } from '@/types';
 
 export default async function handler(
@@ -16,7 +16,7 @@ export default async function handler(
   // 쿠키 삭제
   res.setHeader(
     'Set-Cookie',
-    cookie.serialize('auth-token', '', {
+    serialize('auth-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

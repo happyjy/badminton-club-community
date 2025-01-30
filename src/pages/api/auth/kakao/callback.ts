@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { sign } from 'jsonwebtoken';
-import cookie from 'cookie';
+import { serialize } from 'cookie';
 import { getBaseUrl, getKakaoCallbackUrl } from '@/constants/urls';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -83,7 +83,7 @@ export default async function handler(
       // 쿠키에 토큰 저장
       res.setHeader(
         'Set-Cookie',
-        cookie.serialize('auth-token', token, {
+        serialize('auth-token', token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
