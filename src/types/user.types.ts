@@ -3,7 +3,7 @@ import { BaseEntity } from './common.types';
 export interface User extends BaseEntity {
   email: string | null;
   nickname?: string;
-  thumbnailImageUrl?: string;
+  thumbnailImageUrl: string | null;
   kakaoId?: string;
 }
 
