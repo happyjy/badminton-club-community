@@ -14,7 +14,7 @@ export type ApiResponse<K extends string, T> =
   | ApiErrorResponse;
 
 export interface BaseEntity {
-  id: string;
+  id: number;
   createdAt: Date;
   updatedAt: Date;
 }

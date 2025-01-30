@@ -60,7 +60,7 @@ export default function UsersPage() {
               </h2>
               <p className="text-gray-600 text-sm mb-2">{user.email}</p>
               <p className="text-gray-500 text-xs">
-                가입일: {new Date(user.created_at).toLocaleDateString('ko-KR')}
+                가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
               </p>
             </div>
           ))

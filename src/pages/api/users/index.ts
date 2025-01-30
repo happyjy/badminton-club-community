@@ -33,13 +33,13 @@ export default async function handler(
       //   .from('User')
       //   .select('id, email, name, created_at');
 
-      const typedUsers: User[] = users.map((user) => ({
-        ...user,
-        id: user.id.toString(),
-      }));
+      // const typedUsers: User[] = users.map((user) => ({
+      //   ...user,
+      //   id: user.id.toString(),
+      // }));
 
       return res.status(200).json({
-        data: { users: typedUsers },
+        data: { users },
         status: 200,
         message: '사용자 목록을 성공적으로 가져왔습니다',
       });

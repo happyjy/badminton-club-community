@@ -2,7 +2,7 @@ import { BaseEntity } from './common.types';
 import { User } from './user.types';
 
 export interface Exercise {
-  id: string;
+  id: number;
   name: string;
   sets: number;
   reps: number;
@@ -10,19 +10,24 @@ export interface Exercise {
 }
 
 export interface Workout extends BaseEntity {
-  userId: string;
   title: string;
-  description?: string;
+  description: string;
   date: Date;
-  exercises: Exercise[];
+  startTime: Date;
+  endTime: Date;
+  maxParticipants: number;
+  location: string;
+  WorkoutParticipant: WorkoutParticipant[];
 }
 
 export interface WorkoutParticipant {
-  id: string;
-  workoutId: string;
-  userId: string;
-  user: Pick<User, 'id' | 'nickname' | 'thumbnailImageUrl'>;
-  joinedAt: Date;
+  id: number;
+  workoutId: number;
+  userId: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  User: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
 }
 
 export interface WorkoutWithParticipants extends Workout {

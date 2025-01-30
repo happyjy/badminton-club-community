@@ -1,10 +1,14 @@
-import { NextApiRequest } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { verify } from 'jsonwebtoken';
+import { IncomingMessage } from 'http';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-export async function getSession(req: NextApiRequest) {
+export const getSession = async (
+  req: IncomingMessage & {
+    cookies: Partial<{ [key: string]: string }>;
+  }
+) => {
   const token = req.cookies['auth-token'];
 
   if (!token) {
@@ -26,4 +30,4 @@ export async function getSession(req: NextApiRequest) {
     console.error(err);
     return null;
   }
-}
+};

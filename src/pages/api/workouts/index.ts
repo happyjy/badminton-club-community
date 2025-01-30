@@ -8,7 +8,10 @@ export default async function handler(
   res: NextApiResponse<ApiResponse<'workouts', Workout[]>>
 ) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
+    return res.status(405).json({
+      error: '허용되지 않는 메소드입니다',
+      status: 405,
+    });
   }
 
   const session = await getSession(req);
@@ -20,6 +23,15 @@ export default async function handler(
         WorkoutParticipant: {
           where: {
             userId: session?.id,
+          },
+          include: {
+            User: {
+              select: {
+                id: true,
+                nickname: true,
+                thumbnailImageUrl: true,
+              },
+            },
           },
         },
       },

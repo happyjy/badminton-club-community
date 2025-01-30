@@ -11,9 +11,9 @@ datasource db {
 model User {
   id                 Int                  @id @default(autoincrement())
   kakaoId            String               @unique @default("")
-  email              String?              @unique
+  email              String               @unique
   nickname           String               @default("")
-  thumbnailImageUrl  String?
+  thumbnailImageUrl  String               @default("")
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @default(now()) @updatedAt
   WorkoutParticipant WorkoutParticipant[]
@@ -23,7 +23,7 @@ model User {
 model Workout {
   id                 Int                  @id @default(autoincrement())
   title              String
-  description        String?
+  description        String               @default("")    
   date               DateTime
   startTime          DateTime
   endTime            DateTime

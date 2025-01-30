@@ -1,8 +1,9 @@
 import { BaseEntity } from './common.types';
 
 export interface User extends BaseEntity {
+  id: number;
   email: string | null;
-  nickname?: string;
+  nickname: string;
   thumbnailImageUrl: string | null;
   kakaoId?: string;
 }

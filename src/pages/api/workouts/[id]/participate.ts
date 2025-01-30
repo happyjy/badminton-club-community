@@ -10,12 +10,18 @@ export default async function handler(
   >
 ) {
   if (req.method !== 'POST' && req.method !== 'DELETE') {
-    return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
+    return res.status(405).json({
+      error: '허용되지 않는 메소드입니다',
+      status: 405,
+    });
   }
 
   const session = await getSession(req);
   if (!session) {
-    return res.status(401).json({ error: '로그인이 필요합니다' });
+    return res.status(401).json({
+      error: '로그인이 필요합니다',
+      status: 401,
+    });
   }
 
   const { id } = req.query;
