@@ -1,7 +1,7 @@
 export const BASE_URL = {
   LOCAL: 'http://localhost:3000',
   NETWORK: 'http://192.168.219.104:3000',
-  PRODUCTION: 'https://badminton-clue-community.vercel.app/',
+  PRODUCTION: 'https://badminton-clue-community.vercel.app',
 };
 
 export const AUTH_URLS = {
@@ -22,11 +22,13 @@ export const getBaseUrl = (host: string | undefined | null) => {
     ? BASE_URL.LOCAL
     : host?.includes('vercel')
       ? BASE_URL.PRODUCTION
-      : `http://${host}`;
+      : BASE_URL.NETWORK;
 };
 
 export const getKakaoCallbackUrl = (host: string | undefined | null) => {
   return host?.includes('localhost')
     ? AUTH_URLS.KAKAO_CALLBACK.LOCAL
-    : AUTH_URLS.KAKAO_CALLBACK.NETWORK;
+    : host?.includes('vercel')
+      ? AUTH_URLS.KAKAO_CALLBACK.PRODUCTION
+      : AUTH_URLS.KAKAO_CALLBACK.NETWORK;
 };
