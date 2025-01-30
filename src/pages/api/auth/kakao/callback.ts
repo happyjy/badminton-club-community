@@ -13,7 +13,10 @@ export default async function handler(
   const { code } = req.query;
 
   if (!code) {
-    return res.status(400).json({ error: '인증 코드가 없습니다.' });
+    return res.status(400).json({
+      error: '인증 코드가 없습니다.',
+      status: 400,
+    });
   }
 
   try {
@@ -102,6 +105,9 @@ export default async function handler(
     }
   } catch (error) {
     console.error('카카오 로그인 에러:', error);
-    res.status(500).json({ error: '로그인 처리 중 오류가 발생했습니다.' });
+    return res.status(500).json({
+      error: '로그인 처리 중 오류가 발생했습니다',
+      status: 500,
+    });
   }
 }
