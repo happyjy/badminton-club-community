@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse<'users', User | User[]>>
+  res: NextApiResponse<ApiResponse<'users', User[]>>
 ) {
   if (req.method === 'GET') {
     const prisma = new PrismaClient();
@@ -33,7 +33,12 @@ export default async function handler(
       //   .from('User')
       //   .select('id, email, name, created_at');
 
-      return res.status(200).json({ users, status: 200 });
+      const typedUsers: User[] = users.map((user) => ({
+        ...user,
+        id: user.id.toString(),
+      }));
+
+      return res.status(200).json({ users: typedUsers, status: 200 });
     } catch (error) {
       console.error('사용자 조회 중 오류 발생:', error);
       return res
