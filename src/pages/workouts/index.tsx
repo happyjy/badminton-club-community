@@ -29,8 +29,8 @@ export function WorkoutsPage({ user }: WorkoutsPageProps) {
 
       // 목록 새로고침
       const updatedResponse = await fetch('/api/workouts');
-      const data = await updatedResponse.json();
-      setWorkouts(data.workouts);
+      const result = await updatedResponse.json();
+      setWorkouts(result.data.workouts);
     } catch (err) {
       console.error('Error:', err);
       alert(err instanceof Error ? err.message : '오류가 발생했습니다');

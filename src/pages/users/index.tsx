@@ -10,11 +10,11 @@ export default function UsersPage() {
     const fetchUsers = async () => {
       try {
         const response = await fetch('/api/users');
-        const data = await response.json();
+        const result = await response.json();
 
-        if (!response.ok) throw new Error(data.error);
+        if (!response.ok) throw new Error(result.data.error);
 
-        setUsers(data.users);
+        setUsers(result.data.users);
       } catch (err) {
         setError(
           err instanceof Error
