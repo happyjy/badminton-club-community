@@ -19,7 +19,7 @@ export function withAuth<P extends object>(WrappedComponent: NextPage<P>) {
             { isAuthenticated: boolean; user: User | null }
           >;
 
-          if (!response.ok) {
+          if ('error' in result) {
             throw new Error(result.error);
           }
 
