@@ -22,7 +22,8 @@ export async function getSession(req: NextApiRequest) {
     await prisma.$disconnect();
 
     return user;
-  } catch (error) {
+  } catch (err) {
+    console.error(err);
     return null;
   }
 }

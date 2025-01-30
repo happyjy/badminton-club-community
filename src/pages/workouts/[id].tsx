@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 import Image from 'next/image';
-import Navigation from '@/components/Navigation';
 
 interface WorkoutParticipant {
   User: {
