@@ -28,7 +28,11 @@ export default async function handler(
       },
     });
 
-    return res.status(200).json({ workouts, status: 200 });
+    return res.status(200).json({
+      data: { workouts },
+      status: 200,
+      message: '운동 목록을 성공적으로 가져왔습니다',
+    });
   } catch (error) {
     console.error('운동 목록 조회 중 오류 발생:', error);
     return res.status(500).json({

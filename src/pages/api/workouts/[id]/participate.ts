@@ -39,7 +39,14 @@ export default async function handler(
       });
     }
 
-    return res.status(200).json({ message: 'success' });
+    return res.status(200).json({
+      data: { participationStatus: req.method === 'POST' ? 'joined' : 'left' },
+      status: 200,
+      message:
+        req.method === 'POST'
+          ? '운동에 참여했습니다'
+          : '운동 참여를 취소했습니다',
+    });
   } catch (error) {
     console.error('운동 참여/취소 중 오류 발생:', error);
     return res.status(500).json({ error: '처리 중 오류가 발생했습니다' });

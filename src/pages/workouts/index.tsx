@@ -54,11 +54,11 @@ export function WorkoutsPage() {
     const fetchWorkouts = async () => {
       try {
         const response = await fetch('/api/workouts');
-        const data = await response.json();
+        const result = await response.json();
 
-        if (!response.ok) throw new Error(data.error);
+        if (!response.ok) throw new Error(result.error);
 
-        setWorkouts(data.workouts);
+        setWorkouts(result.data.workouts);
       } catch (err) {
         setError(
           err instanceof Error

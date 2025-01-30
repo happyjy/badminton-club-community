@@ -1,5 +1,7 @@
-export type ApiSuccessResponse<K extends string, T> = Record<K, T> & {
+export type ApiSuccessResponse<K extends string, T> = {
+  data: Record<K, T>;
   status: number;
+  message?: string;
 };
 
 export type ApiErrorResponse = {

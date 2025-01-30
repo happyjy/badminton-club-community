@@ -38,7 +38,11 @@ export default async function handler(
         id: user.id.toString(),
       }));
 
-      return res.status(200).json({ users: typedUsers, status: 200 });
+      return res.status(200).json({
+        data: { users: typedUsers },
+        status: 200,
+        message: '사용자 목록을 성공적으로 가져왔습니다',
+      });
     } catch (error) {
       console.error('사용자 조회 중 오류 발생:', error);
       return res
