@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import '@/styles/globals.css';
 import { User } from '@/types';
 
 export default function UsersPage() {
@@ -57,7 +56,7 @@ export default function UsersPage() {
               className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <h2 className="font-semibold text-lg mb-2">
-                {user.name || '이름 없음'}
+                {user.nickname || '이름 없음'}
               </h2>
               <p className="text-gray-600 text-sm mb-2">{user.email}</p>
               <p className="text-gray-500 text-xs">

@@ -4,7 +4,7 @@ import { Workout, ApiResponse } from '@/types';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse<Workout>>
+  res: NextApiResponse<ApiResponse<'workout', Workout>>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
