@@ -1,10 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { getSession } from '@/lib/session';
+import { ApiResponse } from '@/types/common.types';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<
+    ApiResponse<'participation', { status: 'joined' | 'left' }>
+  >
 ) {
   if (req.method !== 'POST' && req.method !== 'DELETE') {
     return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
@@ -28,6 +31,12 @@ export default async function handler(
           updatedAt: new Date(),
         },
       });
+
+      return res.status(200).json({
+        data: { participation: { status: 'joined' } },
+        status: 200,
+        message: '운동에 참여했습니다',
+      });
     } else {
       await prisma.workoutParticipant.delete({
         where: {
@@ -37,19 +46,19 @@ export default async function handler(
           },
         },
       });
-    }
 
-    return res.status(200).json({
-      data: { participationStatus: req.method === 'POST' ? 'joined' : 'left' },
-      status: 200,
-      message:
-        req.method === 'POST'
-          ? '운동에 참여했습니다'
-          : '운동 참여를 취소했습니다',
-    });
+      return res.status(200).json({
+        data: { participation: { status: 'left' } },
+        status: 200,
+        message: '운동 참여를 취소했습니다',
+      });
+    }
   } catch (error) {
     console.error('운동 참여/취소 중 오류 발생:', error);
-    return res.status(500).json({ error: '처리 중 오류가 발생했습니다' });
+    return res.status(500).json({
+      error: '처리 중 오류가 발생했습니다',
+      status: 500,
+    });
   } finally {
     await prisma.$disconnect();
   }

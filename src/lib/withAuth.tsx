@@ -1,24 +1,36 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { NextPage } from 'next';
+import { User } from '@/types';
+import { ApiResponse } from '@/types/common.types';
 
 export function withAuth<P extends object>(WrappedComponent: NextPage<P>) {
   return function WithAuthComponent(props: P) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
       async function checkAuth() {
         try {
           const response = await fetch('/api/auth/check');
-          const data = await response.json();
+          const result = (await response.json()) as ApiResponse<
+            'auth',
+            { isAuthenticated: boolean; user: User | null }
+          >;
 
-          if (!data.isAuthenticated) {
-            router.replace('/');
+          if (!response.ok) {
+            throw new Error(result.error);
+          }
+
+          if (result.data.auth.isAuthenticated && result.data.auth.user) {
+            setUser(result.data.auth.user);
+          } else {
+            router.push('/login');
           }
         } catch (error) {
           console.error('인증 확인 중 오류 발생:', error);
-          router.replace('/');
+          router.push('/login');
         } finally {
           setIsLoading(false);
         }
@@ -35,6 +47,6 @@ export function withAuth<P extends object>(WrappedComponent: NextPage<P>) {
       );
     }
 
-    return <WrappedComponent {...props} />;
+    return <WrappedComponent {...props} user={user} />;
   };
 }

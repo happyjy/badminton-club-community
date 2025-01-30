@@ -1,7 +1,7 @@
 export type ApiSuccessResponse<K extends string, T> = {
   data: Record<K, T>;
   status: number;
-  message?: string;
+  message: string;
 };
 
 export type ApiErrorResponse = {

@@ -17,11 +17,13 @@ function WorkoutDetailPage() {
     const fetchWorkoutDetail = async () => {
       try {
         const response = await fetch(`/api/workouts/${id}`);
-        const data = await response.json();
+        const result = await response.json();
 
-        if (!response.ok) throw new Error(data.error);
+        if (!response.ok) throw new Error(result.error);
 
-        setWorkout(data.workout);
+        setWorkout(result.data.workout);
+        // 성공 메시지 처리 가능
+        // console.log(result.message);
       } catch (err) {
         setError(
           err instanceof Error

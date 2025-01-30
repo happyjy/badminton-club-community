@@ -3,29 +3,16 @@ import { withAuth } from '@/lib/withAuth';
 import { useRouter } from 'next/router';
 import { Workout, User } from '@/types';
 
-export function WorkoutsPage() {
+// WorkoutsPage의 props 타입 정의
+interface WorkoutsPageProps {
+  user: User | null;
+}
+
+export function WorkoutsPage({ user }: WorkoutsPageProps) {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
-
-  // 현재 로그인한 사용자 정보 가져오기
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch('/api/auth/check');
-        const data = await response.json();
-        if (data.user) {
-          setUser(data.user);
-        }
-      } catch (err) {
-        console.error('사용자 정보 조회 실패:', err);
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   const handleParticipate = async (
     workoutId: number,
@@ -59,6 +46,8 @@ export function WorkoutsPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkouts(result.data.workouts);
+        // 성공 메시지 처리 가능
+        // console.log(result.message);
       } catch (err) {
         setError(
           err instanceof Error
