@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { withAuth } from '@/lib/withAuth';
 import { useRouter } from 'next/router';
-import Navigation from '@/components/Navigation';
 
 interface User {
   id: number;

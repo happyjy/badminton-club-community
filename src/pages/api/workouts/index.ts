@@ -1,15 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { getSession } from '@/lib/session';
-
-type ApiResponse = {
-  workouts?: any[];
-  error?: string;
-};
+import { Workout, ApiResponse } from '@/types';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse>
+  res: NextApiResponse<ApiResponse<Workout[]>>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: '허용되지 않는 메소드입니다' });
@@ -32,12 +28,13 @@ export default async function handler(
       },
     });
 
-    return res.status(200).json({ workouts });
+    return res.status(200).json({ data: workouts, status: 200 });
   } catch (error) {
     console.error('운동 목록 조회 중 오류 발생:', error);
-    return res
-      .status(500)
-      .json({ error: '운동 목록을 가져오는데 실패했습니다' });
+    return res.status(500).json({
+      error: '운동 목록을 가져오는데 실패했습니다',
+      status: 500,
+    });
   } finally {
     await prisma.$disconnect();
   }
