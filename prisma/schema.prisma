@@ -75,8 +75,8 @@ model ClubMember {
   id        Int      @id @default(autoincrement())
   clubId    Int
   userId    Int
-  role      String   @default("MEMBER") // ADMIN, MEMBER
-  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  role      Role     @default(MEMBER)
+  status    Status   @default(PENDING)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -85,4 +85,15 @@ model ClubMember {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([clubId, userId])
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
 }

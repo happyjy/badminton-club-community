@@ -109,6 +109,8 @@
 - 키보드 네비게이션 지원
 - 스크린리더 호환성 확보
 
+## design  Best Practices
+- Implement responsive designs using Tailwind CSS
 
 
 

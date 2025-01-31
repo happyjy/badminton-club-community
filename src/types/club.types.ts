@@ -1,21 +1,36 @@
 import { BaseEntity } from './common.types';
-import { User } from './user.types';
+import { UserProfile } from './user.types';
+import { Role, Status } from './enums';
 
-export interface Club extends BaseEntity {
+// 클럽 생성/수정 시 필요한 데이터 타입
+export interface ClubInput {
   name: string;
-  description?: string;
+  description?: string | null;
   location: string;
   meetingTime: string;
   maxMembers: number;
-  etc?: string;
+  etc?: string | null;
+}
+
+// 클럽 멤버 타입
+export interface ClubMember extends BaseEntity {
+  userId: number;
+  clubId: number;
+  role: Role;
+  status: Status;
+}
+
+// 클럽 멤버 with User 타입
+export interface ClubMemberWithUser extends ClubMember {
+  user: UserProfile;
+}
+
+// 기본 클럽 타입
+export interface Club extends BaseEntity, ClubInput {
   members?: ClubMember[];
 }
 
-export interface ClubMember extends BaseEntity {
-  clubId: number;
-  userId: number;
-  role: 'ADMIN' | 'MEMBER';
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  user?: User;
-  club?: Club;
+// 상세 정보가 포함된 클럽 타입
+export interface ClubWithDetails extends BaseEntity, ClubInput {
+  members: ClubMemberWithUser[];
 }

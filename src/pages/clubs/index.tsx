@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { withAuth } from '@/lib/withAuth';
-import { Tab } from '@headlessui/react';
 import { Club } from '@/types';
 
 function ClubsPage() {
