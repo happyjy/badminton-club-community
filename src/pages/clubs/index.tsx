@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { withAuth } from '@/lib/withAuth';
 import { Club } from '@/types';
+import { ClubListItem } from '@/components/clubs/ClubListItem';
 
 function ClubsPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
@@ -48,23 +49,17 @@ function ClubsPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">클럽 목록</h1>
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-col space-y-4">
         {clubs.map((club) => (
-          <div
-            key={club.id}
-            className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white"
-          >
-            <h2 className="font-semibold text-xl mb-2">{club.name}</h2>
-            <p className="text-gray-600 mb-4">{club.description}</p>
-            <div className="space-y-2 text-sm text-gray-500">
-              <p>⏰ 운동 시간: {club.meetingTime}</p>
-              <p>👥 최대 인원: {club.maxMembers}명</p>
-              <p>📍 장소: {club.location}</p>
-            </div>
-          </div>
+          <ClubListItem key={club.id} club={club} />
         ))}
       </div>
+      {/* component */}
+      {/* <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {clubs.imap((club) => (
+          <ClubListItem2 key={club.id} club={club} />
+        ))} 
+      </div>*/}
     </div>
   );
 }
