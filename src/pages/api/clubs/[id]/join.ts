@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../auth/[...nextauth]';
-import { PrismaClient } from '@prisma/client/extension';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,7 +22,7 @@ export default async function handler(
   try {
     const membership = await prisma.clubMembership.create({
       data: {
-        clubId: String(id),
+        clubId: Number(id),
         userId: session.user.id,
         role: 'MEMBER',
       },
