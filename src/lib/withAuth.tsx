@@ -26,11 +26,11 @@ export function withAuth<P extends object>(WrappedComponent: NextPage<P>) {
           if (result.data.auth.isAuthenticated && result.data.auth.user) {
             setUser(result.data.auth.user);
           } else {
-            router.push('/login');
+            router.push('/');
           }
         } catch (error) {
           console.error('인증 확인 중 오류 발생:', error);
-          router.push('/login');
+          router.push('/');
         } finally {
           setIsLoading(false);
         }

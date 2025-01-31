@@ -94,7 +94,7 @@ export default async function handler(
 
       // 리다이렉트 주소를 동적으로 생성
       const baseUrl = getBaseUrl(req.headers.host);
-      const redirectUrl = `${baseUrl}/workouts`;
+      const redirectUrl = `${baseUrl}/clubs`;
 
       res.redirect(redirectUrl);
     } catch (dbError) {

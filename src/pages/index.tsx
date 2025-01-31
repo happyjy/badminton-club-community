@@ -10,10 +10,10 @@ export const getServerSideProps: GetServerSideProps = async ({ req }) => {
 
   if (session) {
     // 세션이 있으면 리다이렉트
-    // 로그인 되어 있다면 root페이지로 이동해도 workouts페이지로 이동
+    // 로그인 되어 있다면 root페이지로 이동해도 clubs페이지로 이동
     return {
       redirect: {
-        destination: '/workouts',
+        destination: '/clubs',
         permanent: false,
       },
     };

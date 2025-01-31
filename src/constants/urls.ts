@@ -11,9 +11,9 @@ export const AUTH_URLS = {
     PRODUCTION: `${BASE_URL.PRODUCTION}/api/auth/kakao/callback`,
   },
   WORKOUTS: {
-    LOCAL: `${BASE_URL.LOCAL}/workouts`,
-    NETWORK: `${BASE_URL.NETWORK}/workouts`,
-    PRODUCTION: `${BASE_URL.PRODUCTION}/workouts`,
+    LOCAL: `${BASE_URL.LOCAL}/clubs`,
+    NETWORK: `${BASE_URL.NETWORK}/clubs`,
+    PRODUCTION: `${BASE_URL.PRODUCTION}/clubs`,
   },
 };
 
