@@ -1,12 +1,22 @@
 import { Club } from '@/types';
+import { useRouter } from 'next/router';
 
 interface ClubListItemProps {
   club: Club;
 }
 
 export function ClubListItem({ club }: ClubListItemProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/clubs/${club.id}`);
+  };
+
   return (
-    <div className="flex justify-between items-center p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white w-full">
+    <div
+      onClick={handleClick}
+      className="flex justify-between items-center p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white w-full cursor-pointer"
+    >
       <h2 className="font-semibold text-lg">{club.name}</h2>
       <div className="flex items-center text-gray-600">
         <span className="inline-flex items-center">

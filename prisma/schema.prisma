@@ -16,17 +16,14 @@ model User {
   thumbnailImageUrl  String               @default("")
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @default(now()) @updatedAt
-
-  // 관계 설정
+  ClubMember         ClubMember[]
   WorkoutParticipant WorkoutParticipant[]
-  workouts           Workout[]            @relation("WorkoutParticipants")
-  clubMemberships    ClubMember[]
 }
 
 model Workout {
   id                 Int                  @id @default(autoincrement())
   title              String
-  description        String               @default("")    
+  description        String               @default("")
   date               DateTime
   startTime          DateTime
   endTime            DateTime
@@ -35,11 +32,8 @@ model Workout {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime
   clubId             Int?
-
-  //
+  club               Club?                @relation(fields: [clubId], references: [id])
   WorkoutParticipant WorkoutParticipant[]
-  participants       User[]               @relation("WorkoutParticipants")
-  club               Club?                 @relation(fields: [clubId], references: [id])
 }
 
 model WorkoutParticipant {
@@ -48,7 +42,7 @@ model WorkoutParticipant {
   userId    Int
   status    String   @default("PENDING")
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   User      User     @relation(fields: [userId], references: [id])
   Workout   Workout  @relation(fields: [workoutId], references: [id])
 
@@ -56,18 +50,16 @@ model WorkoutParticipant {
 }
 
 model Club {
-  id          Int       @id @default(autoincrement())
-  name        String    // 클럽 이름
-  description String?   // 클럽 설명
-  location    String    // 체육관 장소
-  meetingTime String    // 운동 시간
-  maxMembers  Int       // 최대 회원 수
-  etc         String?   // 기타 정보
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  // 관계 설정
-  members     ClubMember[]  
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  location    String
+  meetingTime String
+  maxMembers  Int
+  etc         String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  ClubMember  ClubMember[]
   workouts    Workout[]
 }
 
@@ -75,25 +67,12 @@ model ClubMember {
   id        Int      @id @default(autoincrement())
   clubId    Int
   userId    Int
-  role      Role     @default(MEMBER)
-  status    Status   @default(PENDING)
+  role      String   @default("MEMBER")
+  status    String   @default("PENDING")
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 관계 설정
-  club      Club     @relation(fields: [clubId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  updatedAt DateTime
+  Club      Club     @relation(fields: [clubId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 
   @@unique([clubId, userId])
-}
-
-enum Role {
-  ADMIN
-  MEMBER
-}
-
-enum Status {
-  PENDING
-  APPROVED
-  REJECTED
 }
