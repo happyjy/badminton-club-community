@@ -18,9 +18,10 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const router = useRouter();
   const { id } = router.query;
   const [club, setClub] = useState<Club | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState(user ? 1 : 0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,6 +38,15 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
 
         setClub(clubResult.data.club);
         setWorkouts(workoutsResult.data.workouts);
+
+        // 현재 사용자가 클럽 멤버인지 확인
+        if (user && clubResult.data.club.members) {
+          const memberStatus = clubResult.data.club.members.find(
+            (member) =>
+              member.userId === user.id && member.status === 'CONFIRMED'
+          );
+          setIsMember(!!memberStatus);
+        }
       } catch (error) {
         console.error('데이터 조회 실패:', error);
       } finally {
@@ -45,7 +55,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, user]);
 
   const handleJoinClub = async () => {
     try {
@@ -77,7 +87,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{club?.name}</h1>
-        {!user && (
+        {user && !isMember && (
           <button
             onClick={handleJoinClub}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg"
@@ -134,38 +144,26 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
             </div>
           </Tab.Panel>
           <Tab.Panel className="rounded-xl bg-white p-3">
-            {user ? (
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {isLoadingWorkouts ? (
-                  <div className="col-span-full flex justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
-                  </div>
-                ) : workouts.length > 0 ? (
-                  workouts.map((workout) => (
-                    <WorkoutListItem
-                      key={workout.id}
-                      workout={workout}
-                      user={user}
-                      onParticipate={handleParticipate}
-                    />
-                  ))
-                ) : (
-                  <p className="col-span-full text-center text-gray-500 py-10">
-                    등록된 운동이 없습니다.
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <p>회원가입 후 이용 가능합니다</p>
-                <button
-                  onClick={() => router.push('/auth/signin')}
-                  className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
-                >
-                  회원가입하기
-                </button>
-              </div>
-            )}
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {isLoadingWorkouts ? (
+                <div className="col-span-full flex justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+                </div>
+              ) : workouts.length > 0 ? (
+                workouts.map((workout) => (
+                  <WorkoutListItem
+                    key={workout.id}
+                    workout={workout}
+                    user={user}
+                    onParticipate={handleParticipate}
+                  />
+                ))
+              ) : (
+                <p className="col-span-full text-center text-gray-500 py-10">
+                  등록된 운동이 없습니다.
+                </p>
+              )}
+            </div>
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
