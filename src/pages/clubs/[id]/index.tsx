@@ -23,25 +23,28 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      fetch(`/api/clubs/${id}`)
-        .then((res) => res.json())
-        .then((data) => setClub(data));
+    const fetchData = async () => {
+      if (!id) return;
 
-      const fetchWorkouts = async () => {
-        try {
-          const response = await fetch(`/api/clubs/${id}/workouts`);
-          const result = await response.json();
-          setWorkouts(result.data.workouts);
-        } catch (error) {
-          console.error('운동 목록 조회 실패:', error);
-        } finally {
-          setIsLoadingWorkouts(false);
-        }
-      };
+      try {
+        const [clubResponse, workoutsResponse] = await Promise.all([
+          fetch(`/api/clubs/${id}`),
+          fetch(`/api/clubs/${id}/workouts`),
+        ]);
 
-      fetchWorkouts();
-    }
+        const clubResult = await clubResponse.json();
+        const workoutsResult = await workoutsResponse.json();
+
+        setClub(clubResult.data.club);
+        setWorkouts(workoutsResult.data.workouts);
+      } catch (error) {
+        console.error('데이터 조회 실패:', error);
+      } finally {
+        setIsLoadingWorkouts(false);
+      }
+    };
+
+    fetchData();
   }, [id]);
 
   const handleJoinClub = async () => {
@@ -118,7 +121,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
             <div className="space-y-4">
               <div>
                 <h3 className="font-bold">운영 시간</h3>
-                <p>{club?.meetingTime}</p>
+                <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
               </div>
               <div>
                 <h3 className="font-bold">장소</h3>
