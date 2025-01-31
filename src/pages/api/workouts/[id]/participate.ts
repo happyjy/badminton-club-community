@@ -33,7 +33,7 @@ export default async function handler(
         data: {
           workoutId: Number(id),
           userId: session.id,
-          status: 'CONFIRMED',
+          status: 'APPROVED',
           updatedAt: new Date(),
         },
       });

@@ -1,6 +1,7 @@
 import { BaseEntity } from './common.types';
 import { UserProfile } from './user.types';
 import { Role, Status } from './enums';
+import { User } from '@prisma/client';
 
 // 클럽 생성/수정 시 필요한 데이터 타입
 export interface ClubInput {
@@ -36,3 +37,38 @@ export interface Club extends BaseEntity {
 export interface ClubWithDetails extends Club {
   members: ClubMember[];
 }
+
+// 클럽 멤버 타입
+export type ClubWithMembers = Club & {
+  members: (ClubMember & {
+    user: Pick<User, 'id' | 'nickname' | 'thumbnailImageUrl'>;
+  })[];
+};
+
+/* 
+const clubWithMembers: ClubWithMembers = {
+  // Club의 기본 속성들
+  id: "club-1",
+  name: "독서 클럽",
+  description: "함께 책을 읽어요",
+  
+  // members 배열
+  members: [
+    {
+      // ClubMember의 속성들
+      clubId: "club-1",
+      userId: "user-1",
+      role: "ADMIN",
+      
+      // User 정보 (Pick으로 선택된 필드들)
+      user: {
+        id: "user-1",
+        nickname: "책벌레",
+        thumbnailImageUrl: "https://..."
+      }
+    }
+  ]
+};
+*/
+
+export type ClubMembershipResponse = ClubMember;

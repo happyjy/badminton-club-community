@@ -2,10 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
+import { ClubMembershipResponse } from '@/types/club.types';
+import { Role, Status } from '@/types/enums';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse<'membership', any>>
+  res: NextApiResponse<ApiResponse<'membership', ClubMembershipResponse>>
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({
@@ -47,13 +49,20 @@ export default async function handler(
       data: {
         clubId: Number(id),
         userId: session.id,
-        role: 'MEMBER',
-        status: 'PENDING',
+        role: Role.MEMBER,
+        status: Status.PENDING,
       },
     });
 
+    // 타입 변환을 통해 Role과 Status를 올바른 enum 타입으로 캐스팅
+    const typedMembership = {
+      ...membership,
+      role: membership.role as Role,
+      status: membership.status as Status,
+    };
+
     return res.status(200).json({
-      data: { membership },
+      data: { membership: typedMembership },
       status: 200,
       message: '클럽 가입 신청이 완료되었습니다',
     });

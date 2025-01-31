@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { getSession } from '@/lib/session';
 import { ClubWithDetails, ApiResponse } from '@/types';
-import { z } from 'zod';
 import { Role, Status } from '@/types/enums';
 
 export default async function handler(

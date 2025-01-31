@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Tab } from '@headlessui/react';
 import { Club } from '@prisma/client';
 import { withAuth } from '@/lib/withAuth';
-import { User, Workout } from '@/types';
+import { ClubMember, User, Workout } from '@/types';
 import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
 
 interface ClubDetailPageProps {
@@ -42,8 +42,8 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
         // 현재 사용자가 클럽 멤버인지 확인
         if (user && clubResult.data.club.members) {
           const memberStatus = clubResult.data.club.members.find(
-            (member) =>
-              member.userId === user.id && member.status === 'CONFIRMED'
+            (member: ClubMember) =>
+              member.userId === user.id && member.status === 'APPROVED'
           );
           setIsMember(!!memberStatus);
         }

@@ -1,10 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { ApiResponse } from '@/types';
+import { ClubWithMembers } from '@/types/club.types';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse<'club', any>>
+  res: NextApiResponse<ApiResponse<'club', ClubWithMembers>>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -44,7 +45,7 @@ export default async function handler(
     }
 
     return res.status(200).json({
-      data: { club },
+      data: { club: club as ClubWithMembers },
       status: 200,
       message: '클럽 정보를 성공적으로 가져왔습니다',
     });
