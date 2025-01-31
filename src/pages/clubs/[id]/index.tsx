@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { Tab } from '@headlessui/react';
 import { Club } from '@prisma/client';
 import { withAuth } from '@/lib/withAuth';
-import { User } from '@/types';
+import { User, Workout } from '@/types';
+import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
 
 interface ClubDetailPageProps {
   user: User;
@@ -18,12 +19,28 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const { id } = router.query;
   const [club, setClub] = useState<Club | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(user ? 1 : 0);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
 
   useEffect(() => {
     if (id) {
       fetch(`/api/clubs/${id}`)
         .then((res) => res.json())
         .then((data) => setClub(data));
+
+      const fetchWorkouts = async () => {
+        try {
+          const response = await fetch(`/api/clubs/${id}/workouts`);
+          const result = await response.json();
+          setWorkouts(result.data.workouts);
+        } catch (error) {
+          console.error('운동 목록 조회 실패:', error);
+        } finally {
+          setIsLoadingWorkouts(false);
+        }
+      };
+
+      fetchWorkouts();
     }
   }, [id]);
 
@@ -37,6 +54,19 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
       }
     } catch (error) {
       console.error('Failed to join club:', error);
+    }
+  };
+
+  const handleParticipate = async (workoutId: number) => {
+    try {
+      const response = await fetch(`/api/workouts/${workoutId}/participate`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        router.reload();
+      }
+    } catch (error) {
+      console.error('Failed to participate in workout:', error);
     }
   };
 
@@ -102,7 +132,26 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
           </Tab.Panel>
           <Tab.Panel className="rounded-xl bg-white p-3">
             {user ? (
-              <div>오늘 운동 참여 현황</div>
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {isLoadingWorkouts ? (
+                  <div className="col-span-full flex justify-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+                  </div>
+                ) : workouts.length > 0 ? (
+                  workouts.map((workout) => (
+                    <WorkoutListItem
+                      key={workout.id}
+                      workout={workout}
+                      user={user}
+                      onParticipate={handleParticipate}
+                    />
+                  ))
+                ) : (
+                  <p className="col-span-full text-center text-gray-500 py-10">
+                    등록된 운동이 없습니다.
+                  </p>
+                )}
+              </div>
             ) : (
               <div className="text-center py-10">
                 <p>회원가입 후 이용 가능합니다</p>
