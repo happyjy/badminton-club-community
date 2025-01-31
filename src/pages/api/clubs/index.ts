@@ -17,7 +17,8 @@ export default async function handler(
   }
 
   const session = await getSession(req);
-  if (!session) {
+  // 세션 검증 로직 수정
+  if (!session?.id) {
     return res.status(401).json({
       error: '로그인이 필요합니다',
       status: 401,
@@ -27,6 +28,10 @@ export default async function handler(
   const prisma = new PrismaClient();
 
   try {
+    /**
+      members 는 클럽 멤버 목록을 가져오는 것이고
+      user 는 클럽 멤버의 유저 정보를 가져오는 것이다.
+     */
     const rawClubs = await prisma.club.findMany({
       include: {
         members: {
@@ -43,18 +48,13 @@ export default async function handler(
       },
     });
 
-    // Linting and checking validity of types에서 오류 발생 해결
     const clubs: ClubWithDetails[] = rawClubs.map((club) => ({
       ...club,
       members: club.members.map((member) => ({
         ...member,
         role: member.role as Role,
         status: member.status as Status,
-        user: {
-          id: member.user!.id,
-          nickname: member.user!.nickname,
-          thumbnailImageUrl: member.user!.thumbnailImageUrl,
-        },
+        user: member.user,
       })),
     }));
 
@@ -64,14 +64,6 @@ export default async function handler(
       message: '클럽 목록을 성공적으로 가져왔습니다',
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error('데이터 검증 오류:', error.errors);
-      return res.status(500).json({
-        error: '서버에서 잘못된 데이터 형식이 반환되었습니다',
-        status: 500,
-      });
-    }
-
     console.error('클럽 목록 조회 중 오류 발생:', error);
     return res.status(500).json({
       error: '클럽 목록을 가져오는데 실패했습니다',

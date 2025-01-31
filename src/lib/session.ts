@@ -16,18 +16,30 @@ export const getSession = async (
   }
 
   try {
-    const decoded = verify(token, JWT_SECRET) as { userId: string };
+    const decoded = verify(token, JWT_SECRET) as { userId: number };
+    if (!decoded || !decoded.userId) {
+      return null;
+    }
+
     const prisma = new PrismaClient();
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+      });
 
-    const user = await prisma.user.findUnique({
-      where: { id: parseInt(decoded.userId) },
-    });
+      if (!user) {
+        return null;
+      }
 
-    await prisma.$disconnect();
-
-    return user;
+      return user;
+    } catch (dbError) {
+      console.error('데이터베이스 조회 오류:', dbError);
+      return null;
+    } finally {
+      await prisma.$disconnect();
+    }
   } catch (err) {
-    console.error(err);
+    console.error('세션 검증 오류:', err);
     return null;
   }
 };

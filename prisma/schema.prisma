@@ -50,6 +50,7 @@ model WorkoutParticipant {
 }
 
 model Club {
+  // 스키마 필드 설정
   id          Int          @id @default(autoincrement())
   name        String
   description String?
@@ -59,7 +60,9 @@ model Club {
   etc         String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  ClubMember  ClubMember[]
+
+  // 관계 필드 설정
+  members     ClubMember[]
   workouts    Workout[]
 }
 
@@ -70,9 +73,9 @@ model ClubMember {
   role      String   @default("MEMBER")
   status    String   @default("PENDING")
   createdAt DateTime @default(now())
-  updatedAt DateTime
-  Club      Club     @relation(fields: [clubId], references: [id])
-  User      User     @relation(fields: [userId], references: [id])
+  updatedAt DateTime @updatedAt
+  club      Club     @relation(fields: [clubId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([clubId, userId])
 }

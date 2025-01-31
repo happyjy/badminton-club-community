@@ -18,19 +18,21 @@ export interface ClubMember extends BaseEntity {
   clubId: number;
   role: Role;
   status: Status;
-}
-
-// 클럽 멤버 with User 타입
-export interface ClubMemberWithUser extends ClubMember {
-  user: UserProfile;
+  user?: UserProfile;
 }
 
 // 기본 클럽 타입
-export interface Club extends BaseEntity, ClubInput {
+export interface Club extends BaseEntity {
+  name: string;
+  description?: string | null;
+  location: string;
+  meetingTime: string;
+  maxMembers: number;
+  etc?: string | null;
   members?: ClubMember[];
 }
 
 // 상세 정보가 포함된 클럽 타입
-export interface ClubWithDetails extends BaseEntity, ClubInput {
-  members: ClubMemberWithUser[];
+export interface ClubWithDetails extends Club {
+  members: ClubMember[];
 }
