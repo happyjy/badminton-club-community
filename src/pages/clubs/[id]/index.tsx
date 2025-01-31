@@ -23,6 +23,34 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isMember, setIsMember] = useState(false);
 
+  // 클럽 정보와 운동 목록을 별도로 가져오는 함수
+  const fetchWorkouts = async () => {
+    if (!id) return;
+    try {
+      const workoutsResponse = await fetch(`/api/clubs/${id}/workouts`);
+      const workoutsResult = await workoutsResponse.json();
+      setWorkouts(workoutsResult.data.workouts);
+    } catch (error) {
+      console.error('운동 목록 조회 실패:', error);
+    }
+  };
+  const handleParticipate = async (
+    workoutId: number,
+    isParticipating: boolean
+  ) => {
+    try {
+      const response = await fetch(`/api/workouts/${workoutId}/participate`, {
+        method: isParticipating ? 'DELETE' : 'POST',
+      });
+      if (response.ok) {
+        // router.reload() 대신 운동 목록만 새로 불러오기
+        await fetchWorkouts();
+      }
+    } catch (error) {
+      console.error('운동 참여/취소 실패:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
@@ -67,19 +95,6 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
       }
     } catch (error) {
       console.error('Failed to join club:', error);
-    }
-  };
-
-  const handleParticipate = async (workoutId: number) => {
-    try {
-      const response = await fetch(`/api/workouts/${workoutId}/participate`, {
-        method: 'POST',
-      });
-      if (response.ok) {
-        router.reload();
-      }
-    } catch (error) {
-      console.error('Failed to participate in workout:', error);
     }
   };
 
