@@ -16,8 +16,11 @@ model User {
   thumbnailImageUrl  String               @default("")
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @default(now()) @updatedAt
+
+  // 관계 설정
   WorkoutParticipant WorkoutParticipant[]
   workouts           Workout[]            @relation("WorkoutParticipants")
+  clubMemberships    ClubMember[]
 }
 
 model Workout {
@@ -31,8 +34,12 @@ model Workout {
   location           String
   createdAt          DateTime             @default(now())
   updatedAt          DateTime
+  clubId             Int?
+
+  //
   WorkoutParticipant WorkoutParticipant[]
   participants       User[]               @relation("WorkoutParticipants")
+  club               Club?                 @relation(fields: [clubId], references: [id])
 }
 
 model WorkoutParticipant {
@@ -46,4 +53,36 @@ model WorkoutParticipant {
   Workout   Workout  @relation(fields: [workoutId], references: [id])
 
   @@unique([workoutId, userId])
+}
+
+model Club {
+  id          Int       @id @default(autoincrement())
+  name        String    // 클럽 이름
+  description String?   // 클럽 설명
+  location    String    // 체육관 장소
+  meetingTime String    // 운동 시간
+  maxMembers  Int       // 최대 회원 수
+  etc         String?   // 기타 정보
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // 관계 설정
+  members     ClubMember[]  
+  workouts    Workout[]
+}
+
+model ClubMember {
+  id        Int      @id @default(autoincrement())
+  clubId    Int
+  userId    Int
+  role      String   @default("MEMBER") // ADMIN, MEMBER
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 관계 설정
+  club      Club     @relation(fields: [clubId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([clubId, userId])
 }
