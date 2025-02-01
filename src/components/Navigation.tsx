@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function Navigation() {
   const router = useRouter();
@@ -30,7 +31,11 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold">배드민턴 클럽</h1>
+            <Link href="/clubs">
+              <h1 className="text-xl font-bold cursor-pointer hover:text-gray-700">
+                배드민턴 클럽
+              </h1>
+            </Link>
           </div>
           <div className="flex items-center">
             <button
