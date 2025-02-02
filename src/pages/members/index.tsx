@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { User } from '@/types';
+import { ClubResponse, User } from '@/types';
 import { useRouter } from 'next/router';
 import { Role, Status } from '@/types/enums';
 import { withAuth } from '@/lib/withAuth';
