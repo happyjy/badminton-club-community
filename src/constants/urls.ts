@@ -1,6 +1,6 @@
 export const BASE_URL = {
   LOCAL: 'http://localhost:3000',
-  NETWORK: 'http://192.168.219.104:3000',
+  NETWORK: 'http://192.168.219.105:3000',
   PRODUCTION: 'https://badminton-club-community.vercel.app',
 };
 

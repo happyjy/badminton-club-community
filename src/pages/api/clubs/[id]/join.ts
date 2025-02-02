@@ -25,6 +25,15 @@ export default async function handler(
   }
 
   const { id } = req.query;
+  const {
+    name,
+    birthDate,
+    localTournamentLevel,
+    nationalTournamentLevel,
+    lessonPeriod,
+    playingPeriod,
+  } = req.body;
+
   const prisma = new PrismaClient();
 
   try {
@@ -51,6 +60,12 @@ export default async function handler(
         userId: session.id,
         role: Role.MEMBER,
         status: Status.PENDING,
+        name,
+        birthDate,
+        localTournamentLevel,
+        nationalTournamentLevel,
+        lessonPeriod,
+        playingPeriod,
       },
     });
 

@@ -14,11 +14,27 @@ export interface ClubInput {
 }
 
 // 클럽 멤버 타입
+export interface ClubJoinFormData {
+  name: string;
+  birthDate: string;
+  localTournamentLevel: string;
+  nationalTournamentLevel: string;
+  lessonPeriod: string;
+  playingPeriod: string;
+}
+
+// 클럽 멤버 타입
 export interface ClubMember extends BaseEntity {
   userId: number;
   clubId: number;
   role: Role;
   status: Status;
+  name?: string;
+  birthDate?: string;
+  localTournamentLevel?: string;
+  nationalTournamentLevel?: string;
+  lessonPeriod?: string;
+  playingPeriod?: string;
   user?: UserProfile;
 }
 

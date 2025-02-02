@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import { Tab } from '@headlessui/react';
 import { Club } from '@prisma/client';
 import { withAuth } from '@/lib/withAuth';
-import { ClubMember, User, Workout } from '@/types';
+import { ClubMember, User, Workout, ClubJoinFormData } from '@/types';
 import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
 import { classNames } from '@/utils';
+import { JoinClubModal } from '@/components/clubs/JoinClubModal';
 
 // 타입 정의
 interface MembershipStatus {
@@ -25,6 +26,7 @@ const TAB_INDEX = {
 
 // 컴포넌트 분리: 가입 버튼
 const JoinClubButton = ({
+  user,
   isLoading,
   membershipStatus,
   canJoinClub,
@@ -33,8 +35,10 @@ const JoinClubButton = ({
   isLoading: boolean;
   membershipStatus: MembershipStatus;
   canJoinClub: boolean;
-  onJoin: () => void;
+  onJoin: (formData: ClubJoinFormData) => void;
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   if (isLoading) return null;
 
   if (membershipStatus.isPending) {
@@ -50,12 +54,23 @@ const JoinClubButton = ({
 
   if (canJoinClub) {
     return (
-      <button
-        onClick={onJoin}
-        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-      >
-        모임 가입하기
-      </button>
+      <>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          모임 가입하기
+        </button>
+        <JoinClubModal
+          user={user}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={(formData) => {
+            onJoin(formData);
+            setIsModalOpen(false);
+          }}
+        />
+      </>
     );
   }
 
@@ -90,11 +105,16 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     }
   };
 
-  const handleJoinClub = async () => {
+  const handleJoinClub = async (formData: ClubJoinFormData) => {
     try {
       const response = await fetch(`/api/clubs/${id}/join`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
+
       if (response.ok) {
         router.reload();
       }
@@ -172,6 +192,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{club?.name}</h1>
         <JoinClubButton
+          user={user}
           isLoading={isLoading}
           membershipStatus={membershipStatus}
           canJoinClub={canJoinClub}
