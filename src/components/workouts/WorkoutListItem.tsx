@@ -1,5 +1,6 @@
 import { Workout, User } from '@/types';
 import { useRouter } from 'next/router';
+import { formatToKoreanTime } from '@/utils/date';
 
 interface WorkoutListItemProps {
   workout: Workout;
@@ -31,8 +32,8 @@ export function WorkoutListItem({
         <div className="space-y-2 text-sm text-gray-500">
           <p>📅 날짜: {new Date(workout.date).toLocaleDateString('ko-KR')}</p>
           <p>
-            ⏰ 시간: {new Date(workout.startTime).toLocaleTimeString('ko-KR')} -{' '}
-            {new Date(workout.endTime).toLocaleTimeString('ko-KR')}
+            ⏰ 시간: {formatToKoreanTime(workout.startTime)} -{' '}
+            {formatToKoreanTime(workout.endTime)}
           </p>
           <p>📍 장소: {workout.location}</p>
           <p>
