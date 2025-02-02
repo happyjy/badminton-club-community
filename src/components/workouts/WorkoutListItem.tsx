@@ -17,6 +17,9 @@ export function WorkoutListItem({
     (participant) => participant.userId === user.id
   );
 
+  // 현재 참여 인원 수 계산
+  const currentParticipants = workout.WorkoutParticipant.length;
+
   return (
     <div className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white">
       <div
@@ -32,7 +35,12 @@ export function WorkoutListItem({
             {new Date(workout.endTime).toLocaleTimeString('ko-KR')}
           </p>
           <p>📍 장소: {workout.location}</p>
-          <p>👥 최대 인원: {workout.maxParticipants}명</p>
+          <p>
+            👥 참여 인원: {currentParticipants}/{workout.maxParticipants}명
+            {currentParticipants >= workout.maxParticipants && (
+              <span className="ml-2 text-red-500">(마감)</span>
+            )}
+          </p>
         </div>
       </div>
       <div className="mt-4 pt-4 border-t">
@@ -41,13 +49,22 @@ export function WorkoutListItem({
             e.stopPropagation();
             onParticipate(workout.id, isParticipating);
           }}
+          disabled={
+            !isParticipating && currentParticipants >= workout.maxParticipants
+          }
           className={`w-full py-2 px-4 rounded-lg ${
             isParticipating
               ? 'bg-red-500 hover:bg-red-600 text-white'
-              : 'bg-blue-500 hover:bg-blue-600 text-white'
+              : currentParticipants >= workout.maxParticipants
+                ? 'bg-gray-400 cursor-not-allowed text-white'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
           }`}
         >
-          {isParticipating ? '참여 취소' : '참여하기'}
+          {isParticipating
+            ? '참여 취소'
+            : currentParticipants >= workout.maxParticipants
+              ? '인원 마감'
+              : '참여하기'}
         </button>
       </div>
     </div>
