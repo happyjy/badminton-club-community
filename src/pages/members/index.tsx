@@ -21,6 +21,7 @@ function UsersPage({ user }: { user: User }) {
     { clubId: number; role: string }[]
   >([]);
 
+  // 사용자가 admin권한을 가졌는지 확인
   useEffect(() => {
     const fetchUserClubs = async () => {
       try {
@@ -48,6 +49,7 @@ function UsersPage({ user }: { user: User }) {
     fetchUserClubs();
   }, [router]);
 
+  // 로그인 사용자가 속한 유저 조회
   useEffect(() => {
     const fetchUsers = async () => {
       if (userClubs.length === 0) return;
