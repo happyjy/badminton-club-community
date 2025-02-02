@@ -261,6 +261,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
                       workout={workout}
                       user={user}
                       onParticipate={handleParticipate}
+                      membershipStatus={membershipStatus}
                     />
                   ))
                 ) : (

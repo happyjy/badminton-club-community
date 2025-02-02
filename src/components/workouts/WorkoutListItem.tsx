@@ -1,17 +1,19 @@
-import { Workout, User } from '@/types';
+import { Workout, User, MembershipStatus } from '@/types';
 import { useRouter } from 'next/router';
 import { formatToKoreanTime } from '@/utils/date';
 
 interface WorkoutListItemProps {
   workout: Workout;
   user: User;
-  onParticipate: (workoutId: number, isParticipating: boolean) => Promise<void>;
+  onParticipate: (workoutId: number, isParticipating: boolean) => void;
+  membershipStatus: MembershipStatus;
 }
 
 export function WorkoutListItem({
   workout,
   user,
   onParticipate,
+  membershipStatus,
 }: WorkoutListItemProps) {
   const router = useRouter();
   const isParticipating = workout.WorkoutParticipant.some(
@@ -45,28 +47,37 @@ export function WorkoutListItem({
         </div>
       </div>
       <div className="mt-4 pt-4 border-t">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onParticipate(workout.id, isParticipating);
-          }}
-          disabled={
-            !isParticipating && currentParticipants >= workout.maxParticipants
-          }
-          className={`w-full py-2 px-4 rounded-lg ${
-            isParticipating
-              ? 'bg-red-500 hover:bg-red-600 text-white'
+        {membershipStatus.isMember ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onParticipate(workout.id, isParticipating);
+            }}
+            disabled={
+              !isParticipating && currentParticipants >= workout.maxParticipants
+            }
+            className={`w-full py-2 px-4 rounded-lg ${
+              isParticipating
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : currentParticipants >= workout.maxParticipants
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {isParticipating
+              ? '참여 취소'
               : currentParticipants >= workout.maxParticipants
-                ? 'bg-gray-400 cursor-not-allowed text-white'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-          }`}
-        >
-          {isParticipating
-            ? '참여 취소'
-            : currentParticipants >= workout.maxParticipants
-              ? '인원 마감'
-              : '참여하기'}
-        </button>
+                ? '인원 마감'
+                : '참여하기'}
+          </button>
+        ) : (
+          <button
+            disabled
+            className="w-full py-2 px-4 rounded-lg bg-gray-400 text-white cursor-not-allowed"
+          >
+            {membershipStatus.isPending ? '승인 대기중' : '클럽 가입 필요'}
+          </button>
+        )}
       </div>
     </div>
   );
