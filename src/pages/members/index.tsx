@@ -10,6 +10,11 @@ interface ClubMemberWithUser extends User {
     status: string;
     role: string;
     clubId: number;
+    birthDate?: string;
+    localTournamentLevel?: string;
+    nationalTournamentLevel?: string;
+    playingPeriod?: number;
+    lessonPeriod?: number;
   }[];
 }
 
@@ -137,8 +142,8 @@ function UsersPage(/* { user }: { user: User } */) {
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
       {/* 클럽 이름 목록 추가 */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">관리중인 클럽:</h2>
+      <div className="flex mb-2">
+        <h2 className="text-lg font-semibold  mr-2">관리중인 클럽:</h2>
         <div className="flex flex-wrap gap-2">
           {userClubs.map((club) => (
             <span
@@ -203,6 +208,45 @@ function UsersPage(/* { user }: { user: User } */) {
                           승인하기
                         </button>
                       )}
+                    </div>
+                    {/* 추가 정보 표시 */}
+                    <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-500">생년월일:</span>
+                        <span>
+                          {member.birthDate
+                            ? new Date(member.birthDate).toLocaleDateString(
+                                'ko-KR'
+                              )
+                            : '미입력'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-500">구대회급수:</span>
+                        <span>{member.localTournamentLevel || '미입력'}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-500">전국대회급수:</span>
+                        <span>
+                          {member.nationalTournamentLevel || '미입력'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-500">구력:</span>
+                        <span>
+                          {member.playingPeriod
+                            ? `${member.playingPeriod}`
+                            : '미입력'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-500">레슨:</span>
+                        <span>
+                          {member.lessonPeriod
+                            ? `${member.lessonPeriod}`
+                            : '미입력'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
