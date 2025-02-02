@@ -10,13 +10,19 @@ export default async function handler(
   res: NextApiResponse<ApiResponse<'member', ClubMember>>
 ) {
   if (req.method !== 'PUT') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({
+      error: '허용되지 않는 메소드입니다',
+      status: 405,
+    });
   }
 
   try {
     const session = await getSession(req);
     if (!session?.id) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({
+        error: '로그인이 필요합니다',
+        status: 401,
+      });
     }
 
     const clubId = Number(req.query.id);
@@ -33,7 +39,10 @@ export default async function handler(
     });
 
     if (!adminMember) {
-      return res.status(403).json({ error: 'Forbidden' });
+      return res.status(403).json({
+        error: '권한이 없습니다',
+        status: 403,
+      });
     }
 
     // 멤버 상태 업데이트
@@ -49,9 +58,23 @@ export default async function handler(
       },
     });
 
-    return res.status(200).json({ data: updatedMember });
+    // Role과 Status를 enum 타입으로 캐스팅
+    const typedMember: ClubMember = {
+      ...updatedMember,
+      role: updatedMember.role as Role,
+      status: updatedMember.status as Status,
+    };
+
+    return res.status(200).json({
+      data: { member: typedMember },
+      status: 200,
+      message: '멤버 승인이 완료되었습니다',
+    });
   } catch (error) {
     console.error('Error approving member:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({
+      error: '멤버 승인 중 오류가 발생했습니다',
+      status: 500,
+    });
   }
 }

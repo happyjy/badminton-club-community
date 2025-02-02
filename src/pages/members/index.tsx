@@ -12,7 +12,7 @@ interface ClubMemberWithUser extends User {
   }[];
 }
 
-function UsersPage({ user }: { user: User }) {
+function UsersPage(/* { user }: { user: User } */) {
   const router = useRouter();
   const [users, setUsers] = useState<ClubMemberWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);

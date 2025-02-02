@@ -10,18 +10,27 @@ export default async function handler(
   res: NextApiResponse<ApiResponse<'users', User[]>>
 ) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({
+      error: '허용되지 않는 메소드입니다',
+      status: 405,
+    });
   }
 
   try {
     const session = await getSession(req);
     if (!session?.id) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({
+        error: '로그인이 필요합니다',
+        status: 401,
+      });
     }
 
     const { clubIds } = req.query;
     if (!clubIds) {
-      return res.status(400).json({ error: 'Club IDs are required' });
+      return res.status(400).json({
+        error: '클럽 ID가 필요합니다',
+        status: 400,
+      });
     }
 
     const clubIdArray = (clubIds as string).split(',').map(Number);
@@ -37,7 +46,10 @@ export default async function handler(
     });
 
     if (userClubRoles.length === 0) {
-      return res.status(403).json({ error: 'Forbidden' });
+      return res.status(403).json({
+        error: '권한이 없습니다',
+        status: 403,
+      });
     }
 
     const users = await prisma.user.findMany({
@@ -62,9 +74,16 @@ export default async function handler(
       },
     });
 
-    return res.status(200).json({ data: { users } });
+    return res.status(200).json({
+      data: { users },
+      status: 200,
+      message: '클럽 멤버를 불러오는데 성공했습니다',
+    });
   } catch (error) {
     console.error('Error fetching club members:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({
+      error: '클럽 멤버를 불러오는데 실패했습니다',
+      status: 500,
+    });
   }
 }
