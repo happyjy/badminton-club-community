@@ -77,11 +77,11 @@ function MemberDetails({ member }: { member: ClubMember }) {
     },
     {
       label: '구력',
-      value: member.playingPeriod ? `${member.playingPeriod}년` : '미입력',
+      value: member.playingPeriod ? `${member.playingPeriod}` : '미입력',
     },
     {
       label: '레슨',
-      value: member.lessonPeriod ? `${member.lessonPeriod}개월` : '미입력',
+      value: member.lessonPeriod ? `${member.lessonPeriod}` : '미입력',
     },
   ];
 
