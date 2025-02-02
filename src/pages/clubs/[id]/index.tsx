@@ -29,6 +29,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isMember, setIsMember] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 클럽 정보와 운동 목록을 별도로 가져오는 함수
   const fetchWorkouts = async () => {
@@ -62,6 +63,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     const fetchData = async () => {
       if (!id) return;
 
+      setIsLoading(true); // 데이터 로딩 시작
       try {
         const [clubResponse, workoutsResponse] = await Promise.all([
           fetch(`/api/clubs/${id}`),
@@ -84,13 +86,13 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
 
           // 멤버십 상태에 따라 초기 탭 설정
           const isUserCanJoin = !memberStatus && user;
-          // 가입하지 않은 사용자는 HOME 탭, 이미 가입한 사용자는 WORKOUTS 탭
           setSelectedIndex(isUserCanJoin ? TAB_INDEX.HOME : TAB_INDEX.WORKOUTS);
         }
       } catch (error) {
         console.error('데이터 조회 실패:', error);
       } finally {
         setIsLoadingWorkouts(false);
+        setIsLoading(false); // 데이터 로딩 완료
       }
     };
 
@@ -124,7 +126,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{club?.name}</h1>
-        {canJoinClub && (
+        {!isLoading && canJoinClub && (
           <button
             onClick={handleJoinClub}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg"
