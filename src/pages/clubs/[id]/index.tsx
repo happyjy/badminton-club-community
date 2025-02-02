@@ -5,43 +5,104 @@ import { Club } from '@prisma/client';
 import { withAuth } from '@/lib/withAuth';
 import { ClubMember, User, Workout } from '@/types';
 import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
+import { classNames } from '@/utils';
+
+// 타입 정의
+interface MembershipStatus {
+  isPending: boolean;
+  isMember: boolean;
+}
 
 interface ClubDetailPageProps {
   user: User;
 }
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
+// 상수 정의
+const TAB_INDEX = {
+  HOME: 0,
+  WORKOUTS: 1,
+} as const;
 
+// 컴포넌트 분리: 가입 버튼
+const JoinClubButton = ({
+  isLoading,
+  membershipStatus,
+  canJoinClub,
+  onJoin,
+}: {
+  isLoading: boolean;
+  membershipStatus: MembershipStatus;
+  canJoinClub: boolean;
+  onJoin: () => void;
+}) => {
+  if (isLoading) return null;
+
+  if (membershipStatus.isPending) {
+    return (
+      <button
+        disabled
+        className="bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed"
+      >
+        가입 승인 대기중
+      </button>
+    );
+  }
+
+  if (canJoinClub) {
+    return (
+      <button
+        onClick={onJoin}
+        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+      >
+        모임 가입하기
+      </button>
+    );
+  }
+
+  return null;
+};
+
+// 메인 컴포넌트
 function ClubDetailPage({ user }: ClubDetailPageProps) {
   const router = useRouter();
   const { id } = router.query;
 
-  // 탭 인덱스를 상수로 정의
-  const TAB_INDEX = {
-    HOME: 0,
-    WORKOUTS: 1,
-  } as const;
-
+  // 상태 관리
   const [club, setClub] = useState<Club | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
-  const [isMember, setIsMember] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [membershipStatus, setMembershipStatus] = useState<MembershipStatus>({
+    isPending: false,
+    isMember: false,
+  });
 
-  // 클럽 정보와 운동 목록을 별도로 가져오는 함수
+  // API 호출 함수들
   const fetchWorkouts = async () => {
     if (!id) return;
     try {
-      const workoutsResponse = await fetch(`/api/clubs/${id}/workouts`);
-      const workoutsResult = await workoutsResponse.json();
-      setWorkouts(workoutsResult.data.workouts);
+      const response = await fetch(`/api/clubs/${id}/workouts`);
+      const result = await response.json();
+      setWorkouts(result.data.workouts);
     } catch (error) {
       console.error('운동 목록 조회 실패:', error);
     }
   };
+
+  const handleJoinClub = async () => {
+    try {
+      const response = await fetch(`/api/clubs/${id}/join`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        router.reload();
+      }
+    } catch (error) {
+      console.error('Failed to join club:', error);
+    }
+  };
+
   const handleParticipate = async (
     workoutId: number,
     isParticipating: boolean
@@ -59,34 +120,37 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     }
   };
 
+  // 초기 데이터 로딩
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       if (!id) return;
 
-      setIsLoading(true); // 데이터 로딩 시작
+      setIsLoading(true);
       try {
         const [clubResponse, workoutsResponse] = await Promise.all([
           fetch(`/api/clubs/${id}`),
           fetch(`/api/clubs/${id}/workouts`),
         ]);
 
-        const clubResult = await clubResponse.json();
-        const workoutsResult = await workoutsResponse.json();
+        const [clubResult, workoutsResult] = await Promise.all([
+          clubResponse.json(),
+          workoutsResponse.json(),
+        ]);
 
         setClub(clubResult.data.club);
         setWorkouts(workoutsResult.data.workouts);
 
-        // 현재 사용자가 클럽 멤버인지 확인
         if (user && clubResult.data.club.members) {
           const memberStatus = clubResult.data.club.members.find(
-            (member: ClubMember) =>
-              member.userId === user.id && member.status === 'APPROVED'
+            (member: ClubMember) => member.userId === user.id
           );
-          setIsMember(!!memberStatus);
 
-          // 멤버십 상태에 따라 초기 탭 설정
-          const isUserCanJoin = !memberStatus && user;
-          setSelectedIndex(isUserCanJoin ? TAB_INDEX.HOME : TAB_INDEX.WORKOUTS);
+          setMembershipStatus({
+            isPending: memberStatus?.status === 'PENDING',
+            isMember: memberStatus?.status === 'APPROVED',
+          });
+
+          setSelectedIndex(!memberStatus ? TAB_INDEX.HOME : TAB_INDEX.WORKOUTS);
         }
       } catch (error) {
         console.error('데이터 조회 실패:', error);
@@ -96,44 +160,23 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
       }
     };
 
-    fetchData();
+    fetchInitialData();
   }, [id, user]);
 
-  const handleJoinClub = async () => {
-    try {
-      const response = await fetch(`/api/clubs/${id}/join`, {
-        method: 'POST',
-      });
-      if (response.ok) {
-        router.reload();
-      }
-    } catch (error) {
-      console.error('Failed to join club:', error);
-    }
-  };
-
   const canJoinClub =
-    user &&
-    !isMember &&
-    !club?.members?.some(
-      (member) =>
-        member.userId === user.id &&
-        (member.role === 'ADMIN' || member.role === 'MEMBER') &&
-        member.status === 'APPROVED'
-    );
+    user && !membershipStatus.isMember && !membershipStatus.isPending;
 
+  // 렌더링
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{club?.name}</h1>
-        {!isLoading && canJoinClub && (
-          <button
-            onClick={handleJoinClub}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-          >
-            모임 가입하기
-          </button>
-        )}
+        <JoinClubButton
+          isLoading={isLoading}
+          membershipStatus={membershipStatus}
+          canJoinClub={canJoinClub}
+          onJoin={handleJoinClub}
+        />
       </div>
 
       {selectedIndex !== null && (
