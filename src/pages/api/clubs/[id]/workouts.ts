@@ -17,9 +17,24 @@ export default async function handler(
   const prisma = new PrismaClient();
 
   try {
+    // 현재 날짜를 기준으로 이번 주 일요일 구하기
+    const today = new Date();
+    const currentSunday = new Date(today);
+    currentSunday.setDate(today.getDate() - today.getDay());
+    currentSunday.setHours(0, 0, 0, 0);
+
+    // 다음 주 일요일 구하기
+    const nextSunday = new Date(currentSunday);
+    nextSunday.setDate(currentSunday.getDate() + 7);
+    nextSunday.setHours(23, 59, 59, 999);
+
     const workouts = await prisma.workout.findMany({
       where: {
         clubId: Number(id),
+        startTime: {
+          gte: currentSunday,
+          lte: nextSunday,
+        },
       },
       include: {
         WorkoutParticipant: {
