@@ -3,6 +3,7 @@ import { User } from '@/types';
 import { useRouter } from 'next/router';
 import { Role, Status } from '@/types/enums';
 import { withAuth } from '@/lib/withAuth';
+import Image from 'next/image';
 
 interface ClubMemberWithUser extends User {
   ClubMember: {
@@ -144,7 +145,7 @@ function UsersPage(/* { user }: { user: User } */) {
             >
               <div className="flex items-center gap-3 mb-2">
                 {user.thumbnailImageUrl && (
-                  <img
+                  <Image
                     src={user.thumbnailImageUrl}
                     alt={user.nickname}
                     className="w-10 h-10 rounded-full"

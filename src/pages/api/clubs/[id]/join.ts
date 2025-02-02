@@ -69,11 +69,17 @@ export default async function handler(
       },
     });
 
-    // 타입 변환을 통해 Role과 Status를 올바른 enum 타입으로 캐스팅
+    // null 값을 undefined로 변환하여 타입 호환성 확보
     const typedMembership = {
       ...membership,
       role: membership.role as Role,
       status: membership.status as Status,
+      name: membership.name ?? undefined,
+      birthDate: membership.birthDate ?? undefined,
+      localTournamentLevel: membership.localTournamentLevel ?? undefined,
+      nationalTournamentLevel: membership.nationalTournamentLevel ?? undefined,
+      lessonPeriod: membership.lessonPeriod ?? undefined,
+      playingPeriod: membership.playingPeriod ?? undefined,
     };
 
     return res.status(200).json({

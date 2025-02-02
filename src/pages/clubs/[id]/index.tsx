@@ -32,6 +32,7 @@ const JoinClubButton = ({
   canJoinClub,
   onJoin,
 }: {
+  user: User;
   isLoading: boolean;
   membershipStatus: MembershipStatus;
   canJoinClub: boolean;

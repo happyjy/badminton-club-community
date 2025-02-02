@@ -58,11 +58,18 @@ export default async function handler(
       },
     });
 
-    // Role과 Status를 enum 타입으로 캐스팅
+    // Role과 Status를 enum 타입으로 캐스팅하고 null 값을 undefined로 변환
     const typedMember: ClubMember = {
       ...updatedMember,
       role: updatedMember.role as Role,
       status: updatedMember.status as Status,
+      name: updatedMember.name ?? undefined,
+      birthDate: updatedMember.birthDate ?? undefined,
+      localTournamentLevel: updatedMember.localTournamentLevel ?? undefined,
+      nationalTournamentLevel:
+        updatedMember.nationalTournamentLevel ?? undefined,
+      lessonPeriod: updatedMember.lessonPeriod ?? undefined,
+      playingPeriod: updatedMember.playingPeriod ?? undefined,
     };
 
     return res.status(200).json({

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ClubJoinFormData } from '@/types/club.types';
+import { User } from '@/types';
 
 interface JoinClubModalProps {
   user: User;
@@ -12,9 +13,9 @@ const TOURNAMENT_LEVELS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 const DEFAULT_DATE = '1990-01-01';
 
 const createInitialFormData = ({
-  name,
+  name = '',
 }: {
-  [ClubJoinFormData]: string;
+  [key in keyof ClubJoinFormData]?: ClubJoinFormData[key];
 }): ClubJoinFormData => ({
   name,
   birthDate: DEFAULT_DATE,
@@ -31,7 +32,7 @@ export function JoinClubModal({
   onSubmit,
 }: JoinClubModalProps) {
   const [formData, setFormData] = useState<ClubJoinFormData>(() =>
-    createInitialFormData({ name: user?.nickname })
+    createInitialFormData({ name: user?.nickname || '' })
   );
 
   useEffect(() => {

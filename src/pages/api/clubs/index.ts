@@ -53,6 +53,12 @@ export default async function handler(
         ...member,
         role: member.role as Role,
         status: member.status as Status,
+        name: member.name ?? undefined,
+        birthDate: member.birthDate ?? undefined,
+        localTournamentLevel: member.localTournamentLevel ?? undefined,
+        nationalTournamentLevel: member.nationalTournamentLevel ?? undefined,
+        lessonPeriod: member.lessonPeriod ?? undefined,
+        playingPeriod: member.playingPeriod ?? undefined,
         user: member.user,
       })),
     }));
