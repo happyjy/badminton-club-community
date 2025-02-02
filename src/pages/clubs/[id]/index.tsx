@@ -187,6 +187,34 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const canJoinClub =
     user && !membershipStatus.isMember && !membershipStatus.isPending;
 
+  // 페이지 이동 전 스크롤 위치 저장
+  useEffect(() => {
+    const handleRouteChange = () => {
+      sessionStorage.setItem(`club-${id}-scroll`, window.scrollY.toString());
+    };
+
+    router.events.on('routeChangeStart', handleRouteChange);
+
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange);
+    };
+  }, [router.events, id]);
+
+  // 페이지 로드 시 스크롤 위치 복원
+  useLayoutEffect(() => {
+    const savedPosition = sessionStorage.getItem(`club-${id}-scroll`);
+    console.log(`🚨 ~ useLayoutEffect ~ savedPosition:`, savedPosition);
+
+    if (savedPosition && !isLoading) {
+      console.log(`🚨 ~ useLayoutEffect ~ savedPosition1:`, savedPosition);
+      window.scrollTo({
+        top: parseInt(savedPosition),
+        behavior: 'smooth',
+      });
+      sessionStorage.removeItem(`club-${id}-scroll`);
+    }
+  }, [id, isLoading]);
+
   // 렌더링
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
