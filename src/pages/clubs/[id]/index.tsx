@@ -204,7 +204,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     if (savedPosition && !isLoading) {
       window.scrollTo({
         top: parseInt(savedPosition),
-        behavior: 'smooth',
+        behavior: 'instant',
       });
       sessionStorage.removeItem(`club-${id}-scroll`);
     }
