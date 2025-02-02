@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { Role, Status } from '@/types/enums';
 import { withAuth } from '@/lib/withAuth';
 import Image from 'next/image';
+import { ClubMemberCard } from '@/components/members/ClubMemberCard';
 
 interface ClubMemberWithUser extends User {
   ClubMember: {
@@ -122,6 +123,41 @@ function UsersPage(/* { user }: { user: User } */) {
     }
   };
 
+  const renderUserCard = (user: ClubMemberWithUser) => (
+    <div
+      key={user.id}
+      className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-center gap-3 mb-2">
+        {user.thumbnailImageUrl && (
+          <Image
+            src={user.thumbnailImageUrl}
+            alt={user.nickname}
+            className="w-10 h-10 rounded-full"
+            width={40}
+            height={40}
+          />
+        )}
+        <h2 className="font-semibold text-lg">
+          {user.nickname || '이름 없음'}
+        </h2>
+      </div>
+      <p className="text-gray-600 text-sm mb-2">{user.email}</p>
+      {user.ClubMember.map((member) => (
+        <ClubMemberCard
+          key={`${user.id}-${member.clubId}`}
+          member={member}
+          userId={user.id}
+          userClubs={userClubs}
+          onApprove={handleApprove}
+        />
+      ))}
+      <p className="text-gray-500 text-xs mt-2">
+        가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+      </p>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -141,9 +177,8 @@ function UsersPage(/* { user }: { user: User } */) {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
-      {/* 클럽 이름 목록 추가 */}
       <div className="flex mb-2">
-        <h2 className="text-lg font-semibold  mr-2">관리중인 클럽:</h2>
+        <h2 className="text-lg font-semibold mr-2">관리중인 클럽:</h2>
         <div className="flex flex-wrap gap-2">
           {userClubs.map((club) => (
             <span
@@ -157,105 +192,7 @@ function UsersPage(/* { user }: { user: User } */) {
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {users.length > 0 ? (
-          users.map((user) => (
-            <div
-              key={user.id}
-              className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                {user.thumbnailImageUrl && (
-                  <Image
-                    src={user.thumbnailImageUrl}
-                    alt={user.nickname}
-                    className="w-10 h-10 rounded-full"
-                    width={40}
-                    height={40}
-                  />
-                )}
-                <h2 className="font-semibold text-lg">
-                  {user.nickname || '이름 없음'}
-                </h2>
-              </div>
-              <p className="text-gray-600 text-sm mb-2">{user.email}</p>
-              {user.ClubMember.map((member) => {
-                const club = userClubs.find((c) => c.clubId === member.clubId);
-
-                return (
-                  <div key={`${user.id}-${member.clubId}`} className="mt-2">
-                    <div className="flex justify-between items-center">
-                      <p className="text-sm flex items-center gap-2">
-                        <span>
-                          {club?.club?.name || `클럽 ${member.clubId}`}
-                        </span>
-                        <span>상태:</span>
-                        <span
-                          className={`font-semibold ${
-                            member.status === Status.PENDING
-                              ? 'text-yellow-600'
-                              : member.status === Status.APPROVED
-                                ? 'text-green-600'
-                                : 'text-red-600'
-                          }`}
-                        >
-                          {member.status}
-                        </span>
-                      </p>
-                      {member.status === Status.PENDING && (
-                        <button
-                          onClick={() => handleApprove(user.id, member.clubId)}
-                          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-                        >
-                          승인하기
-                        </button>
-                      )}
-                    </div>
-                    {/* 추가 정보 표시 */}
-                    <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">생년월일:</span>
-                        <span>
-                          {member.birthDate
-                            ? new Date(member.birthDate).toLocaleDateString(
-                                'ko-KR'
-                              )
-                            : '미입력'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">구대회급수:</span>
-                        <span>{member.localTournamentLevel || '미입력'}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">전국대회급수:</span>
-                        <span>
-                          {member.nationalTournamentLevel || '미입력'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">구력:</span>
-                        <span>
-                          {member.playingPeriod
-                            ? `${member.playingPeriod}`
-                            : '미입력'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-gray-500">레슨:</span>
-                        <span>
-                          {member.lessonPeriod
-                            ? `${member.lessonPeriod}`
-                            : '미입력'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              <p className="text-gray-500 text-xs mt-2">
-                가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
-              </p>
-            </div>
-          ))
+          users.map(renderUserCard)
         ) : (
           <p className="col-span-full text-center text-gray-500">
             등록된 멤버가 없습니다.
