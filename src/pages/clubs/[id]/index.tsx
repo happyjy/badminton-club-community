@@ -98,11 +98,21 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     }
   };
 
+  const canJoinClub =
+    user &&
+    !isMember &&
+    !club?.members?.some(
+      (member) =>
+        member.userId === user.id &&
+        (member.role === 'ADMIN' || member.role === 'MEMBER') &&
+        member.status === 'APPROVED'
+    );
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{club?.name}</h1>
-        {user && !isMember && (
+        {canJoinClub && (
           <button
             onClick={handleJoinClub}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg"
