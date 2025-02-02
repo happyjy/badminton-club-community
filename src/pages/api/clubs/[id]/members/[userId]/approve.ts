@@ -2,10 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { Role, Status } from '@/types/enums';
 import { getSession } from '@/lib/session';
 import { PrismaClient } from '@prisma/client';
+import { ApiResponse } from '@/types';
+import { ClubMember } from '@/types';
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<ApiResponse<'member', ClubMember>>
 ) {
   if (req.method !== 'PUT') {
     return res.status(405).json({ error: 'Method not allowed' });
