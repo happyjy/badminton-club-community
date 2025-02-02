@@ -149,6 +149,8 @@ function UsersPage(/* { user }: { user: User } */) {
                     src={user.thumbnailImageUrl}
                     alt={user.nickname}
                     className="w-10 h-10 rounded-full"
+                    width={40}
+                    height={40}
                   />
                 )}
                 <h2 className="font-semibold text-lg">
