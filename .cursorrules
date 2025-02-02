@@ -115,3 +115,8 @@
 
 
 
+# 프로젝트 룰
+## api
+- prisma 객체는  "import { PrismaClient } from '@prisma/client', const prisma = new PrismaClient();" 이 모드의 prisma를 사용해야함 
+  - ("import prisma from '@/lib/prisma';" 아님)
+
