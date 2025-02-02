@@ -96,3 +96,7 @@ export interface ClubResponse {
     name: string;
   };
 }
+
+export interface ClubDetailPageProps {
+  user: User;
+}

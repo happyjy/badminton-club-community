@@ -1,22 +1,19 @@
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { Tab } from '@headlessui/react';
 import { Club } from '@prisma/client';
 import { withAuth } from '@/lib/withAuth';
-import { ClubMember, User, Workout, ClubJoinFormData } from '@/types';
+import {
+  ClubMember,
+  User,
+  Workout,
+  ClubJoinFormData,
+  MembershipStatus,
+  ClubDetailPageProps,
+} from '@/types';
 import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
 import { classNames } from '@/utils';
 import { JoinClubModal } from '@/components/clubs/JoinClubModal';
-
-// 타입 정의
-interface MembershipStatus {
-  isPending: boolean;
-  isMember: boolean;
-}
-
-interface ClubDetailPageProps {
-  user: User;
-}
 
 // 상수 정의
 const TAB_INDEX = {
@@ -203,10 +200,8 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   // 페이지 로드 시 스크롤 위치 복원
   useLayoutEffect(() => {
     const savedPosition = sessionStorage.getItem(`club-${id}-scroll`);
-    console.log(`🚨 ~ useLayoutEffect ~ savedPosition:`, savedPosition);
 
     if (savedPosition && !isLoading) {
-      console.log(`🚨 ~ useLayoutEffect ~ savedPosition1:`, savedPosition);
       window.scrollTo({
         top: parseInt(savedPosition),
         behavior: 'smooth',

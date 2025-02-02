@@ -29,9 +29,7 @@ export default async function handler(
   const prisma = new PrismaClient();
 
   try {
-    console.log(`🚨 ~ req.method:`, req.method);
     if (req.method === 'POST') {
-      console.log(111);
       await prisma.workoutParticipant.create({
         data: {
           workoutId: Number(id),
@@ -41,14 +39,12 @@ export default async function handler(
         },
       });
 
-      console.log(222);
       return res.status(200).json({
         data: { participation: { status: 'joined' } },
         status: 200,
         message: '운동에 참여했습니다',
       });
     } else {
-      console.log(333);
       await prisma.workoutParticipant.delete({
         where: {
           workoutId_userId: {
@@ -58,7 +54,6 @@ export default async function handler(
         },
       });
 
-      console.log(444);
       return res.status(200).json({
         data: { participation: { status: 'left' } },
         status: 200,

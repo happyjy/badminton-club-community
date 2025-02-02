@@ -61,10 +61,8 @@ function UsersPage(/* { user }: { user: User } */) {
 
       try {
         const clubIds = userClubs.map((club) => club.clubId).join(',');
-        console.log(`🚨 ~ fetchUsers ~ userClubs:`, userClubs);
         const response = await fetch(`/api/clubs/members?clubIds=${clubIds}`);
         const result = await response.json();
-        console.log(`🚨 ~ fetchUsers ~ result:`, result);
         if (!response.ok) throw new Error(result.error);
 
         setUsers(result.data.users);
