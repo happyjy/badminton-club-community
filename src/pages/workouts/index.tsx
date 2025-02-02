@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { withAuth } from '@/lib/withAuth';
 import { useRouter } from 'next/router';
 import { Workout, User } from '@/types';
+import { formatToKoreanTime } from '@/utils';
 
 // WorkoutsPage의 props 타입 정의
 interface WorkoutsPageProps {
@@ -106,17 +107,10 @@ export function WorkoutsPage({ user }: WorkoutsPageProps) {
                     </h2>
                     <p className="text-gray-600 mb-4">{workout.description}</p>
                     <div className="space-y-2 text-sm text-gray-500">
+                      <p>📅 날짜: {formatToKoreanTime(workout.date)}</p>
                       <p>
-                        📅 날짜:{' '}
-                        {new Date(workout.date).toLocaleDateString('ko-KR')}
-                      </p>
-                      <p>
-                        ⏰ 시간:{' '}
-                        {new Date(workout.startTime).toLocaleTimeString(
-                          'ko-KR'
-                        )}{' '}
-                        -{' '}
-                        {new Date(workout.endTime).toLocaleTimeString('ko-KR')}
+                        ⏰ 시간: {formatToKoreanTime(workout.startTime)} -{' '}
+                        {formatToKoreanTime(workout.endTime)}
                       </p>
                       <p>📍 장소: {workout.location}</p>
                       <p>👥 최대 인원: {workout.maxParticipants}명</p>

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 import Image from 'next/image';
 import { Workout } from '@/types';
+import { formatToKoreanTime } from '@/utils';
 
 function WorkoutDetailPage() {
   const router = useRouter();
@@ -68,8 +69,8 @@ function WorkoutDetailPage() {
           <div className="flex items-center space-x-2">
             <span className="text-gray-500">⏰</span>
             <span>
-              {new Date(workout.startTime).toLocaleTimeString('ko-KR')} -{' '}
-              {new Date(workout.endTime).toLocaleTimeString('ko-KR')}
+              {formatToKoreanTime(workout.startTime)} -{' '}
+              {formatToKoreanTime(workout.endTime)}
             </span>
           </div>
           <div className="flex items-center space-x-2">
