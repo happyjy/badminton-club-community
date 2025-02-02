@@ -2,11 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { PrismaClient } from '@prisma/client';
-
-interface ClubResponse {
-  clubId: number;
-  role: string;
-}
+import { ClubResponse } from '@/types/club.types';
 
 export default async function handler(
   req: NextApiRequest,
@@ -21,7 +17,6 @@ export default async function handler(
 
   try {
     const session = await getSession(req);
-    console.log(`🚨 ~ session:`, session);
     if (!session?.id) {
       return res.status(401).json({
         error: '로그인이 필요합니다',
@@ -31,24 +26,32 @@ export default async function handler(
 
     // 사용자가 속한 클럽 멤버십 정보 조회
     const prisma = new PrismaClient();
-    const clubMemberships = await prisma.clubMember.findMany({
+    const clubs = await prisma.clubMember.findMany({
       where: {
         userId: session.id,
       },
       select: {
         clubId: true,
         role: true,
+        club: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
     // 응답 형식에 맞게 데이터 변환
-    const clubs = clubMemberships.map((membership) => ({
+    const clubResponses = clubs.map((membership) => ({
       clubId: membership.clubId,
       role: membership.role,
+      club: {
+        name: membership.club.name,
+      },
     }));
 
     return res.status(200).json({
-      data: { clubs },
+      data: { clubs: clubResponses },
       status: 200,
       message: '클럽 목록을 성공적으로 가져왔습니다',
     });

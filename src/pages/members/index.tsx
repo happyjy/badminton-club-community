@@ -18,9 +18,7 @@ function UsersPage(/* { user }: { user: User } */) {
   const [users, setUsers] = useState<ClubMemberWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userClubs, setUserClubs] = useState<
-    { clubId: number; role: string }[]
-  >([]);
+  const [userClubs, setUserClubs] = useState<ClubResponse[]>([]); // 타입 수정
 
   // 사용자가 admin권한을 가졌는지 확인
   useEffect(() => {
@@ -57,8 +55,10 @@ function UsersPage(/* { user }: { user: User } */) {
 
       try {
         const clubIds = userClubs.map((club) => club.clubId).join(',');
+        console.log(`🚨 ~ fetchUsers ~ userClubs:`, userClubs);
         const response = await fetch(`/api/clubs/members?clubIds=${clubIds}`);
         const result = await response.json();
+        console.log(`🚨 ~ fetchUsers ~ result:`, result);
         if (!response.ok) throw new Error(result.error);
 
         setUsers(result.data.users);
@@ -136,6 +136,20 @@ function UsersPage(/* { user }: { user: User } */) {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
+      {/* 클럽 이름 목록 추가 */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">관리중인 클럽:</h2>
+        <div className="flex flex-wrap gap-2">
+          {userClubs.map((club) => (
+            <span
+              key={club.clubId}
+              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+            >
+              {club.club?.name || `클럽 ${club.clubId}`}
+            </span>
+          ))}
+        </div>
+      </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {users.length > 0 ? (
           users.map((user) => (
@@ -158,32 +172,41 @@ function UsersPage(/* { user }: { user: User } */) {
                 </h2>
               </div>
               <p className="text-gray-600 text-sm mb-2">{user.email}</p>
-              {user.ClubMember.map((member) => (
-                <div key={`${user.id}-${member.clubId}`} className="mt-2">
-                  <p className="text-sm">
-                    상태:{' '}
-                    <span
-                      className={`font-semibold ${
-                        member.status === Status.PENDING
-                          ? 'text-yellow-600'
-                          : member.status === Status.APPROVED
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                      }`}
-                    >
-                      {member.status}
-                    </span>
-                  </p>
-                  {member.status === Status.PENDING && (
-                    <button
-                      onClick={() => handleApprove(user.id, member.clubId)}
-                      className="mt-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-                    >
-                      승인하기
-                    </button>
-                  )}
-                </div>
-              ))}
+              {user.ClubMember.map((member) => {
+                const club = userClubs.find((c) => c.clubId === member.clubId);
+
+                return (
+                  <div key={`${user.id}-${member.clubId}`} className="mt-2">
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm flex items-center gap-2">
+                        <span>
+                          {club?.club?.name || `클럽 ${member.clubId}`}
+                        </span>
+                        <span>상태:</span>
+                        <span
+                          className={`font-semibold ${
+                            member.status === Status.PENDING
+                              ? 'text-yellow-600'
+                              : member.status === Status.APPROVED
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                          }`}
+                        >
+                          {member.status}
+                        </span>
+                      </p>
+                      {member.status === Status.PENDING && (
+                        <button
+                          onClick={() => handleApprove(user.id, member.clubId)}
+                          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
+                        >
+                          승인하기
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
               <p className="text-gray-500 text-xs mt-2">
                 가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
               </p>

@@ -88,3 +88,11 @@ const clubWithMembers: ClubWithMembers = {
 */
 
 export type ClubMembershipResponse = ClubMember;
+
+export interface ClubResponse {
+  clubId: number;
+  role: string;
+  club: {
+    name: string;
+  };
+}
