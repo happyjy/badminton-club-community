@@ -38,12 +38,13 @@ export function WorkoutListItem({
             {formatToKoreanTime(workout.endTime)}
           </p>
           <p>📍 장소: {workout.location}</p>
-          <p>
+          <p>👥 참여 인원: {currentParticipants}명</p>
+          {/* <p>
             👥 참여 인원: {currentParticipants}/{workout.maxParticipants}명
             {currentParticipants >= workout.maxParticipants && (
               <span className="ml-2 text-red-500">(마감)</span>
             )}
-          </p>
+          </p> */}
         </div>
       </div>
       <div className="mt-4 pt-4 border-t">
