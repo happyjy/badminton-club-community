@@ -14,6 +14,8 @@ export default async function handler(
     });
   }
 
+  const prisma = new PrismaClient();
+
   try {
     const session = await getSession(req);
     if (!session?.id) {
@@ -23,12 +25,42 @@ export default async function handler(
       });
     }
 
-    const { nickname } = req.body;
-    const prisma = new PrismaClient();
+    const {
+      nickname,
+      name,
+      birthDate,
+      phoneNumber,
+      localTournamentLevel,
+      nationalTournamentLevel,
+      lessonPeriod,
+      playingPeriod,
+    } = req.body;
+    console.log(`🚨 ~ req.body:`, req.body);
 
-    await prisma.user.update({
-      where: { id: session.id },
-      data: { nickname },
+    // 트랜잭션으로 User와 ClubMember 테이블 동시 업데이트
+    await prisma.$transaction(async (tx) => {
+      // User 테이블 업데이트
+      if (nickname) {
+        await tx.user.update({
+          where: { id: session.id },
+          data: { nickname },
+        });
+      }
+
+      // ClubMember 테이블 업데이트
+      // 사용자의 모든 클럽 멤버십 정보를 업데이트
+      await tx.clubMember.updateMany({
+        where: { userId: session.id },
+        data: {
+          name,
+          birthDate,
+          phoneNumber,
+          localTournamentLevel,
+          nationalTournamentLevel,
+          lessonPeriod,
+          playingPeriod,
+        },
+      });
     });
 
     return res.status(200).json({
@@ -42,5 +74,7 @@ export default async function handler(
       error: '프로필 업데이트에 실패했습니다',
       status: 500,
     });
+  } finally {
+    await prisma.$disconnect();
   }
 }
