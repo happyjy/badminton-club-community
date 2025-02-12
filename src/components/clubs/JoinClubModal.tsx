@@ -36,6 +36,12 @@ export function JoinClubModal({
     createInitialFormData({ name: user?.nickname || '' })
   );
 
+  const [phoneNumbers, setPhoneNumbers] = useState({
+    first: '',
+    second: '',
+    third: '',
+  });
+
   useEffect(() => {
     if (user?.nickname) {
       setFormData((prev) => ({
@@ -44,6 +50,41 @@ export function JoinClubModal({
       }));
     }
   }, [user?.nickname]);
+
+  const handlePhoneNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    part: 'first' | 'second' | 'third'
+  ) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    const maxLength = part === 'first' ? 3 : 4;
+
+    if (value.length > maxLength) return;
+
+    setPhoneNumbers((prev) => ({
+      ...prev,
+      [part]: value,
+    }));
+
+    if (value.length === maxLength) {
+      const nextInput = {
+        first: 'second',
+        second: 'third',
+        third: 'third',
+      }[part];
+
+      const nextElement = document.getElementById(`phone-${nextInput}`);
+      nextElement?.focus();
+    }
+
+    const fullPhoneNumber = `${part === 'first' ? value : phoneNumbers.first}-${
+      part === 'second' ? value : phoneNumbers.second
+    }-${part === 'third' ? value : phoneNumbers.third}`;
+
+    setFormData((prev) => ({
+      ...prev,
+      phoneNumber: fullPhoneNumber,
+    }));
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -100,15 +141,40 @@ export function JoinClubModal({
             <label className="block text-sm font-medium text-gray-700">
               전화번호
             </label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleInputChange}
-              placeholder="예: 010-1234-5678"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
+            <div className="mt-1 flex gap-2">
+              <input
+                type="text"
+                id="phone-first"
+                value={phoneNumbers.first}
+                onChange={(e) => handlePhoneNumberChange(e, 'first')}
+                maxLength={3}
+                placeholder="010"
+                className="block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center"
+                required
+              />
+              <span className="flex items-center">-</span>
+              <input
+                type="text"
+                id="phone-second"
+                value={phoneNumbers.second}
+                onChange={(e) => handlePhoneNumberChange(e, 'second')}
+                maxLength={4}
+                placeholder="0000"
+                className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center"
+                required
+              />
+              <span className="flex items-center">-</span>
+              <input
+                type="text"
+                id="phone-third"
+                value={phoneNumbers.third}
+                onChange={(e) => handlePhoneNumberChange(e, 'third')}
+                maxLength={4}
+                placeholder="0000"
+                className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-center"
+                required
+              />
+            </div>
           </div>
 
           <div>
