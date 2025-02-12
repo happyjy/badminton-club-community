@@ -2,11 +2,26 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
-import { ClubMember } from '@/types/club.types';
+import { Role, Status } from '@/types/enums';
+
+interface MemberInfoResponse {
+  id: number;
+  clubId: number;
+  userId: number;
+  role: Role;
+  status: Status;
+  name: string | null;
+  birthDate: string | null;
+  phoneNumber: string;
+  localTournamentLevel: string | null;
+  nationalTournamentLevel: string | null;
+  lessonPeriod: string | null;
+  playingPeriod: string | null;
+}
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse<'memberInfo', ClubMember>>
+  res: NextApiResponse<ApiResponse<'memberInfo', MemberInfoResponse | null>>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -31,6 +46,11 @@ export default async function handler(
         userId: session.id,
       },
       select: {
+        id: true,
+        clubId: true,
+        userId: true,
+        role: true,
+        status: true,
         name: true,
         birthDate: true,
         phoneNumber: true,
@@ -41,8 +61,18 @@ export default async function handler(
       },
     });
 
+    // null 체크 및 타입 변환
+    const typedMemberInfo = memberInfo
+      ? {
+          ...memberInfo,
+          role: memberInfo.role as Role,
+          status: memberInfo.status as Status,
+          phoneNumber: memberInfo.phoneNumber || '010-0000-0000',
+        }
+      : null;
+
     return res.status(200).json({
-      data: { memberInfo },
+      data: { memberInfo: typedMemberInfo },
       status: 200,
       message: '회원 정보를 성공적으로 가져왔습니다',
     });
