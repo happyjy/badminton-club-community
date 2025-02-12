@@ -19,6 +19,7 @@ const createInitialFormData = ({
 }): ClubJoinFormData => ({
   name,
   birthDate: DEFAULT_DATE,
+  phoneNumber: '',
   localTournamentLevel: '',
   nationalTournamentLevel: '',
   lessonPeriod: '',
@@ -90,6 +91,21 @@ export function JoinClubModal({
               value={formData.birthDate}
               defaultValue={DEFAULT_DATE}
               onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              전화번호
+            </label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              placeholder="예: 010-1234-5678"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
             />

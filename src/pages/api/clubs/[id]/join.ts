@@ -28,11 +28,19 @@ export default async function handler(
   const {
     name,
     birthDate,
+    phoneNumber,
     localTournamentLevel,
     nationalTournamentLevel,
     lessonPeriod,
     playingPeriod,
   } = req.body;
+
+  if (!phoneNumber) {
+    return res.status(400).json({
+      error: '전화번호는 필수 입력 항목입니다',
+      status: 400,
+    });
+  }
 
   const prisma = new PrismaClient();
 
@@ -62,6 +70,7 @@ export default async function handler(
         status: Status.PENDING,
         name,
         birthDate,
+        phoneNumber,
         localTournamentLevel,
         nationalTournamentLevel,
         lessonPeriod,
@@ -76,6 +85,7 @@ export default async function handler(
       status: membership.status as Status,
       name: membership.name ?? undefined,
       birthDate: membership.birthDate ?? undefined,
+      phoneNumber: membership.phoneNumber ?? undefined,
       localTournamentLevel: membership.localTournamentLevel ?? undefined,
       nationalTournamentLevel: membership.nationalTournamentLevel ?? undefined,
       lessonPeriod: membership.lessonPeriod ?? undefined,

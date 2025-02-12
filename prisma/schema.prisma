@@ -67,21 +67,22 @@ model Club {
 }
 
 model ClubMember {
-  id                     Int      @id @default(autoincrement())
-  clubId                 Int
-  userId                 Int
-  role                   String   @default("MEMBER")
-  status                 String   @default("PENDING")
-  name                   String?
-  birthDate              String?
-  localTournamentLevel   String?
-  nationalTournamentLevel String?
-  lessonPeriod          String?
-  playingPeriod         String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  club                  Club     @relation(fields: [clubId], references: [id])
-  user                  User     @relation(fields: [userId], references: [id])
+  id                       Int      @id @default(autoincrement())
+  clubId                   Int
+  userId                   Int
+  role                     String   @default("MEMBER")
+  status                   String   @default("PENDING")
+  name                     String?
+  birthDate                String?
+  phoneNumber              String   @default("010-0000-0000")
+  localTournamentLevel     String?
+  nationalTournamentLevel  String?
+  lessonPeriod             String?
+  playingPeriod            String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  club                     Club     @relation(fields: [clubId], references: [id])
+  user                     User     @relation(fields: [userId], references: [id])
 
   @@unique([clubId, userId])
 }
