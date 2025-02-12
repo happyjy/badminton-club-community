@@ -3,13 +3,7 @@ import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types/common.types';
 import { User } from '@/types/user.types';
 
-type AuthUser = Pick<User, 'id' | 'email' | 'nickname'>;
-
-// type AuthUser = {
-//   id: number;
-//   email: string | null;
-//   nickname: string;
-// };
+type AuthUser = Pick<User, 'id' | 'email' | 'nickname' | 'thumbnailImageUrl'>;
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,6 +23,7 @@ export default async function handler(
                 id: session.id,
                 email: session.email,
                 nickname: session.nickname,
+                thumbnailImageUrl: session.thumbnailImageUrl,
               }
             : null,
         },
