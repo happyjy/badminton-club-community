@@ -17,23 +17,24 @@ export default async function handler(
   const prisma = new PrismaClient();
 
   try {
-    // 현재 날짜를 기준으로 이번 주 일요일 구하기
+    // 한국 시간대로 today 설정
     const today = new Date();
-    const currentSunday = new Date(today);
-    currentSunday.setDate(today.getDate() - today.getDay());
-    currentSunday.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    // UTC 시간을 KST로 변환 (UTC + 9시간)
+    today.setHours(today.getHours() - 9);
 
-    // 다음 주 일요일 구하기
-    const nextSunday = new Date(currentSunday);
-    nextSunday.setDate(currentSunday.getDate() + 7);
-    nextSunday.setHours(23, 59, 59, 999);
+    // 7일 후도 동일하게 설정
+    const sevenDaysLater = new Date(today);
+    sevenDaysLater.setDate(today.getDate() + 7);
+    sevenDaysLater.setHours(23, 59, 59, 999);
+    sevenDaysLater.setHours(sevenDaysLater.getHours() - 9);
 
     const workouts = await prisma.workout.findMany({
       where: {
         clubId: Number(id),
         startTime: {
-          gte: currentSunday,
-          lte: nextSunday,
+          gte: today,
+          lte: sevenDaysLater,
         },
       },
       include: {
