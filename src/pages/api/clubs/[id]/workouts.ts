@@ -19,9 +19,8 @@ export default async function handler(
   try {
     // 한국 시간대로 today 설정
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    // UTC 시간을 KST로 변환 (UTC + 9시간)
-    today.setHours(today.getHours() - 9);
+    // 서버에서 동작시 today 값은 UTC 시간이며 이값을 KST로 변환 (UTC + 9시간)
+    today.setHours(today.getHours() + 9);
 
     // 7일 후도 동일하게 설정
     const sevenDaysLater = new Date(today);
