@@ -8,14 +8,27 @@ import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
 
+// 선택된 아이콘 타입 정의
+type SelectedIcon = 'net' | 'broomStick' | 'shuttlecock';
+type ParticipantIcons = Record<string, SelectedIcon[]>;
+
 // CircleMenu 컴포넌트 수정
 const CircleMenu = ({
   isOpen,
   onClose,
+  onIconSelect,
+  selectedIcons,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  onIconSelect: (icon: SelectedIcon) => void;
+  selectedIcons: SelectedIcon[];
 }) => {
+  const handleIconClick = (icon: SelectedIcon) => {
+    onIconSelect(icon);
+    onClose();
+  };
+
   return (
     <div className="relative">
       <div
@@ -24,12 +37,18 @@ const CircleMenu = ({
       />
       <div className="absolute -top-2 -right-2">
         <div className="relative">
-          {/* 첫 번째 메뉴 아이템 (위) */}
           <div
             className={`absolute transform transition-all duration-300 ease-in-out
               ${isOpen ? '-translate-y-14' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
           >
-            <button className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center shadow-lg">
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('net')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('net')}
+            >
               <Image
                 src={badmintonNetIcon}
                 alt="badminton net"
@@ -39,12 +58,18 @@ const CircleMenu = ({
               />
             </button>
           </div>
-          {/* 두 번째 메뉴 아이템 (왼쪽 아래) */}
           <div
             className={`absolute transform transition-all duration-300 ease-in-out
               ${isOpen ? '-translate-y-2 -translate-x-8' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
           >
-            <button className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-300 flex items-center justify-center shadow-lg">
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('broomStick')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('broomStick')}
+            >
               <Image
                 src={broomStickIcon}
                 alt="broom stick"
@@ -54,12 +79,18 @@ const CircleMenu = ({
               />
             </button>
           </div>
-          {/* 세 번째 메뉴 아이템 (오른쪽 아래) */}
           <div
             className={`absolute transform transition-all duration-300 ease-in-out
               ${isOpen ? '-translate-y-2 translate-x-8' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
           >
-            <button className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-300 flex items-center justify-center shadow-lg">
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('shuttlecock')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('shuttlecock')}
+            >
               <Image
                 src={badmintonShuttleCockIcon}
                 alt="shuttlecock"
@@ -83,6 +114,9 @@ function WorkoutDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedParticipant, setSelectedParticipant] = useState<string | null>(
     null
+  );
+  const [participantIcons, setParticipantIcons] = useState<ParticipantIcons>(
+    () => ({})
   );
 
   useEffect(() => {
@@ -111,6 +145,26 @@ function WorkoutDetailPage() {
 
     fetchWorkoutDetail();
   }, [id]);
+
+  const handleIconSelect = (userId: string, icon: SelectedIcon) => {
+    setParticipantIcons((prev) => {
+      const currentIcons = prev[userId] || [];
+      let newIcons: SelectedIcon[];
+
+      if (currentIcons.includes(icon)) {
+        // 이미 선택된 아이콘이면 제거
+        newIcons = currentIcons.filter((i) => i !== icon);
+      } else {
+        // 새로운 아이콘 추가 (최대 3개까지)
+        newIcons = [...currentIcons, icon].slice(-3);
+      }
+
+      return {
+        ...prev,
+        [userId]: newIcons,
+      };
+    });
+  };
 
   if (isLoading) {
     return (
@@ -177,9 +231,33 @@ function WorkoutDetailPage() {
                   />
                 )}
                 <span className="font-medium">{participant.User.nickname}</span>
+                <div className="flex space-x-1 ml-2">
+                  {(participantIcons[participant.User.id] ?? []).map(
+                    (iconType, index) => (
+                      <Image
+                        key={index}
+                        src={
+                          iconType === 'net'
+                            ? badmintonNetIcon
+                            : iconType === 'broomStick'
+                              ? broomStickIcon
+                              : badmintonShuttleCockIcon
+                        }
+                        alt="status icon"
+                        width={20}
+                        height={20}
+                        className="w-5 h-5"
+                      />
+                    )
+                  )}
+                </div>
                 <CircleMenu
                   isOpen={selectedParticipant === participant.User.id}
                   onClose={() => setSelectedParticipant(null)}
+                  onIconSelect={(icon) =>
+                    handleIconSelect(participant.User.id, icon)
+                  }
+                  selectedIcons={participantIcons[participant.User.id] || []}
                 />
               </div>
             ))}
