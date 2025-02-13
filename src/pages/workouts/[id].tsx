@@ -75,9 +75,7 @@ function WorkoutDetailPage() {
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-gray-500">👥</span>
-            <span>
-              {workout.WorkoutParticipant.length} / {workout.maxParticipants}명
-            </span>
+            <span>{workout.WorkoutParticipant.length}명</span>
           </div>
         </div>
 
