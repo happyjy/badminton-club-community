@@ -112,7 +112,7 @@ function WorkoutDetailPage() {
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedParticipant, setSelectedParticipant] = useState<string | null>(
+  const [selectedParticipant, setSelectedParticipant] = useState<number | null>(
     null
   );
   const [participantIcons, setParticipantIcons] = useState<ParticipantIcons>(
@@ -146,7 +146,7 @@ function WorkoutDetailPage() {
     fetchWorkoutDetail();
   }, [id]);
 
-  const handleIconSelect = (userId: string, icon: SelectedIcon) => {
+  const handleIconSelect = (userId: number, icon: SelectedIcon) => {
     setParticipantIcons((prev) => {
       const currentIcons = prev[userId] || [];
       let newIcons: SelectedIcon[];
@@ -213,13 +213,18 @@ function WorkoutDetailPage() {
               <div
                 key={participant.User.id}
                 className="relative flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                onClick={() =>
+                onClick={() => {
+                  console.log({
+                    selectedParticipant,
+                    'participant.User.id': participant.User.id,
+                  });
+
                   setSelectedParticipant(
                     selectedParticipant === participant.User.id
                       ? null
                       : participant.User.id
-                  )
-                }
+                  );
+                }}
               >
                 {participant.User.thumbnailImageUrl && (
                   <Image
