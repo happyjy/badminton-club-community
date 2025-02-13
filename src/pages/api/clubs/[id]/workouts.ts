@@ -17,10 +17,11 @@ export default async function handler(
   const prisma = new PrismaClient();
 
   try {
-    // 한국 시간대로 today 설정
     const today = new Date();
-    // 서버에서 동작시 today 값은 UTC 시간이며 이값을 KST로 변환 (UTC + 9시간)
-    today.setHours(today.getHours() + 9);
+    // 아래 두 코드에 의해서 오늘 0시 부터 시작으로 세팅
+    // 자정이 넘어가면 어제 일정은 없어짐
+    today.setHours(0, 0, 0, 0);
+    today.setHours(today.getHours() + 9); // 서버에서 동작시 today 값은 UTC 시간이며 이값을 KST로 변환 (UTC + 9시간)
 
     // 7일 후도 동일하게 설정
     const sevenDaysLater = new Date(today);
