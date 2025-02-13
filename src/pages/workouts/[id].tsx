@@ -4,6 +4,76 @@ import { withAuth } from '@/lib/withAuth';
 import Image from 'next/image';
 import { Workout } from '@/types';
 import { formatToKoreanTime } from '@/utils';
+import badmintonNetIcon from '@/icon/badmintonNet.svg';
+import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
+import broomStickIcon from '@/icon/broomStick.svg';
+
+// CircleMenu 컴포넌트 수정
+const CircleMenu = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
+  return (
+    <div className="relative">
+      <div
+        className={`fixed inset-0 ${isOpen ? 'block' : 'hidden'}`}
+        onClick={onClose}
+      />
+      <div className="absolute -top-2 -right-2">
+        <div className="relative">
+          {/* 첫 번째 메뉴 아이템 (위) */}
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out
+              ${isOpen ? '-translate-y-14' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center shadow-lg">
+              <Image
+                src={badmintonNetIcon}
+                alt="badminton net"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+          {/* 두 번째 메뉴 아이템 (왼쪽 아래) */}
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out
+              ${isOpen ? '-translate-y-2 -translate-x-8' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-300 flex items-center justify-center shadow-lg">
+              <Image
+                src={broomStickIcon}
+                alt="broom stick"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+          {/* 세 번째 메뉴 아이템 (오른쪽 아래) */}
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out
+              ${isOpen ? '-translate-y-2 translate-x-8' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-300 flex items-center justify-center shadow-lg">
+              <Image
+                src={badmintonShuttleCockIcon}
+                alt="shuttlecock"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 function WorkoutDetailPage() {
   const router = useRouter();
@@ -11,6 +81,9 @@ function WorkoutDetailPage() {
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -85,7 +158,14 @@ function WorkoutDetailPage() {
             {workout.WorkoutParticipant.map((participant) => (
               <div
                 key={participant.User.id}
-                className="flex items-center space-x-3 p-3 border rounded-lg"
+                className="relative flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                onClick={() =>
+                  setSelectedParticipant(
+                    selectedParticipant === participant.User.id
+                      ? null
+                      : participant.User.id
+                  )
+                }
               >
                 {participant.User.thumbnailImageUrl && (
                   <Image
@@ -97,6 +177,10 @@ function WorkoutDetailPage() {
                   />
                 )}
                 <span className="font-medium">{participant.User.nickname}</span>
+                <CircleMenu
+                  isOpen={selectedParticipant === participant.User.id}
+                  onClose={() => setSelectedParticipant(null)}
+                />
               </div>
             ))}
           </div>
