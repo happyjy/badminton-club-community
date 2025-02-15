@@ -52,7 +52,7 @@ export default async function handler(
       });
     }
 
-    const users = await prisma.user.findMany({
+    let users = await prisma.user.findMany({
       where: {
         ClubMember: {
           some: {
@@ -80,8 +80,29 @@ export default async function handler(
       },
     });
 
+    // JavaScript로 정렬
+    users = users.sort((a, b) => {
+      const dateA = a.ClubMember[0]?.birthDate;
+      const dateB = b.ClubMember[0]?.birthDate;
+      if (!dateA || !dateB) return 0;
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+    });
+
+    // Date 객체를 ISO 문자열로 변환
+    const serializedUsers = users.map((user) => ({
+      ...user,
+      ClubMember: user.ClubMember.map((member) => ({
+        ...member,
+        birthDate: member.birthDate
+          ? typeof member.birthDate === 'string'
+            ? member.birthDate
+            : new Date(member.birthDate).toISOString()
+          : null,
+      })),
+    }));
+
     return res.status(200).json({
-      data: { users },
+      data: { users: serializedUsers },
       status: 200,
       message: '클럽 멤버를 불러오는데 성공했습니다',
     });
