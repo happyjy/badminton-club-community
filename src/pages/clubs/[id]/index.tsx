@@ -14,6 +14,7 @@ import {
 import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
 import { classNames } from '@/utils';
 import { JoinClubModal } from '@/components/clubs/JoinClubModal';
+// import Head from 'next/head';
 
 // 상수 정의
 const TAB_INDEX = {
@@ -212,92 +213,97 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
 
   // 렌더링
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">{club?.name}</h1>
-        <JoinClubButton
-          user={user}
-          isLoading={isLoading}
-          membershipStatus={membershipStatus}
-          canJoinClub={canJoinClub}
-          onJoin={handleJoinClub}
-        />
-      </div>
+    <>
+      {/* <Head>
+        <title>{`${club?.name}`}</title>
+      </Head> */}
+      <div className="max-w-3xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">{club?.name}</h1>
+          <JoinClubButton
+            user={user}
+            isLoading={isLoading}
+            membershipStatus={membershipStatus}
+            canJoinClub={canJoinClub}
+            onJoin={handleJoinClub}
+          />
+        </div>
 
-      {selectedIndex !== null && (
-        <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
-          <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
-            <Tab
-              className={({ selected }) =>
-                classNames(
-                  'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                  'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                  selected
-                    ? 'bg-white shadow text-blue-700'
-                    : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                )
-              }
-            >
-              홈
-            </Tab>
-            <Tab
-              className={({ selected }) =>
-                classNames(
-                  'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                  'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                  selected
-                    ? 'bg-white shadow text-blue-700'
-                    : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                )
-              }
-            >
-              오늘 운동 가니?
-            </Tab>
-          </Tab.List>
-          <Tab.Panels className="mt-2">
-            <Tab.Panel className="rounded-xl bg-white p-3">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-bold">운영 시간</h3>
-                  <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold">장소</h3>
-                  <p>{club?.location}</p>
-                </div>
-                <div>
-                  <h3 className="font-bold">설명</h3>
-                  <p>{club?.description}</p>
-                </div>
-              </div>
-            </Tab.Panel>
-            <Tab.Panel className="rounded-xl bg-white p-3">
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                {isLoadingWorkouts ? (
-                  <div className="col-span-full flex justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+        {selectedIndex !== null && (
+          <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
+            <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
+              <Tab
+                className={({ selected }) =>
+                  classNames(
+                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                    selected
+                      ? 'bg-white shadow text-blue-700'
+                      : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                  )
+                }
+              >
+                홈
+              </Tab>
+              <Tab
+                className={({ selected }) =>
+                  classNames(
+                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                    selected
+                      ? 'bg-white shadow text-blue-700'
+                      : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                  )
+                }
+              >
+                오늘 운동 가니?
+              </Tab>
+            </Tab.List>
+            <Tab.Panels className="mt-2">
+              <Tab.Panel className="rounded-xl bg-white p-3">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-bold">운영 시간</h3>
+                    <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
                   </div>
-                ) : workouts.length > 0 ? (
-                  workouts.map((workout) => (
-                    <WorkoutListItem
-                      key={workout.id}
-                      workout={workout}
-                      user={user}
-                      onParticipate={handleParticipate}
-                      membershipStatus={membershipStatus}
-                    />
-                  ))
-                ) : (
-                  <p className="col-span-full text-center text-gray-500 py-10">
-                    등록된 운동이 없습니다.
-                  </p>
-                )}
-              </div>
-            </Tab.Panel>
-          </Tab.Panels>
-        </Tab.Group>
-      )}
-    </div>
+                  <div>
+                    <h3 className="font-bold">장소</h3>
+                    <p>{club?.location}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-bold">설명</h3>
+                    <p>{club?.description}</p>
+                  </div>
+                </div>
+              </Tab.Panel>
+              <Tab.Panel className="rounded-xl bg-white p-3">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                  {isLoadingWorkouts ? (
+                    <div className="col-span-full flex justify-center py-10">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+                    </div>
+                  ) : workouts.length > 0 ? (
+                    workouts.map((workout) => (
+                      <WorkoutListItem
+                        key={workout.id}
+                        workout={workout}
+                        user={user}
+                        onParticipate={handleParticipate}
+                        membershipStatus={membershipStatus}
+                      />
+                    ))
+                  ) : (
+                    <p className="col-span-full text-center text-gray-500 py-10">
+                      등록된 운동이 없습니다.
+                    </p>
+                  )}
+                </div>
+              </Tab.Panel>
+            </Tab.Panels>
+          </Tab.Group>
+        )}
+      </div>
+    </>
   );
 }
 

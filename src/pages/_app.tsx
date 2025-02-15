@@ -66,6 +66,7 @@ export default function App({ Component, pageProps }: AppProps) {
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4694803443368514"
           crossOrigin="anonymous"
         />
+        <title>배드민턴 클럽</title>
       </Head>
 
       {isLoginPage ? (
