@@ -16,6 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
           name="google-site-verification"
           content="bTqFYbHTfK1wiMqYL3xztX9fmwDIPlxSNi5-VIzuiYs"
         />
+        w
         <meta name="robots" content="index, follow" />
         {/* 
           * 기본 메타 태그:
@@ -47,7 +48,6 @@ export default function App({ Component, pageProps }: AppProps) {
           name="keywords"
           content="당산클럽, 당산 클럽, 당산 배드민턴 클럽, 배드민턴, 동호회, 클럽, 운동, 일정관리"
         />
-
         <meta property="og:type" content="website" />
         <meta property="og:title" content="배드민턴 클럽" />
         <meta
@@ -55,14 +55,12 @@ export default function App({ Component, pageProps }: AppProps) {
           content="배드민턴 동호회 관리 서비스입니다. 클럽을 만들고 운동 일정을 관리해보세요."
         />
         <meta property="og:site_name" content="배드민턴 클럽" />
-
         <link
           rel="icon"
           type="image/svg+xml"
           href="/icon/badmintonShuttleCock.svg"
         />
         <link rel="alternate icon" href="/favicon.ico" />
-
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4694803443368514"
