@@ -12,6 +12,21 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <meta charSet="utf-8" />
+        <meta name="robots" content="index, follow" />
+        {/* 
+          * 기본 메타 태그:
+            - charset: 문자 인코딩 설정
+            - viewport: 모바일 반응형 설정
+            - description: 사이트 설명
+            - keywords: 검색 키워드
+          * Open Graph 메타 태그:
+            - og:type: 웹사이트 타입
+            - og:title: 사이트 제목
+            - og:description: 사이트 설명
+            - og:site_name: 사이트 이름
+          * 파비콘 링크
+            - 참고: 페이지별로 다른 메타 태그가 필요한 경우에는 Next.js의 next/head 컴포넌트를 사용하여 각 페이지 컴포넌트에서 개별적으로 메타 태그를 설정할 수 있습니다. 
+        */}
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover"
