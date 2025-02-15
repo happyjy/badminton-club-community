@@ -12,6 +12,10 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <meta charSet="utf-8" />
+        <meta
+          name="google-site-verification"
+          content="bTqFYbHTfK1wiMqYL3xztX9fmwDIPlxSNi5-VIzuiYs"
+        />
         <meta name="robots" content="index, follow" />
         {/* 
           * 기본 메타 태그:

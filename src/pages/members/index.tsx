@@ -121,40 +121,42 @@ function UsersPage(/* { user }: { user: User } */) {
     }
   };
 
-  const renderUserCard = (user: ClubMemberWithUser) => (
-    <div
-      key={user.id}
-      className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
-    >
-      <div className="flex items-center gap-3 mb-2">
-        {user.thumbnailImageUrl && (
-          <Image
-            src={user.thumbnailImageUrl}
-            alt={user.nickname}
-            className="w-10 h-10 rounded-full"
-            width={40}
-            height={40}
+  const renderUserCard = (user: ClubMemberWithUser) => {
+    return (
+      <div
+        key={user.id}
+        className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div className="flex items-center gap-3 mb-2">
+          {user.thumbnailImageUrl && (
+            <Image
+              src={user.thumbnailImageUrl}
+              alt={user.nickname}
+              className="w-10 h-10 rounded-full"
+              width={40}
+              height={40}
+            />
+          )}
+          <h2 className="font-semibold text-lg">
+            {user.nickname || '이름 없음'}
+          </h2>
+        </div>
+        <p className="text-gray-600 text-sm mb-2">{user.email}</p>
+        {user.ClubMember.map((member) => (
+          <ClubMemberCard
+            key={`${user.id}-${member.clubId}`}
+            member={member}
+            userId={user.id}
+            userClubs={userClubs}
+            onApprove={handleApprove}
           />
-        )}
-        <h2 className="font-semibold text-lg">
-          {user.nickname || '이름 없음'}
-        </h2>
+        ))}
+        <p className="text-gray-500 text-xs mt-2">
+          가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+        </p>
       </div>
-      <p className="text-gray-600 text-sm mb-2">{user.email}</p>
-      {user.ClubMember.map((member) => (
-        <ClubMemberCard
-          key={`${user.id}-${member.clubId}`}
-          member={member}
-          userId={user.id}
-          userClubs={userClubs}
-          onApprove={handleApprove}
-        />
-      ))}
-      <p className="text-gray-500 text-xs mt-2">
-        가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
-      </p>
-    </div>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
