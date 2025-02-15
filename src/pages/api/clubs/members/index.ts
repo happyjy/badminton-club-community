@@ -52,6 +52,9 @@ export default async function handler(
       });
     }
 
+    // "로그인 사용자"가 여러 클럽에 속해있을 경우 모든 클럽의 멤버를 가져오기
+    //   - clubIdArray가 여러 클럽에 속할 수 있는 상황을 고려한 변수
+    //   - 예를 들어, clubIdArray가 [1, 2, 3]일 경우, 1, 2, 3 클럽의 모든 멤버를 가져오기
     let users = await prisma.user.findMany({
       where: {
         ClubMember: {
