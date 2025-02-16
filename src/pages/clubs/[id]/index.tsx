@@ -198,7 +198,7 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     };
 
     fetchInitialData();
-  }, [id, user]);
+  }, []);
 
   const canJoinClub =
     user && !membershipStatus.isMember && !membershipStatus.isPending;
