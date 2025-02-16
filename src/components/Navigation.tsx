@@ -34,7 +34,6 @@ export default function Navigation() {
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
       });
-      console.log(`🚨 ~ handleLogout ~ response:`, response);
 
       if (response.ok) {
         setIsAuthenticated(false); // 로그아웃 성공 시 인증 상태 업데이트
