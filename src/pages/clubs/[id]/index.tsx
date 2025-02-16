@@ -89,7 +89,7 @@ const JoinClubButton = ({
 
 function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   const router = useRouter();
-  const { id } = router.query;
+  const { id: clubId } = router.query;
 
   // 상태 관리
   const [club, setClub] = useState<Club | null>(null);
@@ -106,9 +106,9 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
 
   // API 호출 함수들
   const fetchWorkouts = async () => {
-    if (!id) return;
+    if (!clubId) return;
     try {
-      const response = await fetch(`/api/clubs/${id}/workouts`);
+      const response = await fetch(`/api/clubs/${clubId}/workouts`);
       const result = await response.json();
       setWorkouts(result.data.workouts);
     } catch (error) {
@@ -118,7 +118,7 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
 
   const handleJoinClub = async (formData: ClubJoinFormData) => {
     try {
-      const response = await fetch(`/api/clubs/${id}/join`, {
+      const response = await fetch(`/api/clubs/${clubId}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,13 +154,13 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   // 초기 데이터 로딩
   useEffect(() => {
     const fetchInitialData = async () => {
-      if (!id) return;
+      if (!clubId) return;
 
       setIsLoading(true);
       try {
         const [clubResponse, workoutsResponse] = await Promise.all([
-          fetch(`/api/clubs/${id}`),
-          fetch(`/api/clubs/${id}/workouts`),
+          fetch(`/api/clubs/${clubId}`),
+          fetch(`/api/clubs/${clubId}/workouts`),
         ]);
 
         const [clubResult, workoutsResult] = await Promise.all([
@@ -206,7 +206,10 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   // 페이지 이동 전 스크롤 위치 저장
   useEffect(() => {
     const handleRouteChange = () => {
-      sessionStorage.setItem(`club-${id}-scroll`, window.scrollY.toString());
+      sessionStorage.setItem(
+        `club-${clubId}-scroll`,
+        window.scrollY.toString()
+      );
     };
 
     router.events.on('routeChangeStart', handleRouteChange);
@@ -214,20 +217,20 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     return () => {
       router.events.off('routeChangeStart', handleRouteChange);
     };
-  }, [router.events, id]);
+  }, [router.events, clubId]);
 
   // 페이지 로드 시 스크롤 위치 복원
   useLayoutEffect(() => {
-    const savedPosition = sessionStorage.getItem(`club-${id}-scroll`);
+    const savedPosition = sessionStorage.getItem(`club-${clubId}-scroll`);
 
     if (savedPosition && !isLoading) {
       window.scrollTo({
         top: parseInt(savedPosition),
         behavior: 'instant',
       });
-      sessionStorage.removeItem(`club-${id}-scroll`);
+      sessionStorage.removeItem(`club-${clubId}-scroll`);
     }
-  }, [id, isLoading]);
+  }, [clubId, isLoading]);
 
   return (
     <>
