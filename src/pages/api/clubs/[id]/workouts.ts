@@ -23,9 +23,9 @@ export default async function handler(
     today.setHours(0, 0, 0, 0);
     today.setHours(today.getHours() + 9); // 서버에서 동작시 today 값은 UTC 시간이며 이값을 KST로 변환 (UTC + 9시간)
 
-    // 7일 후도 동일하게 설정
+    // 8일 후도 동일하게 설정
     const sevenDaysLater = new Date(today);
-    sevenDaysLater.setDate(today.getDate() + 7);
+    sevenDaysLater.setDate(today.getDate() + 8);
     sevenDaysLater.setHours(23, 59, 59, 999);
     sevenDaysLater.setHours(sevenDaysLater.getHours() - 9);
 
