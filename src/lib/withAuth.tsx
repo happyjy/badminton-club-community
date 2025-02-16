@@ -40,7 +40,7 @@ export function withAuth<P extends AuthProps>(
             setUser(result.data.auth.user);
           } else {
             if (options.requireAuth) {
-              router.push('/');
+              redirectToLogin(router);
             } else {
               setUser(null);
             }
@@ -64,17 +64,10 @@ export function withAuth<P extends AuthProps>(
       );
     }
 
-    const isLoggedIn = !!user;
-
-    if (options.requireAuth && !isLoggedIn) {
-      redirectToLogin(router);
-      return null;
-    }
-
     const componentProps = {
       ...props,
       user,
-      isLoggedIn,
+      isLoggedIn: !!user,
     } as P;
 
     return <WrappedComponent {...componentProps} />;

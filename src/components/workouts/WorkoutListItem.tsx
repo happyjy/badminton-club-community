@@ -21,7 +21,9 @@ export function WorkoutListItem({
     <div className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white">
       <div
         className="cursor-pointer"
-        onClick={() => router.push(`/workouts/${workout.id}`)}
+        onClick={() => {
+          router.push(`/workouts/${workout.id}`);
+        }}
       >
         <h2 className="font-semibold text-xl mb-2">{workout.title}</h2>
         <p className="text-gray-600 mb-4">{workout.description}</p>

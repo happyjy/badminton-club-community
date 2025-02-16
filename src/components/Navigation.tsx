@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { redirectToLogin } from '@/utils/auth';
 
 export default function Navigation() {
   const router = useRouter();
@@ -24,8 +25,8 @@ export default function Navigation() {
   }, []);
 
   const handleLoginClick = () => {
-    router.push('/auth/login');
     setIsMenuOpen(false);
+    redirectToLogin(router);
   };
 
   const handleLogout = async () => {

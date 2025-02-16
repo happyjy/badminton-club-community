@@ -15,9 +15,7 @@ import { classNames } from '@/utils';
 import { JoinClubModal } from '@/components/clubs/JoinClubModal';
 import { withAuth } from '@/lib/withAuth';
 import { redirectToLogin } from '@/utils/auth';
-// import Head from 'next/head';
 
-// 상수 정의
 const TAB_INDEX = {
   HOME: 0,
   WORKOUTS: 1,
@@ -231,7 +229,6 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     }
   }, [id, isLoading]);
 
-  // 렌더링
   return (
     <>
       {/* <Head>

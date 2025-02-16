@@ -109,6 +109,7 @@ const CircleMenu = ({
 function WorkoutDetailPage() {
   const router = useRouter();
   const { id } = router.query;
+
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
