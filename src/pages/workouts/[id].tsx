@@ -131,8 +131,6 @@ function WorkoutDetailPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkout(result.data.workout);
-        // 성공 메시지 처리 가능
-        // console.log(result.message);
       } catch (err) {
         setError(
           err instanceof Error
