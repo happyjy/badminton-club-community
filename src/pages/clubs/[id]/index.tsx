@@ -325,7 +325,6 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   );
 }
 
-// withAuth로 컴포넌트 감싸기
 export default withAuth(ClubDetailPage, {
   requireAuth: false, // 비로그인 사용자도 접근 가능하도록 설정
 });
