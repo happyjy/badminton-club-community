@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { getKakaoCallbackUrl } from '@/constants/urls';
 
 export default function Navigation() {
   const router = useRouter();

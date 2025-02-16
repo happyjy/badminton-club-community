@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { ComponentType } from 'react';
 import { User } from '@/types';
 import { redirectToLogin } from '@/utils/auth';
+import { ApiResponse } from '@/types/common.types';
 
 interface WithAuthOptions {
   requireAuth?: boolean;
@@ -65,12 +66,17 @@ export function withAuth<P extends AuthProps>(
 
     const isLoggedIn = !!user;
 
-    // 로그인이 필요한 페이지인데 로그인이 안 되어 있는 경우
     if (options.requireAuth && !isLoggedIn) {
       redirectToLogin(router);
       return null;
     }
 
-    return <WrappedComponent {...props} user={user} isLoggedIn={isLoggedIn} />;
+    const componentProps = {
+      ...props,
+      user,
+      isLoggedIn,
+    } as P;
+
+    return <WrappedComponent {...componentProps} />;
   };
 }

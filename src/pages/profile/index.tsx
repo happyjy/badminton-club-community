@@ -4,7 +4,7 @@ import { User } from '@/types';
 import Image from 'next/image';
 
 interface ProfilePageProps {
-  user: User;
+  user: User | null;
 }
 
 interface ExtendedFormData {

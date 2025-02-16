@@ -1,4 +1,5 @@
 import { BaseEntity } from './common.types';
+import { MembershipStatus } from './membership.types';
 import { User } from './user.types';
 
 export interface Exercise {
