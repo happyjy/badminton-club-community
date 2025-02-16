@@ -35,6 +35,9 @@ export default async function handler(
           },
         },
       },
+      orderBy: {
+        id: 'asc',
+      },
     });
 
     const clubs: ClubWithDetails[] = rawClubs.map((club) => ({
