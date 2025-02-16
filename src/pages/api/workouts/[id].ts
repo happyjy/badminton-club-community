@@ -55,8 +55,16 @@ export default async function handler(
       });
     }
 
+    const formattedWorkout = {
+      ...workout,
+      WorkoutParticipant: workout.WorkoutParticipant.map((participant) => ({
+        ...participant,
+        clubMember: participant.clubMember || undefined,
+      })),
+    };
+
     return res.status(200).json({
-      data: { workout },
+      data: { workout: formattedWorkout },
       status: 200,
       message: '운동 정보를 성공적으로 가져왔습니다',
     });

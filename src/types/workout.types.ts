@@ -47,7 +47,7 @@ export interface WorkoutParticipant {
   createdAt: Date;
   updatedAt: Date;
   User: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
-  clubMember: ClubMember;
+  clubMember?: ClubMember;
 }
 
 export interface WorkoutWithParticipants extends Workout {

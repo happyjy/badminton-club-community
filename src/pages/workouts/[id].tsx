@@ -2,16 +2,31 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 import Image from 'next/image';
-import { Workout, WorkoutParticipant } from '@/types';
+import { Workout } from '@/types';
 import { formatToKoreanTime } from '@/utils';
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
-// import { WorkoutParticipant } from '@prisma/client';
 
 // 선택된 아이콘 타입 정의
 type SelectedIcon = 'net' | 'broomStick' | 'shuttlecock';
 type ParticipantIcons = Record<string, SelectedIcon[]>;
+
+// 참여자 타입 정의
+interface WorkoutParticipant {
+  User: {
+    id: number;
+    nickname: string;
+    thumbnailImageUrl: string | null | undefined;
+  };
+  clubMember?: {
+    id: number;
+    helperStatuses?: {
+      helped: boolean;
+      helperType: 'NET' | 'FLOOR' | 'SHUTTLE';
+    }[];
+  };
+}
 
 // CircleMenu 컴포넌트 수정
 const CircleMenu = ({
@@ -134,29 +149,31 @@ function WorkoutDetailPage() {
         setWorkout(result.data.workout);
         // WorkoutHelperStatus 정보로 초기 상태 설정
         const initialIcons: ParticipantIcons = {};
-        result.data.workout.WorkoutParticipant.forEach((participant) => {
-          if (participant.clubMember?.helperStatuses) {
-            const userIcons = participant.clubMember.helperStatuses
-              .filter((status) => status.helped)
-              .map((status) => {
-                switch (status.helperType) {
-                  case 'NET':
-                    return 'net';
-                  case 'FLOOR':
-                    return 'broomStick';
-                  case 'SHUTTLE':
-                    return 'shuttlecock';
-                  default:
-                    return null;
-                }
-              })
-              .filter((icon): icon is SelectedIcon => icon !== null);
+        result.data.workout.WorkoutParticipant.forEach(
+          (participant: WorkoutParticipant) => {
+            if (participant.clubMember?.helperStatuses) {
+              const userIcons = participant.clubMember.helperStatuses
+                .filter((status) => status.helped)
+                .map((status) => {
+                  switch (status.helperType) {
+                    case 'NET':
+                      return 'net';
+                    case 'FLOOR':
+                      return 'broomStick';
+                    case 'SHUTTLE':
+                      return 'shuttlecock';
+                    default:
+                      return null;
+                  }
+                })
+                .filter((icon): icon is SelectedIcon => icon !== null);
 
-            if (userIcons.length > 0) {
-              initialIcons[participant.User.id] = userIcons;
+              if (userIcons.length > 0) {
+                initialIcons[participant.User.id] = userIcons;
+              }
             }
           }
-        });
+        );
         setParticipantIcons(initialIcons);
       } catch (err) {
         setError(
@@ -174,9 +191,11 @@ function WorkoutDetailPage() {
 
   const handleIconSelect = async (
     userId: number,
-    clubMemberId: number,
+    clubMemberId: number | undefined,
     icon: SelectedIcon
   ) => {
+    if (!clubMemberId) return;
+
     const currentIcons = participantIcons[userId] || [];
     const isSelected = !currentIcons.includes(icon);
 
@@ -262,74 +281,74 @@ function WorkoutDetailPage() {
         <div className="border-t pt-6">
           <h2 className="text-xl font-semibold mb-4">참여자 목록</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {workout.WorkoutParticipant.map((participant) => {
-              // console.log(
-              //   `🚨 ~ {workout.WorkoutParticipant.map ~ participant:`
-              // );
-              // console.log(
-              //   `🚨 ~ {workout.WorkoutParticipant.map ~ participant:`,
-              //   participant,
-              //   participant.clubMember.id
-              // );
-              return (
-                <div
-                  key={participant.User.id}
-                  className="relative flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={() => {
-                    setSelectedParticipant(
-                      selectedParticipant === participant.User.id
-                        ? null
-                        : participant.User.id
-                    );
-                  }}
-                >
-                  {participant.User.thumbnailImageUrl && (
-                    <Image
-                      src={participant.User.thumbnailImageUrl}
-                      alt={participant.User.nickname}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                  )}
-                  <span className="font-medium">
-                    {participant.User.nickname}
-                  </span>
-                  <div className="flex space-x-1 ml-2">
-                    {(participantIcons[participant.User.id] ?? []).map(
-                      (iconType, index) => (
-                        <Image
-                          key={index}
-                          src={
-                            iconType === 'net'
-                              ? badmintonNetIcon
-                              : iconType === 'broomStick'
-                                ? broomStickIcon
-                                : badmintonShuttleCockIcon
-                          }
-                          alt="status icon"
-                          width={20}
-                          height={20}
-                          className="w-5 h-5"
-                        />
-                      )
+            {workout.WorkoutParticipant.map(
+              (participant: WorkoutParticipant) => {
+                if (!participant.clubMember) {
+                  return null;
+                }
+
+                return (
+                  <div
+                    key={participant.User.id}
+                    className="relative flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      setSelectedParticipant(
+                        selectedParticipant === participant.User.id
+                          ? null
+                          : participant.User.id
+                      );
+                    }}
+                  >
+                    {participant.User.thumbnailImageUrl && (
+                      <Image
+                        src={participant.User.thumbnailImageUrl}
+                        alt={participant.User.nickname}
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                      />
                     )}
+                    <span className="font-medium">
+                      {participant.User.nickname}
+                    </span>
+                    <div className="flex space-x-1 ml-2">
+                      {(participantIcons[participant.User.id] ?? []).map(
+                        (iconType, index) => (
+                          <Image
+                            key={index}
+                            src={
+                              iconType === 'net'
+                                ? badmintonNetIcon
+                                : iconType === 'broomStick'
+                                  ? broomStickIcon
+                                  : badmintonShuttleCockIcon
+                            }
+                            alt="status icon"
+                            width={20}
+                            height={20}
+                            className="w-5 h-5"
+                          />
+                        )
+                      )}
+                    </div>
+                    <CircleMenu
+                      isOpen={selectedParticipant === participant.User.id}
+                      onClose={() => setSelectedParticipant(null)}
+                      onIconSelect={(icon) =>
+                        handleIconSelect(
+                          participant.User.id,
+                          participant.clubMember?.id,
+                          icon
+                        )
+                      }
+                      selectedIcons={
+                        participantIcons[participant.User.id] || []
+                      }
+                    />
                   </div>
-                  <CircleMenu
-                    isOpen={selectedParticipant === participant.User.id}
-                    onClose={() => setSelectedParticipant(null)}
-                    onIconSelect={(icon) =>
-                      handleIconSelect(
-                        participant.User.id,
-                        participant.clubMember.id,
-                        icon
-                      )
-                    }
-                    selectedIcons={participantIcons[participant.User.id] || []}
-                  />
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
         </div>
       </div>
