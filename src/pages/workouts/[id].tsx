@@ -131,6 +131,12 @@ function WorkoutDetailPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkout(result.data.workout);
+        console.log(
+          `🚨 ~ fetchWorkoutDetail ~ result.data.workout:`,
+          result.data.workout
+        );
+        // 성공 메시지 처리 가능
+        // console.log(result.message);
       } catch (err) {
         setError(
           err instanceof Error
@@ -145,24 +151,51 @@ function WorkoutDetailPage() {
     fetchWorkoutDetail();
   }, [id]);
 
-  const handleIconSelect = (userId: number, icon: SelectedIcon) => {
-    setParticipantIcons((prev) => {
-      const currentIcons = prev[userId] || [];
-      let newIcons: SelectedIcon[];
+  const handleIconSelect = async (
+    userId: number,
+    clubMemberId: number,
+    icon: SelectedIcon
+  ) => {
+    const currentIcons = participantIcons[userId] || [];
+    const isSelected = !currentIcons.includes(icon);
 
-      if (currentIcons.includes(icon)) {
-        // 이미 선택된 아이콘이면 제거
-        newIcons = currentIcons.filter((i) => i !== icon);
-      } else {
-        // 새로운 아이콘 추가 (최대 3개까지)
-        newIcons = [...currentIcons, icon].slice(-3);
+    try {
+      const response = await fetch(`/api/workouts/${id}/helper-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          iconType: icon,
+          isSelected,
+          targetUserId: userId,
+          clubMemberId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update helper status');
       }
 
-      return {
-        ...prev,
-        [userId]: newIcons,
-      };
-    });
+      setParticipantIcons((prev) => {
+        const currentIcons = prev[userId] || [];
+        let newIcons: SelectedIcon[];
+
+        if (currentIcons.includes(icon)) {
+          newIcons = currentIcons.filter((i) => i !== icon);
+        } else {
+          newIcons = [...currentIcons, icon].slice(-3);
+        }
+
+        return {
+          ...prev,
+          [userId]: newIcons,
+        };
+      });
+    } catch (error) {
+      console.error('Failed to update helper status:', error);
+      // 에러 처리 (예: 토스트 메시지 표시)
+    }
   };
 
   if (isLoading) {
@@ -208,63 +241,74 @@ function WorkoutDetailPage() {
         <div className="border-t pt-6">
           <h2 className="text-xl font-semibold mb-4">참여자 목록</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {workout.WorkoutParticipant.map((participant) => (
-              <div
-                key={participant.User.id}
-                className="relative flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                onClick={() => {
-                  console.log({
-                    selectedParticipant,
-                    'participant.User.id': participant.User.id,
-                  });
-
-                  setSelectedParticipant(
-                    selectedParticipant === participant.User.id
-                      ? null
-                      : participant.User.id
-                  );
-                }}
-              >
-                {participant.User.thumbnailImageUrl && (
-                  <Image
-                    src={participant.User.thumbnailImageUrl}
-                    alt={participant.User.nickname}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                )}
-                <span className="font-medium">{participant.User.nickname}</span>
-                <div className="flex space-x-1 ml-2">
-                  {(participantIcons[participant.User.id] ?? []).map(
-                    (iconType, index) => (
-                      <Image
-                        key={index}
-                        src={
-                          iconType === 'net'
-                            ? badmintonNetIcon
-                            : iconType === 'broomStick'
-                              ? broomStickIcon
-                              : badmintonShuttleCockIcon
-                        }
-                        alt="status icon"
-                        width={20}
-                        height={20}
-                        className="w-5 h-5"
-                      />
-                    )
+            {workout.WorkoutParticipant.map((participant) => {
+              // console.log(
+              //   `🚨 ~ {workout.WorkoutParticipant.map ~ participant:`
+              // );
+              // console.log(
+              //   `🚨 ~ {workout.WorkoutParticipant.map ~ participant:`,
+              //   participant,
+              //   participant.clubMember.id
+              // );
+              return (
+                <div
+                  key={participant.User.id}
+                  className="relative flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    setSelectedParticipant(
+                      selectedParticipant === participant.User.id
+                        ? null
+                        : participant.User.id
+                    );
+                  }}
+                >
+                  {participant.User.thumbnailImageUrl && (
+                    <Image
+                      src={participant.User.thumbnailImageUrl}
+                      alt={participant.User.nickname}
+                      width={40}
+                      height={40}
+                      className="rounded-full"
+                    />
                   )}
+                  <span className="font-medium">
+                    {participant.User.nickname}
+                  </span>
+                  <div className="flex space-x-1 ml-2">
+                    {(participantIcons[participant.User.id] ?? []).map(
+                      (iconType, index) => (
+                        <Image
+                          key={index}
+                          src={
+                            iconType === 'net'
+                              ? badmintonNetIcon
+                              : iconType === 'broomStick'
+                                ? broomStickIcon
+                                : badmintonShuttleCockIcon
+                          }
+                          alt="status icon"
+                          width={20}
+                          height={20}
+                          className="w-5 h-5"
+                        />
+                      )
+                    )}
+                  </div>
+                  <CircleMenu
+                    isOpen={selectedParticipant === participant.User.id}
+                    onClose={() => setSelectedParticipant(null)}
+                    onIconSelect={(icon) =>
+                      handleIconSelect(
+                        participant.User.id,
+                        participant.clubMember.id,
+                        icon
+                      )
+                    }
+                    selectedIcons={participantIcons[participant.User.id] || []}
+                  />
                 </div>
-                <CircleMenu
-                  isOpen={selectedParticipant === participant.User.id}
-                  onClose={() => setSelectedParticipant(null)}
-                  onIconSelect={(icon) =>
-                    handleIconSelect(participant.User.id, icon)
-                  }
-                  selectedIcons={participantIcons[participant.User.id] || []}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

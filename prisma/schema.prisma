@@ -34,6 +34,7 @@ model Workout {
   clubId             Int?
   club               Club?                @relation(fields: [clubId], references: [id])
   WorkoutParticipant WorkoutParticipant[]
+  helperStatuses     WorkoutHelperStatus[]
 }
 
 model WorkoutParticipant {
@@ -85,7 +86,32 @@ model ClubMember {
   updatedAt                DateTime @updatedAt
   club                     Club     @relation(fields: [clubId], references: [id])
   user                     User     @relation(fields: [userId], references: [id])
-  workoutParticipants     WorkoutParticipant[]
+  workoutParticipants      WorkoutParticipant[]
+  helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
+  updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
 
   @@unique([clubId, userId])
+}
+
+enum HelperType {
+  NET
+  FLOOR
+  SHUTTLE
+}
+
+model WorkoutHelperStatus {
+  id           Int        @id @default(autoincrement())
+  workoutId    Int
+  clubMemberId Int
+  helperType   HelperType
+  helped       Boolean    @default(false)
+  updatedById  Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  workout      Workout    @relation(fields: [workoutId], references: [id])
+  clubMember   ClubMember @relation("HelperClubMember", fields: [clubMemberId], references: [id])
+  updatedBy    ClubMember @relation("HelperUpdater", fields: [updatedById], references: [id])
+
+  @@unique([workoutId, clubMemberId, helperType])
 }
