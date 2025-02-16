@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useState, useEffect, useLayoutEffect } from 'react';
 import { Tab } from '@headlessui/react';
 import { Club } from '@prisma/client';
-import { withAuth } from '@/lib/withAuth';
 import {
   ClubMember,
   User,
@@ -14,6 +13,8 @@ import {
 import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
 import { classNames } from '@/utils';
 import { JoinClubModal } from '@/components/clubs/JoinClubModal';
+import { withAuth } from '@/lib/withAuth';
+import { redirectToLogin } from '@/utils/auth';
 // import Head from 'next/head';
 
 // 상수 정의
@@ -37,8 +38,20 @@ const JoinClubButton = ({
   onJoin: (formData: ClubJoinFormData) => void;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   if (isLoading) return null;
+
+  if (!user) {
+    return (
+      <button
+        onClick={() => redirectToLogin(router)}
+        className="text-blue-500 hover:text-blue-700 text-sm"
+      >
+        로그인이 필요합니다
+      </button>
+    );
+  }
 
   if (membershipStatus.isPending) {
     return (
@@ -76,14 +89,15 @@ const JoinClubButton = ({
   return null;
 };
 
-// 메인 컴포넌트
-function ClubDetailPage({ user }: ClubDetailPageProps) {
+function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   const router = useRouter();
   const { id } = router.query;
 
   // 상태 관리
   const [club, setClub] = useState<Club | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(
+    TAB_INDEX.HOME
+  );
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,6 +173,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
         setClub(clubResult.data.club);
         setWorkouts(workoutsResult.data.workouts);
 
+        // 로그인한 사용자인 경우에만 멤버십 상태 확인
         if (user && clubResult.data.club.members) {
           const memberStatus = clubResult.data.club.members.find(
             (member: ClubMember) => member.userId === user.id
@@ -168,14 +183,19 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
             isPending: memberStatus?.status === 'PENDING',
             isMember: memberStatus?.status === 'APPROVED',
           });
-
           setSelectedIndex(!memberStatus ? TAB_INDEX.HOME : TAB_INDEX.WORKOUTS);
+        } else {
+          // 비로그인 사용자의 경우 기본 멤버십 상태 설정
+          setMembershipStatus({
+            isPending: false,
+            isMember: false,
+          });
         }
       } catch (error) {
         console.error('데이터 조회 실패:', error);
       } finally {
         setIsLoadingWorkouts(false);
-        setIsLoading(false); // 데이터 로딩 완료
+        setIsLoading(false);
       }
     };
 
@@ -288,6 +308,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
                         key={workout.id}
                         workout={workout}
                         user={user}
+                        isLoggedIn={isLoggedIn}
                         onParticipate={handleParticipate}
                         membershipStatus={membershipStatus}
                       />
@@ -307,4 +328,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   );
 }
 
-export default withAuth(ClubDetailPage);
+// withAuth로 컴포넌트 감싸기
+export default withAuth(ClubDetailPage, {
+  requireAuth: false, // 비로그인 사용자도 접근 가능하도록 설정
+});

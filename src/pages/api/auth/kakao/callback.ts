@@ -10,7 +10,10 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { code } = req.query;
+  const { code, state } = req.query;
+
+  // state 파라미터 디코딩 (없으면 /clubs를 기본값으로 사용)
+  const returnUrl = state ? decodeURIComponent(state.toString()) : '/clubs';
 
   if (!code) {
     return res.status(400).json({
@@ -92,9 +95,9 @@ export default async function handler(
         })
       );
 
-      // 리다이렉트 주소를 동적으로 생성
+      // 리다이렉트 주소를 state 파라미터에서 가져온 값으로 사용
       const baseUrl = getBaseUrl(req.headers.host);
-      const redirectUrl = `${baseUrl}/clubs`;
+      const redirectUrl = `${baseUrl}${returnUrl}`;
 
       res.redirect(redirectUrl);
     } catch (dbError) {

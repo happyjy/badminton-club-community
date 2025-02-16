@@ -1,6 +1,6 @@
 export const BASE_URL = {
   LOCAL: 'http://localhost:3000',
-  NETWORK: 'http://192.168.219.182:3000',
+  NETWORK: 'http://192.168.219.108:3000',
   PRODUCTION: 'https://badminton-club-community.vercel.app',
 };
 
@@ -10,7 +10,7 @@ export const AUTH_URLS = {
     NETWORK: `${BASE_URL.NETWORK}/api/auth/kakao/callback`,
     PRODUCTION: `${BASE_URL.PRODUCTION}/api/auth/kakao/callback`,
   },
-  WORKOUTS: {
+  CLUBS: {
     LOCAL: `${BASE_URL.LOCAL}/clubs`,
     NETWORK: `${BASE_URL.NETWORK}/clubs`,
     PRODUCTION: `${BASE_URL.PRODUCTION}/clubs`,

@@ -100,4 +100,5 @@ export interface ClubResponse {
 
 export interface ClubDetailPageProps {
   user: User;
+  isLoggedIn: boolean;
 }

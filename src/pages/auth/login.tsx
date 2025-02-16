@@ -1,11 +1,20 @@
+import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { getKakaoCallbackUrl } from '@/constants/urls';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { returnUrl } = router.query;
+
   const handleKakaoLogin = () => {
     const currentHost = window.location.host;
     const redirectUri = getKakaoCallbackUrl(currentHost);
-    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code`;
+    const state = returnUrl ? returnUrl.toString() : '/clubs';
+
+    const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${
+      process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID
+    }&redirect_uri=${redirectUri}&response_type=code&state=${encodeURIComponent(state)}`;
+
     window.location.href = KAKAO_AUTH_URL;
   };
 

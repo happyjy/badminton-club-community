@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Club } from '@/types';
 import { ClubListItem } from '@/components/clubs/ClubListItem';
 
-export default function ClubsPage() {
+function ClubsPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,3 +58,5 @@ export default function ClubsPage() {
     </main>
   );
 }
+
+export default ClubsPage;

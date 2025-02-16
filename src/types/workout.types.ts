@@ -33,3 +33,11 @@ export interface WorkoutParticipant {
 export interface WorkoutWithParticipants extends Workout {
   WorkoutParticipant: WorkoutParticipant[];
 }
+
+export interface WorkoutListItemProps {
+  workout: Workout;
+  user?: User;
+  isLoggedIn: boolean;
+  onParticipate: (workoutId: number, isParticipating: boolean) => void;
+  membershipStatus: MembershipStatus;
+}
