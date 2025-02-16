@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '@/lib/session';
 import { PrismaClient } from '@prisma/client';
+import { ApiResponse } from '@/types';
 
 interface HelperStatus {
   helperType: 'NET' | 'FLOOR' | 'SHUTTLE';

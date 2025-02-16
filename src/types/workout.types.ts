@@ -1,6 +1,7 @@
 import { BaseEntity } from './common.types';
 import { MembershipStatus } from './membership.types';
 import { User } from './user.types';
+import { HelperType } from '@prisma/client';
 
 export interface Exercise {
   id: number;
@@ -8,6 +9,23 @@ export interface Exercise {
   sets: number;
   reps: number;
   weight: number;
+}
+
+interface HelperStatus {
+  id: number;
+  workoutId: number;
+  clubMemberId: number;
+  helperType: HelperType;
+  helped: boolean;
+  updatedById: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ClubMember {
+  id: number;
+  helperStatuses: HelperStatus[];
+  user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
 }
 
 export interface Workout extends BaseEntity {
@@ -29,6 +47,7 @@ export interface WorkoutParticipant {
   createdAt: Date;
   updatedAt: Date;
   User: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
+  clubMember: ClubMember;
 }
 
 export interface WorkoutWithParticipants extends Workout {
