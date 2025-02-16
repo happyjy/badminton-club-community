@@ -46,20 +46,7 @@ export default async function handler(
     }
 
     // 2. 선택된 사용자(target)의 clubMember 찾기
-    const targetClubMember = await prisma.clubMember.findFirst({
-      where: {
-        userId: Number(targetUserId),
-        club: {
-          workouts: {
-            some: {
-              id: Number(workoutId),
-            },
-          },
-        },
-      },
-    });
-
-    if (!targetClubMember) {
+    if (!clubMemberId) {
       return res.status(404).json({
         error: '대상 클럽 멤버를 찾을 수 없습니다',
         status: 404,
@@ -73,22 +60,17 @@ export default async function handler(
           ? 'FLOOR'
           : 'SHUTTLE';
 
-    console.log(`🚨 ~ updaterClubMember:`, updaterClubMember);
-    console.log(`🚨 ~ targetClubMember:`, targetClubMember);
-    console.log(`🚨 ~ workoutId:`, workoutId);
-    console.log(`🚨 ~ targetClubMember.id:`, targetClubMember.id);
-
     const helperStatus = await prisma.workoutHelperStatus.upsert({
       where: {
         workoutId_clubMemberId_helperType: {
           workoutId: Number(workoutId),
-          clubMemberId: targetClubMember.id,
+          clubMemberId,
           helperType,
         },
       },
       create: {
         workoutId: Number(workoutId),
-        clubMemberId: targetClubMember.id,
+        clubMemberId,
         helperType,
         helped: isSelected,
         updatedById: updaterClubMember.id,

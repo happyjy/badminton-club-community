@@ -131,12 +131,32 @@ function WorkoutDetailPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkout(result.data.workout);
-        console.log(
-          `🚨 ~ fetchWorkoutDetail ~ result.data.workout:`,
-          result.data.workout
-        );
-        // 성공 메시지 처리 가능
-        // console.log(result.message);
+        // WorkoutHelperStatus 정보로 초기 상태 설정
+        const initialIcons: ParticipantIcons = {};
+        result.data.workout.WorkoutParticipant.forEach((participant) => {
+          if (participant.clubMember?.helperStatuses) {
+            const userIcons = participant.clubMember.helperStatuses
+              .filter((status) => status.helped)
+              .map((status) => {
+                switch (status.helperType) {
+                  case 'NET':
+                    return 'net';
+                  case 'FLOOR':
+                    return 'broomStick';
+                  case 'SHUTTLE':
+                    return 'shuttlecock';
+                  default:
+                    return null;
+                }
+              })
+              .filter((icon): icon is SelectedIcon => icon !== null);
+
+            if (userIcons.length > 0) {
+              initialIcons[participant.User.id] = userIcons;
+            }
+          }
+        });
+        setParticipantIcons(initialIcons);
       } catch (err) {
         setError(
           err instanceof Error

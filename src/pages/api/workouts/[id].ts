@@ -33,6 +33,7 @@ export default async function handler(
             },
             clubMember: {
               include: {
+                helperStatuses: true,
                 user: {
                   select: {
                     id: true,
