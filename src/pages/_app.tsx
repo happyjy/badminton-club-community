@@ -69,13 +69,16 @@ export default function App({ Component, pageProps }: AppProps) {
         <title>배드민턴 클럽</title>
       </Head>
 
-      {isLoginPage ? (
+      {/* {isLoginPage ? (
         <Component {...pageProps} />
       ) : (
         <Layout>
           <Component {...pageProps} />
         </Layout>
-      )}
+        )} */}
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </>
   );
 }

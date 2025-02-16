@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
-import { getSession } from '@/lib/session';
 import { ClubWithDetails, ApiResponse } from '@/types';
 import { Role, Status } from '@/types/enums';
 
@@ -12,15 +11,6 @@ export default async function handler(
     return res.status(405).json({
       error: '허용되지 않는 메소드입니다',
       status: 405,
-    });
-  }
-
-  const session = await getSession(req);
-  // 세션 검증 로직 수정
-  if (!session?.id) {
-    return res.status(401).json({
-      error: '로그인이 필요합니다',
-      status: 401,
     });
   }
 
