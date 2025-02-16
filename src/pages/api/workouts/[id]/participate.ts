@@ -26,16 +26,47 @@ export default async function handler(
   }
 
   const { id } = req.query;
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({
+      error: '잘못된 workout ID입니다',
+      status: 400,
+    });
+  }
+
+  const { clubId } = req.body;
+  if (!clubId) {
+    return res.status(400).json({
+      error: '클럽 ID가 필요합니다',
+      status: 400,
+    });
+  }
+
   const prisma = new PrismaClient();
 
   try {
     if (req.method === 'POST') {
+      const clubMember = await prisma.clubMember.findUnique({
+        where: {
+          clubId_userId: {
+            clubId: Number(clubId),
+            userId: Number(session.id),
+          },
+        },
+      });
+
+      if (!clubMember) {
+        return res.status(400).json({
+          error: '클럽 멤버를 찾을 수 없습니다',
+          status: 400,
+        });
+      }
+
       await prisma.workoutParticipant.create({
         data: {
           workoutId: Number(id),
           userId: Number(session.id),
+          clubMemberId: Number(clubMember.id),
           status: Status.PENDING,
-          updatedAt: new Date(),
         },
       });
 

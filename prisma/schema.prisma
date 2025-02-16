@@ -37,14 +37,16 @@ model Workout {
 }
 
 model WorkoutParticipant {
-  id        Int      @id @default(autoincrement())
-  workoutId Int
-  userId    Int
-  status    String   @default("PENDING")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  User      User     @relation(fields: [userId], references: [id])
-  Workout   Workout  @relation(fields: [workoutId], references: [id])
+  id              Int        @id @default(autoincrement())
+  workoutId       Int
+  userId          Int
+  clubMemberId    Int?
+  status          String     @default("PENDING")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  User            User       @relation(fields: [userId], references: [id])
+  clubMember      ClubMember? @relation(fields: [clubMemberId], references: [id])
+  Workout         Workout    @relation(fields: [workoutId], references: [id])
 
   @@unique([workoutId, userId])
 }
@@ -83,6 +85,7 @@ model ClubMember {
   updatedAt                DateTime @updatedAt
   club                     Club     @relation(fields: [clubId], references: [id])
   user                     User     @relation(fields: [userId], references: [id])
+  workoutParticipants     WorkoutParticipant[]
 
   @@unique([clubId, userId])
 }

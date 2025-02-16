@@ -141,6 +141,12 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     try {
       const response = await fetch(`/api/workouts/${workoutId}/participate`, {
         method: isParticipating ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clubId,
+        }),
       });
       if (response.ok) {
         // router.reload() 대신 운동 목록만 새로 불러오기

@@ -24,11 +24,15 @@ export default async function handler(
       include: {
         WorkoutParticipant: {
           include: {
-            User: {
-              select: {
-                id: true,
-                nickname: true,
-                thumbnailImageUrl: true,
+            clubMember: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    nickname: true,
+                    thumbnailImageUrl: true,
+                  },
+                },
               },
             },
           },

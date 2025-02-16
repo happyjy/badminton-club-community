@@ -23,6 +23,7 @@ export default async function handler(
         id: Number(id),
       },
       include: {
+        // 클럽 멤버 정보 조회
         members: {
           include: {
             user: {
