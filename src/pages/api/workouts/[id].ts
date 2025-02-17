@@ -14,12 +14,13 @@ export default async function handler(
   }
 
   const { id } = req.query;
+  const workoutId = Number(id);
   const prisma = new PrismaClient();
 
   try {
     const workout = await prisma.workout.findUnique({
       where: {
-        id: Number(id),
+        id: workoutId,
       },
       include: {
         WorkoutParticipant: {
@@ -33,7 +34,11 @@ export default async function handler(
             },
             clubMember: {
               include: {
-                helperStatuses: true,
+                helperStatuses: {
+                  where: {
+                    workoutId,
+                  },
+                },
                 user: {
                   select: {
                     id: true,
@@ -45,6 +50,7 @@ export default async function handler(
             },
           },
         },
+        helperStatuses: true,
       },
     });
 
@@ -55,16 +61,8 @@ export default async function handler(
       });
     }
 
-    const formattedWorkout = {
-      ...workout,
-      WorkoutParticipant: workout.WorkoutParticipant.map((participant) => ({
-        ...participant,
-        clubMember: participant.clubMember || undefined,
-      })),
-    };
-
     return res.status(200).json({
-      data: { workout: formattedWorkout },
+      data: { workout },
       status: 200,
       message: '운동 정보를 성공적으로 가져왔습니다',
     });
