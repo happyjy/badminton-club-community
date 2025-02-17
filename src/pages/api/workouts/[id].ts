@@ -23,6 +23,7 @@ export default async function handler(
         id: workoutId,
       },
       include: {
+        // helperStatuses: true, // WorkoutHelperStatus 전체가 조회 됨
         WorkoutParticipant: {
           include: {
             User: {
@@ -50,7 +51,6 @@ export default async function handler(
             },
           },
         },
-        helperStatuses: true,
       },
     });
 
