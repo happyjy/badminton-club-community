@@ -52,7 +52,7 @@ model WorkoutParticipant {
   @@unique([workoutId, userId])
 }
 
-model Club {
+model Club { 
   // 스키마 필드 설정
   id          Int          @id @default(autoincrement())
   name        String
@@ -97,6 +97,8 @@ enum HelperType {
   NET
   FLOOR
   SHUTTLE
+  KEY
+  MOP
 }
 
 model WorkoutHelperStatus {

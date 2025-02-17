@@ -7,9 +7,11 @@ import { formatToKoreanTime } from '@/utils';
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
+import mopIcon from '@/icon/mop.svg';
+import keyIcon from '@/icon/key.svg';
 
 // 선택된 아이콘 타입 정의
-type SelectedIcon = 'net' | 'broomStick' | 'shuttlecock';
+type SelectedIcon = 'net' | 'broomStick' | 'shuttlecock' | 'key' | 'mop';
 type ParticipantIcons = Record<string, SelectedIcon[]>;
 
 // 참여자 타입 정의
@@ -23,7 +25,7 @@ interface WorkoutParticipant {
     id: number;
     helperStatuses?: {
       helped: boolean;
-      helperType: 'NET' | 'FLOOR' | 'SHUTTLE';
+      helperType: 'NET' | 'FLOOR' | 'SHUTTLE' | 'KEY' | 'MOP';
     }[];
   };
 }
@@ -54,8 +56,8 @@ const CircleMenu = ({
       <div className="absolute -top-2 -right-2">
         <div className="relative">
           <div
-            className={`absolute transform transition-all duration-300 ease-in-out
-              ${isOpen ? '-translate-y-14' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-y-[-50px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
           >
             <button
               className={`w-12 h-12 rounded-full ${
@@ -75,8 +77,8 @@ const CircleMenu = ({
             </button>
           </div>
           <div
-            className={`absolute transform transition-all duration-300 ease-in-out
-              ${isOpen ? '-translate-y-2 -translate-x-8' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[47px] translate-y-[-15px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
           >
             <button
               className={`w-12 h-12 rounded-full ${
@@ -96,8 +98,8 @@ const CircleMenu = ({
             </button>
           </div>
           <div
-            className={`absolute transform transition-all duration-300 ease-in-out
-              ${isOpen ? '-translate-y-2 translate-x-8' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[29px] translate-y-[40px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
           >
             <button
               className={`w-12 h-12 rounded-full ${
@@ -110,6 +112,48 @@ const CircleMenu = ({
               <Image
                 src={badmintonShuttleCockIcon}
                 alt="shuttlecock"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[-29px] translate-y-[40px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('key')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('key')}
+            >
+              <Image
+                src={keyIcon}
+                alt="key"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[-47px] translate-y-[-15px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('mop')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('mop')}
+            >
+              <Image
+                src={mopIcon}
+                alt="mop"
                 width={30}
                 height={30}
                 className="w-7 h-7"
@@ -147,14 +191,24 @@ function WorkoutDetailPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkout(result.data.workout);
+        console.log(`🚨 ~ fetchWorkoutDetail ~ result.data:`, result.data);
+
         // WorkoutHelperStatus 정보로 초기 상태 설정
         const initialIcons: ParticipantIcons = {};
         result.data.workout.WorkoutParticipant.forEach(
           (participant: WorkoutParticipant) => {
             if (participant.clubMember?.helperStatuses) {
+              // console.log(
+              //   `🚨 ~ fetchWorkoutDetail ~ participant.clubMember?.helperStatuses:`,
+              //   participant.clubMember?.helperStatuses
+              // );
               const userIcons = participant.clubMember.helperStatuses
                 .filter((status) => status.helped)
                 .map((status) => {
+                  console.log(
+                    `🚨 ~ .map ~ status.helperType:`,
+                    status.helperType
+                  );
                   switch (status.helperType) {
                     case 'NET':
                       return 'net';
@@ -162,18 +216,24 @@ function WorkoutDetailPage() {
                       return 'broomStick';
                     case 'SHUTTLE':
                       return 'shuttlecock';
+                    case 'KEY':
+                      return 'key';
+                    case 'MOP':
+                      return 'mop';
                     default:
                       return null;
                   }
                 })
                 .filter((icon): icon is SelectedIcon => icon !== null);
 
+              // console.log(`🚨 ~ fetchWorkoutDetail ~ userIcons:`, userIcons);
               if (userIcons.length > 0) {
                 initialIcons[participant.User.id] = userIcons;
               }
             }
           }
         );
+        console.log(`🚨 ~ fetchWorkoutDetail ~ initialIcons:`, initialIcons);
         setParticipantIcons(initialIcons);
       } catch (err) {
         setError(
@@ -313,34 +373,41 @@ function WorkoutDetailPage() {
                     </span>
                     <div className="flex space-x-1 ml-2">
                       {(participantIcons[participant.User.id] ?? []).map(
-                        (iconType, index) => (
-                          <Image
-                            key={index}
-                            src={
-                              iconType === 'net'
-                                ? badmintonNetIcon
-                                : iconType === 'broomStick'
-                                  ? broomStickIcon
-                                  : badmintonShuttleCockIcon
-                            }
-                            alt="status icon"
-                            width={20}
-                            height={20}
-                            className="w-5 h-5"
-                          />
-                        )
+                        (iconType, index) => {
+                          // console.log(`🚨 ~ .map ~ iconType:`, iconType);
+                          return (
+                            <Image
+                              key={index}
+                              src={
+                                iconType === 'net'
+                                  ? badmintonNetIcon
+                                  : iconType === 'broomStick'
+                                    ? broomStickIcon
+                                    : iconType === 'shuttlecock'
+                                      ? badmintonShuttleCockIcon
+                                      : iconType === 'key'
+                                        ? keyIcon
+                                        : mopIcon
+                              }
+                              alt="status icon"
+                              width={20}
+                              height={20}
+                              className="w-5 h-5"
+                            />
+                          );
+                        }
                       )}
                     </div>
                     <CircleMenu
                       isOpen={selectedParticipant === participant.User.id}
                       onClose={() => setSelectedParticipant(null)}
-                      onIconSelect={(icon) =>
+                      onIconSelect={(icon) => {
                         handleIconSelect(
                           participant.User.id,
                           participant.clubMember?.id,
                           icon
-                        )
-                      }
+                        );
+                      }}
                       selectedIcons={
                         participantIcons[participant.User.id] || []
                       }

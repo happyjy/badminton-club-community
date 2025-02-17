@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { ApiResponse } from '@/types';
 
 interface HelperStatus {
-  helperType: 'NET' | 'FLOOR' | 'SHUTTLE';
+  helperType: 'NET' | 'FLOOR' | 'SHUTTLE' | 'KEY' | 'MOP';
   helped: boolean;
 }
 
@@ -59,7 +59,11 @@ export default async function handler(
         ? 'NET'
         : iconType === 'broomStick'
           ? 'FLOOR'
-          : 'SHUTTLE';
+          : iconType === 'shuttlecock'
+            ? 'SHUTTLE'
+            : iconType === 'key'
+              ? 'KEY'
+              : 'MOP';
 
     const helperStatus = await prisma.workoutHelperStatus.upsert({
       where: {
