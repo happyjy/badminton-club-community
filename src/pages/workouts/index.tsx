@@ -47,8 +47,6 @@ export function WorkoutsPage({ user }: WorkoutsPageProps) {
         if (!response.ok) throw new Error(result.error);
 
         setWorkouts(result.data.workouts);
-        // 성공 메시지 처리 가능
-        // console.log(result.message);
       } catch (err) {
         setError(
           err instanceof Error

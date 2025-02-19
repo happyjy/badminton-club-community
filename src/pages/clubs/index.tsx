@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Club } from '@/types';
 import { ClubListItem } from '@/components/clubs/ClubListItem';
+import { useDispatch } from 'react-redux';
+import { initialState, setClubData } from '@/store/features/clubSlice';
 
 function ClubsPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchClubs = async () => {
@@ -29,6 +32,10 @@ function ClubsPage() {
 
     fetchClubs();
   }, []);
+
+  useEffect(() => {
+    dispatch(setClubData(initialState.currentClub));
+  }, [dispatch]);
 
   if (isLoading) {
     return (

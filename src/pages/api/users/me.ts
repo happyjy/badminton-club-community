@@ -35,7 +35,6 @@ export default async function handler(
       lessonPeriod,
       playingPeriod,
     } = req.body;
-    console.log(`🚨 ~ req.body:`, req.body);
 
     // 트랜잭션으로 User와 ClubMember 테이블 동시 업데이트
     await prisma.$transaction(async (tx) => {

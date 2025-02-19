@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router';
 import { useState, useEffect, useLayoutEffect } from 'react';
 import { Tab } from '@headlessui/react';
-import { Club } from '@prisma/client';
 import {
   ClubMember,
   User,
@@ -15,6 +14,9 @@ import { classNames } from '@/utils';
 import { JoinClubModal } from '@/components/clubs/JoinClubModal';
 import { withAuth } from '@/lib/withAuth';
 import { redirectToLogin } from '@/utils/auth';
+import { useDispatch, useSelector } from 'react-redux';
+import { setClubData } from '@/store/features/clubSlice';
+import { RootState } from '@/store';
 
 const TAB_INDEX = {
   HOME: 0,
@@ -88,11 +90,13 @@ const JoinClubButton = ({
 };
 
 function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
+  const dispatch = useDispatch();
   const router = useRouter();
   const { id: clubId } = router.query;
 
-  // 상태 관리
-  const [club, setClub] = useState<Club | null>(null);
+  // redux state 상태 관리
+  const club = useSelector((state: RootState) => state.club.currentClub);
+  // local state 상태 관리
   const [selectedIndex, setSelectedIndex] = useState<number | null>(
     TAB_INDEX.HOME
   );
@@ -174,7 +178,7 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
           workoutsResponse.json(),
         ]);
 
-        setClub(clubResult.data.club);
+        dispatch(setClubData(clubResult.data.club));
         setWorkouts(workoutsResult.data.workouts);
 
         // 로그인한 사용자인 경우에만 멤버십 상태 확인
@@ -204,7 +208,7 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     };
 
     fetchInitialData();
-  }, []);
+  }, [clubId, user, dispatch]);
 
   const canJoinClub =
     user && !membershipStatus.isMember && !membershipStatus.isPending;
@@ -243,9 +247,9 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
       {/* <Head>
         <title>{`${club?.name}`}</title>
       </Head> */}
-      <div className="max-w-3xl mx-auto px-4 py-6">
+      <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">{club?.name}</h1>
+          {/* <h1 className="text-2xl font-bold">{club?.name}</h1> */}
           <JoinClubButton
             user={user}
             isLoading={isLoading}

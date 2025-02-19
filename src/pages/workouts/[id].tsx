@@ -191,24 +191,15 @@ function WorkoutDetailPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkout(result.data.workout);
-        console.log(`🚨 ~ fetchWorkoutDetail ~ result.data:`, result.data);
 
         // WorkoutHelperStatus 정보로 초기 상태 설정
         const initialIcons: ParticipantIcons = {};
         result.data.workout.WorkoutParticipant.forEach(
           (participant: WorkoutParticipant) => {
             if (participant.clubMember?.helperStatuses) {
-              // console.log(
-              //   `🚨 ~ fetchWorkoutDetail ~ participant.clubMember?.helperStatuses:`,
-              //   participant.clubMember?.helperStatuses
-              // );
               const userIcons = participant.clubMember.helperStatuses
                 .filter((status) => status.helped)
                 .map((status) => {
-                  console.log(
-                    `🚨 ~ .map ~ status.helperType:`,
-                    status.helperType
-                  );
                   switch (status.helperType) {
                     case 'NET':
                       return 'net';
@@ -226,14 +217,12 @@ function WorkoutDetailPage() {
                 })
                 .filter((icon): icon is SelectedIcon => icon !== null);
 
-              // console.log(`🚨 ~ fetchWorkoutDetail ~ userIcons:`, userIcons);
               if (userIcons.length > 0) {
                 initialIcons[participant.User.id] = userIcons;
               }
             }
           }
         );
-        console.log(`🚨 ~ fetchWorkoutDetail ~ initialIcons:`, initialIcons);
         setParticipantIcons(initialIcons);
       } catch (err) {
         setError(
@@ -374,7 +363,6 @@ function WorkoutDetailPage() {
                     <div className="flex space-x-1 ml-2">
                       {(participantIcons[participant.User.id] ?? []).map(
                         (iconType, index) => {
-                          // console.log(`🚨 ~ .map ~ iconType:`, iconType);
                           return (
                             <Image
                               key={index}
