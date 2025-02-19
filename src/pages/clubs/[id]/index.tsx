@@ -108,6 +108,11 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     isMember: false,
   });
 
+  const canJoinClub =
+    user && !membershipStatus.isMember && !membershipStatus.isPending;
+  const isAbleJoinclubButton =
+    !user || membershipStatus.isPending || canJoinClub;
+
   // API 호출 함수들
   const fetchWorkouts = async () => {
     if (!clubId) return;
@@ -210,9 +215,6 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     fetchInitialData();
   }, [clubId, user, dispatch]);
 
-  const canJoinClub =
-    user && !membershipStatus.isMember && !membershipStatus.isPending;
-
   // 페이지 이동 전 스크롤 위치 저장
   useEffect(() => {
     const handleRouteChange = () => {
@@ -248,16 +250,19 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
         <title>{`${club?.name}`}</title>
       </Head> */}
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          {/* <h1 className="text-2xl font-bold">{club?.name}</h1> */}
-          <JoinClubButton
-            user={user}
-            isLoading={isLoading}
-            membershipStatus={membershipStatus}
-            canJoinClub={canJoinClub}
-            onJoin={handleJoinClub}
-          />
-        </div>
+        {isAbleJoinclubButton && (
+          <div className="flex items-center justify-between mb-6">
+            (
+            <JoinClubButton
+              user={user}
+              isLoading={isLoading}
+              membershipStatus={membershipStatus}
+              canJoinClub={canJoinClub}
+              onJoin={handleJoinClub}
+            />
+            )
+          </div>
+        )}
 
         {selectedIndex !== null && (
           <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
