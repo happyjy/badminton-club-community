@@ -9,9 +9,7 @@ export default function Navigation() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const clubName = useSelector(
-    (state: RootState) => state.club.currentClub.name
-  );
+  const currClub = useSelector((state: RootState) => state.club.currentClub);
 
   // 인증 상태 확인 함수를 컴포넌트 레벨로 이동
   const checkAuth = async () => {
@@ -61,10 +59,10 @@ export default function Navigation() {
                   배드민턴 클럽
                 </h1>
               </Link>
-              <Link href="/clubs">
+              <Link href={`/clubs/${currClub.id}`}>
                 <h2 className="text-lg font-bold cursor-pointer hover:text-gray-700">
-                  {clubName && (
-                    <span className="ml-2 text-gray-600"> {clubName}</span>
+                  {currClub && (
+                    <span className="ml-2 text-gray-600"> {currClub.name}</span>
                   )}
                 </h2>
               </Link>
