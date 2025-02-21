@@ -251,8 +251,8 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
       </Head> */}
       <div className="max-w-3xl mx-auto">
         {isAbleJoinclubButton && (
-          <div className="flex items-center justify-between mb-6">
-            (
+          // align left 옵션 뭐야?
+          <div className="flex justify-end mb-6">
             <JoinClubButton
               user={user}
               isLoading={isLoading}
@@ -260,7 +260,6 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
               canJoinClub={canJoinClub}
               onJoin={handleJoinClub}
             />
-            )
           </div>
         )}
 
