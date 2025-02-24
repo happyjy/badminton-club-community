@@ -206,7 +206,7 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   }, [clubId, isLoading]);
 
   return (
-    <ClubLayout clubId={clubId as string}>
+    <>
       {isAbleJoinclubButton && (
         <div className="flex justify-end">
           <JoinClubButton
@@ -232,7 +232,7 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
           <p>{club?.description}</p>
         </div>
       </div>
-    </ClubLayout>
+    </>
   );
 }
 
