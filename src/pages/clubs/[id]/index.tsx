@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { useState, useEffect, useLayoutEffect } from 'react';
-import { Tab } from '@headlessui/react';
 import {
   ClubMember,
   User,
@@ -17,11 +16,7 @@ import { redirectToLogin } from '@/utils/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import { setClubData } from '@/store/features/clubSlice';
 import { RootState } from '@/store';
-
-const TAB_INDEX = {
-  HOME: 0,
-  WORKOUTS: 1,
-} as const;
+import { ClubNavigation } from '@/components/clubs/ClubNavigation';
 
 // 컴포넌트 분리: 가입 버튼
 const JoinClubButton = ({
@@ -94,14 +89,7 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
 
-  // redux state 상태 관리
   const club = useSelector((state: RootState) => state.club.currentClub);
-  // local state 상태 관리
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(
-    TAB_INDEX.HOME
-  );
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatus>({
     isPending: false,
@@ -114,17 +102,6 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
     !user || membershipStatus.isPending || canJoinClub;
 
   // API 호출 함수들
-  const fetchWorkouts = async () => {
-    if (!clubId) return;
-    try {
-      const response = await fetch(`/api/clubs/${clubId}/workouts`);
-      const result = await response.json();
-      setWorkouts(result.data.workouts);
-    } catch (error) {
-      console.error('운동 목록 조회 실패:', error);
-    }
-  };
-
   const handleJoinClub = async (formData: ClubJoinFormData) => {
     try {
       const response = await fetch(`/api/clubs/${clubId}/join`, {
@@ -173,20 +150,11 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
 
       setIsLoading(true);
       try {
-        const [clubResponse, workoutsResponse] = await Promise.all([
-          fetch(`/api/clubs/${clubId}`),
-          fetch(`/api/clubs/${clubId}/workouts`),
-        ]);
-
-        const [clubResult, workoutsResult] = await Promise.all([
-          clubResponse.json(),
-          workoutsResponse.json(),
-        ]);
+        const clubResponse = await fetch(`/api/clubs/${clubId}`);
+        const clubResult = await clubResponse.json();
 
         dispatch(setClubData(clubResult.data.club));
-        setWorkouts(workoutsResult.data.workouts);
 
-        // 로그인한 사용자인 경우에만 멤버십 상태 확인
         if (user && clubResult.data.club.members) {
           const memberStatus = clubResult.data.club.members.find(
             (member: ClubMember) => member.userId === user.id
@@ -196,18 +164,10 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
             isPending: memberStatus?.status === 'PENDING',
             isMember: memberStatus?.status === 'APPROVED',
           });
-          setSelectedIndex(!memberStatus ? TAB_INDEX.HOME : TAB_INDEX.WORKOUTS);
-        } else {
-          // 비로그인 사용자의 경우 기본 멤버십 상태 설정
-          setMembershipStatus({
-            isPending: false,
-            isMember: false,
-          });
         }
       } catch (error) {
         console.error('데이터 조회 실패:', error);
       } finally {
-        setIsLoadingWorkouts(false);
         setIsLoading(false);
       }
     };
@@ -245,14 +205,12 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   }, [clubId, isLoading]);
 
   return (
-    <>
-      {/* <Head>
-        <title>{`${club?.name}`}</title>
-      </Head> */}
-      <div className="max-w-3xl mx-auto">
+    <div className="py-3">
+      <ClubNavigation clubId={clubId as string} />
+
+      <div className="mt-6">
         {isAbleJoinclubButton && (
-          // align left 옵션 뭐야?
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-end">
             <JoinClubButton
               user={user}
               isLoading={isLoading}
@@ -262,86 +220,23 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
             />
           </div>
         )}
-
-        {selectedIndex !== null && (
-          <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
-            <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
-              <Tab
-                className={({ selected }) =>
-                  classNames(
-                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                    selected
-                      ? 'bg-white shadow text-blue-700'
-                      : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                  )
-                }
-              >
-                홈
-              </Tab>
-              <Tab
-                className={({ selected }) =>
-                  classNames(
-                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                    selected
-                      ? 'bg-white shadow text-blue-700'
-                      : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                  )
-                }
-              >
-                오늘 운동 가니?
-              </Tab>
-            </Tab.List>
-            <Tab.Panels className="mt-2">
-              <Tab.Panel className="rounded-xl bg-white p-3">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-bold">운영 시간</h3>
-                    <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-bold">장소</h3>
-                    <p>{club?.location}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-bold">설명</h3>
-                    <p>{club?.description}</p>
-                  </div>
-                </div>
-              </Tab.Panel>
-              <Tab.Panel className="rounded-xl bg-white p-3">
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                  {isLoadingWorkouts ? (
-                    <div className="col-span-full flex justify-center py-10">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
-                    </div>
-                  ) : workouts.length > 0 ? (
-                    workouts.map((workout) => (
-                      <WorkoutListItem
-                        key={workout.id}
-                        workout={workout}
-                        user={user}
-                        isLoggedIn={isLoggedIn}
-                        onParticipate={handleParticipate}
-                        membershipStatus={membershipStatus}
-                      />
-                    ))
-                  ) : (
-                    <p className="col-span-full text-center text-gray-500 py-10">
-                      등록된 운동이 없습니다.
-                    </p>
-                  )}
-                </div>
-              </Tab.Panel>
-            </Tab.Panels>
-          </Tab.Group>
-        )}
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-bold">운영 시간</h3>
+            <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
+          </div>
+          <div>
+            <h3 className="font-bold">장소</h3>
+            <p>{club?.location}</p>
+          </div>
+          <div>
+            <h3 className="font-bold">설명</h3>
+            <p>{club?.description}</p>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
-export default withAuth(ClubDetailPage, {
-  requireAuth: false, // 비로그인 사용자도 접근 가능하도록 설정
-});
+export default withAuth(ClubDetailPage);

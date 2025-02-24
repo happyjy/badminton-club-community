@@ -52,7 +52,7 @@ export default function Navigation() {
     <>
       <nav className="bg-white shadow-md w-full top-0 z-10">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-14">
             <div className="flex items-center">
               <Link href="/clubs">
                 <h1 className="text-xl font-bold cursor-pointer hover:text-gray-700">
