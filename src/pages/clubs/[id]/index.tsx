@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setClubData } from '@/store/features/clubSlice';
 import { RootState } from '@/store';
 import { ClubNavigation } from '@/components/clubs/ClubNavigation';
+import { ClubLayout } from '@/components/clubs/ClubLayout';
 
 // 컴포넌트 분리: 가입 버튼
 const JoinClubButton = ({
@@ -205,37 +206,33 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   }, [clubId, isLoading]);
 
   return (
-    <div className="py-3">
-      <ClubNavigation clubId={clubId as string} />
-
-      <div className="mt-6">
-        {isAbleJoinclubButton && (
-          <div className="flex justify-end">
-            <JoinClubButton
-              user={user}
-              isLoading={isLoading}
-              membershipStatus={membershipStatus}
-              canJoinClub={canJoinClub}
-              onJoin={handleJoinClub}
-            />
-          </div>
-        )}
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-bold">운영 시간</h3>
-            <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
-          </div>
-          <div>
-            <h3 className="font-bold">장소</h3>
-            <p>{club?.location}</p>
-          </div>
-          <div>
-            <h3 className="font-bold">설명</h3>
-            <p>{club?.description}</p>
-          </div>
+    <ClubLayout clubId={clubId as string}>
+      {isAbleJoinclubButton && (
+        <div className="flex justify-end">
+          <JoinClubButton
+            user={user}
+            isLoading={isLoading}
+            membershipStatus={membershipStatus}
+            canJoinClub={canJoinClub}
+            onJoin={handleJoinClub}
+          />
+        </div>
+      )}
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-bold">운영 시간</h3>
+          <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
+        </div>
+        <div>
+          <h3 className="font-bold">장소</h3>
+          <p>{club?.location}</p>
+        </div>
+        <div>
+          <h3 className="font-bold">설명</h3>
+          <p>{club?.description}</p>
         </div>
       </div>
-    </div>
+    </ClubLayout>
   );
 }
 

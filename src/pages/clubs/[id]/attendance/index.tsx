@@ -9,6 +9,7 @@ import {
   MembershipStatus,
   ClubDetailPageProps,
 } from '@/types';
+import { ClubLayout } from '@/components/clubs/ClubLayout';
 
 function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   const router = useRouter();
@@ -82,34 +83,30 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   }, [clubId, user]);
 
   return (
-    <div className="py-3">
-      <ClubNavigation clubId={clubId as string} />
-      <div className="mt-6">
-        <h1 className="text-2xl font-bold mb-4">오늘 운동 가니?</h1>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {isLoadingWorkouts ? (
-            <div className="col-span-full flex justify-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
-            </div>
-          ) : workouts.length > 0 ? (
-            workouts.map((workout) => (
-              <WorkoutListItem
-                key={workout.id}
-                workout={workout}
-                user={user}
-                isLoggedIn={isLoggedIn}
-                onParticipate={handleParticipate}
-                membershipStatus={membershipStatus}
-              />
-            ))
-          ) : (
-            <p className="col-span-full text-center text-gray-500 py-10">
-              등록된 운동이 없습니다.
-            </p>
-          )}
-        </div>
+    <ClubLayout clubId={clubId as string}>
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {isLoadingWorkouts ? (
+          <div className="col-span-full flex justify-center py-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+          </div>
+        ) : workouts.length > 0 ? (
+          workouts.map((workout) => (
+            <WorkoutListItem
+              key={workout.id}
+              workout={workout}
+              user={user}
+              isLoggedIn={isLoggedIn}
+              onParticipate={handleParticipate}
+              membershipStatus={membershipStatus}
+            />
+          ))
+        ) : (
+          <p className="col-span-full text-center text-gray-500 py-10">
+            등록된 운동이 없습니다.
+          </p>
+        )}
       </div>
-    </div>
+    </ClubLayout>
   );
 }
 

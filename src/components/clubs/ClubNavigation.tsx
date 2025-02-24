@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useCallback } from 'react';
 
 interface ClubNavigationProps {
   clubId: string;
@@ -9,6 +10,16 @@ interface ClubNavigationProps {
 export function ClubNavigation({ clubId }: ClubNavigationProps) {
   const router = useRouter();
   const currentPath = router.asPath;
+
+  const handleNavigation = useCallback(
+    (href: string) => {
+      router.push(href, undefined, {
+        shallow: true,
+        scroll: false,
+      });
+    },
+    [router]
+  );
 
   const navigationItems = [
     { name: '홈', href: `/clubs/${clubId}` },
@@ -24,9 +35,9 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
         {navigationItems.map((item) => {
           const isActive = currentPath === item.href;
           return (
-            <Link
+            <button
               key={item.name}
-              href={item.href}
+              onClick={() => handleNavigation(item.href)}
               className={cn(
                 'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium',
                 isActive
@@ -35,7 +46,7 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
               )}
             >
               {item.name}
-            </Link>
+            </button>
           );
         })}
       </div>
