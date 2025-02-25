@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 import { useState, useEffect } from 'react';
-import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
+import { WorkoutListItem } from '@/components/organisms/workout/WorkoutListItem';
 import {
   Workout,
   ClubMember,

@@ -1,6 +1,6 @@
 import { LayoutProps } from '@/types/components.types';
-import Navigation from './Navigation';
-import { ClubNavigation } from './clubs/ClubNavigation';
+import MainNavigation from '../molecules/navigation/mainNavigation/MainNavigation';
+import { ClubNavigation } from '../molecules/navigation/clubNavigation/ClubNavigation';
 import { useRouter } from 'next/router';
 
 export default function Layout({ children }: LayoutProps) {
@@ -12,7 +12,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <>
-      <Navigation />
+      <MainNavigation />
       <main className="max-w-4xl mx-auto px-4">
         {isClubRoute && clubId && (
           <div className="py-3">

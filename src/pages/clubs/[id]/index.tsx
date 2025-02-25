@@ -7,7 +7,7 @@ import {
   MembershipStatus,
   ClubDetailPageProps,
 } from '@/types';
-import { JoinClubModal } from '@/components/clubs/JoinClubModal';
+import { JoinClubModal } from '@/components/organisms/modal/JoinClubModal';
 import { withAuth } from '@/lib/withAuth';
 import { redirectToLogin } from '@/utils/auth';
 import { useDispatch, useSelector } from 'react-redux';

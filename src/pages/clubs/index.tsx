@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Club } from '@/types';
-import { ClubListItem } from '@/components/clubs/ClubListItem';
+import { ClubListItem } from '@/components/molecules/navigation/clubNavigation/ClubListItem';
 import { useDispatch } from 'react-redux';
 import { initialState, setClubData } from '@/store/features/clubSlice';
 
