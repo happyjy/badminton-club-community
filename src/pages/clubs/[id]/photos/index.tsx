@@ -7,7 +7,6 @@ function PhotosPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-4">사진첩</h1>
       <div className="bg-white rounded-lg shadow p-6">
         <p className="text-gray-500">사진첩 기능이 곧 제공될 예정입니다.</p>
       </div>
