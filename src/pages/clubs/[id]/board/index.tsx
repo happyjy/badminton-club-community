@@ -1,9 +1,9 @@
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 
 function BoardPage() {
-  const router = useRouter();
-  const { id: clubId } = router.query;
+  // const router = useRouter();
+  // const { id: clubId } = router.query;
 
   return (
     <>

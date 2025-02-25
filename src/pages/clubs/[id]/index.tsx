@@ -3,21 +3,16 @@ import { useState, useEffect, useLayoutEffect } from 'react';
 import {
   ClubMember,
   User,
-  Workout,
   ClubJoinFormData,
   MembershipStatus,
   ClubDetailPageProps,
 } from '@/types';
-import { WorkoutListItem } from '@/components/workouts/WorkoutListItem';
-import { classNames } from '@/utils';
 import { JoinClubModal } from '@/components/clubs/JoinClubModal';
 import { withAuth } from '@/lib/withAuth';
 import { redirectToLogin } from '@/utils/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import { setClubData } from '@/store/features/clubSlice';
 import { RootState } from '@/store';
-import { ClubNavigation } from '@/components/clubs/ClubNavigation';
-import { ClubLayout } from '@/components/clubs/ClubLayout';
 
 // 컴포넌트 분리: 가입 버튼
 const JoinClubButton = ({
@@ -85,7 +80,7 @@ const JoinClubButton = ({
   return null;
 };
 
-function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
+function ClubDetailPage({ user }: ClubDetailPageProps) {
   const dispatch = useDispatch();
   const router = useRouter();
   const { id: clubId } = router.query;
@@ -118,29 +113,6 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
       }
     } catch (error) {
       console.error('Failed to join club:', error);
-    }
-  };
-
-  const handleParticipate = async (
-    workoutId: number,
-    isParticipating: boolean
-  ) => {
-    try {
-      const response = await fetch(`/api/workouts/${workoutId}/participate`, {
-        method: isParticipating ? 'DELETE' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clubId,
-        }),
-      });
-      if (response.ok) {
-        // router.reload() 대신 운동 목록만 새로 불러오기
-        await fetchWorkouts();
-      }
-    } catch (error) {
-      console.error('운동 참여/취소 실패:', error);
     }
   };
 
