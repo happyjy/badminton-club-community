@@ -10,6 +10,11 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
   const router = useRouter();
   const currentPath = router.asPath;
 
+  // 현재 경로에서 출석체크 탭이 활성화 되어야 하는지 확인하는 로직 추가
+  const isAttendancePath =
+    currentPath === `/clubs/${clubId}/attendance` ||
+    currentPath.startsWith(`/clubs/${clubId}/workouts/`);
+
   const handleNavigation = useCallback(
     (href: string) => {
       router.push(href, undefined, {
@@ -70,7 +75,12 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
       <div className="overflow-x-auto">
         <div className="flex justify-between whitespace-nowrap px-4 min-w-full">
           {navigationItems.map((item) => {
-            const isActive = currentPath === item.href;
+            // 출석체크 탭일 경우 워크아웃 상세 페이지에서도 활성화되도록 수정
+            const isActive =
+              item.name === '출석체크'
+                ? isAttendancePath
+                : currentPath === item.href;
+
             return (
               <button
                 key={item.name}

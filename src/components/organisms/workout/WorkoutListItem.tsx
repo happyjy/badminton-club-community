@@ -10,6 +10,7 @@ export function WorkoutListItem({
   membershipStatus,
 }: WorkoutListItemProps) {
   const router = useRouter();
+  const { id: clubId } = router.query;
   const isParticipating = workout.WorkoutParticipant.some(
     (participant) => participant.userId === user?.id
   );
@@ -22,7 +23,7 @@ export function WorkoutListItem({
       <div
         className="cursor-pointer"
         onClick={() => {
-          router.push(`/workouts/${workout.id}`);
+          router.push(`/clubs/${clubId}/workouts/${workout.id}`);
         }}
       >
         <h2 className="font-semibold text-xl mb-2">{workout.title}</h2>
