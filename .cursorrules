@@ -135,3 +135,13 @@
 - onFocusSearchInput - 검색 입력 필드 포커스 이벤트
 - onBlurPasswordField - 비밀번호 필드 블러 이벤트
 
+## API 호출 규칙
+- fetch 대신 axios 사용 필수
+  - 이유: 
+    1. 더 나은 에러 처리
+    2. 자동 JSON 변환
+    3. 인터셉터 기능
+    4. 타임아웃 설정 용이
+    5. TypeScript 지원 우수
+  - 예외: 브라우저 내장 API만 사용해야 하는 특수한 경우
+
