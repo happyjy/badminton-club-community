@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useClubJoinForm } from '@/hooks/useClubJoinForm';
 import { ClubJoinFormData } from '@/types/club.types';
 import { User } from '@/types';
 import { FormField } from '@/components/molecules/form/FormField';
@@ -7,6 +7,7 @@ import { Select } from '@/components/atoms/inputs/Select';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Button } from '@/components/atoms/buttons/Button';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
+import { TOURNAMENT_LEVELS, DEFAULT_DATE } from '@/utils/clubForms';
 
 interface JoinClubModalProps {
   user: User;
@@ -17,30 +18,6 @@ interface JoinClubModalProps {
   isGuestApplication?: boolean;
 }
 
-const TOURNAMENT_LEVELS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
-const DEFAULT_DATE = '1990-01-01';
-const DEFAULT_VISIT_DATE = new Date().toISOString().split('T')[0];
-
-const createInitialFormData = ({
-  name = '',
-  isGuestApplication = false,
-}: {
-  name?: string;
-  isGuestApplication?: boolean;
-}): ClubJoinFormData => ({
-  name,
-  birthDate: DEFAULT_DATE,
-  phoneNumber: '',
-  localTournamentLevel: '',
-  nationalTournamentLevel: '',
-  lessonPeriod: '',
-  playingPeriod: '',
-  ...(isGuestApplication && {
-    intendToJoin: false,
-    visitDate: DEFAULT_VISIT_DATE,
-  }),
-});
-
 // todo: jyoon - join club modal과 guest modal 분리
 // todo: jyoon - 'react-hook-form' 사용
 function JoinClubModal({
@@ -50,82 +27,10 @@ function JoinClubModal({
   onSubmit,
   isGuestApplication = false,
 }: JoinClubModalProps) {
-  const [formData, setFormData] = useState<ClubJoinFormData>(() =>
-    createInitialFormData({
-      name: user?.nickname || '',
-      isGuestApplication,
-    })
-  );
+  const { formData, phoneNumbers, onChangePhoneNumber, onChangeInput } =
+    useClubJoinForm(user, isGuestApplication);
 
-  const [phoneNumbers, setPhoneNumbers] = useState({
-    first: '',
-    second: '',
-    third: '',
-  });
-
-  useEffect(() => {
-    if (user?.nickname) {
-      setFormData((prev) => ({
-        ...prev,
-        name: user.nickname,
-      }));
-    }
-  }, [user?.nickname]);
-
-  const handlePhoneNumberChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    part: 'first' | 'second' | 'third'
-  ) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    const maxLength = part === 'first' ? 3 : 4;
-
-    if (value.length > maxLength) return;
-
-    setPhoneNumbers((prev) => ({
-      ...prev,
-      [part]: value,
-    }));
-
-    if (value.length === maxLength) {
-      const nextInput = {
-        first: 'second',
-        second: 'third',
-        third: 'third',
-      }[part];
-
-      const nextElement = document.getElementById(`phone-${nextInput}`);
-      nextElement?.focus();
-    }
-
-    const fullPhoneNumber = `${part === 'first' ? value : phoneNumbers.first}-${
-      part === 'second' ? value : phoneNumbers.second
-    }-${part === 'third' ? value : phoneNumbers.third}`;
-
-    setFormData((prev) => ({
-      ...prev,
-      phoneNumber: fullPhoneNumber,
-    }));
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target as HTMLInputElement;
-
-    if (type === 'checkbox') {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: (e.target as HTMLInputElement).checked,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const onSubmitJoinClubModal = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
@@ -143,13 +48,13 @@ function JoinClubModal({
         <h2 className="text-xl font-bold mb-4">
           {isGuestApplication ? '게스트 신청' : '모임 가입 신청'}
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={onSubmitJoinClubModal} className="space-y-4">
           <FormField label="이름" required>
             <Input
               type="text"
               name="name"
               value={formData.name}
-              onChange={handleInputChange}
+              onChange={onChangeInput}
               required
             />
           </FormField>
@@ -160,7 +65,7 @@ function JoinClubModal({
                 <Checkbox
                   name="intendToJoin"
                   checked={formData.intendToJoin}
-                  onChange={handleInputChange}
+                  onChange={onChangeInput}
                 />
                 <span className="text-sm font-medium text-gray-700">
                   클럽 가입 의사
@@ -172,7 +77,7 @@ function JoinClubModal({
                   type="date"
                   name="visitDate"
                   value={formData.visitDate}
-                  onChange={handleInputChange}
+                  onChange={onChangeInput}
                   required
                 />
               </FormField>
@@ -185,7 +90,7 @@ function JoinClubModal({
               name="birthDate"
               value={formData.birthDate}
               defaultValue={DEFAULT_DATE}
-              onChange={handleInputChange}
+              onChange={onChangeInput}
               required
             />
           </FormField>
@@ -193,7 +98,7 @@ function JoinClubModal({
           <FormField label="전화번호" required>
             <PhoneInputGroup
               values={phoneNumbers}
-              onChange={handlePhoneNumberChange}
+              onChange={onChangePhoneNumber}
               required
             />
           </FormField>
@@ -202,7 +107,7 @@ function JoinClubModal({
             <Select
               name="localTournamentLevel"
               value={formData.localTournamentLevel}
-              onChange={handleInputChange}
+              onChange={onChangeInput}
               options={tournamentLevelOptions}
               required
             />
@@ -212,7 +117,7 @@ function JoinClubModal({
             <Select
               name="nationalTournamentLevel"
               value={formData.nationalTournamentLevel}
-              onChange={handleInputChange}
+              onChange={onChangeInput}
               options={tournamentLevelOptions}
               required
             />
@@ -223,7 +128,7 @@ function JoinClubModal({
               type="text"
               name="lessonPeriod"
               value={formData.lessonPeriod}
-              onChange={handleInputChange}
+              onChange={onChangeInput}
               placeholder="예: 6개월"
               required
             />
@@ -234,7 +139,7 @@ function JoinClubModal({
               type="text"
               name="playingPeriod"
               value={formData.playingPeriod}
-              onChange={handleInputChange}
+              onChange={onChangeInput}
               placeholder="예: 2년"
               required
             />
