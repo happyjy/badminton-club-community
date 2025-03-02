@@ -9,32 +9,34 @@ datasource db {
 }
 
 model User {
-  id                 Int                  @id @default(autoincrement())
-  kakaoId            String               @unique @default("")
-  email              String               @unique
-  nickname           String               @default("")
-  thumbnailImageUrl  String               @default("")
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @default(now()) @updatedAt
-  ClubMember         ClubMember[]
-  WorkoutParticipant WorkoutParticipant[]
+  id                  Int                  @id @default(autoincrement())
+  kakaoId             String               @unique @default("")
+  email               String               @unique
+  nickname            String               @default("")
+  thumbnailImageUrl   String               @default("")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @default(now()) @updatedAt
+  ClubMember          ClubMember[]
+  WorkoutParticipant  WorkoutParticipant[]
+  guestPosts          GuestPost[]
+  guestComments       GuestComment[]
 }
 
 model Workout {
-  id                 Int                  @id @default(autoincrement())
-  title              String
-  description        String               @default("")
-  date               DateTime
-  startTime          DateTime
-  endTime            DateTime
-  maxParticipants    Int
-  location           String
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime
-  clubId             Int?
-  club               Club?                @relation(fields: [clubId], references: [id])
-  WorkoutParticipant WorkoutParticipant[]
-  helperStatuses     WorkoutHelperStatus[]
+  id                  Int                  @id @default(autoincrement())
+  title               String
+  description         String               @default("")
+  date                DateTime
+  startTime           DateTime
+  endTime             DateTime
+  maxParticipants     Int
+  location            String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime
+  clubId              Int?
+  club                Club?                @relation(fields: [clubId], references: [id])
+  WorkoutParticipant  WorkoutParticipant[]
+  helperStatuses      WorkoutHelperStatus[]
 }
 
 model WorkoutParticipant {
@@ -67,6 +69,7 @@ model Club {
   // 관계 필드 설정
   members     ClubMember[]
   workouts    Workout[]
+  guestPosts  GuestPost[]
 }
 
 model ClubMember {
@@ -89,6 +92,7 @@ model ClubMember {
   workoutParticipants      WorkoutParticipant[]
   helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
   updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
+  guestComments            GuestComment[]
 
   @@unique([clubId, userId])
 }
@@ -116,4 +120,52 @@ model WorkoutHelperStatus {
   updatedBy    ClubMember @relation("HelperUpdater", fields: [updatedById], references: [id])
 
   @@unique([workoutId, clubMemberId, helperType])
+}
+
+// 게스트 신청 게시글
+model GuestPost {
+  // question: jyoon - id가 다른 필드와는 다르게 autoincrement가 아니라 cuid로 된 이유가 있을까? 게시판 기능이라서 그런가? 
+  id            String         @id @default(cuid()) 
+  clubId        Int            
+  userId        Int            
+  status        GuestStatus    @default(PENDING)
+  name          String
+  phoneNumber   String
+  message       String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  club          Club           @relation(fields: [clubId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
+  comments      GuestComment[] // 댓글: 역방향 관계(양방향 참조)를 추가
+  
+  @@index([clubId])
+  @@index([userId])
+}
+
+model GuestComment {
+  id            String          @id @default(cuid())
+  postId        String      
+  userId        Int         
+  clubMemberId  Int?
+  content       String
+  parentId      String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id])
+  clubMember    ClubMember?     @relation(fields: [clubMemberId], references: [id])
+  parent        GuestComment?   @relation("CommentToComment", fields: [parentId], references: [id])
+  children      GuestComment[]  @relation("CommentToComment")
+  
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+enum GuestStatus {
+  PENDING   // 대기중
+  APPROVED  // 승인됨
+  REJECTED  // 거절됨
 }

@@ -145,3 +145,11 @@
     5. TypeScript 지원 우수
   - 예외: 브라우저 내장 API만 사용해야 하는 특수한 경우
 
+# 컴포넌트 export 규칙
+- 모든 컴포넌트의 export default는 파일 하단에 별도로 분리하여 작성합니다.
+  - 예시: function Component() { ... } 
+  - 예시: export default Component;
+
+# 컴포넌트 네이밍 규칙
+- 컴포넌트 이름은 항상 대문자로 시작합니다.
+  - 예시: MyComponent, UserProfile, AdminDashboard

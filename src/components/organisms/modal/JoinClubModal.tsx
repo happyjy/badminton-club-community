@@ -40,7 +40,7 @@ const createInitialFormData = ({
   }),
 });
 
-export function JoinClubModal({
+function JoinClubModal({
   user,
   isOpen,
   onClose,
@@ -250,3 +250,5 @@ export function JoinClubModal({
     </div>
   );
 }
+
+export default JoinClubModal;

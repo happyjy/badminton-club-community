@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
-import { JoinClubModal } from '@/components/organisms/modal/JoinClubModal';
 import { ClubJoinFormData } from '@/types/club.types';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 
 function GuestPage({ user }) {
   const router = useRouter();
   const { id: clubId } = router.query;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onClickOpenModal = () => {
     setIsModalOpen(true);
@@ -19,17 +22,29 @@ function GuestPage({ user }) {
   };
 
   const onSubmitJoinForm = async (formData: ClubJoinFormData) => {
-    try {
-      // TODO: API 연동 필요
-      console.log('게스트 신청 데이터:', formData);
-      console.log('클럽 ID:', clubId);
+    if (!clubId) return;
 
-      // 임시로 성공 메시지 표시
-      alert('게스트 신청이 완료되었습니다.');
+    setIsSubmitting(true);
+    try {
+      // API 연동 - 게스트 신청 요청
+      await axios.post(`/api/clubs/${clubId}/guests/apply`, {
+        name: formData.name,
+        phoneNumber: formData.phoneNumber,
+        message: formData.message || '',
+      });
+
+      toast.success('게스트 신청이 완료되었습니다');
       onCloseModal();
-    } catch (error) {
+      // 필요하다면 페이지 새로고침 또는 상태 업데이트
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('게스트 신청 중 오류가 발생했습니다');
+      }
       console.error('게스트 신청 중 오류 발생:', error);
-      alert('게스트 신청 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -57,6 +72,7 @@ function GuestPage({ user }) {
           onClose={onCloseModal}
           onSubmit={onSubmitJoinForm}
           isGuestApplication={true}
+          isSubmitting={isSubmitting}
         />
       )}
     </>
