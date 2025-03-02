@@ -18,14 +18,20 @@ export function WorkoutListItem({
   // 현재 참여 인원 수 계산
   const currentParticipants = workout.WorkoutParticipant.length;
 
+  // 워크아웃 상세 페이지로 이동하는 핸들러
+  const onClickWorkoutClick = () => {
+    router.push(`/clubs/${clubId}/workouts/${workout.id}`);
+  };
+
+  // 참여/취소 버튼 클릭 핸들러
+  const onClickParticipateClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onParticipate(workout.id, isParticipating);
+  };
+
   return (
     <div className="p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white">
-      <div
-        className="cursor-pointer"
-        onClick={() => {
-          router.push(`/clubs/${clubId}/workouts/${workout.id}`);
-        }}
-      >
+      <div className="cursor-pointer" onClick={onClickWorkoutClick}>
         <h2 className="font-semibold text-xl mb-2">{workout.title}</h2>
         <p className="text-gray-600 mb-4">{workout.description}</p>
         <div className="space-y-2 text-sm text-gray-500">
@@ -48,10 +54,7 @@ export function WorkoutListItem({
         <div className="mt-4 pt-4 border-t">
           {membershipStatus.isMember ? (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onParticipate(workout.id, isParticipating);
-              }}
+              onClick={onClickParticipateClick}
               disabled={
                 !isParticipating &&
                 currentParticipants >= workout.maxParticipants
