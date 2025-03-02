@@ -7,6 +7,13 @@ const config: NextConfig = {
   images: {
     domains: ['k.kakaocdn.net', 'img1.kakaocdn.net', 't1.kakaocdn.net'],
   },
+  webpack: (config, { dev, isServer }) => {
+    // 개발 환경에서만 적용
+    if (dev && !isServer) {
+      // Locator 설정은 이미 babel.config.js에서 처리되므로 여기서는 추가하지 않음
+    }
+    return config;
+  },
 };
 
 export default config;

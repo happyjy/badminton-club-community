@@ -4,6 +4,7 @@ import Layout from '@/components/templates/Layout';
 import Head from 'next/head';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
+import LocatorProvider from '@/components/LocatorProvider';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -15,7 +16,6 @@ export default function App({ Component, pageProps }: AppProps) {
           name="google-site-verification"
           content="bTqFYbHTfK1wiMqYL3xztX9fmwDIPlxSNi5-VIzuiYs"
         />
-        w
         <meta name="robots" content="index, follow" />
         {/* 
           * 기본 메타 태그:
@@ -68,16 +68,11 @@ export default function App({ Component, pageProps }: AppProps) {
         <title>배드민턴 클럽</title>
       </Head>
 
-      {/* {isLoginPage ? (
-        <Component {...pageProps} />
-      ) : (
+      <LocatorProvider>
         <Layout>
           <Component {...pageProps} />
         </Layout>
-        )} */}
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
+      </LocatorProvider>
     </Provider>
   );
 }
