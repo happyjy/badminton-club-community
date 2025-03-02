@@ -22,6 +22,8 @@ export interface ClubJoinFormData {
   nationalTournamentLevel: string;
   lessonPeriod: string;
   playingPeriod: string;
+  intendToJoin?: boolean;
+  visitDate?: string;
 }
 
 // 클럽 멤버 타입

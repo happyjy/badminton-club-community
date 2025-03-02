@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useState, useEffect, useLayoutEffect } from 'react';
 import {
   ClubMember,
-  User,
   ClubJoinFormData,
   MembershipStatus,
   ClubDetailPageProps,
