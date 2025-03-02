@@ -1,6 +1,6 @@
 import { LayoutProps } from '@/types/components.types';
-import MainNavigation from '../molecules/navigation/mainNavigation/MainNavigation';
-import { ClubNavigation } from '../molecules/navigation/clubNavigation/ClubNavigation';
+import MainNavigation from '../organisms/navigation/mainNavigation/MainNavigation';
+import { ClubNavigation } from '../organisms/navigation/clubNavigation/ClubNavigation';
 import { useRouter } from 'next/router';
 
 export default function Layout({ children }: LayoutProps) {
