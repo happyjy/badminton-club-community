@@ -31,12 +31,30 @@ const JoinClubButton = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
+  // 이벤트 핸들러 함수들을 명시적으로 선언
+  const onClickLogin = () => {
+    redirectToLogin(router);
+  };
+
+  const onClickJoinButton = () => {
+    setIsModalOpen(true);
+  };
+
+  const onCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const onSubmitJoinForm = (formData: ClubJoinFormData) => {
+    onJoin(formData);
+    setIsModalOpen(false);
+  };
+
   if (isLoading) return null;
 
   if (!user) {
     return (
       <button
-        onClick={() => redirectToLogin(router)}
+        onClick={onClickLogin}
         className="text-blue-500 hover:text-blue-700 text-sm"
       >
         로그인이 필요합니다
@@ -59,7 +77,7 @@ const JoinClubButton = ({
     return (
       <>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={onClickJoinButton}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
         >
           모임 가입하기
@@ -67,11 +85,8 @@ const JoinClubButton = ({
         <JoinClubModal
           user={user}
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={(formData) => {
-            onJoin(formData);
-            setIsModalOpen(false);
-          }}
+          onClose={onCloseModal}
+          onSubmit={onSubmitJoinForm}
         />
       </>
     );
@@ -98,7 +113,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     !user || membershipStatus.isPending || canJoinClub;
 
   // API 호출 함수들
-  const handleJoinClub = async (formData: ClubJoinFormData) => {
+  const onJoinClub = async (formData: ClubJoinFormData) => {
     try {
       const response = await fetch(`/api/clubs/${clubId}/join`, {
         method: 'POST',
@@ -150,17 +165,17 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
 
   // 페이지 이동 전 스크롤 위치 저장
   useEffect(() => {
-    const handleRouteChange = () => {
+    const onRouteChangeStart = () => {
       sessionStorage.setItem(
         `club-${clubId}-scroll`,
         window.scrollY.toString()
       );
     };
 
-    router.events.on('routeChangeStart', handleRouteChange);
+    router.events.on('routeChangeStart', onRouteChangeStart);
 
     return () => {
-      router.events.off('routeChangeStart', handleRouteChange);
+      router.events.off('routeChangeStart', onRouteChangeStart);
     };
   }, [router.events, clubId]);
 
@@ -186,7 +201,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
             isLoading={isLoading}
             membershipStatus={membershipStatus}
             canJoinClub={canJoinClub}
-            onJoin={handleJoinClub}
+            onJoin={onJoinClub}
           />
         </div>
       )}
