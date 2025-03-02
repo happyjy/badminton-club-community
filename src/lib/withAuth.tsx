@@ -9,8 +9,9 @@ interface WithAuthOptions {
   requireAuth?: boolean;
 }
 
-interface AuthProps {
-  user: User | null;
+export type withAuthUser = User | null;
+export interface AuthProps {
+  user: withAuthUser;
   isLoggedIn: boolean;
 }
 

@@ -13,7 +13,7 @@ export interface ClubInput {
   etc?: string | null;
 }
 
-// 클럽 멤버 타입
+// 클럽 가입 타입
 export interface ClubJoinFormData {
   name: string;
   birthDate: string;
@@ -24,6 +24,14 @@ export interface ClubJoinFormData {
   playingPeriod: string;
   intendToJoin?: boolean;
   visitDate?: string;
+  message?: string;
+}
+
+// 클럽 게스트 신청 타입
+export interface ClubGuestApplication extends ClubJoinFormData {
+  name: string;
+  phoneNumber: string;
+  message?: string;
 }
 
 // 클럽 멤버 타입

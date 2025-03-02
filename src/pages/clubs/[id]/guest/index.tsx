@@ -5,8 +5,9 @@ import { ClubJoinFormData } from '@/types/club.types';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+import { AuthProps } from '@/lib/withAuth';
 
-function GuestPage({ user }) {
+function GuestPage({ user }: AuthProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
 
@@ -14,6 +15,10 @@ function GuestPage({ user }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onClickOpenModal = () => {
+    if (!user) {
+      toast.error('로그인이 필요한 기능입니다');
+      return;
+    }
     setIsModalOpen(true);
   };
 
@@ -37,11 +42,7 @@ function GuestPage({ user }) {
       onCloseModal();
       // 필요하다면 페이지 새로고침 또는 상태 업데이트
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('게스트 신청 중 오류가 발생했습니다');
-      }
+      toast.error('게스트 신청 중 오류가 발생했습니다');
       console.error('게스트 신청 중 오류 발생:', error);
     } finally {
       setIsSubmitting(false);

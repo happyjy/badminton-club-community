@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { User, ClubJoinFormData, MembershipStatus } from '@/types';
-import { JoinClubModal } from '@/components/organisms/modal/JoinClubModal';
+import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import { redirectToLogin } from '@/utils/auth';
 
 interface JoinClubButtonProps {
@@ -19,8 +19,10 @@ export const JoinClubButton = ({
   canJoinClub,
   onJoin,
 }: JoinClubButtonProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 이벤트 핸들러 함수들을 명시적으로 선언
   const onClickLogin = () => {
@@ -36,8 +38,10 @@ export const JoinClubButton = ({
   };
 
   const onSubmitJoinForm = (formData: ClubJoinFormData) => {
+    setIsSubmitting(true);
     onJoin(formData);
     setIsModalOpen(false);
+    setIsSubmitting(false);
   };
 
   if (isLoading) return null;
@@ -78,6 +82,7 @@ export const JoinClubButton = ({
           isOpen={isModalOpen}
           onClose={onCloseModal}
           onSubmit={onSubmitJoinForm}
+          isSubmitting={isSubmitting}
         />
       </>
     );

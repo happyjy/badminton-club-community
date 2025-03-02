@@ -13,6 +13,7 @@ interface JoinClubModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: ClubJoinFormData) => void;
+  isSubmitting?: boolean;
   isGuestApplication?: boolean;
 }
 
@@ -40,6 +41,8 @@ const createInitialFormData = ({
   }),
 });
 
+// todo: jyoon - join club modal과 guest modal 분리
+// todo: jyoon - 'react-hook-form' 사용
 function JoinClubModal({
   user,
   isOpen,
