@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import { AuthProps } from '@/lib/withAuth';
 import { GuestPost } from '@prisma/client';
+import { formatDateSimple } from '@/lib/utils';
 
 // 게스트 신청 타입 정의
 // interface GuestApplication {
@@ -119,12 +120,6 @@ function GuestPage({ user }: AuthProps) {
     }
   };
 
-  // 날짜 포맷팅
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  };
-
   return (
     <>
       <div className="bg-white rounded-lg shadow p-6">
@@ -179,7 +174,7 @@ function GuestPage({ user }: AuthProps) {
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
-                        {formatDate(application.createdAt)}
+                        {formatDateSimple(application.createdAt)}
                       </td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
                         {application.visitDate || '-'}

@@ -170,6 +170,7 @@ model GuestComment {
   clubMemberId  Int?
   content       String
   parentId      String?
+  isDeleted     Boolean         @default(false)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   

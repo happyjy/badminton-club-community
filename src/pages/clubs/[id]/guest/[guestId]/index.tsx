@@ -1,29 +1,46 @@
 import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 import { AuthProps } from '@/lib/withAuth';
-import { GuestPost } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { PrismaClient } from '@prisma/client';
 import InfoSection from '@/components/organisms/InfoSection';
 import InfoItem from '@/components/molecules/InfoItem';
-
-interface GuestDetailPageProps extends AuthProps {
-  guestPost: GuestPost;
-}
+import CommentInput from '@/components/organisms/comment/CommentInput';
+import CommentItem from '@/components/organisms/comment/CommentItem';
+import { formatDateSimple } from '@/lib/utils';
 
 interface Comment {
   id: string;
   content: string;
   createdAt: string;
   author: {
+    id: number;
     name: string;
+  };
+  isDeleted: boolean;
+}
+
+interface GuestDetailPageProps extends AuthProps {
+  guestPost: {
+    id: string;
+    name: string;
+    birthDate: string;
+    phoneNumber: string;
+    localTournamentLevel: string;
+    nationalTournamentLevel: string;
+    lessonPeriod: string;
+    playingPeriod: string;
+    status: string;
+    intendToJoin: boolean;
+    visitDate: string;
+    message: string;
+    createdAt: string;
   };
 }
 
-function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
-  console.log(`🚨 ~ GuestDetailPage ~ guestPost:`, guestPost);
+function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const router = useRouter();
   // router.query값, id, guestId는 폴더 이름으로 결정됩니다. (guestId는 게스트 신청 게시글의 id)
   const { id: clubId, guestId } = router.query;
@@ -40,6 +57,10 @@ function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
         `/api/clubs/${clubId}/guests/${guestId}/comments`
       );
       setComments(response.data.comments);
+      console.log(
+        `🚨 ~ fetchComments ~ response.data.comments:`,
+        response.data.comments
+      );
     } catch (error) {
       console.error('댓글 목록 불러오기 실패:', error);
       toast.error('댓글을 불러오는데 실패했습니다');
@@ -50,9 +71,59 @@ function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
 
   useEffect(() => {
     if (!clubId || !guestId) return;
-
-    // fetchComments();
+    fetchComments();
   }, [clubId, guestId]);
+
+  // 댓글 작성
+  const handleCommentSubmit = async (content: string) => {
+    if (!clubId || !guestId) return;
+
+    try {
+      await axios.post(`/api/clubs/${clubId}/guests/${guestId}/comments`, {
+        content,
+      });
+      toast.success('댓글이 작성되었습니다');
+      fetchComments();
+    } catch (error) {
+      console.error('댓글 작성 실패:', error);
+      toast.error('댓글 작성에 실패했습니다');
+    }
+  };
+
+  // 댓글 수정
+  const handleCommentUpdate = async (commentId: string, content: string) => {
+    if (!clubId || !guestId) return;
+
+    try {
+      await axios.put(
+        `/api/clubs/${clubId}/guests/${guestId}/comments/${commentId}`,
+        {
+          content,
+        }
+      );
+      toast.success('댓글이 수정되었습니다');
+      fetchComments();
+    } catch (error) {
+      console.error('댓글 수정 실패:', error);
+      toast.error('댓글 수정에 실패했습니다');
+    }
+  };
+
+  // 댓글 삭제 (soft delete)
+  const handleCommentDelete = async (commentId: string) => {
+    if (!clubId || !guestId) return;
+
+    try {
+      await axios.delete(
+        `/api/clubs/${clubId}/guests/${guestId}/comments/${commentId}`
+      );
+      toast.success('댓글이 삭제되었습니다');
+      fetchComments();
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+      toast.error('댓글 삭제에 실패했습니다');
+    }
+  };
 
   // 상태에 따른 배지 색상
   const getStatusBadgeColor = (status: string) => {
@@ -78,12 +149,6 @@ function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
     }
   };
 
-  // 날짜 포맷팅
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  };
-
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="mb-6">
@@ -95,18 +160,18 @@ function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
           <InfoSection title="기본 정보">
             <InfoItem label="이름">{guestPost.name}</InfoItem>
             <InfoItem label="생년월일">
-              {formatDate(guestPost.birthDate)}
+              {formatDateSimple(guestPost.birthDate)}
             </InfoItem>
             <InfoItem label="전화번호">{guestPost.phoneNumber}</InfoItem>
             <InfoItem label="신청일">
-              {formatDate(guestPost.createdAt)}
+              {formatDateSimple(guestPost.createdAt)}
             </InfoItem>
           </InfoSection>
 
           {/* 방문 정보 섹션 */}
           <InfoSection title="방문 정보">
             <InfoItem label="방문희망일">
-              {formatDate(guestPost.visitDate)}
+              {formatDateSimple(guestPost.visitDate)}
             </InfoItem>
             <InfoItem label="클럽 가입 의향">
               <div className="flex items-center">
@@ -153,25 +218,34 @@ function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
 
           {/* 댓글 섹션 */}
           <InfoSection title="댓글" fullWidth>
-            {isLoading ? (
-              <p className="text-gray-500">댓글을 불러오는 중...</p>
-            ) : comments.length > 0 ? (
-              <div className="space-y-3">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="bg-white p-3 rounded-md">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                      <p className="font-medium">{comment.author.name}</p>
-                      <p className="text-sm text-gray-500 mt-1 sm:mt-0">
-                        {formatDate(comment.createdAt)}
-                      </p>
-                    </div>
-                    <p className="mt-2 text-gray-700">{comment.content}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">아직 댓글이 없습니다.</p>
-            )}
+            <div className="space-y-4">
+              {isLoading ? (
+                <p className="text-gray-500">댓글을 불러오는 중...</p>
+              ) : (
+                <div className="space-y-3">
+                  {comments
+                    .filter((comment) => !comment.isDeleted)
+                    .sort(
+                      (a, b) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime()
+                    )
+                    .map((comment) => (
+                      <CommentItem
+                        key={comment.id}
+                        id={comment.id}
+                        content={comment.content}
+                        author={comment.author}
+                        createdAt={comment.createdAt}
+                        isEditable={user?.id === comment.author.id}
+                        onUpdate={handleCommentUpdate}
+                        onDelete={handleCommentDelete}
+                      />
+                    ))}
+                </div>
+              )}
+              <CommentInput onSubmit={handleCommentSubmit} />{' '}
+            </div>
           </InfoSection>
         </div>
       </div>
