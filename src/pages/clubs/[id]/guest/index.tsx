@@ -155,7 +155,7 @@ function GuestPage({ user }: AuthProps) {
                       방문희망일
                     </th>
                     <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[36%]">
-                      목적
+                      가입의향
                     </th>
                     <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">
                       상태
@@ -172,7 +172,14 @@ function GuestPage({ user }: AuthProps) {
                         {application.visitDate || '-'}
                       </td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500 truncate">
-                        {application.intendToJoin || '-'}
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={application.intendToJoin === true}
+                            readOnly
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
+                          />
+                        </div>
                       </td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
                         <span
