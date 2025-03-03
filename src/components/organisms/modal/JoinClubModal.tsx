@@ -27,12 +27,19 @@ function JoinClubModal({
   onSubmit,
   isGuestApplication = false,
 }: JoinClubModalProps) {
-  const { formData, phoneNumbers, onChangePhoneNumber, onChangeInput } =
-    useClubJoinForm(user, isGuestApplication);
+  const {
+    formData,
+    phoneNumbers,
+    onChangePhoneNumber,
+    onChangeInput,
+    //
+    initialFormData,
+  } = useClubJoinForm(user, isGuestApplication);
 
   const onSubmitJoinClubModal = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
+    initialFormData(); // form 초기화
   };
 
   if (!isOpen) return null;

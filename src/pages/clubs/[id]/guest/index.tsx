@@ -26,7 +26,7 @@ function GuestPage({ user }: AuthProps) {
     setIsModalOpen(false);
   };
 
-  const onSubmitJoinForm = async (formData: ClubJoinFormData) => {
+  const onSubmitGuestApplication = async (formData: ClubJoinFormData) => {
     if (!clubId) return;
 
     setIsSubmitting(true);
@@ -74,7 +74,7 @@ function GuestPage({ user }: AuthProps) {
           user={user}
           isOpen={isModalOpen}
           onClose={onCloseModal}
-          onSubmit={onSubmitJoinForm}
+          onSubmit={onSubmitGuestApplication}
           isGuestApplication={true}
           isSubmitting={isSubmitting}
         />

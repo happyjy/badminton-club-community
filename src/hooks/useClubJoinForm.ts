@@ -17,6 +17,20 @@ export const useClubJoinForm = (user: User, isGuestApplication = false) => {
     third: '',
   });
 
+  const initialFormData = () => {
+    setFormData(() =>
+      createInitialFormData({
+        name: user?.nickname || '',
+        isGuestApplication,
+      })
+    );
+    setPhoneNumbers({
+      first: '',
+      second: '',
+      third: '',
+    });
+  };
+
   useEffect(() => {
     if (user?.nickname) {
       setFormData((prev) => ({
@@ -88,5 +102,7 @@ export const useClubJoinForm = (user: User, isGuestApplication = false) => {
     phoneNumbers,
     onChangePhoneNumber,
     onChangeInput,
+    //
+    initialFormData,
   };
 };
