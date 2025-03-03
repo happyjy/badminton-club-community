@@ -43,6 +43,7 @@ export default async function handler(
       //   purpose: true,
       // },
     });
+    // console.log(`🚨 ~ applications:`, applications);
 
     // 일반 JSON 응답 형식으로 반환
     return res.status(200).json({

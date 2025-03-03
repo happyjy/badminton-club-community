@@ -6,15 +6,16 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import { AuthProps } from '@/lib/withAuth';
+import { GuestPost } from '@prisma/client';
 
 // 게스트 신청 타입 정의
-interface GuestApplication {
-  id: string;
-  createdAt: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  visitDate?: string;
-  purpose?: string;
-}
+// interface GuestApplication {
+//   id: string;
+//   createdAt: string;
+//   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+//   visitDate?: string;
+//   purpose?: string;
+// }
 
 function GuestPage({ user }: AuthProps) {
   const router = useRouter();
@@ -22,7 +23,7 @@ function GuestPage({ user }: AuthProps) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [myApplications, setMyApplications] = useState<GuestApplication[]>([]);
+  const [myApplications, setMyApplications] = useState<GuestPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // 사용자의 게스트 신청 목록 불러오기
@@ -144,19 +145,19 @@ function GuestPage({ user }: AuthProps) {
             <p className="text-gray-500">로딩 중...</p>
           ) : myApplications.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
                       신청일
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
                       방문희망일
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[36%]">
                       목적
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">
                       상태
                     </th>
                   </tr>
@@ -164,18 +165,18 @@ function GuestPage({ user }: AuthProps) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {myApplications.map((application) => (
                     <tr key={application.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
                         {formatDate(application.createdAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
                         {application.visitDate || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {application.purpose || '-'}
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500 truncate">
+                        {application.intendToJoin || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
                         <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(application.status)}`}
+                          className={`px-1 py-0.5 sm:px-2 sm:py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(application.status)}`}
                         >
                           {getStatusText(application.status)}
                         </span>
