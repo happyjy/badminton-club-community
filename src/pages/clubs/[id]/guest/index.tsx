@@ -32,10 +32,21 @@ function GuestPage({ user }: AuthProps) {
     setIsSubmitting(true);
     try {
       // API 연동 - 게스트 신청 요청
+      console.log(`🚨 ~ onSubmitJoinForm ~ formData:`, formData);
+      // await axios.post(`/api/clubs/${clubId}/guests/apply`, {
+      //   name: formData.name,
+      //   phoneNumber: formData.phoneNumber,
+      //   localTournamentLevel: formData.localTournamentLevel,
+      //   nationalTournamentLevel: formData.nationalTournamentLevel,
+      //   lessonPeriod: formData.lessonPeriod,
+      //   playingPeriod: formData.playingPeriod,
+      //   // 게스트 관련 필드
+      //   intendToJoin: formData.intendToJoin,
+      //   visitDate: formData.visitDate,
+      //   message: formData.message || '',
+      // });
       await axios.post(`/api/clubs/${clubId}/guests/apply`, {
-        name: formData.name,
-        phoneNumber: formData.phoneNumber,
-        message: formData.message || '',
+        ...formData,
       });
 
       toast.success('게스트 신청이 완료되었습니다');
@@ -56,6 +67,11 @@ function GuestPage({ user }: AuthProps) {
         <p className="text-gray-600 mb-6">
           이 클럽에 게스트로 참여하고 싶으시면 아래 버튼을 클릭하여 신청서를
           작성해주세요.
+          <br />
+          <br />
+          평일: 오후 7시 30분 ~ 오후 10시
+          <br />
+          주말, 공휴일: 오후 3시 30분 ~ 오후 6시
         </p>
 
         <button

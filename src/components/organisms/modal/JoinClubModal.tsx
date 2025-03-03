@@ -145,6 +145,20 @@ function JoinClubModal({
             />
           </FormField>
 
+          {isGuestApplication && (
+            <>
+              <FormField label="가입 문의">
+                <textarea
+                  name="message"
+                  value={formData.message || ''}
+                  onChange={onChangeInput}
+                  placeholder="클럽에 전달할 메시지나 문의사항을 입력해주세요"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                />
+              </FormField>
+            </>
+          )}
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="secondary" onClick={onClose}>
               취소

@@ -124,16 +124,24 @@ model WorkoutHelperStatus {
 
 // 게스트 신청 게시글
 model GuestPost {
-  // question: jyoon - id가 다른 필드와는 다르게 autoincrement가 아니라 cuid로 된 이유가 있을까? 게시판 기능이라서 그런가? 
-  id            String         @id @default(cuid()) 
-  clubId        Int            
-  userId        Int            
-  status        GuestStatus    @default(PENDING)
-  name          String
-  phoneNumber   String
-  message       String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                       String         @id @default(cuid()) 
+  clubId                   Int            
+  userId                   Int            
+  name                     String
+  birthDate                String         @default("")
+  phoneNumber              String
+  localTournamentLevel     String         @default("")
+  nationalTournamentLevel  String         @default("")
+  lessonPeriod             String         @default("")
+  playingPeriod            String         @default("")
+  status                   GuestStatus    @default(PENDING)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  
+  // 모든 필수 필드에 기본값 추가
+  intendToJoin             Boolean        @default(false)
+  visitDate                String         @default("")
+  message                  String         @default("")
   
   club          Club           @relation(fields: [clubId], references: [id])
   user          User           @relation(fields: [userId], references: [id])
@@ -168,4 +176,26 @@ enum GuestStatus {
   PENDING   // 대기중
   APPROVED  // 승인됨
   REJECTED  // 거절됨
+}
+
+model GuestPost_copy {
+  id                       String         @id @default(cuid()) 
+  clubId                   Int            
+  userId                   Int            
+  name                     String
+  message                  String
+  status                   GuestStatus    @default(PENDING)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  phoneNumber              String         @default("")
+  
+  // 신규 필드들은 기본값 설정으로 추가
+  birthDate                String         @default("")
+  localTournamentLevel     String         @default("")
+  nationalTournamentLevel  String         @default("")
+  lessonPeriod             String         @default("")
+  playingPeriod            String         @default("")
+    
+  @@index([clubId])
+  @@index([userId])
 }

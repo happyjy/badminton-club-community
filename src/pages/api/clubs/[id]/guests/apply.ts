@@ -6,56 +6,90 @@ const prisma = new PrismaClient();
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<ApiResponse<'membership', ClubMembershipResponse>>
 ) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: '허용되지 않는 메소드입니다' });
+    return res
+      .status(405)
+      .json({ success: false, message: '허용되지 않는 메소드입니다' });
   }
 
   try {
     const session = await getSession(req);
-    if (!session) {
-      return res.status(401).json({ message: '인증이 필요합니다' });
+
+    // 세션이 없거나 세션 ID가 없는 경우 처리
+    if (!session || !session.id) {
+      return res
+        .status(401)
+        .json({ success: false, message: '인증이 필요합니다' });
     }
 
     const { id: clubId } = req.query;
-    const { name, phoneNumber, message } = req.body;
+    console.log(`🚨 ~ clubId:`, clubId);
+
+    // clubId가 없는 경우 처리
+    if (!clubId) {
+      return res
+        .status(400)
+        .json({ success: false, message: '클럽 ID가 필요합니다' });
+    }
+
+    // req.body가 없는 경우 기본값 설정
+    const {
+      name,
+      phoneNumber,
+      message = '',
+      birthDate = null,
+      localTournamentLevel = null,
+      nationalTournamentLevel = null,
+      lessonPeriod = null,
+      playingPeriod = null,
+      intendToJoin = false,
+      visitDate = null,
+    } = req.body || {};
+    console.log(`🚨 ~ req.body:`, req.body);
 
     // 필수 데이터 검증
     if (!name || !phoneNumber) {
-      return res
-        .status(400)
-        .json({ message: '이름과 연락처는 필수 항목입니다' });
+      return res.status(400).json({
+        success: false,
+        message: '이름과 연락처는 필수 항목입니다',
+      });
     }
-
-    // 중복 신청 확인
-    // const existingApplication = await prisma.guestApplication.findFirst({
-    //   where: {
-    //     clubId: clubId as string,
-    //     userId: session.user.id,
-    //     status: 'PENDING',
-    //   },
-    // });
-
-    // if (existingApplication) {
-    //   return res.status(400).json({ message: '이미 신청한 게스트입니다' });
-    // }
+    console.log(`🚨 ~ name:`, name);
 
     // 게스트 신청 생성
     const application = await prisma.guestPost.create({
       data: {
         clubId: parseInt(clubId as string),
         userId: session.id,
+        // 게스트 일반 정보
         name,
+        birthDate,
         phoneNumber,
-        message: message || '',
+        localTournamentLevel,
+        nationalTournamentLevel,
+        lessonPeriod,
+        playingPeriod,
+        // 게스트 신청 타입
+        intendToJoin,
+        visitDate,
+        message,
         status: 'PENDING',
       },
     });
+    console.log(`🚨 ~ application:`, application);
 
-    return res.status(201).json(application);
+    return res.status(201).json({
+      success: true,
+      data: application,
+    });
   } catch (error) {
     console.error('게스트 신청 오류:', error);
-    return res.status(500).json({ message: '서버 오류가 발생했습니다' });
+    return res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
