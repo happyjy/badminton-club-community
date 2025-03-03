@@ -21,6 +21,7 @@ interface Comment {
 }
 
 function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
+  console.log(`🚨 ~ GuestDetailPage ~ guestPost:`, guestPost);
   const router = useRouter();
   // router.query값, id, guestId는 폴더 이름으로 결정됩니다. (guestId는 게스트 신청 게시글의 id)
   const { id: clubId, guestId } = router.query;
@@ -82,71 +83,183 @@ function GuestDetailPage({ guestPost }: GuestDetailPageProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">게스트 신청 상세</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 pb-2 border-b-2 border-gray-200">
+          게스트 신청 상세
+        </h1>
         <div className="space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-2">신청 정보</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-600">신청일</p>
-                <p className="font-medium">{formatDate(guestPost.createdAt)}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">방문희망일</p>
-                <p className="font-medium">{guestPost.visitDate || '-'}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">가입의향</p>
-                <div className="flex items-center mt-1">
-                  <input
-                    type="checkbox"
-                    checked={guestPost.intendToJoin === true}
-                    readOnly
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
-                  />
+          {/* 기본 정보 섹션 */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex flex-col sm:flex-row">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3 mb-3 sm:mb-0 sm:w-36">
+                기본 정보
+              </h2>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">이름</p>
+                    <p className="font-medium">{guestPost.name}</p>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-gray-600">상태</p>
-                <span
-                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(guestPost.status)}`}
-                >
-                  {getStatusText(guestPost.status)}
-                </span>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">생년월일</p>
+                    <p className="font-medium">
+                      {formatDate(guestPost.birthDate)}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">전화번호</p>
+                    <p className="font-medium">{guestPost.phoneNumber}</p>
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">신청일</p>
+                    <p className="font-medium">
+                      {formatDate(guestPost.createdAt)}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">신청 내용</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {guestPost.purpose || '작성된 내용이 없습니다.'}
-            </p>
+          {/* 방문 정보 섹션 */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex flex-col sm:flex-row">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3 mb-3 sm:mb-0 sm:w-36">
+                방문 정보
+              </h2>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">방문희망일</p>
+                    <p className="font-medium">
+                      {formatDate(guestPost.visitDate)}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">클럽 가입 의향</p>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={guestPost.intendToJoin}
+                        readOnly
+                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
+                      />
+                      <span className="ml-2">
+                        {guestPost.intendToJoin ? '있음' : '없음'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">처리 상태</p>
+                    <span
+                      className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getStatusBadgeColor(guestPost.status)}`}
+                    >
+                      {getStatusText(guestPost.status)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">댓글</h2>
-            {isLoading ? (
-              <p className="text-gray-500">댓글을 불러오는 중...</p>
-            ) : comments.length > 0 ? (
-              <div className="space-y-4">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <p className="font-medium">{comment.author.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {formatDate(comment.createdAt)}
-                      </p>
-                    </div>
-                    <p className="mt-2 text-gray-700">{comment.content}</p>
+          {/* 배드민턴 경력 섹션 */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex flex-col sm:flex-row">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3 mb-3 sm:mb-0 sm:w-36">
+                배드민턴 경력
+              </h2>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">
+                      구대회 신청 가능 급수
+                    </p>
+                    <p className="font-medium">
+                      {guestPost.localTournamentLevel}
+                    </p>
                   </div>
-                ))}
+                </div>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">
+                      전국대회 신청 가능 급수
+                    </p>
+                    <p className="font-medium">
+                      {guestPost.nationalTournamentLevel}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">레슨 받은 기간</p>
+                    <p className="font-medium">{guestPost.lessonPeriod}</p>
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">구력</p>
+                    <p className="font-medium">{guestPost.playingPeriod}</p>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <p className="text-gray-500">아직 댓글이 없습니다.</p>
-            )}
+            </div>
+          </div>
+
+          {/* 신청 메시지 섹션 */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex flex-col sm:flex-row">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3 mb-3 sm:mb-0 sm:w-36">
+                신청 메시지
+              </h2>
+              <div className="flex-1">
+                <div className="bg-white p-3 rounded-md">
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {guestPost.message || '작성된 메시지가 없습니다.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 댓글 섹션 */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex flex-col sm:flex-row">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 border-l-4 border-blue-500 pl-3 mb-3 sm:mb-0 sm:w-36">
+                댓글
+              </h2>
+              <div className="flex-1">
+                {isLoading ? (
+                  <p className="text-gray-500">댓글을 불러오는 중...</p>
+                ) : comments.length > 0 ? (
+                  <div className="space-y-3">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="bg-white p-3 rounded-md">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                          <p className="font-medium">{comment.author.name}</p>
+                          <p className="text-sm text-gray-500 mt-1 sm:mt-0">
+                            {formatDate(comment.createdAt)}
+                          </p>
+                        </div>
+                        <p className="mt-2 text-gray-700">{comment.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">아직 댓글이 없습니다.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
