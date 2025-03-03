@@ -24,9 +24,6 @@ export default async function handler(
     const { id: clubId } = req.query;
     const userId = session.id;
 
-    // 사용자의 게스트 신청 목록 조회
-    console.log({ clubId, userId });
-
     const applications = await prisma.guestPost.findMany({
       where: {
         clubId: Number(clubId),
@@ -43,7 +40,6 @@ export default async function handler(
       //   purpose: true,
       // },
     });
-    // console.log(`🚨 ~ applications:`, applications);
 
     // 일반 JSON 응답 형식으로 반환
     return res.status(200).json({

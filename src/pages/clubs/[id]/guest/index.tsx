@@ -52,6 +52,7 @@ function GuestPage({ user }: AuthProps) {
     }
   }, [user, clubId]);
 
+  // 게스트 신청 모달 열기
   const onClickOpenModal = () => {
     if (!user) {
       toast.error('로그인이 필요한 기능입니다');
@@ -60,10 +61,12 @@ function GuestPage({ user }: AuthProps) {
     setIsModalOpen(true);
   };
 
+  // 게스트 신청 모달 닫기
   const onCloseModal = () => {
     setIsModalOpen(false);
   };
 
+  // 게스트 신청 요청
   const onSubmitGuestApplication = async (formData: ClubJoinFormData) => {
     if (!clubId) return;
 
@@ -86,6 +89,12 @@ function GuestPage({ user }: AuthProps) {
     }
   };
 
+  // 게스트 상세 페이지로 이동
+  const onClickGuestDetail = (guestPostId: string) => {
+    router.push(`/clubs/${clubId}/guest/${guestPostId}`);
+  };
+
+  //
   // 신청 상태에 따른 배지 색상
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -164,7 +173,11 @@ function GuestPage({ user }: AuthProps) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {myApplications.map((application) => (
-                    <tr key={application.id}>
+                    <tr
+                      key={application.id}
+                      onClick={() => onClickGuestDetail(application.id)}
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
                       <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
                         {formatDate(application.createdAt)}
                       </td>
