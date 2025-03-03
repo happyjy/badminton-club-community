@@ -32,19 +32,6 @@ function GuestPage({ user }: AuthProps) {
     setIsSubmitting(true);
     try {
       // API 연동 - 게스트 신청 요청
-      console.log(`🚨 ~ onSubmitJoinForm ~ formData:`, formData);
-      // await axios.post(`/api/clubs/${clubId}/guests/apply`, {
-      //   name: formData.name,
-      //   phoneNumber: formData.phoneNumber,
-      //   localTournamentLevel: formData.localTournamentLevel,
-      //   nationalTournamentLevel: formData.nationalTournamentLevel,
-      //   lessonPeriod: formData.lessonPeriod,
-      //   playingPeriod: formData.playingPeriod,
-      //   // 게스트 관련 필드
-      //   intendToJoin: formData.intendToJoin,
-      //   visitDate: formData.visitDate,
-      //   message: formData.message || '',
-      // });
       await axios.post(`/api/clubs/${clubId}/guests/apply`, {
         ...formData,
       });

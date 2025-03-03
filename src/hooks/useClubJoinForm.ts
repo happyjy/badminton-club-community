@@ -62,16 +62,20 @@ export const useClubJoinForm = (user: User, isGuestApplication = false) => {
   };
 
   const onChangeInput = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
-    const { name, value, type } = e.target as HTMLInputElement;
+    const { name, value } = e.target;
 
-    if (type === 'checkbox') {
+    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+      // 체크박스인 경우
       setFormData((prev) => ({
         ...prev,
         [name]: (e.target as HTMLInputElement).checked,
       }));
     } else {
+      // 체크박스가 아닌 경우
       setFormData((prev) => ({
         ...prev,
         [name]: value,

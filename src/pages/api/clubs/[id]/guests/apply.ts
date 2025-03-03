@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ApiResponse<'membership', ClubMembershipResponse>>
+  res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res
@@ -25,7 +25,6 @@ export default async function handler(
     }
 
     const { id: clubId } = req.query;
-    console.log(`🚨 ~ clubId:`, clubId);
 
     // clubId가 없는 경우 처리
     if (!clubId) {
@@ -47,7 +46,6 @@ export default async function handler(
       intendToJoin = false,
       visitDate = null,
     } = req.body || {};
-    console.log(`🚨 ~ req.body:`, req.body);
 
     // 필수 데이터 검증
     if (!name || !phoneNumber) {
@@ -56,7 +54,6 @@ export default async function handler(
         message: '이름과 연락처는 필수 항목입니다',
       });
     }
-    console.log(`🚨 ~ name:`, name);
 
     // 게스트 신청 생성
     const application = await prisma.guestPost.create({
@@ -78,7 +75,6 @@ export default async function handler(
         status: 'PENDING',
       },
     });
-    console.log(`🚨 ~ application:`, application);
 
     return res.status(201).json({
       success: true,
