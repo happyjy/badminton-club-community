@@ -1,0 +1,43 @@
+model Club { 
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  location    String
+  meetingTime String
+  maxMembers  Int
+  etc         String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // 관계 필드 설정
+  members     ClubMember[]
+  workouts    Workout[]
+  guestPosts  GuestPost[]
+}
+
+model ClubMember {
+  id                       Int      @id @default(autoincrement())
+  clubId                   Int
+  userId                   Int
+  role                     String   @default("MEMBER")
+  status                   String   @default("PENDING")
+  name                     String?
+  birthDate                String?
+  phoneNumber              String   @default("010-0000-0000")
+  localTournamentLevel     String?
+  nationalTournamentLevel  String?
+  lessonPeriod             String?
+  playingPeriod            String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  // Relations
+  club                     Club     @relation(fields: [clubId], references: [id])
+  user                     User     @relation(fields: [userId], references: [id])
+  workoutParticipants      WorkoutParticipant[]
+  helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
+  updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
+  guestComments            GuestComment[]
+
+  @@unique([clubId, userId])
+} 
