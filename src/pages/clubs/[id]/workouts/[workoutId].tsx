@@ -76,7 +76,90 @@ const CircleMenu = ({
               />
             </button>
           </div>
-          {/* 나머지 아이콘 버튼들... */}
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[47px] translate-y-[-15px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('broomStick')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('broomStick')}
+            >
+              <Image
+                src={broomStickIcon}
+                alt="broom stick"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[29px] translate-y-[40px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('shuttlecock')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('shuttlecock')}
+            >
+              <Image
+                src={badmintonShuttleCockIcon}
+                alt="shuttlecock"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[-29px] translate-y-[40px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('key')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('key')}
+            >
+              <Image
+                src={keyIcon}
+                alt="key"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
+          <div
+            className={`absolute transform transition-all duration-300 ease-in-out z-50
+              ${isOpen ? 'translate-x-[-47px] translate-y-[-15px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
+          >
+            <button
+              className={`w-12 h-12 rounded-full ${
+                selectedIcons.includes('mop')
+                  ? 'bg-blue-100 hover:bg-blue-200'
+                  : 'bg-gray-100 hover:bg-gray-200'
+              } flex items-center justify-center shadow-lg`}
+              onClick={() => handleIconClick('mop')}
+            >
+              <Image
+                src={mopIcon}
+                alt="mop"
+                width={30}
+                height={30}
+                className="w-7 h-7"
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>
