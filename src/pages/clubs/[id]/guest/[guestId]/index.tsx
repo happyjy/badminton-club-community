@@ -57,10 +57,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         `/api/clubs/${clubId}/guests/${guestId}/comments`
       );
       setComments(response.data.comments);
-      console.log(
-        `🚨 ~ fetchComments ~ response.data.comments:`,
-        response.data.comments
-      );
     } catch (error) {
       console.error('댓글 목록 불러오기 실패:', error);
       toast.error('댓글을 불러오는데 실패했습니다');

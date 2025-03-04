@@ -36,7 +36,6 @@ function GuestPage({ user }: AuthProps) {
       const response = await axios.get(
         `/api/clubs/${clubId}/guests/my-applications`
       );
-      console.log(`🚨 ~ fetchMyApplications ~ response:`, response);
       setMyApplications(response.data.data.guestPost);
     } catch (error) {
       console.error('게스트 신청 목록 불러오기 실패:', error);
@@ -91,8 +90,8 @@ function GuestPage({ user }: AuthProps) {
   };
 
   // 게스트 상세 페이지로 이동
-  const onClickGuestDetail = (guestPostId: string) => {
-    router.push(`/clubs/${clubId}/guest/${guestPostId}`);
+  const onClickGuestDetail = (guestId: string) => {
+    router.push(`/clubs/${clubId}/guest/${guestId}`);
   };
 
   //
