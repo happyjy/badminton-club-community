@@ -11,3 +11,8 @@ enum GuestStatus {
   APPROVED  // 승인됨
   REJECTED  // 거절됨
 } 
+
+enum MemberRole {
+  ADMIN     // 임원
+  MEMBER    // 회원
+}

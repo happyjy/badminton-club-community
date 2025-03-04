@@ -22,6 +22,11 @@ enum GuestStatus {
   REJECTED  // 거절됨
 } 
 
+enum MemberRole {
+  ADMIN     // 임원
+  MEMBER    // 회원
+}
+
 model User {
   id                  Int                  @id @default(autoincrement())
   kakaoId             String               @unique @default("")
@@ -49,7 +54,7 @@ model Club {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  // Relations
+  // 관계 필드 설정
   members     ClubMember[]
   workouts    Workout[]
   guestPosts  GuestPost[]
@@ -136,6 +141,7 @@ model WorkoutHelperStatus {
   @@unique([workoutId, clubMemberId, helperType])
 } 
 
+// 게스트 신청 게시글
 model GuestPost {
   id                       String         @id @default(cuid()) 
   clubId                   Int            
@@ -148,44 +154,52 @@ model GuestPost {
   lessonPeriod             String         @default("")
   playingPeriod            String         @default("")
   status                   GuestStatus    @default(PENDING)
-  intendToJoin            Boolean        @default(false)
-  visitDate               String         @default("")
-  message                 String         @default("")
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
+  // 클럽 가입 필드에서 게스트 신청시 추가 된 필드
+  intendToJoin             Boolean        @default(false)
+  visitDate                String         @default("")
+  message                  String         @default("")
+  //
+  createdAt                DateTime       @default(now())
+  // 업데이트 
+  updatedBy                Int            @default(0)
+  updatedAt                DateTime       @default(now()) @updatedAt
   
   // Relations
-  club                    Club           @relation(fields: [clubId], references: [id])
-  user                    User           @relation(fields: [userId], references: [id])
-  comments                GuestComment[]
+  club                     Club           @relation(fields: [clubId], references: [id])
+  user                     User           @relation(fields: [userId], references: [id])
+  comments                 GuestComment[]
 
   @@index([clubId])
   @@index([userId])
 }
 
+
+// 게스트 신청 댓글
 model GuestComment {
   id            String          @id @default(cuid())
   postId        String      
-  userId        Int         
-  clubMemberId  Int?
+  userId        Int?            // 회원 ID(작성자-회원가입전)
+  clubMemberId  Int?            // 클럽 멤버 ID(임원진)
   content       String
   parentId      String?
   isDeleted     Boolean         @default(false)
   createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  updatedAt     DateTime        @default(now()) @updatedAt
   
   // Relations
-  post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user          User            @relation(fields: [userId], references: [id])
+  user          User?            @relation(fields: [userId], references: [id])
   clubMember    ClubMember?     @relation(fields: [clubMemberId], references: [id])
+  post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
   parent        GuestComment?   @relation("CommentToComment", fields: [parentId], references: [id])
   children      GuestComment[]  @relation("CommentToComment")
   
   @@index([postId])
   @@index([userId])
+  @@index([clubMemberId])
   @@index([parentId])
 } 
 
+// 마이그레이션 코드
 model GuestPost_copy {
   id                       String         @id @default(cuid()) 
   clubId                   Int            

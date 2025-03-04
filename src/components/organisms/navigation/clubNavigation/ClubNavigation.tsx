@@ -65,8 +65,8 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
         </svg>
       ),
     },
-    { name: '게시판', href: `/clubs/${clubId}/board` },
     { name: '게스트', href: `/clubs/${clubId}/guest` },
+    { name: '게시판', href: `/clubs/${clubId}/board` },
     { name: '사진첩', href: `/clubs/${clubId}/photos` },
   ];
 

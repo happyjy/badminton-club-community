@@ -12,17 +12,19 @@ model GuestPost {
   playingPeriod            String         @default("")
   status                   GuestStatus    @default(PENDING)
   // 클럽 가입 필드에서 게스트 신청시 추가 된 필드
-  intendToJoin            Boolean        @default(false)
-  visitDate               String         @default("")
-  message                 String         @default("")
+  intendToJoin             Boolean        @default(false)
+  visitDate                String         @default("")
+  message                  String         @default("")
   //
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
+  createdAt                DateTime       @default(now())
+  // 업데이트 
+  updatedBy                Int            @default(0)
+  updatedAt                DateTime       @default(now()) @updatedAt
   
   // Relations
-  club                    Club           @relation(fields: [clubId], references: [id])
-  user                    User           @relation(fields: [userId], references: [id])
-  comments                GuestComment[]
+  club                     Club           @relation(fields: [clubId], references: [id])
+  user                     User           @relation(fields: [userId], references: [id])
+  comments                 GuestComment[]
 
   @@index([clubId])
   @@index([userId])
@@ -33,22 +35,24 @@ model GuestPost {
 model GuestComment {
   id            String          @id @default(cuid())
   postId        String      
-  userId        Int         
-  clubMemberId  Int?
+  userId        Int?            // 회원 ID(작성자-회원가입전)
+  clubMemberId  Int?            // 클럽 멤버 ID(임원진)
   content       String
   parentId      String?
+  isDeleted     Boolean         @default(false)
   createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  updatedAt     DateTime        @default(now()) @updatedAt
   
   // Relations
-  post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user          User            @relation(fields: [userId], references: [id])
+  user          User?            @relation(fields: [userId], references: [id])
   clubMember    ClubMember?     @relation(fields: [clubMemberId], references: [id])
+  post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
   parent        GuestComment?   @relation("CommentToComment", fields: [parentId], references: [id])
   children      GuestComment[]  @relation("CommentToComment")
   
   @@index([postId])
   @@index([userId])
+  @@index([clubMemberId])
   @@index([parentId])
 } 
 
