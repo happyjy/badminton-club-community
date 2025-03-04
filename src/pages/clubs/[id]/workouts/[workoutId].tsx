@@ -31,6 +31,7 @@ interface WorkoutParticipant {
 }
 
 // CircleMenu 컴포넌트 수정
+// todo: jyoon - CircleMenu 재활용 할 수 있게 수정하기(작성-25.03.04)
 const CircleMenu = ({
   isOpen,
   onClose,
