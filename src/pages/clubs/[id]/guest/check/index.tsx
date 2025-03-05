@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -71,6 +71,104 @@ export default function GuestCheckPage() {
       default:
         return '검토중';
     }
+  };
+
+  const paginationRef = useRef<HTMLDivElement>(null);
+  const paginationBtnRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [paginationBtnWidth, setPaginationBtnWidth] = useState(0);
+
+  // 페이지네이션 container 너비 계산(페이지네이션 버튼 개수 조절)
+  useLayoutEffect(() => {
+    const updateWidth = () => {
+      if (paginationRef.current) {
+        setContainerWidth(paginationRef.current.offsetWidth);
+      }
+      if (paginationBtnRef.current) {
+        setPaginationBtnWidth(paginationBtnRef.current.offsetWidth);
+      }
+    };
+
+    // 초기 너비 설정
+    updateWidth();
+
+    // ResizeObserver를 사용하여 컨테이너 크기 변경 감지
+    const observer = new ResizeObserver(updateWidth);
+    if (paginationRef.current) {
+      observer.observe(paginationRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [guestRequests]);
+
+  // getPageNumbers 함수 수정
+  const getPageNumbers = (currentPage: number, totalPages: number) => {
+    // 이전/다음 버튼의 너비
+    const navButtonWidth = containerWidth < 640 ? 36 : 44;
+
+    // 페이지네이션 버튼 사이의 간격 (-space-x-px로 인한 -1px)
+    const buttonGap = -1;
+
+    // 실제 사용 가능한 너비 계산 (전체 너비 - 네비게이션 버튼 너비)
+    const availableWidth = containerWidth - navButtonWidth * 2;
+
+    // 한 줄에 표시 가능한 버튼 개수 계산
+    const possibleButtons = Math.floor(
+      (availableWidth + Math.abs(buttonGap)) / (paginationBtnWidth + buttonGap)
+    );
+
+    // 최소 3개, 최대 9개로 제한
+    const maxButtons = Math.min(Math.max(possibleButtons, 3), 9);
+
+    if (totalPages <= maxButtons) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages = [];
+    const sideCount = Math.floor((maxButtons - 3) / 2); // 첫 페이지, 마지막 페이지, 현재 페이지를 제외한 양쪽 버튼 수
+
+    // 1. 첫 페이지 추가
+    pages.push(1);
+
+    // 2. 현재 페이지 위치에 따른 표시 범위 계산
+    let start = Math.max(2, currentPage - sideCount);
+    let end = Math.min(totalPages - 1, currentPage + sideCount);
+
+    // 3. 범위 조정하여 maxButtons 개수 맞추기
+    if (currentPage <= sideCount + 2) {
+      // 현재 페이지가 앞쪽에 있는 경우
+      end = Math.min(maxButtons - 1, totalPages - 1);
+      start = 2;
+    } else if (currentPage >= totalPages - sideCount - 1) {
+      // 현재 페이지가 뒤쪽에 있는 경우
+      start = Math.max(2, totalPages - (maxButtons - 2));
+      end = totalPages - 1;
+    } else {
+      // 현재 페이지가 중간에 있는 경우
+      const halfWidth = Math.floor((maxButtons - 4) / 2);
+      start = currentPage - halfWidth;
+      end = currentPage + halfWidth;
+    }
+
+    // 4. 첫 페이지와 시작 페이지 사이 ... 추가
+    if (start > 2) {
+      pages.push('...');
+    }
+
+    // 5. 중간 페이지들 추가
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // 6. 끝 페이지와 마지막 페이지 사이 ... 추가
+    if (end < totalPages - 1) {
+      pages.push('...');
+    }
+
+    // 7. 마지막 페이지 추가
+    pages.push(totalPages);
+
+    return pages;
   };
 
   if (isLoading) {
@@ -155,23 +253,88 @@ export default function GuestCheckPage() {
       )}
 
       {guestRequests?.total > ITEMS_PER_PAGE && (
-        <div className="mt-4 flex justify-center">
+        <div ref={paginationRef} className="mt-4 flex justify-center">
           <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-            {Array.from({
-              length: Math.ceil(guestRequests.total / ITEMS_PER_PAGE),
-            }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentPage(index + 1)}
-                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                  currentPage === index + 1
-                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                }`}
+            {/* 이전 페이지 버튼 */}
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                currentPage === 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              <span className="sr-only">이전</span>
+              <svg
+                className="h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
               >
-                {index + 1}
+                <path
+                  fillRule="evenodd"
+                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+
+            {/* 페이지 번호 */}
+            {getPageNumbers(
+              currentPage,
+              Math.ceil(guestRequests.total / ITEMS_PER_PAGE)
+            ).map((pageNum, index) => (
+              <button
+                ref={paginationBtnRef}
+                key={index}
+                onClick={() =>
+                  typeof pageNum === 'number' && setCurrentPage(pageNum)
+                }
+                disabled={pageNum === '...'}
+                className={`relative inline-flex items-center border text-sm font-medium
+                  ${
+                    pageNum === currentPage
+                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                      : pageNum === '...'
+                        ? 'bg-white text-gray-700 cursor-default'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                  } 
+                  ${containerWidth < 640 ? 'px-2 py-1 text-xs' : 'px-4 py-2'}1
+                  flex-1 justify-center min-w-[32px]`}
+              >
+                {pageNum}
               </button>
             ))}
+
+            {/* 다음 페이지 버튼 */}
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={
+                currentPage === Math.ceil(guestRequests.total / ITEMS_PER_PAGE)
+              }
+              className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                currentPage === Math.ceil(guestRequests.total / ITEMS_PER_PAGE)
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              <span className="sr-only">다음</span>
+              <svg
+                className="h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
           </nav>
         </div>
       )}
