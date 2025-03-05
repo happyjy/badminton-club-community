@@ -66,8 +66,9 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
       ),
     },
     { name: '게스트', href: `/clubs/${clubId}/guest` },
+    { name: '게스트 확인', href: `/clubs/${clubId}/guest/check` },
     { name: '게시판', href: `/clubs/${clubId}/board` },
-    { name: '사진첩', href: `/clubs/${clubId}/photos` },
+    // { name: '사진첩', href: `/clubs/${clubId}/photos` },
   ];
 
   return (

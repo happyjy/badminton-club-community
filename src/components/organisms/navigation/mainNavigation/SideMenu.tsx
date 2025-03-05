@@ -17,12 +17,16 @@ export default function SideMenu({
 }: SideMenuProps) {
   const router = useRouter();
 
-  const handleLoginClick = () => {
+  const onClickLink = () => {
+    setIsMenuOpen(false);
+  };
+
+  const onClickLogin = () => {
     setIsMenuOpen(false);
     redirectToLogin(router);
   };
 
-  const handleLogout = async () => {
+  const onClickLogout = async () => {
     try {
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
@@ -43,7 +47,7 @@ export default function SideMenu({
       {isMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20"
-          onClick={() => setIsMenuOpen(false)}
+          onClick={onClickLink}
         />
       )}
 
@@ -57,7 +61,7 @@ export default function SideMenu({
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">메뉴</h2>
             <button
-              onClick={() => setIsMenuOpen(false)}
+              onClick={onClickLink}
               className="p-2 rounded-md hover:bg-gray-100"
             >
               <svg
@@ -81,19 +85,26 @@ export default function SideMenu({
                 <Link
                   href="/profile"
                   className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={onClickLink}
                 >
                   프로필
                 </Link>
                 <Link
                   href="/workouts"
                   className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={onClickLink}
                 >
                   내 운동 일정
                 </Link>
+                <Link
+                  href="/clubs/guest/admin"
+                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
+                  onClick={onClickLink}
+                >
+                  게스트 확인
+                </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={onClickLogout}
                   className="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
                 >
                   로그아웃
@@ -101,7 +112,7 @@ export default function SideMenu({
               </>
             ) : (
               <button
-                onClick={handleLoginClick}
+                onClick={onClickLogin}
                 className="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
               >
                 로그인
