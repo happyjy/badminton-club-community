@@ -61,27 +61,27 @@ model Club {
 }
 
 model ClubMember {
-  id                       Int      @id @default(autoincrement())
+  id                       Int          @id @default(autoincrement())
   clubId                   Int
   userId                   Int
-  role                     String   @default("MEMBER")
-  status                   String   @default("PENDING")
+  role                     MemberRole   @default(MEMBER)
+  status                   String       @default("PENDING")
   name                     String?
   birthDate                String?
-  phoneNumber              String   @default("010-0000-0000")
+  phoneNumber              String       @default("010-0000-0000")
   localTournamentLevel     String?
   nationalTournamentLevel  String?
   lessonPeriod             String?
   playingPeriod            String?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
 
   // Relations
-  club                     Club     @relation(fields: [clubId], references: [id])
-  user                     User     @relation(fields: [userId], references: [id])
+  club                     Club                   @relation(fields: [clubId], references: [id])
+  user                     User                   @relation(fields: [userId], references: [id])
   workoutParticipants      WorkoutParticipant[]
-  helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
-  updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
+  helperStatuses           WorkoutHelperStatus[]  @relation("HelperClubMember")
+  updatedHelperStatuses    WorkoutHelperStatus[]  @relation("HelperUpdater")
   guestComments            GuestComment[]
 
   @@unique([clubId, userId])
