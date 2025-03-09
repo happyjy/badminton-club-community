@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { ComponentType } from 'react';
 import { User } from '@/types';
 import { redirectToLogin } from '@/utils/auth';
-import { ApiResponse } from '@/types/common.types';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WithAuthOptions {
   requireAuth?: boolean;
@@ -21,41 +20,7 @@ export function withAuth<P extends AuthProps>(
 ) {
   return function WithAuthComponent(props: Omit<P, keyof AuthProps>) {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(true);
-    const [user, setUser] = useState<User | null>(null);
-
-    useEffect(() => {
-      async function checkAuth() {
-        try {
-          const response = await fetch('/api/auth/check');
-          const result = (await response.json()) as ApiResponse<
-            'auth',
-            { isAuthenticated: boolean; user: User | null }
-          >;
-
-          if ('error' in result) {
-            throw new Error(result.error);
-          }
-
-          if (result.data.auth.isAuthenticated && result.data.auth.user) {
-            setUser(result.data.auth.user);
-          } else {
-            if (options.requireAuth) {
-              redirectToLogin(router);
-            } else {
-              setUser(null);
-            }
-          }
-        } catch (error) {
-          console.error('인증 확인 중 오류 발생:', error);
-          router.push('/');
-        } finally {
-          setIsLoading(false);
-        }
-      }
-
-      checkAuth();
-    }, [router]);
+    const { data, isLoading, error } = useAuth();
 
     if (isLoading) {
       return (
@@ -65,10 +30,15 @@ export function withAuth<P extends AuthProps>(
       );
     }
 
+    if (error || (!data?.isAuthenticated && options.requireAuth)) {
+      redirectToLogin(router);
+      return null;
+    }
+
     const componentProps = {
       ...props,
-      user,
-      isLoggedIn: !!user,
+      user: data?.user ?? null,
+      isLoggedIn: !!data?.isAuthenticated,
     } as P;
 
     return <WrappedComponent {...componentProps} />;
