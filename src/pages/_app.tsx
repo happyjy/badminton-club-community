@@ -4,11 +4,14 @@ import Layout from '@/components/templates/Layout';
 import Head from 'next/head';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
-import LocatorProvider from '@/components/LocatorProvider';
+// import LocatorProvider from '@/components/LocatorProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+// import setupLocatorUI from '@locator/runtime';
 
 const queryClient = new QueryClient();
-
+// if (process.env.NODE_ENV === 'development') {
+//   setupLocatorUI();
+// }
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
@@ -71,11 +74,11 @@ export default function App({ Component, pageProps }: AppProps) {
           <title>배드민턴 클럽</title>
         </Head>
 
-        <LocatorProvider>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </LocatorProvider>
+        {/* <LocatorProvider> */}
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+        {/* </LocatorProvider> */}
       </Provider>
     </QueryClientProvider>
   );
