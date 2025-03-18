@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 // import { setInitClubMember } from '@/store/features/authSlice';
 import { useClubMember } from '@/hooks/useClubMember';
 import { setClubMember, setInitClubMember } from '@/store/features/authSlice';
+import { RootState } from '@/store';
 
 interface ClubNavigationProps {
   clubId: string;
@@ -16,6 +17,7 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
   const currentPath = router.asPath;
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
+  const clubMember = useSelector((state: RootState) => state.auth.clubMember);
 
   // 현재 경로에서 출석체크 탭이 활성화 되어야 하는지 확인하는 로직 추가
   const isAttendancePath =
@@ -32,7 +34,11 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     [router]
   );
 
-  const navigationItems = [
+  // 사용자가 ADMIN 역할을 가졌는지 확인
+  const isAdmin = clubMember?.role === 'ADMIN';
+
+  // 기본 네비게이션 아이템 (모든 사용자에게 보이는 항목)
+  const baseNavigationItems = [
     {
       name: '홈',
       href: `/clubs/${clubId}`,
@@ -73,10 +79,19 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
       ),
     },
     { name: '게스트', href: `/clubs/${clubId}/guest` },
-    { name: '게스트 확인', href: `/clubs/${clubId}/guest/check` },
     { name: '게시판', href: `/clubs/${clubId}/board` },
     // { name: '사진첩', href: `/clubs/${clubId}/photos` },
   ];
+
+  // ADMIN 전용 메뉴 추가
+  const adminNavigationItems = [
+    { name: '게스트 확인', href: `/clubs/${clubId}/guest/check` },
+  ];
+
+  // 최종 네비게이션 아이템 (ADMIN인 경우 추가 메뉴 포함)
+  const navigationItems = isAdmin
+    ? [...baseNavigationItems, ...adminNavigationItems]
+    : baseNavigationItems;
 
   // 클럽 멤버 정보 가져오기 (clubId와 userId가 있을 때만)
   const { data: clubMemberData } = useClubMember(clubId, currentUser?.id);
