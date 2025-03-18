@@ -10,8 +10,9 @@ export function useClubMember(
   return useQuery<ClubMember>({
     queryKey: ['clubMember', clubId, userId],
     queryFn: async () => {
-      if (!clubId || !userId)
+      if (!clubId || !userId) {
         throw new Error('클럽 ID와 사용자 ID가 필요합니다');
+      }
 
       const response = await axios.get<
         ApiResponse<'clubMember', { clubMember: ClubMember }>

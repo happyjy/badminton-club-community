@@ -30,6 +30,9 @@ export const authSlice = createSlice({
     setClubMember: (state, action: PayloadAction<ClubMember | null>) => {
       state.clubMember = action.payload;
     },
+    setInitClubMember: (state) => {
+      state.clubMember = null;
+    },
     logout: (state) => {
       state.user = null;
       state.membershipStatus = {
@@ -41,7 +44,12 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setUser, setMembershipStatus, setClubMember, logout } =
-  authSlice.actions;
+export const {
+  setUser,
+  setMembershipStatus,
+  setClubMember,
+  setInitClubMember,
+  logout,
+} = authSlice.actions;
 
 export default authSlice.reducer;

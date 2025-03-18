@@ -9,12 +9,12 @@ import {
   setUser,
   setMembershipStatus,
   setClubMember,
+  setInitClubMember,
 } from '@/store/features/authSlice';
 import { RootState } from '@/store';
 import { ClubMember } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useClub } from '@/hooks/useClub';
-import { useClubMember } from '@/hooks/useClubMember';
 
 export default function Layout({ children }: LayoutProps) {
   const dispatch = useDispatch();
@@ -31,12 +31,6 @@ export default function Layout({ children }: LayoutProps) {
   // 클럽 데이터 가져오기 (clubId가 있고 클럽 경로일 때만)
   const { data: clubData, isLoading: isClubLoading } = useClub(
     isClubRoute ? clubId : undefined
-  );
-
-  // 클럽 멤버 정보 가져오기 (clubId와 userId가 있을 때만)
-  const { data: clubMemberData } = useClubMember(
-    isClubRoute ? clubId : undefined,
-    currentUser?.id
   );
 
   // 인증 상태 업데이트
@@ -67,14 +61,6 @@ export default function Layout({ children }: LayoutProps) {
       );
     }
   }, [clubData, currentUser, dispatch]);
-
-  // 클럽 멤버 정보 업데이트
-  useEffect(() => {
-    if (!clubMemberData) return;
-
-    // 클럽 멤버 정보를 Redux 스토어에 저장
-    dispatch(setClubMember(clubMemberData));
-  }, [clubMemberData, dispatch]);
 
   // 클럽 페이지에서 로딩 상태 확인
   const isLoading = isClubRoute ? isClubLoading : false;

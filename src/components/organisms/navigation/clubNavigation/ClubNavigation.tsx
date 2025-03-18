@@ -1,6 +1,10 @@
 import { useRouter } from 'next/router';
 import { cn } from '@/lib/utils';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+// import { setInitClubMember } from '@/store/features/authSlice';
+import { useClubMember } from '@/hooks/useClubMember';
+import { setClubMember, setInitClubMember } from '@/store/features/authSlice';
 
 interface ClubNavigationProps {
   clubId: string;
@@ -8,7 +12,10 @@ interface ClubNavigationProps {
 
 export function ClubNavigation({ clubId }: ClubNavigationProps) {
   const router = useRouter();
+  const dispatch = useDispatch();
   const currentPath = router.asPath;
+
+  const currentUser = useSelector((state: RootState) => state.auth.user);
 
   // 현재 경로에서 출석체크 탭이 활성화 되어야 하는지 확인하는 로직 추가
   const isAttendancePath =
@@ -70,6 +77,22 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     { name: '게시판', href: `/clubs/${clubId}/board` },
     // { name: '사진첩', href: `/clubs/${clubId}/photos` },
   ];
+
+  // 클럽 멤버 정보 가져오기 (clubId와 userId가 있을 때만)
+  const { data: clubMemberData } = useClubMember(clubId, currentUser?.id);
+
+  // 클럽 멤버 정보 초기화
+  useEffect(() => {
+    dispatch(setInitClubMember());
+  }, []);
+
+  // 클럽 멤버 정보 업데이트
+  useEffect(() => {
+    if (!clubMemberData) return;
+
+    // 클럽 멤버 정보를 Redux 스토어에 저장
+    dispatch(setClubMember(clubMemberData));
+  }, [clubMemberData, dispatch]);
 
   return (
     <nav className="border-b border-gray-200">

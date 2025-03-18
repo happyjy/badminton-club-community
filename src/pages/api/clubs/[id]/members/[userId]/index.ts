@@ -27,12 +27,6 @@ export default async function handler(
         },
       });
 
-      if (!clubMember) {
-        return res.status(404).json({
-          error: '해당 클럽의 멤버를 찾을 수 없습니다',
-        });
-      }
-
       return res.status(200).json({
         data: {
           clubMember,
