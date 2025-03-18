@@ -235,14 +235,16 @@ function ClubDetailPage({ user, isLoggedIn }: ClubDetailPageProps) {
   useLayoutEffect(() => {
     const savedPosition = sessionStorage.getItem(`club-${clubId}-scroll`);
 
-    if (savedPosition && !isLoading) {
-      window.scrollTo({
-        top: parseInt(savedPosition),
-        behavior: 'instant',
-      });
-      sessionStorage.removeItem(`club-${clubId}-scroll`);
+    if (savedPosition && !isLoadingWorkouts) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: parseInt(savedPosition),
+          behavior: 'instant',
+        });
+        sessionStorage.removeItem(`club-${clubId}-scroll`);
+      }, 50);
     }
-  }, [clubId, isLoading]);
+  }, [clubId, isLoadingWorkouts]);
 
   return (
     <>
