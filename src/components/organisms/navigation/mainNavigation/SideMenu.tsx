@@ -1,21 +1,16 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { redirectToLogin } from '@/utils/auth';
-
+import { useSelector } from 'react-redux';
 interface SideMenuProps {
   isMenuOpen: boolean;
-  isAuthenticated: boolean;
-  //
   setIsMenuOpen: (isOpen: boolean) => void;
 }
 
-export default function SideMenu({
-  isMenuOpen,
-  isAuthenticated,
-  //
-  setIsMenuOpen,
-}: SideMenuProps) {
+export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
   const router = useRouter();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const isAuthenticated = !!user;
 
   const onClickLink = () => {
     setIsMenuOpen(false);
