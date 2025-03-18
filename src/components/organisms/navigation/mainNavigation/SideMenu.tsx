@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { redirectToLogin } from '@/utils/auth';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '@/store/features/authSlice';
 interface SideMenuProps {
   isMenuOpen: boolean;
   setIsMenuOpen: (isOpen: boolean) => void;
@@ -9,6 +10,8 @@ interface SideMenuProps {
 
 export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
   const router = useRouter();
+  const dispatch = useDispatch();
+
   const user = useSelector((state: RootState) => state.auth.user);
   const isAuthenticated = !!user;
 
@@ -29,6 +32,7 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
 
       if (response.ok) {
         setIsMenuOpen(false);
+        dispatch(logout());
         router.push('/');
       }
     } catch (error) {

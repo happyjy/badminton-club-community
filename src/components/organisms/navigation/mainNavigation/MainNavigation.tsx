@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -6,24 +6,7 @@ import SideMenu from './SideMenu';
 
 export default function MainNavigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // const [isAuthenticated, setIsAuthenticated] = useState(false);
   const currClub = useSelector((state: RootState) => state.club.currentClub);
-
-  // 인증 상태 확인 함수를 컴포넌트 레벨로 이동
-  // const checkAuth = async () => {
-  //   try {
-  //     const response = await fetch('/api/auth/check');
-  //     const result = await response.json();
-  //     setIsAuthenticated(result.data.auth.isAuthenticated);
-  //   } catch (error) {
-  //     console.error('인증 상태 확인 실패:', error);
-  //     setIsAuthenticated(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   checkAuth();
-  // }, []);
 
   return (
     <>
