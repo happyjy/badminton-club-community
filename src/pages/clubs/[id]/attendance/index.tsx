@@ -2,43 +2,18 @@ import { useRouter } from 'next/router';
 import { withAuth } from '@/lib/withAuth';
 import { useState, useEffect } from 'react';
 import { WorkoutListItem } from '@/components/organisms/workout/WorkoutListItem';
-import {
-  Workout,
-  ClubMember,
-  MembershipStatus,
-  ClubDetailPageProps,
-} from '@/types';
+import { Workout, ClubDetailPageProps } from '@/types';
+import { useSelector } from 'react-redux';
 
 function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
-  const [membershipStatus, setMembershipStatus] = useState<MembershipStatus>({
-    isPending: false,
-    isMember: false,
-  });
 
-  const fetchClubAndMembershipStatus = async () => {
-    if (!clubId) return;
-    try {
-      const response = await fetch(`/api/clubs/${clubId}`);
-      const result = await response.json();
-
-      if (user && result.data.club.members) {
-        const memberStatus = result.data.club.members.find(
-          (member: ClubMember) => member.userId === user.id
-        );
-
-        setMembershipStatus({
-          isPending: memberStatus?.status === 'PENDING',
-          isMember: memberStatus?.status === 'APPROVED',
-        });
-      }
-    } catch (error) {
-      console.error('클럽 정보 조회 실패:', error);
-    }
-  };
+  const membershipStatus = useSelector(
+    (state: RootState) => state.auth.membershipStatus
+  );
 
   const fetchWorkouts = async () => {
     if (!clubId) return;
@@ -76,7 +51,6 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   };
 
   useEffect(() => {
-    fetchClubAndMembershipStatus();
     fetchWorkouts();
   }, [clubId, user]);
 
