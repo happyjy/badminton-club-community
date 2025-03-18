@@ -63,7 +63,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <link
             rel="icon"
             type="image/svg+xml"
-            href="/icon/badmintonShuttleCock.svg"
+            href="/badmintonShuttleCock.svg"
           />
           <link rel="alternate icon" href="/favicon.ico" />
           <script
