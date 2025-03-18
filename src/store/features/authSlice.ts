@@ -1,10 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '@/types';
+import { User, ClubMember } from '@/types';
 import { MembershipStatus } from '@/types/membership.types';
 
 interface AuthState {
   user: User | null;
   membershipStatus: MembershipStatus;
+  clubMember: ClubMember | null;
 }
 
 const initialState: AuthState = {
@@ -13,6 +14,7 @@ const initialState: AuthState = {
     isPending: false,
     isMember: false,
   },
+  clubMember: null,
 };
 
 export const authSlice = createSlice({
@@ -25,17 +27,21 @@ export const authSlice = createSlice({
     setMembershipStatus: (state, action: PayloadAction<MembershipStatus>) => {
       state.membershipStatus = action.payload;
     },
+    setClubMember: (state, action: PayloadAction<ClubMember | null>) => {
+      state.clubMember = action.payload;
+    },
     logout: (state) => {
       state.user = null;
       state.membershipStatus = {
         isPending: false,
         isMember: false,
       };
+      state.clubMember = null;
     },
   },
 });
 
-export const { setUser, setAuthStatus, setMembershipStatus, logout } =
+export const { setUser, setMembershipStatus, setClubMember, logout } =
   authSlice.actions;
 
 export default authSlice.reducer;
