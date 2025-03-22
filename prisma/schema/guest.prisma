@@ -30,7 +30,6 @@ model GuestPost {
   @@index([userId])
 }
 
-
 // 게스트 신청 댓글
 model GuestComment {
   id            String          @id @default(cuid())

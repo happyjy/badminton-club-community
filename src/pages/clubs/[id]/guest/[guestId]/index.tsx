@@ -1,15 +1,17 @@
-import { useRouter } from 'next/router';
-import { withAuth } from '@/lib/withAuth';
-import { AuthProps } from '@/lib/withAuth';
 import { useEffect, useState } from 'react';
+
+import { useRouter } from 'next/router';
+
+import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { PrismaClient } from '@prisma/client';
-import InfoSection from '@/components/organisms/InfoSection';
+
 import InfoItem from '@/components/molecules/InfoItem';
 import CommentInput from '@/components/organisms/comment/CommentInput';
 import CommentItem from '@/components/organisms/comment/CommentItem';
+import InfoSection from '@/components/organisms/InfoSection';
 import { formatDateSimple } from '@/lib/utils';
+import { AuthProps, withAuth } from '@/lib/withAuth';
 
 interface Comment {
   id: string;
@@ -46,6 +48,15 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const { id: clubId, guestId } = router.query;
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  // 게스트 상태를 로컬 상태로 관리하여 optimistic update 구현
+  const [status, setStatus] = useState(guestPost.status);
+  // 상태 업데이트 중인지 여부를 관리
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    if (!clubId || !guestId) return;
+    fetchComments();
+  }, [clubId, guestId]);
 
   // 댓글 목록 불러오기
   const fetchComments = async () => {
@@ -65,10 +76,53 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
     }
   };
 
-  useEffect(() => {
-    if (!clubId || !guestId) return;
-    fetchComments();
-  }, [clubId, guestId]);
+  // 게스트 상태 변경 함수 (승인)
+  const handleApprove = async () => {
+    if (!clubId || !guestId || isUpdating) return;
+
+    // Optimistic 업데이트
+    const previousStatus = status;
+    setStatus('APPROVED');
+    setIsUpdating(true);
+
+    try {
+      await axios.put(`/api/clubs/${clubId}/guests/${guestId}/status`, {
+        status: 'APPROVED',
+      });
+      toast.success('게스트 신청이 승인되었습니다');
+    } catch (error) {
+      // 에러 발생 시 이전 상태로 복원
+      setStatus(previousStatus);
+      console.error('승인 처리 실패:', error);
+      toast.error('승인 처리 중 오류가 발생했습니다');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // 게스트 상태 변경 함수 (거절)
+  const handleReject = async () => {
+    if (!clubId || !guestId || isUpdating) return;
+
+    // Optimistic 업데이트
+    const previousStatus = status;
+    setStatus('REJECTED');
+    setIsUpdating(true);
+
+    try {
+      await axios.put(`/api/clubs/${clubId}/guests/${guestId}/status`, {
+        status: 'REJECTED',
+      });
+      toast.success('게스트 신청이 거절되었습니다');
+    } catch (error) {
+      // 에러 발생 시 이전 상태로 복원
+      setStatus(previousStatus);
+      console.error('거절 처리 실패:', error);
+      toast.error('거절 처리 중 오류가 발생했습니다');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // 댓글 작성
   const handleCommentSubmit = async (content: string) => {
@@ -148,9 +202,27 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold mb-4 pb-2 border-b-2 border-gray-200">
-          게스트 신청 상세
-        </h1>
+        <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-200">
+          <h1 className="text-xl sm:text-2xl font-bold">게스트 신청 상세</h1>
+          {
+            <div className="space-x-2">
+              <button
+                onClick={handleApprove}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {isUpdating ? '처리중...' : '승인'}
+              </button>
+              <button
+                onClick={handleReject}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {isUpdating ? '처리중...' : '거절'}
+              </button>
+            </div>
+          }
+        </div>
         <div className="space-y-4">
           {/* 기본 정보 섹션 */}
           <InfoSection title="기본 정보">
@@ -184,9 +256,9 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
             </InfoItem>
             <InfoItem label="처리 상태">
               <span
-                className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getStatusBadgeColor(guestPost.status)}`}
+                className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getStatusBadgeColor(status)}`}
               >
-                {getStatusText(guestPost.status)}
+                {getStatusText(status)}
               </span>
             </InfoItem>
           </InfoSection>
