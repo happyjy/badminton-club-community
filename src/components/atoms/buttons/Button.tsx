@@ -3,29 +3,59 @@ import React from 'react';
 import Spinner from '@/components/atoms/Spinner';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary';
+  variant?: 'default' | 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
   pending?: boolean;
   pendingText?: string;
   pendingPosition?: 'left' | 'right' | 'center';
 }
 
+const getVariantClasses = (variant: ButtonProps['variant'] = 'default') => {
+  switch (variant) {
+    case 'primary':
+      return 'bg-blue-500 text-white hover:bg-blue-600';
+    case 'secondary':
+      return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
+    case 'ghost':
+      return 'bg-transparent text-gray-600 hover:bg-gray-100';
+    default:
+      return 'bg-gray-800 text-white hover:bg-gray-900';
+  }
+};
+
+const getSizeClasses = (size: ButtonProps['size'] = 'md') => {
+  switch (size) {
+    case 'sm':
+      return 'px-3 py-1 text-sm';
+    case 'lg':
+      return 'px-6 py-3 text-lg';
+    default:
+      return 'px-4 py-2';
+  }
+};
+
 export function Button({
   children,
-  variant = 'primary',
+  variant = 'default',
+  size = 'md',
   className = '',
+  disabled = false,
   pending = false,
   pendingText,
   pendingPosition = 'center',
-  disabled,
   ...props
 }: ButtonProps) {
-  const variantClasses = {
-    primary: 'text-white bg-blue-500 hover:bg-blue-600',
-    secondary: 'text-gray-700 bg-gray-100 hover:bg-gray-200',
-  };
-
   // 버튼이 pending 중이면 disabled 속성을 true로 설정
   const isDisabled = pending || disabled;
+
+  const baseClasses =
+    'rounded-md font-medium transition-colors duration-200 whitespace-nowrap flex items-center justify-center';
+  const variantClasses = getVariantClasses(variant);
+  const sizeClasses = getSizeClasses(size);
+  const disabledClasses = isDisabled ? 'opacity-50 cursor-not-allowed' : '';
+
+  const combinedClasses =
+    `${baseClasses} ${variantClasses} ${sizeClasses} ${disabledClasses} ${className}`.trim();
 
   // pending 중일 때 표시할 콘텐츠
   const renderContent = () => {
@@ -58,12 +88,10 @@ export function Button({
   };
 
   return (
-    <button
-      className={`px-4 py-2 text-sm font-medium rounded-md flex items-center justify-center ${variantClasses[variant]} ${className} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-      disabled={isDisabled}
-      {...props}
-    >
+    <button className={combinedClasses} disabled={isDisabled} {...props}>
       {renderContent()}
     </button>
   );
 }
+
+export default Button;

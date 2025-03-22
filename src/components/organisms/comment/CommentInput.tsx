@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/Textarea';
-// import { Button } from '@/components/atoms/buttons/Button';
+
+import Button from '@/components/atoms/buttons/Button';
+import Textarea from '@/components/atoms/Textarea';
 
 interface CommentInputProps {
   onSubmit: (content: string) => void;
