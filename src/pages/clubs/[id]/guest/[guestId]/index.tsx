@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import InfoItem from '@/components/molecules/InfoItem';
@@ -13,6 +14,7 @@ import CommentItem from '@/components/organisms/comment/CommentItem';
 import InfoSection from '@/components/organisms/InfoSection';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
+import { RootState } from '@/store';
 
 interface Comment {
   id: string;
@@ -49,6 +51,9 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   // router.query값, id, guestId는 폴더 이름으로 결정됩니다. (guestId는 게스트 신청 게시글의 id)
   const { id: clubId, guestId } = router.query;
   const [comments, setComments] = useState<Comment[]>([]);
+  // Redux에서 현재 사용자의 클럽 멤버 정보 가져오기
+  const clubMember = useSelector((state: RootState) => state.auth.clubMember);
+  const isAdmin = clubMember?.role === 'ADMIN';
   const [isLoading, setIsLoading] = useState(false);
   // 게스트 상태를 로컬 상태로 관리하여 optimistic update 구현
   const [status, setStatus] = useState(guestPost.status);
@@ -206,26 +211,28 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-200">
           <h1 className="text-xl sm:text-2xl font-bold">게스트 신청 상세</h1>
-          {
-            <div className="flex gap-2">
-              <Button
-                onClick={handleApprove}
-                pending={isUpdating}
-                disabled={isUpdating}
-                className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-indigo-500 text-white rounded-md hover:bg-indigo-600 disabled:opacity-50 transition-colors min-w-[60px]"
-              >
-                승인
-              </Button>
-              <Button
-                onClick={handleReject}
-                pending={isUpdating}
-                disabled={isUpdating}
-                className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-rose-500 text-white rounded-md hover:bg-rose-600 disabled:opacity-50 transition-colors min-w-[60px]"
-              >
-                거절
-              </Button>
-            </div>
-          }
+          <div className="flex gap-2">
+            {isAdmin && (
+              <>
+                <Button
+                  onClick={handleApprove}
+                  pending={isUpdating}
+                  disabled={isUpdating}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-indigo-500 text-white rounded-md hover:bg-indigo-600 disabled:opacity-50 transition-colors min-w-[60px]"
+                >
+                  승인
+                </Button>
+                <Button
+                  onClick={handleReject}
+                  pending={isUpdating}
+                  disabled={isUpdating}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-rose-500 text-white rounded-md hover:bg-rose-600 disabled:opacity-50 transition-colors min-w-[60px]"
+                >
+                  거절
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         <div className="space-y-4">
           {/* 기본 정보 섹션 */}

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import { User, ClubMember } from '@/types';
 import { MembershipStatus } from '@/types/membership.types';
 
@@ -33,6 +34,7 @@ export const authSlice = createSlice({
     setInitClubMember: (state) => {
       state.clubMember = null;
     },
+    // 로그아웃
     logout: (state) => {
       state.user = null;
       state.membershipStatus = {
