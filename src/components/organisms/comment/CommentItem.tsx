@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import { formatDate } from '@/lib/utils';
@@ -72,7 +73,7 @@ export function CommentItem({
           </span>
         </div>
         {isEditable && (
-          <div className="space-x-2">
+          <div className="flex items-center">
             {!isEditing ? (
               <>
                 <Button variant="ghost" size="sm" onClick={handleEdit}>

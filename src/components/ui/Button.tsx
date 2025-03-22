@@ -37,7 +37,8 @@ export function Button({
   disabled = false,
   ...props
 }: ButtonProps) {
-  const baseClasses = 'rounded-md font-medium transition-colors duration-200';
+  const baseClasses =
+    'rounded-md font-medium transition-colors duration-200 whitespace-nowrap';
   const variantClasses = getVariantClasses(variant);
   const sizeClasses = getSizeClasses(size);
   const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
