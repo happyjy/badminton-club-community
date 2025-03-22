@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import InfoItem from '@/components/molecules/InfoItem';
 import CommentInput from '@/components/organisms/comment/CommentInput';
 import CommentItem from '@/components/organisms/comment/CommentItem';
@@ -39,6 +40,7 @@ interface GuestDetailPageProps extends AuthProps {
     visitDate: string;
     message: string;
     createdAt: string;
+    1;
   };
 }
 
@@ -205,21 +207,23 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-200">
           <h1 className="text-xl sm:text-2xl font-bold">게스트 신청 상세</h1>
           {
-            <div className="space-x-2">
-              <button
+            <div className="flex gap-2">
+              <Button
                 onClick={handleApprove}
+                pending={isUpdating}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-indigo-500 text-white rounded-md hover:bg-indigo-600 disabled:opacity-50 transition-colors min-w-[60px]"
               >
-                {isUpdating ? '처리중...' : '승인'}
-              </button>
-              <button
+                승인
+              </Button>
+              <Button
                 onClick={handleReject}
+                pending={isUpdating}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-rose-500 text-white rounded-md hover:bg-rose-600 disabled:opacity-50 transition-colors min-w-[60px]"
               >
-                {isUpdating ? '처리중...' : '거절'}
-              </button>
+                거절
+              </Button>
             </div>
           }
         </div>
