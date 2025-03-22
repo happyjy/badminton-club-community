@@ -1,12 +1,14 @@
-import { useClubJoinForm } from '@/hooks/useClubJoinForm';
-import { ClubJoinFormData } from '@/types/club.types';
-import { User } from '@/types';
-import { FormField } from '@/components/molecules/form/FormField';
+import { FormEvent } from 'react';
+
+import { Button } from '@/components/atoms/buttons/Button';
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
-import { Checkbox } from '@/components/atoms/inputs/Checkbox';
-import { Button } from '@/components/atoms/buttons/Button';
+import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
+import { useClubJoinForm } from '@/hooks/useClubJoinForm';
+import { User } from '@/types';
+import { ClubJoinFormData } from '@/types/club.types';
 import { TOURNAMENT_LEVELS, DEFAULT_DATE } from '@/utils/clubForms';
 
 interface JoinClubModalProps {
@@ -16,6 +18,7 @@ interface JoinClubModalProps {
   onSubmit: (formData: ClubJoinFormData) => void;
   isSubmitting?: boolean;
   isGuestApplication?: boolean;
+  initialValues?: Partial<ClubJoinFormData>;
 }
 
 // todo: jyoon - join club modal과 guest modal 분리
@@ -25,7 +28,9 @@ function JoinClubModal({
   isOpen,
   onClose,
   onSubmit,
+  isSubmitting = false,
   isGuestApplication = false,
+  initialValues,
 }: JoinClubModalProps) {
   const {
     formData,
@@ -34,9 +39,9 @@ function JoinClubModal({
     onChangeInput,
     //
     initialFormData,
-  } = useClubJoinForm(user, isGuestApplication);
+  } = useClubJoinForm(user, isGuestApplication, initialValues);
 
-  const onSubmitJoinClubModal = (e: React.FormEvent) => {
+  const onSubmitJoinClubModal = (e: FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
     initialFormData(); // form 초기화
@@ -49,12 +54,19 @@ function JoinClubModal({
     label: level,
   }));
 
+  // 조건부 렌더링 로직을 변수로 추출
+  const modalTitle = isGuestApplication
+    ? initialValues
+      ? '게스트 신청 수정'
+      : '게스트 신청'
+    : '모임 가입 신청';
+
+  const submitButtonText = initialValues ? '수정하기' : '신청하기';
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">
-          {isGuestApplication ? '게스트 신청' : '모임 가입 신청'}
-        </h2>
+        <h2 className="text-xl font-bold mb-4">{modalTitle}</h2>
         <form onSubmit={onSubmitJoinClubModal} className="space-y-4">
           <FormField label="이름" required>
             <Input
@@ -170,8 +182,13 @@ function JoinClubModal({
             <Button type="button" variant="secondary" onClick={onClose}>
               취소
             </Button>
-            <Button type="submit" variant="primary">
-              신청하기
+            <Button
+              type="submit"
+              variant="primary"
+              pending={isSubmitting}
+              disabled={isSubmitting}
+            >
+              {submitButtonText}
             </Button>
           </div>
         </form>

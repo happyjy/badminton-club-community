@@ -12,9 +12,11 @@ import InfoItem from '@/components/molecules/InfoItem';
 import CommentInput from '@/components/organisms/comment/CommentInput';
 import CommentItem from '@/components/organisms/comment/CommentItem';
 import InfoSection from '@/components/organisms/InfoSection';
+import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
+import { ClubJoinFormData } from '@/types/club.types';
 
 interface Comment {
   id: string;
@@ -50,15 +52,17 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const router = useRouter();
   // router.query값, id, guestId는 폴더 이름으로 결정됩니다. (guestId는 게스트 신청 게시글의 id)
   const { id: clubId, guestId } = router.query;
+
+  const clubMember = useSelector((state: RootState) => state.auth.clubMember); // 현재 사용자의 클럽 멤버 정보
+  const isAdmin = clubMember?.role === 'ADMIN'; // 관리자 여부 확인
+  const isMyPost = user?.id === guestPost.userId; // 본인 게시물인지 확인
+
   const [comments, setComments] = useState<Comment[]>([]);
-  // Redux에서 현재 사용자의 클럽 멤버 정보 가져오기
-  const clubMember = useSelector((state: RootState) => state.auth.clubMember);
-  const isAdmin = clubMember?.role === 'ADMIN';
-  const [isLoading, setIsLoading] = useState(false);
-  // 게스트 상태를 로컬 상태로 관리하여 optimistic update 구현
-  const [status, setStatus] = useState(guestPost.status);
-  // 상태 업데이트 중인지 여부를 관리
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // 댓글 목록 불러오기 중인지 여부를 관리
+  const [isUpdating, setIsUpdating] = useState(false); // 상태 업데이트 중인지 여부를 관리
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // 게스트 수정 모달 상태 관리
+  const [isDeleting, setIsDeleting] = useState(false); // 삭제 중인지 여부를 관리
+  const [status, setStatus] = useState(guestPost.status); // 게스트 상태를 로컬 상태로 관리하여 optimistic update 구현
 
   useEffect(() => {
     if (!clubId || !guestId) return;
@@ -82,7 +86,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       setIsLoading(false);
     }
   };
-
   // 게스트 상태 변경 함수 (승인)
   const handleApprove = async () => {
     if (!clubId || !guestId || isUpdating) return;
@@ -106,7 +109,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       setIsUpdating(false);
     }
   };
-
   // 게스트 상태 변경 함수 (거절)
   const handleReject = async () => {
     if (!clubId || !guestId || isUpdating) return;
@@ -146,7 +148,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       toast.error('댓글 작성에 실패했습니다');
     }
   };
-
   // 댓글 수정
   const handleCommentUpdate = async (commentId: string, content: string) => {
     if (!clubId || !guestId) return;
@@ -165,7 +166,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       toast.error('댓글 수정에 실패했습니다');
     }
   };
-
   // 댓글 삭제 (soft delete)
   const handleCommentDelete = async (commentId: string) => {
     if (!clubId || !guestId) return;
@@ -182,6 +182,64 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
     }
   };
 
+  // 게스트 신청 수정
+  const onSubmitEditGuestApplication = async (formData: ClubJoinFormData) => {
+    if (!clubId || !guestId) return;
+
+    setIsUpdating(true);
+    try {
+      // API 연동 - 게스트 신청 수정 요청
+      await axios.put(`/api/clubs/${clubId}/guests/${guestId}`, {
+        ...formData,
+      });
+
+      toast.success('게스트 신청이 수정되었습니다');
+      // 수정 모달 닫기
+      setIsEditModalOpen(false);
+      // 페이지 새로고침하여 최신 데이터로 업데이트
+      router.reload();
+    } catch (error: unknown) {
+      toast.error('게스트 신청 수정 중 오류가 발생했습니다');
+      console.error('게스트 신청 수정 중 오류 발생:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  // 게스트 신청 삭제
+  const onClickDeleteGuest = async () => {
+    if (!clubId || !guestId || isDeleting) return;
+
+    // 확인 메시지
+    if (
+      !confirm(
+        '정말로 이 게스트 신청을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
+      )
+    ) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`/api/clubs/${clubId}/guests/${guestId}`);
+      toast.success('게스트 신청이 삭제되었습니다');
+      // 목록 페이지로 이동
+      router.push(`/clubs/${clubId}/guest`);
+    } catch (error) {
+      console.error('게스트 신청 삭제 실패:', error);
+      toast.error('게스트 신청 삭제에 실패했습니다');
+      setIsDeleting(false);
+    }
+  };
+
+  // 수정 모달 열기
+  const onClickOpenEditModal = () => {
+    setIsEditModalOpen(true);
+  };
+  // 수정 모달 닫기
+  const onCloseEditModal = () => {
+    setIsEditModalOpen(false);
+  };
+
   // 상태에 따른 배지 색상
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -193,7 +251,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         return 'bg-yellow-100 text-yellow-800';
     }
   };
-
   // 상태 텍스트
   const getStatusText = (status: string) => {
     switch (status) {
@@ -229,6 +286,25 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
                   className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-rose-500 text-white rounded-md hover:bg-rose-600 disabled:opacity-50 transition-colors min-w-[60px]"
                 >
                   거절
+                </Button>
+              </>
+            )}
+            {isMyPost && (
+              <>
+                <Button
+                  onClick={onClickOpenEditModal}
+                  disabled={isUpdating || isDeleting}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors min-w-[60px]"
+                >
+                  수정
+                </Button>
+                <Button
+                  onClick={onClickDeleteGuest}
+                  pending={isDeleting}
+                  disabled={isUpdating || isDeleting}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
+                >
+                  삭제
                 </Button>
               </>
             )}
@@ -328,6 +404,30 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           </InfoSection>
         </div>
       </div>
+
+      {/* 수정 모달 */}
+      {user && isMyPost && (
+        <JoinClubModal
+          user={user}
+          isOpen={isEditModalOpen}
+          onClose={onCloseEditModal}
+          onSubmit={onSubmitEditGuestApplication}
+          isGuestApplication={true}
+          isSubmitting={isUpdating}
+          initialValues={{
+            name: guestPost.name,
+            birthDate: guestPost.birthDate,
+            phoneNumber: guestPost.phoneNumber,
+            localTournamentLevel: guestPost.localTournamentLevel,
+            nationalTournamentLevel: guestPost.nationalTournamentLevel,
+            lessonPeriod: guestPost.lessonPeriod,
+            playingPeriod: guestPost.playingPeriod,
+            intendToJoin: guestPost.intendToJoin,
+            visitDate: guestPost.visitDate,
+            message: guestPost.message,
+          }}
+        />
+      )}
     </div>
   );
 }

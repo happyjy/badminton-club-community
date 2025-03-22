@@ -1,8 +1,8 @@
 // 게스트 신청 게시글
 model GuestPost {
   id                       String         @id @default(cuid()) 
-  clubId                   Int            
-  userId                   Int            
+  clubId                   Int                                   // 게스트 신청한 클럽 ID
+  userId                   Int                                   // 게스트 신청한 유저 ID
   name                     String
   birthDate                String         @default("")
   phoneNumber              String
