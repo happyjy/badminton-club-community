@@ -25,6 +25,8 @@ interface JoinClubModalProps {
 
 // todo: jyoon - join club modal과 guest modal 분리
 // todo: jyoon - 'react-hook-form' 사용
+
+// 사용 범위: 회원가입, 게스트 신규 신청, 게스트 수정
 function JoinClubModal({
   user,
   isOpen,
@@ -65,8 +67,9 @@ function JoinClubModal({
       ? '게스트 신청 수정'
       : '게스트 신청'
     : '모임 가입 신청';
-
   const submitButtonText = initialValues ? '수정하기' : '신청하기';
+  // 게스트 신규 신청(게스트 수정이 아닌 경우)
+  const isNewGuestApplication = isGuestApplication && !initialValues;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -170,42 +173,42 @@ function JoinClubModal({
           </FormField>
 
           {isGuestApplication && (
-            <>
-              <FormField label="가입 문의">
-                <textarea
-                  name="message"
-                  value={formData.message || ''}
-                  onChange={onChangeInput}
-                  placeholder="클럽에 전달할 메시지나 문의사항을 입력해주세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
-                />
-              </FormField>
+            <FormField label="가입 문의">
+              <textarea
+                name="message"
+                value={formData.message || ''}
+                onChange={onChangeInput}
+                placeholder="클럽에 전달할 메시지나 문의사항을 입력해주세요"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+              />
+            </FormField>
+          )}
 
-              {/* 개인정보 수집 및 이용 동의 - 게스트 신청시에만 표시 */}
-              <div className="mt-4">
-                <div className="flex items-center">
-                  <Checkbox
-                    name="privacyAgreement"
-                    checked={formData.privacyAgreement || false}
-                    onChange={onChangeInput}
-                    required
-                  />
-                  <div className="ml-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      개인정보 수집 및 이용에 동의합니다.
-                      <span className="text-red-500">*</span>
-                    </span>
-                    <button
-                      type="button"
-                      className="ml-2 text-sm text-blue-600 underline"
-                      onClick={() => setIsPrivacyModalOpen(true)}
-                    >
-                      내용 보기
-                    </button>
-                  </div>
+          {/* 개인정보 수집 및 이용 동의 - 게스트 신청시에만 표시 (수정시에는 표시 안함) */}
+          {isNewGuestApplication && (
+            <div className="mt-4">
+              <div className="flex items-center">
+                <Checkbox
+                  name="privacyAgreement"
+                  checked={formData.privacyAgreement || false}
+                  onChange={onChangeInput}
+                  required
+                />
+                <div className="ml-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    개인정보 수집 및 이용에 동의합니다.
+                    <span className="text-red-500">*</span>
+                  </span>
+                  <button
+                    type="button"
+                    className="ml-2 text-sm text-blue-600 underline"
+                    onClick={() => setIsPrivacyModalOpen(true)}
+                  >
+                    내용 보기
+                  </button>
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           <div className="flex justify-end space-x-2 pt-4">
