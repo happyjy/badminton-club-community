@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import Button from '@/components/atoms/buttons/Button';
 import Textarea from '@/components/atoms/Textarea';
 
-interface CommentInputProps {
+type CommentInputProps = {
   onSubmit: (content: string) => void;
   placeholder?: string;
   isSubmitting?: boolean;
-}
+};
 
 export function CommentInput({
   onSubmit,
@@ -33,8 +33,6 @@ export function CommentInput({
       setCharCount(0);
     }
   };
-
-  console.log({ isSubmitting });
 
   return (
     <div className="space-y-2">
