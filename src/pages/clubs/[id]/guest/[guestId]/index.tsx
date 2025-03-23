@@ -391,8 +391,8 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
                     .filter((comment) => !comment.isDeleted)
                     .sort(
                       (a, b) =>
-                        new Date(b.createdAt).getTime() -
-                        new Date(a.createdAt).getTime()
+                        new Date(a.createdAt).getTime() -
+                        new Date(b.createdAt).getTime()
                     )
                     .map((comment) => (
                       <CommentItem
