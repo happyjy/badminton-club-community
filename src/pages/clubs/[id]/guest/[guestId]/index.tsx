@@ -48,6 +48,7 @@ interface GuestDetailPageProps extends AuthProps {
   };
 }
 
+// 게스트 신청 상세 페이지
 function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const router = useRouter();
   // router.query값, id, guestId는 폴더 이름으로 결정됩니다. (guestId는 게스트 신청 게시글의 id)
@@ -263,51 +264,57 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
     }
   };
 
+  // 버튼 렌더링 변수: 관리자용
+  const adminButtons = isAdmin && (
+    <>
+      <Button
+        onClick={handleApprove}
+        pending={isUpdating}
+        disabled={isUpdating}
+        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-indigo-500 text-white rounded-md hover:bg-indigo-600 disabled:opacity-50 transition-colors min-w-[60px]"
+      >
+        승인
+      </Button>
+      <Button
+        onClick={handleReject}
+        pending={isUpdating}
+        disabled={isUpdating}
+        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-rose-500 text-white rounded-md hover:bg-rose-600 disabled:opacity-50 transition-colors min-w-[60px]"
+      >
+        거절
+      </Button>
+    </>
+  );
+
+  // 버튼 렌더링 변수: 내 게시물용
+  const myPostButtons = isMyPost && (
+    <>
+      <Button
+        onClick={onClickOpenEditModal}
+        disabled={isUpdating || isDeleting}
+        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors min-w-[60px]"
+      >
+        수정
+      </Button>
+      <Button
+        onClick={onClickDeleteGuest}
+        pending={isDeleting}
+        disabled={isUpdating || isDeleting}
+        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
+      >
+        삭제
+      </Button>
+    </>
+  );
+
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-200">
           <h1 className="text-xl sm:text-2xl font-bold">게스트 신청 상세</h1>
           <div className="flex gap-2">
-            {isAdmin && (
-              <>
-                <Button
-                  onClick={handleApprove}
-                  pending={isUpdating}
-                  disabled={isUpdating}
-                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-indigo-500 text-white rounded-md hover:bg-indigo-600 disabled:opacity-50 transition-colors min-w-[60px]"
-                >
-                  승인
-                </Button>
-                <Button
-                  onClick={handleReject}
-                  pending={isUpdating}
-                  disabled={isUpdating}
-                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-rose-500 text-white rounded-md hover:bg-rose-600 disabled:opacity-50 transition-colors min-w-[60px]"
-                >
-                  거절
-                </Button>
-              </>
-            )}
-            {isMyPost && (
-              <>
-                <Button
-                  onClick={onClickOpenEditModal}
-                  disabled={isUpdating || isDeleting}
-                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors min-w-[60px]"
-                >
-                  수정
-                </Button>
-                <Button
-                  onClick={onClickDeleteGuest}
-                  pending={isDeleting}
-                  disabled={isUpdating || isDeleting}
-                  className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
-                >
-                  삭제
-                </Button>
-              </>
-            )}
+            {adminButtons}
+            {myPostButtons}
           </div>
         </div>
         <div className="space-y-4">
