@@ -59,16 +59,17 @@ export default async function handler(
     case 'PUT': // 수정된 게스트 신청 정보 업데이트
       try {
         const {
-          visitDate,
-          intendToJoin,
-          message,
+          name,
+          birthDate,
+          phoneNumber,
+          gender,
           localTournamentLevel,
           nationalTournamentLevel,
           lessonPeriod,
           playingPeriod,
-          birthDate,
-          phoneNumber,
-          name,
+          intendToJoin,
+          message,
+          visitDate,
         } = req.body;
 
         const updatedGuestPost = await prisma.guestPost.update({
@@ -76,21 +77,22 @@ export default async function handler(
             id: guestId,
           },
           data: {
-            visitDate: visitDate || guestPost.visitDate,
-            intendToJoin:
-              intendToJoin !== undefined
-                ? intendToJoin
-                : guestPost.intendToJoin,
-            message: message || guestPost.message,
+            name: name || guestPost.name,
+            birthDate: birthDate || guestPost.birthDate,
+            phoneNumber: phoneNumber || guestPost.phoneNumber,
+            gender: gender || guestPost.gender,
             localTournamentLevel:
               localTournamentLevel || guestPost.localTournamentLevel,
             nationalTournamentLevel:
               nationalTournamentLevel || guestPost.nationalTournamentLevel,
             lessonPeriod: lessonPeriod || guestPost.lessonPeriod,
             playingPeriod: playingPeriod || guestPost.playingPeriod,
-            birthDate: birthDate || guestPost.birthDate,
-            phoneNumber: phoneNumber || guestPost.phoneNumber,
-            name: name || guestPost.name,
+            intendToJoin:
+              intendToJoin !== undefined
+                ? intendToJoin
+                : guestPost.intendToJoin,
+            message: message || guestPost.message,
+            visitDate: visitDate || guestPost.visitDate,
             updatedBy: session.id,
             updatedAt: new Date(),
           },

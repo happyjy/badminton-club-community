@@ -144,11 +144,12 @@ model WorkoutHelperStatus {
 // 게스트 신청 게시글
 model GuestPost {
   id                       String         @id @default(cuid()) 
-  clubId                   Int            
-  userId                   Int            
+  clubId                   Int                                   // 게스트 신청한 클럽 ID
+  userId                   Int                                   // 게스트 신청한 유저 ID
   name                     String
   birthDate                String         @default("")
   phoneNumber              String
+  gender                   String         @default("")          // 성별 필드 추가
   localTournamentLevel     String         @default("")
   nationalTournamentLevel  String         @default("")
   lessonPeriod             String         @default("")
@@ -172,7 +173,6 @@ model GuestPost {
   @@index([clubId])
   @@index([userId])
 }
-
 
 // 게스트 신청 댓글
 model GuestComment {
@@ -210,6 +210,7 @@ model GuestPost_copy {
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
   phoneNumber              String         @default("")
+  gender                   String         @default("")          // 성별 필드 추가
   
   // 신규 필드들은 기본값 설정으로 추가
   birthDate                String         @default("")

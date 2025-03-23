@@ -6,6 +6,7 @@ model GuestPost {
   name                     String
   birthDate                String         @default("")
   phoneNumber              String
+  gender                   String         @default("")          // 성별 필드 추가
   localTournamentLevel     String         @default("")
   nationalTournamentLevel  String         @default("")
   lessonPeriod             String         @default("")
@@ -66,6 +67,7 @@ model GuestPost_copy {
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
   phoneNumber              String         @default("")
+  gender                   String         @default("")          // 성별 필드 추가
   
   // 신규 필드들은 기본값 설정으로 추가
   birthDate                String         @default("")

@@ -14,6 +14,7 @@ export const createInitialFormData = ({
   name,
   birthDate: DEFAULT_DATE,
   phoneNumber: '',
+  gender: '',
   localTournamentLevel: '',
   nationalTournamentLevel: '',
   lessonPeriod: '',

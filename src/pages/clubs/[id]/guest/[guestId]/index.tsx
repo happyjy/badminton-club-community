@@ -35,6 +35,7 @@ interface GuestDetailPageProps extends AuthProps {
     name: string;
     birthDate: string;
     phoneNumber: string;
+    gender: string;
     localTournamentLevel: string;
     nationalTournamentLevel: string;
     lessonPeriod: string;
@@ -371,6 +372,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
             <InfoItem label="생년월일">
               {formatDateSimple(guestPost.birthDate)}
             </InfoItem>
+            <InfoItem label="성별">{guestPost.gender}</InfoItem>
             <InfoItem label="전화번호">{guestPost.phoneNumber}</InfoItem>
             <InfoItem label="신청일">
               {formatDateSimple(guestPost.createdAt)}
@@ -477,6 +479,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
             name: guestPost.name,
             birthDate: guestPost.birthDate,
             phoneNumber: guestPost.phoneNumber,
+            gender: guestPost.gender,
             localTournamentLevel: guestPost.localTournamentLevel,
             nationalTournamentLevel: guestPost.nationalTournamentLevel,
             lessonPeriod: guestPost.lessonPeriod,

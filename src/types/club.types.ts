@@ -19,6 +19,7 @@ export interface ClubJoinFormData {
   name: string;
   birthDate: string;
   phoneNumber: string;
+  gender: string;
   localTournamentLevel: string;
   nationalTournamentLevel: string;
   lessonPeriod: string;

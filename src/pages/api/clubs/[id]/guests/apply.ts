@@ -37,15 +37,16 @@ export default async function handler(
     // req.body가 없는 경우 기본값 설정
     const {
       name,
-      phoneNumber,
-      message = '',
       birthDate = null,
+      phoneNumber,
+      gender = null,
       localTournamentLevel = null,
       nationalTournamentLevel = null,
       lessonPeriod = null,
       playingPeriod = null,
       intendToJoin = false,
       visitDate = null,
+      message = '',
     } = req.body || {};
 
     // 필수 데이터 검증
@@ -65,15 +66,15 @@ export default async function handler(
         name,
         birthDate,
         phoneNumber,
+        gender,
         localTournamentLevel,
         nationalTournamentLevel,
         lessonPeriod,
         playingPeriod,
-        // 게스트 신청 타입
-        intendToJoin,
+        status: 'PENDING',
+        intendToJoin, // 게스트 신청 타입
         visitDate,
         message,
-        status: 'PENDING',
       },
     });
 
