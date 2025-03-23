@@ -1,7 +1,14 @@
 import { NextRouter } from 'next/router';
+
 import { getKakaoCallbackUrl } from '@/constants/urls';
 
+// 클라이언트 사이드에서만 실행되는지 확인하는 함수
+const isClient = () => typeof window !== 'undefined';
+
 export const redirectToLogin = (router: NextRouter) => {
+  // 서버 사이드에서 실행되는 경우 일찍 리턴
+  if (!isClient()) return;
+
   const currentHost = window.location.host;
   const redirectUri = getKakaoCallbackUrl(currentHost);
   const returnUrl = router.asPath;
