@@ -271,7 +271,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         onClick={handleApprove}
         pending={isUpdating}
         disabled={isUpdating}
-        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-indigo-500 text-white rounded-md hover:bg-indigo-600 disabled:opacity-50 transition-colors min-w-[60px]"
+        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 transition-colors min-w-[60px]"
       >
         승인
       </Button>
@@ -279,7 +279,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         onClick={handleReject}
         pending={isUpdating}
         disabled={isUpdating}
-        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-rose-500 text-white rounded-md hover:bg-rose-600 disabled:opacity-50 transition-colors min-w-[60px]"
+        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors min-w-[60px]"
       >
         거절
       </Button>
@@ -310,9 +310,11 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-gray-200">
-          <h1 className="text-xl sm:text-2xl font-bold">게스트 신청 상세</h1>
-          <div className="flex gap-2">
+        <div className="title-wrapper flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-2 border-b-2 border-gray-200">
+          <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-0">
+            게스트 신청 상세
+          </h1>
+          <div className="flex gap-2 flex-wrap">
             {adminButtons}
             {myPostButtons}
           </div>
