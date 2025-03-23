@@ -58,8 +58,9 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const isAdmin = clubMember?.role === 'ADMIN'; // 관리자 여부 확인
   const isMyPost = user?.id === guestPost.userId; // 본인 게시물인지 확인
 
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLoading, setIsLoading] = useState(false); // 댓글 목록 불러오기 중인지 여부를 관리
+  const [comments, setComments] = useState<Comment[]>([]); // 댓글 목록
+  const [isLoading, setIsLoading] = useState(false); // 댓글 목록 처음 불러오기 중인지 여부
+  const [isCommenting, setIsCommenting] = useState(false); // 댓글 작성/수정/삭제 중인지 여부
   const [isUpdating, setIsUpdating] = useState(false); // 상태 업데이트 중인지 여부를 관리
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // 게스트 수정 모달 상태 관리
   const [isDeleting, setIsDeleting] = useState(false); // 삭제 중인지 여부를 관리
@@ -71,10 +72,13 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   }, [clubId, guestId]);
 
   // 댓글 목록 불러오기
-  const fetchComments = async () => {
+  const fetchComments = async (showLoading = true) => {
     if (!clubId || !guestId) return;
 
-    setIsLoading(true);
+    if (showLoading) {
+      setIsLoading(true);
+    }
+
     try {
       const response = await axios.get(
         `/api/clubs/${clubId}/guests/${guestId}/comments`
@@ -82,11 +86,16 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       setComments(response.data.comments);
     } catch (error) {
       console.error('댓글 목록 불러오기 실패:', error);
-      toast.error('댓글을 불러오는데 실패했습니다');
+      if (showLoading) {
+        toast.error('댓글을 불러오는데 실패했습니다');
+      }
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
   };
+
   // 게스트 상태 변경 함수 (승인)
   const handleApprove = async () => {
     if (!clubId || !guestId || isUpdating) return;
@@ -138,48 +147,84 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const handleCommentSubmit = async (content: string) => {
     if (!clubId || !guestId) return;
 
+    setIsCommenting(true);
     try {
-      await axios.post(`/api/clubs/${clubId}/guests/${guestId}/comments`, {
-        content,
-      });
+      const response = await axios.post(
+        `/api/clubs/${clubId}/guests/${guestId}/comments`,
+        {
+          content,
+        }
+      );
+      // 서버로부터 받은 새 댓글을 기존 댓글 배열에 추가 (낙관적 업데이트)
+      const newComment = response.data.comment;
+      setComments((prevComments) => [...prevComments, newComment]);
       toast.success('댓글이 작성되었습니다');
-      fetchComments();
+
+      // 백그라운드에서 모든 댓글 동기화 (다른 사용자의 댓글도 가져옴)
+      setTimeout(() => fetchComments(false), 500);
     } catch (error) {
       console.error('댓글 작성 실패:', error);
       toast.error('댓글 작성에 실패했습니다');
+    } finally {
+      setIsCommenting(false);
     }
   };
+
   // 댓글 수정
   const handleCommentUpdate = async (commentId: string, content: string) => {
     if (!clubId || !guestId) return;
 
+    setIsCommenting(true);
     try {
-      await axios.put(
+      const response = await axios.put(
         `/api/clubs/${clubId}/guests/${guestId}/comments/${commentId}`,
         {
           content,
         }
       );
+      // 로컬에서 댓글 업데이트 (낙관적 업데이트)
+      const updatedComment = response.data.comment;
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.id === commentId ? updatedComment : comment
+        )
+      );
       toast.success('댓글이 수정되었습니다');
-      fetchComments();
+
+      // 백그라운드에서 모든 댓글 동기화
+      setTimeout(() => fetchComments(false), 500);
     } catch (error) {
       console.error('댓글 수정 실패:', error);
       toast.error('댓글 수정에 실패했습니다');
+    } finally {
+      setIsCommenting(false);
     }
   };
+
   // 댓글 삭제 (soft delete)
   const handleCommentDelete = async (commentId: string) => {
     if (!clubId || !guestId) return;
 
+    setIsCommenting(true);
     try {
       await axios.delete(
         `/api/clubs/${clubId}/guests/${guestId}/comments/${commentId}`
       );
+      // 로컬에서 댓글 삭제 상태로 표시 (낙관적 업데이트)
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.id === commentId ? { ...comment, isDeleted: true } : comment
+        )
+      );
       toast.success('댓글이 삭제되었습니다');
-      fetchComments();
+
+      // 백그라운드에서 모든 댓글 동기화
+      setTimeout(() => fetchComments(false), 500);
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
       toast.error('댓글 삭제에 실패했습니다');
+    } finally {
+      setIsCommenting(false);
     }
   };
 
@@ -383,6 +428,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           {/* 댓글 섹션 */}
           <InfoSection title="댓글" fullWidth>
             <div className="space-y-4">
+              {/* 댓글 목록 영역 */}
               {isLoading ? (
                 <p className="text-gray-500">댓글을 불러오는 중...</p>
               ) : (
@@ -408,7 +454,11 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
                     ))}
                 </div>
               )}
-              <CommentInput onSubmit={handleCommentSubmit} />{' '}
+              {/* 댓글 입력 영역 */}
+              <CommentInput
+                onSubmit={handleCommentSubmit}
+                isSubmitting={isCommenting}
+              />
             </div>
           </InfoSection>
         </div>

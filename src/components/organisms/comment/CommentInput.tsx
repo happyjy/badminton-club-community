@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import Button from '@/components/atoms/buttons/Button';
 import Textarea from '@/components/atoms/Textarea';
@@ -6,11 +6,13 @@ import Textarea from '@/components/atoms/Textarea';
 interface CommentInputProps {
   onSubmit: (content: string) => void;
   placeholder?: string;
+  isSubmitting?: boolean;
 }
 
 export function CommentInput({
   onSubmit,
   placeholder = '댓글을 입력하세요',
+  isSubmitting = false,
 }: CommentInputProps) {
   const [content, setContent] = useState('');
   const [charCount, setCharCount] = useState(0);
@@ -32,6 +34,8 @@ export function CommentInput({
     }
   };
 
+  console.log({ isSubmitting });
+
   return (
     <div className="space-y-2">
       <Textarea
@@ -39,6 +43,7 @@ export function CommentInput({
         onChange={handleChange}
         placeholder={placeholder}
         className="min-h-[100px] resize-none"
+        disabled={isSubmitting}
       />
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-500">
@@ -46,9 +51,12 @@ export function CommentInput({
         </span>
         <Button
           onClick={handleSubmit}
-          disabled={!content.trim() || content.length > maxLength}
+          disabled={
+            !content.trim() || content.length > maxLength || isSubmitting
+          }
+          pending={isSubmitting}
         >
-          댓글 작성
+          {'댓글 작성'}
         </Button>
       </div>
     </div>
