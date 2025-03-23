@@ -1,4 +1,4 @@
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
@@ -10,6 +10,8 @@ import { useClubJoinForm } from '@/hooks/useClubJoinForm';
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { TOURNAMENT_LEVELS, DEFAULT_DATE } from '@/utils/clubForms';
+
+import PrivacyModal from './PrivacyModal';
 
 interface JoinClubModalProps {
   user: User;
@@ -40,6 +42,9 @@ function JoinClubModal({
     //
     initialFormData,
   } = useClubJoinForm(user, isGuestApplication, initialValues);
+
+  // 개인정보 수집 및 이용 동의 모달
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   const onSubmitJoinClubModal = (e: FormEvent) => {
     e.preventDefault();
@@ -165,18 +170,41 @@ function JoinClubModal({
           </FormField>
 
           {isGuestApplication && (
-            <>
-              <FormField label="가입 문의">
-                <textarea
-                  name="message"
-                  value={formData.message || ''}
-                  onChange={onChangeInput}
-                  placeholder="클럽에 전달할 메시지나 문의사항을 입력해주세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
-                />
-              </FormField>
-            </>
+            <FormField label="가입 문의">
+              <textarea
+                name="message"
+                value={formData.message || ''}
+                onChange={onChangeInput}
+                placeholder="클럽에 전달할 메시지나 문의사항을 입력해주세요"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+              />
+            </FormField>
           )}
+
+          {/* 개인정보 수집 및 이용 동의 */}
+          <div className="mt-4">
+            <div className="flex items-center">
+              <Checkbox
+                name="privacyAgreement"
+                checked={formData.privacyAgreement || false}
+                onChange={onChangeInput}
+                required
+              />
+              <div className="ml-2">
+                <span className="text-sm font-medium text-gray-700">
+                  개인정보 수집 및 이용에 동의합니다.
+                  <span className="text-red-500">*</span>
+                </span>
+                <button
+                  type="button"
+                  className="ml-2 text-sm text-blue-600 underline"
+                  onClick={() => setIsPrivacyModalOpen(true)}
+                >
+                  내용 보기
+                </button>
+              </div>
+            </div>
+          </div>
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="secondary" onClick={onClose}>
@@ -193,6 +221,12 @@ function JoinClubModal({
           </div>
         </form>
       </div>
+
+      {/* 개인정보 수집 및 이용 동의 모달 */}
+      <PrivacyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+      />
     </div>
   );
 }

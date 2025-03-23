@@ -18,6 +18,7 @@ export const createInitialFormData = ({
   nationalTournamentLevel: '',
   lessonPeriod: '',
   playingPeriod: '',
+  privacyAgreement: false,
   ...(isGuestApplication && {
     intendToJoin: false,
     visitDate: DEFAULT_VISIT_DATE,

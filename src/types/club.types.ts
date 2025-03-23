@@ -1,7 +1,8 @@
-import { BaseEntity } from './common.types';
-import { UserProfile } from './user.types';
-import { Role, Status } from './enums';
 import { User } from '@prisma/client';
+
+import { BaseEntity } from './common.types';
+import { Role, Status } from './enums';
+import { UserProfile } from './user.types';
 
 // 클럽 생성/수정 시 필요한 데이터 타입
 export interface ClubInput {
@@ -25,6 +26,7 @@ export interface ClubJoinFormData {
   intendToJoin?: boolean;
   visitDate?: string;
   message?: string;
+  privacyAgreement?: boolean;
 }
 
 // 클럽 게스트 신청 타입
