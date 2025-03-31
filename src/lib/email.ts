@@ -42,7 +42,6 @@ export async function sendGuestApplicationEmail(
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`이메일 전송 완료: ${mailOptions.subject}`);
   } catch (error) {
     console.error('이메일 전송 중 오류 발생:', error);
     throw error;
