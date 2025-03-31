@@ -72,6 +72,12 @@ export default async function handler(
             },
           });
 
+          if (!updatedComment.user) {
+            return res
+              .status(404)
+              .json({ message: '댓글 작성자 정보를 찾을 수 없습니다' });
+          }
+
           return res.status(200).json({
             comment: {
               id: updatedComment.id,
