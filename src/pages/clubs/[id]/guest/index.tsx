@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
+
 import { useRouter } from 'next/router';
-import { withAuth } from '@/lib/withAuth';
-import { ClubJoinFormData } from '@/types/club.types';
+
+import { GuestPost } from '@prisma/client';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
-import { AuthProps } from '@/lib/withAuth';
-import { GuestPost } from '@prisma/client';
 import { formatDateSimple } from '@/lib/utils';
+import { AuthProps, withAuth } from '@/lib/withAuth';
+import { ClubJoinFormData } from '@/types/club.types';
 
 // 게스트 신청 타입 정의
 // interface GuestApplication {
@@ -206,6 +208,7 @@ function GuestPage({ user }: AuthProps) {
         </div>
       </div>
 
+      {/* 게스트 신규 신청 모달 */}
       {user && (
         <JoinClubModal
           user={user}

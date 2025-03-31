@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { sendGuestApplicationEmail } from '@/lib/email';
 import { getSession } from '@/lib/session';
 
 const prisma = new PrismaClient();
@@ -77,6 +78,14 @@ export default async function handler(
         message,
       },
     });
+
+    // 이메일 전송
+    try {
+      await sendGuestApplicationEmail(req, application);
+    } catch (emailError) {
+      // 이메일 전송 실패는 전체 요청을 실패시키지 않음
+      console.error('이메일 전송 실패:', emailError);
+    }
 
     return res.status(201).json({
       success: true,
