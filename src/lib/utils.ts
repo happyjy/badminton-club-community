@@ -8,8 +8,8 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * 날짜를 'YYYY-MM-DD HH:mm' 형식으로 포맷팅합니다.
  */
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+export function formatDate(dateInput: string | Date): string {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -23,8 +23,8 @@ export function formatDate(dateString: string): string {
 /**
  * 날짜를 'YYYY-MM-DD' 형식으로 포맷팅합니다.
  */
-export function formatDateSimple(dateString: string): string {
-  const date = new Date(dateString);
+export function formatDateSimple(dateInput: string | Date): string {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
