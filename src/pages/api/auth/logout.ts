@@ -16,8 +16,7 @@ export default async function handler(
   }
 
   // 쿠키 삭제
-  res.setHeader(
-    'Set-Cookie',
+  res.setHeader('Set-Cookie', [
     serialize('auth-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -30,8 +29,9 @@ export default async function handler(
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-    })
-  );
+      expires: new Date(0), // kakao 토큰도 만료 필요
+    }),
+  ]);
 
   return res.status(200).json({
     data: { logout: { success: true } },
