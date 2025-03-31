@@ -4,6 +4,9 @@ module.exports = {
     es2021: true,
     node: true,
   },
+  globals: {
+    React: 'readonly',
+  },
   extends: [
     'next/core-web-vitals',
     'eslint:recommended',

@@ -1,8 +1,12 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { redirectToLogin } from '@/utils/auth';
+
 import { useDispatch, useSelector } from 'react-redux';
+
+import { RootState } from '@/store';
 import { logout } from '@/store/features/authSlice';
+import { redirectToLogin } from '@/utils/auth';
+
 interface SideMenuProps {
   isMenuOpen: boolean;
   setIsMenuOpen: (isOpen: boolean) => void;
