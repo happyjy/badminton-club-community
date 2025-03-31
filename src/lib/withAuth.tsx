@@ -1,9 +1,12 @@
-import { useRouter } from 'next/router';
 import { ComponentType } from 'react';
+
+import { useRouter } from 'next/router';
+
+import { useSelector } from 'react-redux';
+
+import { RootState } from '@/store';
 import { User } from '@/types';
 import { redirectToLogin } from '@/utils/auth';
-import { useAuth } from '@/hooks/useAuth';
-import { useSelector } from 'react-redux';
 
 interface WithAuthOptions {
   requireAuth?: boolean;
