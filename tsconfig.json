@@ -1,18 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "module": "commonjs",
-    // "target": "ES2017",
-    // "module": "esnext",
+    "target": "es2017",
+    "module": "esnext",
     "forceConsistentCasingInFileNames": true,
 
-    //
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    // "noImplicitAny": true,
-    // "strictNullChecks": true,
     "noEmit": true,
     "esModuleInterop": true,
     "moduleResolution": "bundler",
