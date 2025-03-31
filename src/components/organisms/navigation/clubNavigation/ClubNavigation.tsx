@@ -1,11 +1,15 @@
-import { useRouter } from 'next/router';
-import { cn } from '@/lib/utils';
 import { useCallback, useEffect } from 'react';
+
+import { useRouter } from 'next/router';
+
 import { useDispatch, useSelector } from 'react-redux';
+
 // import { setInitClubMember } from '@/store/features/authSlice';
 import { useClubMember } from '@/hooks/useClubMember';
-import { setClubMember, setInitClubMember } from '@/store/features/authSlice';
+import { cn } from '@/lib/utils';
 import { RootState } from '@/store';
+import { setClubMember, setInitClubMember } from '@/store/features/authSlice';
+import { ClubMember } from '@/types';
 
 interface ClubNavigationProps {
   clubId: string;
@@ -106,7 +110,7 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     if (!clubMemberData) return;
 
     // 클럽 멤버 정보를 Redux 스토어에 저장
-    dispatch(setClubMember(clubMemberData));
+    dispatch(setClubMember(clubMemberData as unknown as ClubMember));
   }, [clubMemberData, dispatch]);
 
   return (
