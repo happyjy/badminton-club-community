@@ -1,7 +1,9 @@
 import { useState } from 'react';
+
 import { useRouter } from 'next/router';
-import { User, ClubJoinFormData, MembershipStatus } from '@/types';
+
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+import { User, ClubJoinFormData, MembershipStatus } from '@/types';
 import { redirectToLogin } from '@/utils/auth';
 
 interface JoinClubButtonProps {

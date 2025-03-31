@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+
+import Image from 'next/image';
+
 import { withAuth } from '@/lib/withAuth';
 import { User } from '@/types';
-import Image from 'next/image';
 
 interface ProfilePageProps {
   user: User | null;

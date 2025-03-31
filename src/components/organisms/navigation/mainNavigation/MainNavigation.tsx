@@ -1,7 +1,11 @@
 import { useState } from 'react';
+
 import Link from 'next/link';
+
 import { useSelector } from 'react-redux';
+
 import { RootState } from '@/store';
+
 import SideMenu from './SideMenu';
 
 export default function MainNavigation() {

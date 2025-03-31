@@ -1,11 +1,14 @@
-import { useRouter } from 'next/router';
 import { useLayoutEffect } from 'react';
-import { ClubJoinFormData, ClubDetailPageProps } from '@/types';
-import { withAuth } from '@/lib/withAuth';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
+
+import { useRouter } from 'next/router';
+
 import axios from 'axios';
+import { useSelector } from 'react-redux';
+
+import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
+import { withAuth } from '@/lib/withAuth';
+import { RootState } from '@/store';
+import { ClubJoinFormData, ClubDetailPageProps } from '@/types';
 
 function ClubDetailPage({ user }: ClubDetailPageProps) {
   const router = useRouter();

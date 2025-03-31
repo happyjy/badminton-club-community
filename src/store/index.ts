@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
-import clubReducer from './features/clubSlice';
+
 import authReducer from './features/authSlice';
+import clubReducer from './features/clubSlice';
 
 // redux설정1: npm i @reduxjs/toolkit react-redux
 // redux설정2: Redux store 설정

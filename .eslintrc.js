@@ -14,10 +14,14 @@ module.exports = {
     'plugin:import/typescript',
     'prettier',
   ],
-  plugins: ['import', 'prettier'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['import', 'prettier', '@typescript-eslint'],
   rules: {
     'prettier/prettier': 'error',
     '@typescript-eslint/no-explicit-any': 'off',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/no-require-imports': 'off',
     'import/order': [
       'warn',
       {

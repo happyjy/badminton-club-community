@@ -1,5 +1,5 @@
-import { Status } from '@/types/enums';
 import { ClubResponse } from '@/types/club.types';
+import { Status } from '@/types/enums';
 
 interface ClubMember {
   status: string;

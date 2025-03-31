@@ -1,6 +1,7 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from '@/lib/session';
 import { PrismaClient } from '@prisma/client';
+import { NextApiRequest, NextApiResponse } from 'next';
+
+import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
 
 interface HelperStatus {

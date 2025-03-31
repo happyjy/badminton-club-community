@@ -1,5 +1,6 @@
-import { Label } from '@/components/atoms/labels/Label';
 import { ReactNode } from 'react';
+
+import { Label } from '@/components/atoms/labels/Label';
 
 interface FormFieldProps {
   label: string;

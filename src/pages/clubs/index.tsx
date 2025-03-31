@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Club } from '@/types';
-import { ClubListItem } from '@/components/organisms/navigation/clubNavigation/ClubListItem';
+
 import { useDispatch } from 'react-redux';
+
+import { ClubListItem } from '@/components/organisms/navigation/clubNavigation/ClubListItem';
 import { initialState, setClubData } from '@/store/features/clubSlice';
+import { Club } from '@/types';
 
 function ClubsPage() {
   const [clubs, setClubs] = useState<Club[]>([]);

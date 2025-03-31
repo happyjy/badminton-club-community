@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { withAuth } from '@/lib/withAuth';
+
 import Image from 'next/image';
-import { Workout } from '@/types';
-import { formatToKoreanTime } from '@/utils';
+import { useRouter } from 'next/router';
+
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
-import mopIcon from '@/icon/mop.svg';
 import keyIcon from '@/icon/key.svg';
+import mopIcon from '@/icon/mop.svg';
+import { withAuth } from '@/lib/withAuth';
+import { Workout } from '@/types';
+import { formatToKoreanTime } from '@/utils';
 
 // 선택된 아이콘 타입 정의
 type SelectedIcon = 'net' | 'broomStick' | 'shuttlecock' | 'key' | 'mop';

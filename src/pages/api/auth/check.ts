@@ -1,7 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types/common.types';
 import { User } from '@/types/user.types';
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type AuthUser = Pick<User, 'id' | 'email' | 'nickname' | 'thumbnailImageUrl'>;
 

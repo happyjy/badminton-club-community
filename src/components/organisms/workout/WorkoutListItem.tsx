@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
-import { formatToKoreanTime } from '@/utils/date';
+
 import { WorkoutListItemProps } from '@/types';
+import { formatToKoreanTime } from '@/utils/date';
 
 export function WorkoutListItem({
   workout,

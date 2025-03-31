@@ -1,8 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
-import { sign } from 'jsonwebtoken';
 import { serialize } from 'cookie';
+import { sign } from 'jsonwebtoken';
+
 import { getBaseUrl, getKakaoCallbackUrl } from '@/constants/urls';
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
