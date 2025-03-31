@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import Button from '@/components/atoms/buttons/Button';
-import Textarea from '@/components/atoms/Textarea';
+import { Button } from '@/components/atoms/buttons/Button';
+import { Textarea } from '@/components/atoms/Textarea';
 import { formatDate } from '@/lib/utils';
 
 interface CommentItemProps {

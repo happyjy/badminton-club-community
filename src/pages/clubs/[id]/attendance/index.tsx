@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -19,7 +19,7 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     (state: RootState) => state.auth.membershipStatus
   );
 
-  const fetchWorkouts = async () => {
+  const fetchWorkouts = useCallback(async () => {
     if (!clubId) return;
     try {
       const response = await fetch(`/api/clubs/${clubId}/workouts`);
@@ -30,7 +30,7 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     } finally {
       setIsLoadingWorkouts(false);
     }
-  };
+  }, [clubId]);
 
   const handleParticipate = async (
     workoutId: number,
@@ -56,7 +56,7 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
 
   useEffect(() => {
     fetchWorkouts();
-  }, [clubId, user]);
+  }, [clubId, user, fetchWorkouts]);
 
   return (
     <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

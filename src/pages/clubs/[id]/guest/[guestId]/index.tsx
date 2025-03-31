@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -8,10 +8,10 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
-import InfoItem from '@/components/molecules/InfoItem';
-import CommentInput from '@/components/organisms/comment/CommentInput';
-import CommentItem from '@/components/organisms/comment/CommentItem';
-import InfoSection from '@/components/organisms/InfoSection';
+import { InfoItem } from '@/components/molecules/InfoItem';
+import { CommentInput } from '@/components/organisms/comment/CommentInput';
+import { CommentItem } from '@/components/organisms/comment/CommentItem';
+import { InfoSection } from '@/components/organisms/InfoSection';
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
@@ -67,35 +67,37 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const [isDeleting, setIsDeleting] = useState(false); // 삭제 중인지 여부를 관리
   const [status, setStatus] = useState(guestPost.status); // 게스트 상태를 로컬 상태로 관리하여 optimistic update 구현
 
+  const fetchComments = useCallback(
+    async (showLoading = true) => {
+      if (!clubId || !guestId) return;
+
+      if (showLoading) {
+        setIsLoading(true);
+      }
+
+      try {
+        const response = await axios.get(
+          `/api/clubs/${clubId}/guests/${guestId}/comments`
+        );
+        setComments(response.data.comments);
+      } catch (error) {
+        console.error('댓글 목록 불러오기 실패:', error);
+        if (showLoading) {
+          toast.error('댓글을 불러오는데 실패했습니다');
+        }
+      } finally {
+        if (showLoading) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [clubId, guestId]
+  );
+
   useEffect(() => {
     if (!clubId || !guestId) return;
     fetchComments();
-  }, [clubId, guestId]);
-
-  // 댓글 목록 불러오기
-  const fetchComments = async (showLoading = true) => {
-    if (!clubId || !guestId) return;
-
-    if (showLoading) {
-      setIsLoading(true);
-    }
-
-    try {
-      const response = await axios.get(
-        `/api/clubs/${clubId}/guests/${guestId}/comments`
-      );
-      setComments(response.data.comments);
-    } catch (error) {
-      console.error('댓글 목록 불러오기 실패:', error);
-      if (showLoading) {
-        toast.error('댓글을 불러오는데 실패했습니다');
-      }
-    } finally {
-      if (showLoading) {
-        setIsLoading(false);
-      }
-    }
-  };
+  }, [clubId, guestId, fetchComments]);
 
   // 게스트 상태 변경 함수 (승인)
   const handleApprove = async () => {

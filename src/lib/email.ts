@@ -1,12 +1,12 @@
 import { GuestPost } from '@prisma/client';
 import { NextApiRequest } from 'next';
-import nodemailer from 'nodemailer';
+import { createTransport } from 'nodemailer';
 
 import { getBaseUrl } from '@/constants/urls';
 
 import { generateGuestApplicationEmailTemplate } from './email/templates/guestApplication';
 
-const transporter = nodemailer.createTransport({
+const transporter = createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,

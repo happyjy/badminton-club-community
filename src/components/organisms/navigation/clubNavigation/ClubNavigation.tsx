@@ -103,7 +103,7 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
   // 클럽 멤버 정보 초기화
   useEffect(() => {
     dispatch(setInitClubMember());
-  }, []);
+  }, [dispatch]);
 
   // 클럽 멤버 정보 업데이트
   useEffect(() => {

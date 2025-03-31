@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -30,7 +30,7 @@ function GuestPage({ user }: AuthProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // 사용자의 게스트 신청 목록 불러오기
-  const fetchMyApplications = async () => {
+  const fetchMyApplications = useCallback(async () => {
     if (!clubId || !user) return;
 
     setIsLoading(true);
@@ -45,14 +45,14 @@ function GuestPage({ user }: AuthProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clubId, user]);
 
   // 컴포넌트 마운트 시 및 신청 완료 후 데이터 불러오기
   useEffect(() => {
     if (user && clubId) {
       fetchMyApplications();
     }
-  }, [user, clubId]);
+  }, [user, clubId, fetchMyApplications]);
 
   // 게스트 신청 모달 열기
   const onClickOpenModal = () => {

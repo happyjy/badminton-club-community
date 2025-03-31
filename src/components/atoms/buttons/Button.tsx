@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { ButtonHTMLAttributes } from 'react';
 
-import Spinner from '@/components/atoms/Spinner';
+import { Spinner } from '@/components/atoms/Spinner';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   pending?: boolean;

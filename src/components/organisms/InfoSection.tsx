@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import Label from '../atoms/Label';
+import { Label } from '../atoms/Label';
 
 interface InfoSectionProps {
   title: string;
