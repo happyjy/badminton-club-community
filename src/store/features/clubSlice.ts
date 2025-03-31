@@ -1,5 +1,6 @@
-import { ClubWithDetails } from '@/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+import { ClubWithDetails } from '@/types';
 
 interface ClubState {
   currentClub: ClubWithDetails;
@@ -14,8 +15,8 @@ export const initialState: ClubState = {
     maxMembers: 0,
     etc: '',
     members: [],
-    createdAt: new Date('1990-01-01').toISOString(),
-    updatedAt: new Date('1990-01-01').toISOString(),
+    createdAt: new Date('1990-01-01'),
+    updatedAt: new Date('1990-01-01'),
   },
 };
 
