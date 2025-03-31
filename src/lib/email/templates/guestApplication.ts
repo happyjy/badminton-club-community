@@ -1,7 +1,8 @@
 import { GuestPost } from '@prisma/client';
 
-const formatDate = (date: Date | null) => {
+const formatDate = (date: Date | string | null) => {
   if (!date) return '미입력';
+  if (date === '') return '미입력';
   return new Date(date).toLocaleDateString('ko-KR');
 };
 
