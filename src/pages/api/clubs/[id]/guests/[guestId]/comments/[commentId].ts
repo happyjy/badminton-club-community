@@ -1,6 +1,7 @@
-import { getSession } from '@/lib/session';
 import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
+
+import { getSession } from '@/lib/session';
 
 export default async function handler(
   req: NextApiRequest,
@@ -35,6 +36,12 @@ export default async function handler(
 
     if (!comment) {
       return res.status(404).json({ message: '댓글을 찾을 수 없습니다' });
+    }
+
+    if (!comment.user) {
+      return res
+        .status(404)
+        .json({ message: '댓글 작성자 정보를 찾을 수 없습니다' });
     }
 
     if (comment.user.id !== session.id) {
