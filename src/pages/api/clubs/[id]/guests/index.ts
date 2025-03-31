@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, GuestStatus } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 const prisma = new PrismaClient();
@@ -15,7 +15,7 @@ export default async function handler(
     const { id: clubId } = req.query;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const status = req.query.status as string | undefined;
+    const statusParam = req.query.status as string | undefined;
 
     if (!clubId) {
       return res.status(400).json({ message: '클럽 ID가 필요합니다.' });
@@ -23,9 +23,21 @@ export default async function handler(
 
     const skip = (page - 1) * limit;
 
+    // status 값이 GuestStatus enum에 있는지 확인
+    let statusFilter: GuestStatus | undefined = undefined;
+    if (statusParam) {
+      if (Object.values(GuestStatus).includes(statusParam as any)) {
+        statusFilter = statusParam as GuestStatus;
+      } else {
+        return res
+          .status(400)
+          .json({ message: '유효하지 않은 status 값입니다.' });
+      }
+    }
+
     const where = {
       clubId: Number(clubId),
-      ...(status && { status }),
+      ...(statusFilter && { status: statusFilter }),
     };
 
     const [guests, total] = await Promise.all([
