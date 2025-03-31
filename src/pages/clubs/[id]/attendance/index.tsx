@@ -1,9 +1,13 @@
-import { useRouter } from 'next/router';
-import { withAuth } from '@/lib/withAuth';
 import { useState, useEffect } from 'react';
-import { WorkoutListItem } from '@/components/organisms/workout/WorkoutListItem';
-import { Workout, ClubDetailPageProps } from '@/types';
+
+import { useRouter } from 'next/router';
+
 import { useSelector } from 'react-redux';
+
+import { WorkoutListItem } from '@/components/organisms/workout/WorkoutListItem';
+import { withAuth } from '@/lib/withAuth';
+import { RootState } from '@/store';
+import { Workout, ClubDetailPageProps } from '@/types';
 
 function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   const router = useRouter();
