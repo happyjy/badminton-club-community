@@ -121,6 +121,21 @@ function GuestPage({ user }: AuthProps) {
     }
   };
 
+  // 임시 데이터
+  // const initialValues: Partial<ClubJoinFormData> = {
+  //   name: '테스트유저',
+  //   birthDate: '1990-01-01',
+  //   gender: '남성',
+  //   phoneNumber: '010-1234-5678',
+  //   localTournamentLevel: 'C',
+  //   nationalTournamentLevel: 'D',
+  //   lessonPeriod: '6개월',
+  //   playingPeriod: '2년',
+  //   message: '테스트 메시지입니다.',
+  //   privacyAgreement: true,
+  //   intendToJoin: true,
+  // };
+
   return (
     <>
       <div className="bg-white rounded-lg shadow p-6">
@@ -217,6 +232,7 @@ function GuestPage({ user }: AuthProps) {
           onSubmit={onSubmitGuestApplication}
           isGuestApplication={true}
           isSubmitting={isSubmitting}
+          // initialValues={initialValues}
         />
       )}
     </>
