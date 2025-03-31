@@ -45,7 +45,7 @@ interface GuestDetailPageProps extends AuthProps {
     visitDate: string;
     message: string;
     createdAt: string;
-    1;
+    userId: number;
   };
 }
 
