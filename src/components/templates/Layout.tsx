@@ -1,20 +1,25 @@
-import { LayoutProps } from '@/types/components.types';
-import MainNavigation from '../organisms/navigation/mainNavigation/MainNavigation';
-import { ClubNavigation } from '../organisms/navigation/clubNavigation/ClubNavigation';
-import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+
+import { useRouter } from 'next/router';
+
 import { useDispatch, useSelector } from 'react-redux';
-import { setClubData } from '@/store/features/clubSlice';
-import {
-  setUser,
-  setMembershipStatus,
-  setClubMember,
-  setInitClubMember,
-} from '@/store/features/authSlice';
-import { RootState } from '@/store';
-import { ClubMember } from '@/types';
+
 import { useAuth } from '@/hooks/useAuth';
 import { useClub } from '@/hooks/useClub';
+import { RootState } from '@/store';
+import { setUser, setMembershipStatus } from '@/store/features/authSlice';
+import { setClubData } from '@/store/features/clubSlice';
+import { ClubMember, User, ClubWithDetails } from '@/types';
+import { LayoutProps } from '@/types/components.types';
+
+import { ClubNavigation } from '../organisms/navigation/clubNavigation/ClubNavigation';
+import MainNavigation from '../organisms/navigation/mainNavigation/MainNavigation';
+
+// useAuth 훅이 반환하는 데이터 타입 정의
+interface AuthData {
+  isAuthenticated: boolean;
+  user: User | null;
+}
 
 export default function Layout({ children }: LayoutProps) {
   const dispatch = useDispatch();
@@ -37,7 +42,11 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     if (!authData) return;
 
-    dispatch(setUser(authData.user));
+    // 사용자 정보가 있으면 상태 업데이트
+    const auth = authData as unknown as AuthData;
+    if (auth.user) {
+      dispatch(setUser(auth.user));
+    }
   }, [authData, dispatch]);
 
   // 클럽 데이터 및 멤버십 상태 업데이트
@@ -45,11 +54,12 @@ export default function Layout({ children }: LayoutProps) {
     if (!clubData) return;
 
     // 클럽 데이터를 Redux 스토어에 저장
-    dispatch(setClubData(clubData));
+    const club = clubData as unknown as ClubWithDetails;
+    dispatch(setClubData(club));
 
     // 현재 사용자의 멤버십 상태 확인
-    if (currentUser && clubData.members) {
-      const memberStatus = clubData.members.find(
+    if (currentUser && club.members) {
+      const memberStatus = club.members.find(
         (member: ClubMember) => member.userId === currentUser.id
       );
 
