@@ -1,6 +1,7 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getSession } from '@/lib/session';
 import { PrismaClient } from '@prisma/client';
+import { NextApiRequest, NextApiResponse } from 'next';
+
+import { getSession } from '@/lib/session';
 
 export default async function handler(
   req: NextApiRequest,
@@ -45,10 +46,12 @@ export default async function handler(
           content: comment.content,
           createdAt: comment.createdAt.toISOString(),
           isDeleted: comment.isDeleted,
-          author: {
-            id: comment.user.id,
-            name: comment.user.nickname,
-          },
+          author: comment.user
+            ? {
+                id: comment.user.id,
+                name: comment.user.nickname,
+              }
+            : null,
         }));
 
         return res.status(200).json({ comments: formattedComments });
@@ -89,10 +92,12 @@ export default async function handler(
             content: comment.content,
             createdAt: comment.createdAt.toISOString(),
             isDeleted: comment.isDeleted,
-            author: {
-              id: comment.user.id,
-              name: comment.user.nickname,
-            },
+            author: comment.user
+              ? {
+                  id: comment.user.id,
+                  name: comment.user.nickname,
+                }
+              : null,
           },
         });
       } catch (error) {

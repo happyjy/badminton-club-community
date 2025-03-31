@@ -9,7 +9,7 @@ interface CommentItemProps {
   content: string;
   author: {
     name: string;
-  };
+  } | null;
   createdAt: string;
   isEditable?: boolean;
   onUpdate?: (id: string, content: string) => void;
@@ -67,7 +67,7 @@ export function CommentItem({
     <div className="bg-white p-4 rounded-lg shadow-sm">
       <div className="flex justify-between items-start mb-2">
         <div>
-          <span className="font-medium">{author.name}</span>
+          <span className="font-medium">{author?.name || '알 수 없음'}</span>
           <span className="text-sm text-gray-500 ml-2">
             {formatDate(createdAt)}
           </span>

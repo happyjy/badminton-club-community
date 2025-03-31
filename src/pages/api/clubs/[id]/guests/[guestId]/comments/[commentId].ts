@@ -84,10 +84,12 @@ export default async function handler(
               content: updatedComment.content,
               createdAt: updatedComment.createdAt.toISOString(),
               isDeleted: updatedComment.isDeleted,
-              author: {
-                id: updatedComment.user.id,
-                name: updatedComment.user.nickname,
-              },
+              author: updatedComment.user
+                ? {
+                    id: updatedComment.user.id,
+                    name: updatedComment.user.nickname,
+                  }
+                : null,
             },
           });
         } catch (error) {

@@ -25,7 +25,7 @@ interface Comment {
   author: {
     id: number;
     name: string;
-  };
+  } | null;
   isDeleted: boolean;
 }
 
@@ -436,7 +436,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
               ) : (
                 <div className="space-y-3">
                   {comments
-                    .filter((comment) => !comment.isDeleted)
+                    .filter((comment) => !comment.isDeleted && comment.author)
                     .sort(
                       (a, b) =>
                         new Date(a.createdAt).getTime() -
@@ -449,7 +449,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
                         content={comment.content}
                         author={comment.author}
                         createdAt={comment.createdAt}
-                        isEditable={user?.id === comment.author.id}
+                        isEditable={user?.id === comment.author?.id}
                         onUpdate={handleCommentUpdate}
                         onDelete={handleCommentDelete}
                       />
