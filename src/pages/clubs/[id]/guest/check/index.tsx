@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
+
 import { useRouter } from 'next/router';
+
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+
 import { formatDateSimple } from '@/lib/utils';
 
 type GuestRequest = {
@@ -74,7 +77,7 @@ export default function GuestCheckPage() {
   };
 
   const paginationRef = useRef<HTMLDivElement>(null);
-  const paginationBtnRef = useRef<HTMLDivElement>(null);
+  const paginationBtnRef = useRef<HTMLButtonElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [paginationBtnWidth, setPaginationBtnWidth] = useState(0);
 
