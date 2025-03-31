@@ -18,7 +18,7 @@ module.exports = {
     'import/order': [
       'warn',
       {
-        'groups': [
+        groups: [
           'builtin',
           'external',
           'internal',
@@ -26,60 +26,60 @@ module.exports = {
           'sibling',
           'index',
           'object',
-          'type'
+          'type',
         ],
-        'pathGroups': [
+        pathGroups: [
           {
-            'pattern': 'react',
-            'group': 'builtin',
-            'position': 'before'
+            pattern: 'react',
+            group: 'builtin',
+            position: 'before',
           },
           {
-            'pattern': 'next/**',
-            'group': 'builtin',
-            'position': 'before'
+            pattern: 'next/**',
+            group: 'builtin',
+            position: 'before',
           },
           {
-            'pattern': '@/**',
-            'group': 'internal',
-            'position': 'after'
+            pattern: '@/**',
+            group: 'internal',
+            position: 'after',
           },
           {
-            'pattern': 'components/**',
-            'group': 'internal',
-            'position': 'before'
+            pattern: 'components/**',
+            group: 'internal',
+            position: 'before',
           },
           {
-            'pattern': 'hooks/**',
-            'group': 'internal',
-            'position': 'before'
+            pattern: 'hooks/**',
+            group: 'internal',
+            position: 'before',
           },
           {
-            'pattern': 'utils/**',
-            'group': 'internal',
-            'position': 'before'
+            pattern: 'utils/**',
+            group: 'internal',
+            position: 'before',
           },
           {
-            'pattern': 'types/**',
-            'group': 'internal',
-            'position': 'before'
+            pattern: 'types/**',
+            group: 'internal',
+            position: 'before',
           },
           {
-            'pattern': 'styles/**',
-            'group': 'internal',
-            'position': 'after'
-          }
+            pattern: 'styles/**',
+            group: 'internal',
+            position: 'after',
+          },
         ],
-        'pathGroupsExcludedImportTypes': ['react', 'next'],
+        pathGroupsExcludedImportTypes: ['react', 'next'],
         'newlines-between': 'always',
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
-        }
-      }
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+      },
     ],
     'import/newline-after-import': ['warn'],
-    'import/no-duplicates': ['warn']
+    'import/no-duplicates': ['warn'],
   },
   overrides: [
     {
@@ -91,16 +91,16 @@ module.exports = {
   ],
   settings: {
     'import/parsers': {
-      '@typescript-eslint/parser': ['.ts', '.tsx', '.js', '.jsx']
+      '@typescript-eslint/parser': ['.ts', '.tsx', '.js', '.jsx'],
     },
     'import/resolver': {
-      'typescript': {
-        'alwaysTryTypes': true
+      typescript: {
+        alwaysTryTypes: true,
       },
-      'node': {
-        'extensions': ['.js', '.jsx', '.ts', '.tsx'],
-        'moduleDirectory': ['node_modules', 'src/']
-      }
-    }
-  }
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        moduleDirectory: ['node_modules', 'src/'],
+      },
+    },
+  },
 };
