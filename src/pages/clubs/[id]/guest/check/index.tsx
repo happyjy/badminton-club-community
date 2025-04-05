@@ -9,16 +9,16 @@ import { formatDateSimple } from '@/lib/utils';
 
 type GuestRequest = {
   id: string;
-  guestName: string;
+  name: string;
   phoneNumber: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
   visitDate?: string;
   intendToJoin?: boolean;
-  birthYear?: string;
-  nationalRank?: string;
-  districtRank?: string;
+  birthDate?: string;
+  nationalTournamentLevel?: string;
+  localTournamentLevel?: string;
 };
 
 const ITEMS_PER_PAGE = 10;
