@@ -1,5 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { NextApiRequest, NextApiResponse } from 'next';
+
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { Role, Status } from '@/types/enums';

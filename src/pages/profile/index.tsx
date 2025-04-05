@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+
+import Image from 'next/image';
+
 import { withAuth } from '@/lib/withAuth';
 import { User } from '@/types';
-import Image from 'next/image';
 
 interface ProfilePageProps {
   user: User | null;
@@ -68,7 +70,7 @@ function ProfilePage({ user }: ProfilePageProps) {
     fetchMemberInfo();
   }, []);
 
-  const handlePhoneNumberChange = (
+  const onChangePhoneNumber = (
     e: React.ChangeEvent<HTMLInputElement>,
     part: 'first' | 'second' | 'third'
   ) => {
@@ -193,7 +195,7 @@ function ProfilePage({ user }: ProfilePageProps) {
             <input
               type="text"
               value={phoneNumbers.first}
-              onChange={(e) => handlePhoneNumberChange(e, 'first')}
+              onChange={(e) => onChangePhoneNumber(e, 'first')}
               maxLength={3}
               placeholder="010"
               className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
@@ -202,7 +204,7 @@ function ProfilePage({ user }: ProfilePageProps) {
             <input
               type="text"
               value={phoneNumbers.second}
-              onChange={(e) => handlePhoneNumberChange(e, 'second')}
+              onChange={(e) => onChangePhoneNumber(e, 'second')}
               maxLength={4}
               placeholder="0000"
               className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
@@ -211,7 +213,7 @@ function ProfilePage({ user }: ProfilePageProps) {
             <input
               type="text"
               value={phoneNumbers.third}
-              onChange={(e) => handlePhoneNumberChange(e, 'third')}
+              onChange={(e) => onChangePhoneNumber(e, 'third')}
               maxLength={4}
               placeholder="0000"
               className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"

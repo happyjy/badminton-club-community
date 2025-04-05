@@ -1,5 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { NextApiRequest, NextApiResponse } from 'next';
+
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { ClubMembershipResponse } from '@/types/club.types';
@@ -24,7 +25,7 @@ export default async function handler(
     });
   }
 
-  const { id } = req.query;
+  const { id: clubId } = req.query;
   const {
     name,
     birthDate,
@@ -49,7 +50,7 @@ export default async function handler(
     const existingMembership = await prisma.clubMember.findUnique({
       where: {
         clubId_userId: {
-          clubId: Number(id),
+          clubId: Number(clubId),
           userId: session.id,
         },
       },
@@ -64,7 +65,7 @@ export default async function handler(
 
     const membership = await prisma.clubMember.create({
       data: {
-        clubId: Number(id),
+        clubId: Number(clubId),
         userId: session.id,
         role: Role.MEMBER,
         status: Status.PENDING,

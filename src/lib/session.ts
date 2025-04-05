@@ -1,6 +1,7 @@
+import { IncomingMessage } from 'http';
+
 import { PrismaClient } from '@prisma/client';
 import { verify } from 'jsonwebtoken';
-import { IncomingMessage } from 'http';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 

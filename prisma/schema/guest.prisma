@@ -1,0 +1,81 @@
+// 게스트 신청 게시글
+model GuestPost {
+  id                       String         @id @default(cuid()) 
+  clubId                   Int                                   // 게스트 신청한 클럽 ID
+  userId                   Int                                   // 게스트 신청한 유저 ID
+  name                     String
+  birthDate                String         @default("")
+  phoneNumber              String
+  gender                   String         @default("")          // 성별 필드 추가
+  localTournamentLevel     String         @default("")
+  nationalTournamentLevel  String         @default("")
+  lessonPeriod             String         @default("")
+  playingPeriod            String         @default("")
+  status                   GuestStatus    @default(PENDING)
+  // 클럽 가입 필드에서 게스트 신청시 추가 된 필드
+  intendToJoin             Boolean        @default(false)
+  visitDate                String         @default("")
+  message                  String         @default("")
+  //
+  createdAt                DateTime       @default(now())
+  // 업데이트 
+  updatedBy                Int            @default(0)
+  updatedAt                DateTime       @default(now()) @updatedAt
+  
+  // Relations
+  club                     Club           @relation(fields: [clubId], references: [id])
+  user                     User           @relation(fields: [userId], references: [id])
+  comments                 GuestComment[]
+
+  @@index([clubId])
+  @@index([userId])
+}
+
+// 게스트 신청 댓글
+model GuestComment {
+  id            String          @id @default(cuid())
+  postId        String      
+  userId        Int?            // 회원 ID(작성자-회원가입전)
+  clubMemberId  Int?            // 클럽 멤버 ID(임원진)
+  content       String
+  parentId      String?
+  isDeleted     Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  
+  // Relations
+  user          User?            @relation(fields: [userId], references: [id])
+  clubMember    ClubMember?     @relation(fields: [clubMemberId], references: [id])
+  post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent        GuestComment?   @relation("CommentToComment", fields: [parentId], references: [id])
+  children      GuestComment[]  @relation("CommentToComment")
+  
+  @@index([postId])
+  @@index([userId])
+  @@index([clubMemberId])
+  @@index([parentId])
+} 
+
+// 마이그레이션 코드
+model GuestPost_copy {
+  id                       String         @id @default(cuid()) 
+  clubId                   Int            
+  userId                   Int            
+  name                     String
+  message                  String
+  status                   GuestStatus    @default(PENDING)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  phoneNumber              String         @default("")
+  gender                   String         @default("")          // 성별 필드 추가
+  
+  // 신규 필드들은 기본값 설정으로 추가
+  birthDate                String         @default("")
+  localTournamentLevel     String         @default("")
+  nationalTournamentLevel  String         @default("")
+  lessonPeriod             String         @default("")
+  playingPeriod            String         @default("")
+    
+  @@index([clubId])
+  @@index([userId])
+}

@@ -1,6 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { serialize } from 'cookie';
+
 import { ApiResponse } from '@/types';
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
   req: NextApiRequest,
@@ -14,16 +16,22 @@ export default async function handler(
   }
 
   // 쿠키 삭제
-  res.setHeader(
-    'Set-Cookie',
+  res.setHeader('Set-Cookie', [
     serialize('auth-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       expires: new Date(0), // 과거 날짜로 설정하여 쿠키 즉시 만료
-    })
-  );
+    }),
+    serialize('kakao-access-token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: new Date(0), // kakao 토큰도 만료 필요
+    }),
+  ]);
 
   return res.status(200).json({
     data: { logout: { success: true } },

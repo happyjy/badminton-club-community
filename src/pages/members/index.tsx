@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ClubResponse, User } from '@/types';
-import { useRouter } from 'next/router';
-import { Role, Status } from '@/types/enums';
-import { withAuth } from '@/lib/withAuth';
+
 import Image from 'next/image';
-import { ClubMemberCard } from '@/components/members/ClubMemberCard';
+import { useRouter } from 'next/router';
+
+import { ClubMemberCard } from '@/components/organisms/club/ClubMemberCard';
+import { withAuth } from '@/lib/withAuth';
+import { ClubResponse, User } from '@/types';
+import { Role, Status } from '@/types/enums';
 
 interface ClubMemberWithUser extends User {
   ClubMember: {

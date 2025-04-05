@@ -1,9 +1,9 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { Role, Status } from '@/types/enums';
-import { getSession } from '@/lib/session';
 import { PrismaClient } from '@prisma/client';
-import { ApiResponse } from '@/types';
-import { ClubMember } from '@/types';
+import { NextApiRequest, NextApiResponse } from 'next';
+
+import { getSession } from '@/lib/session';
+import { ApiResponse, ClubMember } from '@/types';
+import { Role, Status } from '@/types/enums';
 
 export default async function handler(
   req: NextApiRequest,

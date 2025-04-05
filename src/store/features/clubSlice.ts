@@ -1,5 +1,6 @@
-import { ClubWithDetails } from '@/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+import { ClubWithDetails } from '@/types';
 
 interface ClubState {
   currentClub: ClubWithDetails;

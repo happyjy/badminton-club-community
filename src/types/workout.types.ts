@@ -1,7 +1,8 @@
+import { HelperType } from '@prisma/client';
+
 import { BaseEntity } from './common.types';
 import { MembershipStatus } from './membership.types';
 import { User } from './user.types';
-import { HelperType } from '@prisma/client';
 
 export interface Exercise {
   id: number;

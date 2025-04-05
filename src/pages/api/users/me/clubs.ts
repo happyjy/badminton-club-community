@@ -1,7 +1,8 @@
+import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
+
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
-import { PrismaClient } from '@prisma/client';
 import { ClubResponse } from '@/types/club.types';
 
 export default async function handler(

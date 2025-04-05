@@ -1,5 +1,6 @@
-import { useRouter } from 'next/router';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
+
 import { getKakaoCallbackUrl } from '@/constants/urls';
 
 export default function LoginPage() {

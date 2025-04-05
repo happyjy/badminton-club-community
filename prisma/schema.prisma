@@ -6,54 +6,44 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+} 
+
+enum HelperType {
+  NET
+  FLOOR
+  SHUTTLE
+  KEY
+  MOP
+}
+
+enum GuestStatus {
+  PENDING   // 대기중
+  APPROVED  // 승인됨
+  REJECTED  // 거절됨
+} 
+
+enum MemberRole {
+  ADMIN     // 임원
+  MEMBER    // 회원
 }
 
 model User {
-  id                 Int                  @id @default(autoincrement())
-  kakaoId            String               @unique @default("")
-  email              String               @unique
-  nickname           String               @default("")
-  thumbnailImageUrl  String               @default("")
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @default(now()) @updatedAt
-  ClubMember         ClubMember[]
-  WorkoutParticipant WorkoutParticipant[]
-}
-
-model Workout {
-  id                 Int                  @id @default(autoincrement())
-  title              String
-  description        String               @default("")
-  date               DateTime
-  startTime          DateTime
-  endTime            DateTime
-  maxParticipants    Int
-  location           String
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime
-  clubId             Int?
-  club               Club?                @relation(fields: [clubId], references: [id])
-  WorkoutParticipant WorkoutParticipant[]
-  helperStatuses     WorkoutHelperStatus[]
-}
-
-model WorkoutParticipant {
-  id              Int         @id @default(autoincrement())
-  workoutId       Int
-  userId          Int
-  clubMemberId    Int?
-  status          String      @default("PENDING")
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  User            User        @relation(fields: [userId], references: [id])
-  clubMember      ClubMember? @relation(fields: [clubMemberId], references: [id])
-  Workout         Workout     @relation(fields: [workoutId], references: [id])
-
-  @@unique([workoutId, userId])
-}
+  id                  Int                  @id @default(autoincrement())
+  kakaoId             String               @unique @default("")
+  email               String               @unique
+  nickname            String               @default("")
+  thumbnailImageUrl   String               @default("")
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @default(now()) @updatedAt
+  
+  // Relations
+  ClubMember          ClubMember[]
+  WorkoutParticipant  WorkoutParticipant[]
+  guestPosts          GuestPost[]
+  guestComments       GuestComment[]
+} 
 
 model Club { 
-  // 스키마 필드 설정
   id          Int          @id @default(autoincrement())
   name        String
   description String?
@@ -67,6 +57,7 @@ model Club {
   // 관계 필드 설정
   members     ClubMember[]
   workouts    Workout[]
+  guestPosts  GuestPost[]
 }
 
 model ClubMember {
@@ -84,21 +75,52 @@ model ClubMember {
   playingPeriod            String?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+
+  // Relations
   club                     Club     @relation(fields: [clubId], references: [id])
   user                     User     @relation(fields: [userId], references: [id])
   workoutParticipants      WorkoutParticipant[]
   helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
   updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
+  guestComments            GuestComment[]
 
   @@unique([clubId, userId])
+} 
+
+model Workout {
+  id                  Int                  @id @default(autoincrement())
+  title               String
+  description         String               @default("")
+  date                DateTime
+  startTime           DateTime
+  endTime             DateTime
+  maxParticipants     Int
+  location            String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime
+  clubId              Int?
+  
+  // Relations
+  club                Club?                @relation(fields: [clubId], references: [id])
+  WorkoutParticipant  WorkoutParticipant[]
+  helperStatuses      WorkoutHelperStatus[]
 }
 
-enum HelperType {
-  NET
-  FLOOR
-  SHUTTLE
-  KEY
-  MOP
+model WorkoutParticipant {
+  id              Int         @id @default(autoincrement())
+  workoutId       Int
+  userId          Int
+  clubMemberId    Int?
+  status          String      @default("PENDING")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  User            User        @relation(fields: [userId], references: [id])
+  clubMember      ClubMember? @relation(fields: [clubMemberId], references: [id])
+  Workout         Workout     @relation(fields: [workoutId], references: [id])
+
+  @@unique([workoutId, userId])
 }
 
 model WorkoutHelperStatus {
@@ -111,9 +133,93 @@ model WorkoutHelperStatus {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
+  // Relations
   workout      Workout    @relation(fields: [workoutId], references: [id])
   clubMember   ClubMember @relation("HelperClubMember", fields: [clubMemberId], references: [id])
   updatedBy    ClubMember @relation("HelperUpdater", fields: [updatedById], references: [id])
 
   @@unique([workoutId, clubMemberId, helperType])
+} 
+
+// 게스트 신청 게시글
+model GuestPost {
+  id                       String         @id @default(cuid()) 
+  clubId                   Int                                   // 게스트 신청한 클럽 ID
+  userId                   Int                                   // 게스트 신청한 유저 ID
+  name                     String
+  birthDate                String         @default("")
+  phoneNumber              String
+  gender                   String         @default("")          // 성별 필드 추가
+  localTournamentLevel     String         @default("")
+  nationalTournamentLevel  String         @default("")
+  lessonPeriod             String         @default("")
+  playingPeriod            String         @default("")
+  status                   GuestStatus    @default(PENDING)
+  // 클럽 가입 필드에서 게스트 신청시 추가 된 필드
+  intendToJoin             Boolean        @default(false)
+  visitDate                String         @default("")
+  message                  String         @default("")
+  //
+  createdAt                DateTime       @default(now())
+  // 업데이트 
+  updatedBy                Int            @default(0)
+  updatedAt                DateTime       @default(now()) @updatedAt
+  
+  // Relations
+  club                     Club           @relation(fields: [clubId], references: [id])
+  user                     User           @relation(fields: [userId], references: [id])
+  comments                 GuestComment[]
+
+  @@index([clubId])
+  @@index([userId])
 }
+
+// 게스트 신청 댓글
+model GuestComment {
+  id            String          @id @default(cuid())
+  postId        String      
+  userId        Int?            // 회원 ID(작성자-회원가입전)
+  clubMemberId  Int?            // 클럽 멤버 ID(임원진)
+  content       String
+  parentId      String?
+  isDeleted     Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  
+  // Relations
+  user          User?            @relation(fields: [userId], references: [id])
+  clubMember    ClubMember?     @relation(fields: [clubMemberId], references: [id])
+  post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent        GuestComment?   @relation("CommentToComment", fields: [parentId], references: [id])
+  children      GuestComment[]  @relation("CommentToComment")
+  
+  @@index([postId])
+  @@index([userId])
+  @@index([clubMemberId])
+  @@index([parentId])
+} 
+
+// 마이그레이션 코드
+model GuestPost_copy {
+  id                       String         @id @default(cuid()) 
+  clubId                   Int            
+  userId                   Int            
+  name                     String
+  message                  String
+  status                   GuestStatus    @default(PENDING)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  phoneNumber              String         @default("")
+  gender                   String         @default("")          // 성별 필드 추가
+  
+  // 신규 필드들은 기본값 설정으로 추가
+  birthDate                String         @default("")
+  localTournamentLevel     String         @default("")
+  nationalTournamentLevel  String         @default("")
+  lessonPeriod             String         @default("")
+  playingPeriod            String         @default("")
+    
+  @@index([clubId])
+  @@index([userId])
+}
+

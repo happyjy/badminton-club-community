@@ -1,8 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+
 import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types/common.types';
 import { Status } from '@/types/enums';
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
   req: NextApiRequest,
