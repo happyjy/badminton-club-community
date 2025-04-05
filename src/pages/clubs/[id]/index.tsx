@@ -38,35 +38,6 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     }
   };
 
-  // 페이지 이동 전 스크롤 위치 저장
-  useLayoutEffect(() => {
-    const onRouteChangeStart = () => {
-      sessionStorage.setItem(
-        `club-${clubId}-scroll`,
-        window.scrollY.toString()
-      );
-    };
-
-    router.events.on('routeChangeStart', onRouteChangeStart);
-
-    return () => {
-      router.events.off('routeChangeStart', onRouteChangeStart);
-    };
-  }, [router.events, clubId]);
-
-  // 페이지 로드 시 스크롤 위치 복원
-  useLayoutEffect(() => {
-    const savedPosition = sessionStorage.getItem(`club-${clubId}-scroll`);
-
-    if (savedPosition) {
-      window.scrollTo({
-        top: parseInt(savedPosition),
-        behavior: 'instant',
-      });
-      sessionStorage.removeItem(`club-${clubId}-scroll`);
-    }
-  }, [clubId]);
-
   return (
     <>
       {isAbleJoinclubButton && (
