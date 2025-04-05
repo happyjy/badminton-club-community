@@ -16,6 +16,9 @@ type GuestRequest = {
   updatedAt: string;
   visitDate?: string;
   intendToJoin?: boolean;
+  birthYear?: string;
+  nationalRank?: string;
+  districtRank?: string;
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -55,6 +58,7 @@ export default function GuestCheckPage() {
   // 신청 상태에 따른 배지 색상
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
+      // todo: 매직 스트링 처리
       case 'APPROVED':
         return 'bg-green-100 text-green-800';
       case 'REJECTED':
@@ -67,6 +71,7 @@ export default function GuestCheckPage() {
   // 신청 상태 한글 표시
   const getStatusText = (status: string) => {
     switch (status) {
+      // todo: 매직 스트링 처리
       case 'APPROVED':
         return '승인됨';
       case 'REJECTED':
@@ -197,19 +202,22 @@ export default function GuestCheckPage() {
 
       {guestRequests?.items.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 table-fixed">
+          <table className="min-w-full divide-y divide-gray-200 table-auto">
             <thead className="bg-gray-50">
+              {/* todo: th에 반복되는 className 처리 */}
+              {/* todo: 테이블 컴포넌트 형식으로 변경하기 */}
               <tr>
-                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
-                  신청일
-                </th>
-                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
+                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   방문희망일
                 </th>
-                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[36%]">
-                  가입의향
+                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  신청자 정보
+                  <br />
+                  <label className="text-xs font-normal whitespace-nowrap text-gray-500">
+                    가입의향|이름|생년월일|전국/구대회
+                  </label>
                 </th>
-                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">
+                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   상태
                 </th>
               </tr>
@@ -221,25 +229,36 @@ export default function GuestCheckPage() {
                   onClick={() => handleRowClick(guest.id)}
                   className="hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
-                    {formatDateSimple(guest.createdAt)}
+                  <td className="px-1 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
+                    {guest.visitDate ? formatDateSimple(guest.visitDate) : '-'}
                   </td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
-                    {guest.visitDate || '-'}
-                  </td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500 truncate">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={guest.intendToJoin === true}
-                        readOnly
-                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
-                      />
+                  <td className="px-1 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500">
+                    <div className="flex flex-col">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={guest.intendToJoin === true}
+                          readOnly
+                          className="h-3 w-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
+                        />
+                        {' | '}
+                        <span className="font-medium">{guest.name}</span>
+                        {' | '}
+                        {guest.birthDate?.split('-')[0] || '-'}
+                        {' | '}
+                        {guest.nationalTournamentLevel
+                          ? `${guest.nationalTournamentLevel}`
+                          : '-'}
+                        {' / '}
+                        {guest.localTournamentLevel
+                          ? `${guest.localTournamentLevel}`
+                          : '-'}
+                      </div>
                     </div>
                   </td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+                  <td className="px-1 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
                     <span
-                      className={`px-1 py-0.5 sm:px-2 sm:py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
+                      className={`px-1 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
                         guest.status
                       )}`}
                     >

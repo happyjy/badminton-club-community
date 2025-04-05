@@ -20,8 +20,9 @@ export function formatDate(dateInput: string | Date): string {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
+// todo: 원하는 형식으로 포맷팅할 수 있도록 수정하기
 /**
- * 날짜를 'YYYY-MM-DD' 형식으로 포맷팅합니다.
+ * 날짜를 'YYYY.MM.DD' 형식으로 포맷팅합니다.
  */
 export function formatDateSimple(dateInput: string | Date): string {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -30,5 +31,5 @@ export function formatDateSimple(dateInput: string | Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  return `${year}-${month}-${day}`;
+  return `${year}.${month}.${day}`;
 }
