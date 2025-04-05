@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -57,6 +57,38 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   useEffect(() => {
     fetchWorkouts();
   }, [clubId, user, fetchWorkouts]);
+
+  // todo: custom hook으로 만들 가능성 높음(다른 페이지에서도 사용할 수 있기 때문
+  // 페이지 이동 전 스크롤 위치 저장
+  useEffect(() => {
+    const handleRouteChange = () => {
+      sessionStorage.setItem(
+        `club-${clubId}-scroll`,
+        window.scrollY.toString()
+      );
+    };
+
+    router.events.on('routeChangeStart', handleRouteChange);
+
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange);
+    };
+  }, [router.events, clubId]);
+
+  // 페이지 로드 시 스크롤 위치 복원
+  useLayoutEffect(() => {
+    const savedPosition = sessionStorage.getItem(`club-${clubId}-scroll`);
+
+    if (savedPosition && !isLoadingWorkouts) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: parseInt(savedPosition),
+          behavior: 'instant',
+        });
+        sessionStorage.removeItem(`club-${clubId}-scroll`);
+      }, 50);
+    }
+  }, [clubId, isLoadingWorkouts]);
 
   return (
     <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
