@@ -39,9 +39,10 @@ const RankingTable: React.FC<RankingTableProps> = ({
     setExpanded(!expanded);
   };
 
+  const currentDate = new Date().getMonth() + 1;
   return (
     <div className="mt-8">
-      <h3 className="font-bold mb-4">랭킹</h3>
+      <h3 className="font-bold mb-4">{currentDate}월 랭킹</h3>
       <div className="border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
