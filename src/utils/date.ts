@@ -19,3 +19,26 @@ export const formatToKoreanTime = (dateStr: Date) => {
 
   return `${period} ${formattedHours}:${formattedMinutes}`;
 };
+
+/**
+ * 현재 달의 시작일과 종료일을 계산하는 함수
+ * @param date - 기준 날짜 (기본값: 현재 날짜)
+ * @returns 시작일과 종료일 객체
+ */
+export const getMonthRange = (date = new Date()) => {
+  const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const endOfMonth = new Date(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
+
+  return {
+    startOfMonth,
+    endOfMonth,
+  };
+};
