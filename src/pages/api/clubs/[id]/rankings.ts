@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 import { ApiResponse } from '@/types';
 import { getMonthRange } from '@/utils/date';
+import { sortRankingByCountAndId } from '@/utils/sort';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -122,17 +123,23 @@ export default async function handler(
     });
 
     // 결과 포맷팅
-    const formattedAttendanceRanking = attendanceRanking.map((member) => ({
-      id: member.id,
-      name: member.name || `회원 ${member.id}`,
-      count: member._count.workoutParticipants,
-    }));
+    const formattedAttendanceRanking = attendanceRanking
+      .map((member) => ({
+        id: member.id,
+        name: member.name || `회원 ${member.id}`,
+        count: member._count.workoutParticipants,
+      }))
+      // 출석 랭킹 정렬
+      .sort(sortRankingByCountAndId);
 
-    const formattedHelperRanking = helperRanking.map((member) => ({
-      id: member.id,
-      name: member.name || `회원 ${member.id}`,
-      count: member._count.helperStatuses,
-    }));
+    const formattedHelperRanking = helperRanking
+      .map((member) => ({
+        id: member.id,
+        name: member.name || `회원 ${member.id}`,
+        count: member._count.helperStatuses,
+      }))
+      // 헬퍼 랭킹 정렬
+      .sort(sortRankingByCountAndId);
 
     return res.status(200).json({
       data: {
