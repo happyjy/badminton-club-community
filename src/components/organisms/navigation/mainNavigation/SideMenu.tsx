@@ -92,7 +92,7 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
                 >
                   프로필
                 </Link>
-                <Link
+                {/* <Link
                   href="/workouts"
                   className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
                   onClick={onClickLink}
@@ -105,7 +105,7 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
                   onClick={onClickLink}
                 >
                   게스트 확인
-                </Link>
+                </Link> */}
                 <button
                   onClick={onClickLogout}
                   className="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
