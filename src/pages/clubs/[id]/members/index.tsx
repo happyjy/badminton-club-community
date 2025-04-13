@@ -7,6 +7,7 @@ import { ClubMemberCard } from '@/components/organisms/club/ClubMemberCard';
 import { withAuth } from '@/lib/withAuth';
 import { ClubResponse, User } from '@/types';
 import { Role, Status } from '@/types/enums';
+import { checkClubAdminPermission } from '@/utils/permissions';
 
 interface ClubMemberWithUser extends User {
   ClubMember: {
@@ -205,4 +206,7 @@ function UsersPage(/* { user }: { user: User } */) {
   );
 }
 
-export default withAuth(UsersPage);
+export default withAuth(UsersPage, {
+  requireAuth: true,
+  checkPermission: checkClubAdminPermission,
+});
