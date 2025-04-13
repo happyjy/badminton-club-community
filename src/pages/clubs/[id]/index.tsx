@@ -36,26 +36,26 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const isAbleJoinclubButton =
     !user || membershipStatus.isPending || canJoinClub;
 
-  // 랭킹 데이터 로드
+  // 랭킹 데이터 로드2
   useEffect(() => {
     if (clubId) {
       loadRankings();
     }
-  }, [clubId]);
 
-  const loadRankings = async () => {
-    setIsRankingLoading(true);
-    try {
-      const response = await axios.get(`/api/clubs/${clubId}/rankings`);
-      if (response.status === 200) {
-        setRankings(response.data.data.rankings);
+    async function loadRankings() {
+      setIsRankingLoading(true);
+      try {
+        const response = await axios.get(`/api/clubs/${clubId}/rankings`);
+        if (response.status === 200) {
+          setRankings(response.data.data.rankings);
+        }
+      } catch (error) {
+        console.error('랭킹 정보를 불러오는데 실패했습니다:', error);
+      } finally {
+        setIsRankingLoading(false);
       }
-    } catch (error) {
-      console.error('랭킹 정보를 불러오는데 실패했습니다:', error);
-    } finally {
-      setIsRankingLoading(false);
     }
-  };
+  }, [clubId]);
 
   // API 호출 함수들
   const onJoinClub = async (formData: ClubJoinFormData) => {
