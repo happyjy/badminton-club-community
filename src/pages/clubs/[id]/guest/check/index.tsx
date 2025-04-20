@@ -46,11 +46,13 @@ export default function GuestCheckPage() {
 
   const guestRequests = response?.data;
 
+  // 신청 상태 변경
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value);
     setCurrentPage(1);
   };
 
+  // 게스트 신청 상세 페이지로 이동
   const handleRowClick = (guestId: string) => {
     router.push(`/clubs/${clubId}/guest/${guestId}`);
   };
