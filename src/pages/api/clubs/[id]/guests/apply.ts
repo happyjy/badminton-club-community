@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { GuestStatus, PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendGuestApplicationEmail } from '@/lib/email';
@@ -58,6 +58,19 @@ export default async function handler(
       });
     }
 
+    // 사용자의 clubMember ID 조회 (있는 경우)
+    const clubMember = await prisma.clubMember.findUnique({
+      where: {
+        clubId_userId: {
+          clubId: parseInt(clubId as string),
+          userId: session.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
     // 게스트 신청 생성
     const application = await prisma.guestPost.create({
       data: {
@@ -72,10 +85,12 @@ export default async function handler(
         nationalTournamentLevel,
         lessonPeriod,
         playingPeriod,
-        status: 'PENDING',
+        status: GuestStatus.PENDING,
         intendToJoin, // 게스트 신청 타입
         visitDate,
         message,
+        // 작성자 ClubMember ID 추가 (있는 경우에만)
+        createdBy: clubMember?.id || null,
       },
     });
 

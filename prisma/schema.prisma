@@ -77,15 +77,17 @@ model ClubMember {
   updatedAt                DateTime @updatedAt
 
   // Relations
-  club                     Club     @relation(fields: [clubId], references: [id])
-  user                     User     @relation(fields: [userId], references: [id])
+  guestComments            GuestComment[]
   workoutParticipants      WorkoutParticipant[]
+  club                     Club                  @relation(fields: [clubId], references: [id])
+  user                     User                  @relation(fields: [userId], references: [id])
   helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
   updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
-  guestComments            GuestComment[]
+  createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
 
   @@unique([clubId, userId])
 } 
+
 
 model Workout {
   id                  Int                  @id @default(autoincrement())
@@ -159,7 +161,8 @@ model GuestPost {
   intendToJoin             Boolean        @default(false)
   visitDate                String         @default("")
   message                  String         @default("")
-  //
+  // 게스트 신청 게시글 작성자
+  createdBy                Int?
   createdAt                DateTime       @default(now())
   // 업데이트 
   updatedBy                Int            @default(0)
@@ -168,10 +171,12 @@ model GuestPost {
   // Relations
   club                     Club           @relation(fields: [clubId], references: [id])
   user                     User           @relation(fields: [userId], references: [id])
+  clubMember               ClubMember?    @relation("CreatedByClubMember", fields: [createdBy], references: [id])
   comments                 GuestComment[]
 
   @@index([clubId])
   @@index([userId])
+  @@index([createdBy])
 }
 
 // 게스트 신청 댓글

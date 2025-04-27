@@ -32,12 +32,13 @@ model ClubMember {
   updatedAt                DateTime @updatedAt
 
   // Relations
-  club                     Club     @relation(fields: [clubId], references: [id])
-  user                     User     @relation(fields: [userId], references: [id])
+  guestComments            GuestComment[]
   workoutParticipants      WorkoutParticipant[]
+  club                     Club                  @relation(fields: [clubId], references: [id])
+  user                     User                  @relation(fields: [userId], references: [id])
   helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
   updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
-  guestComments            GuestComment[]
+  createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
 
   @@unique([clubId, userId])
 } 

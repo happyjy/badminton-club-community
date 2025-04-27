@@ -9,7 +9,7 @@
     "lint": "next lint",
     "postinstall": "prisma generate",
     "postbuild": "next-sitemap",
-    "build:schema": "ts-node prisma/build-schema.ts",
+    "build:schema": "cross-env TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node prisma/build-schema.ts",
     "prisma:generate": "npm run build:schema && prisma generate"
   },
   "dependencies": {
@@ -46,6 +46,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/parser": "^8.27.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.1.6",
     "eslint-config-prettier": "^10.0.1",
