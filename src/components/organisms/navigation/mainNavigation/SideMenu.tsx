@@ -26,6 +26,7 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
   const onClickLogin = () => {
     setIsMenuOpen(false);
     redirectToLogin(router);
+    // router.push('/auth/login');
   };
 
   const onClickLogout = async () => {

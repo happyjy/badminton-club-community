@@ -1,4 +1,6 @@
 import '@/styles/globals.css';
+import { useEffect } from 'react';
+
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 
@@ -9,13 +11,51 @@ import { Provider } from 'react-redux';
 
 import Layout from '@/components/templates/Layout';
 import { store } from '@/store';
+import '@/types/kakao.types';
 // import setupLocatorUI from '@locator/runtime';
 
 const queryClient = new QueryClient();
 // if (process.env.NODE_ENV === 'development') {
 //   setupLocatorUI();
 // }
+
 export default function App({ Component, pageProps }: AppProps) {
+  // 카카오 SDK 초기화
+  useEffect(() => {
+    const initializeKakao = () => {
+      // 클라이언트 사이드에서만 실행
+      if (typeof window === 'undefined') return;
+
+      const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+      if (!appKey) {
+        console.error('카카오 자바스크립트 키가 제공되지 않았습니다.');
+        return;
+      }
+
+      if (window.Kakao && !window.Kakao.isInitialized()) {
+        try {
+          window.Kakao.init(appKey);
+          console.log('카카오 SDK 초기화 성공');
+        } catch (error) {
+          console.error('카카오 초기화 실패:', error);
+        }
+      }
+    };
+
+    // 스크립트 로드 상태 확인
+    if (typeof window !== 'undefined') {
+      if (window.Kakao) {
+        initializeKakao();
+      } else {
+        // SDK가 아직 로드되지 않은 경우 이벤트 리스너 추가
+        const script = document.querySelector('script[src*="kakao.min.js"]');
+        if (script) {
+          script.addEventListener('load', initializeKakao);
+        }
+      }
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
@@ -74,6 +114,12 @@ export default function App({ Component, pageProps }: AppProps) {
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4694803443368514"
             crossOrigin="anonymous"
           />
+          <script
+            async
+            src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+            crossOrigin="anonymous"
+          />
+
           <title>배드민턴 클럽</title>
         </Head>
 

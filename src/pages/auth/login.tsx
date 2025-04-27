@@ -2,12 +2,46 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 
 import { getKakaoCallbackUrl } from '@/constants/urls';
+import kakaoLoginLargeWideIcon from '@/icon/kakao_login_large_wide.png';
+import '@/types/kakao.types';
 
 export default function LoginPage() {
   const router = useRouter();
   const { returnUrl } = router.query;
 
-  const handleKakaoLogin = () => {
+  const onClickKakaoAppLogin = () => {
+    // NEXT_PUBLIC_ 접두사를 가진 환경 변수 사용
+    const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+
+    if (!appKey) {
+      console.error('카카오 자바스크립트 키가 제공되지 않았습니다.');
+      return;
+    }
+
+    try {
+      if (typeof window !== 'undefined') {
+        window.Kakao.init(appKey);
+      }
+    } catch (error) {
+      console.error('카카오 초기화 실패:', error);
+    }
+
+    const currentHost = window.location.host;
+    const redirectUri = getKakaoCallbackUrl(currentHost);
+    const state = returnUrl ? returnUrl.toString() : '/clubs';
+    try {
+      if (typeof window !== 'undefined' && window.Kakao) {
+        window.Kakao.Auth.authorize({
+          redirectUri,
+          state: encodeURIComponent(state),
+        });
+      }
+    } catch (error) {
+      console.error('카카오 로그인 실패:', error);
+    }
+  };
+
+  const onClickKakaoAccountLogin = () => {
     const currentHost = window.location.host;
     const redirectUri = getKakaoCallbackUrl(currentHost);
     const state = returnUrl ? returnUrl.toString() : '/clubs';
@@ -29,11 +63,18 @@ export default function LoginPage() {
 
         <div className="space-y-4">
           <button
-            onClick={handleKakaoLogin}
+            onClick={onClickKakaoAppLogin}
+            className="w-full flex items-center justify-center gap-2 "
+          >
+            <Image src={kakaoLoginLargeWideIcon} alt="Kakao Logo" />
+          </button>
+
+          <button
+            onClick={onClickKakaoAccountLogin}
             className="w-full flex items-center justify-center gap-2 bg-[#FEE500] text-[#000000] py-3 rounded-lg hover:bg-[#FDD835] transition-colors"
           >
             <Image src="/kakao.svg" alt="Kakao Logo" width={20} height={20} />
-            카카오톡으로 계속하기
+            카카오 계정으로 계속하기
           </button>
 
           {/* 추후 다른 소셜 로그인 버튼 추가 */}

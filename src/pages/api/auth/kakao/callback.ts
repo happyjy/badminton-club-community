@@ -24,6 +24,9 @@ export default async function handler(
     });
   }
 
+  console.log(`🚨 ~ code:`, code);
+  console.log(`🚨 ~ redirect_uri:`, getKakaoCallbackUrl(req.headers.host));
+
   try {
     // 1. 액세스 토큰 받기
     const tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
@@ -38,6 +41,7 @@ export default async function handler(
         code: code.toString(),
       }),
     });
+    console.log(`🚨 ~ tokenResponse:`, tokenResponse);
 
     const tokenData = await tokenResponse.json();
     // 2. 사용자 정보 가져오기
@@ -47,8 +51,9 @@ export default async function handler(
       },
     });
 
+    console.log(`🚨 ~ userResponse:`, userResponse);
     const userData = await userResponse.json();
-    // console.log('카카오 사용자 정보:', userData);
+    console.log('카카오 사용자 정보:', userData);
     // console.log('nickname', userData.kakao_account.profile.nickname);
     // console.log(
     //   'thumbnail_image_url',
