@@ -9,6 +9,9 @@ import { formatDateSimple } from '@/lib/utils';
 
 type GuestRequest = {
   id: string;
+  clubMember: {
+    name?: string;
+  };
   name: string;
   phoneNumber: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -209,17 +212,22 @@ export default function GuestCheckPage() {
               {/* todo: th에 반복되는 className 처리 */}
               {/* todo: 테이블 컴포넌트 형식으로 변경하기 */}
               <tr>
-                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   방문희망일
                 </th>
-                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  신청자 정보
+                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  작성자
+                </th>
+                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  게스트 정보
                   <br />
                   <label className="text-xs font-normal whitespace-nowrap text-gray-500">
-                    가입의향|이름|생년월일|전국/구대회
+                    가입의향|이름|생년월일
+                    <br />
+                    |전국/구대회
                   </label>
                 </th>
-                <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   상태
                 </th>
               </tr>
@@ -231,10 +239,13 @@ export default function GuestCheckPage() {
                   onClick={() => handleRowClick(guest.id)}
                   className="hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  <td className="px-1 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
+                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
                     {guest.visitDate ? formatDateSimple(guest.visitDate) : '-'}
                   </td>
-                  <td className="px-1 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500">
+                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 text-xs sm:text-sm text-gray-500">
+                    {guest.clubMember?.name || '-'}
+                  </td>
+                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 text-xs sm:text-sm text-gray-500">
                     <div className="flex flex-col">
                       <div className="flex flex-wrap items-center gap-1">
                         <input
@@ -258,7 +269,7 @@ export default function GuestCheckPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-1 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap">
                     <span
                       className={`px-1 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
                         guest.status

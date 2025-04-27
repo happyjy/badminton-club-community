@@ -16,7 +16,6 @@ export const useClubJoinForm = (
     if (initialValues) {
       return {
         ...createInitialFormData({
-          name: user?.nickname || '',
           isGuestApplication,
         }),
         ...initialValues,
@@ -24,7 +23,6 @@ export const useClubJoinForm = (
     }
     // 없으면 기본값 사용
     return createInitialFormData({
-      name: user?.nickname || '',
       isGuestApplication,
     });
   });
@@ -51,7 +49,6 @@ export const useClubJoinForm = (
     if (user?.nickname && !initialValues?.name) {
       setFormData((prev) => ({
         ...prev,
-        name: user.nickname,
       }));
     }
   }, [user?.nickname, initialValues?.name]);
@@ -60,7 +57,6 @@ export const useClubJoinForm = (
   const initialFormData = () => {
     setFormData(() =>
       createInitialFormData({
-        name: user?.nickname || '',
         isGuestApplication,
       })
     );

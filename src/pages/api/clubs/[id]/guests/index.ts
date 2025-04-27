@@ -46,6 +46,9 @@ export default async function handler(
         orderBy: {
           createdAt: 'desc',
         },
+        include: {
+          clubMember: true, // createdBy 관계를 통해 작성자 정보 포함
+        },
         skip,
         take: limit,
       }),

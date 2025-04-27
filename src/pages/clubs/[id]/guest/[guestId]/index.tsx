@@ -46,6 +46,10 @@ interface GuestDetailPageProps extends AuthProps {
     message: string;
     createdAt: string;
     userId: number;
+    createdBy: number | null;
+    author?: {
+      name: string | null;
+    } | null;
   };
 }
 
@@ -66,6 +70,10 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // 게스트 수정 모달 상태 관리
   const [isDeleting, setIsDeleting] = useState(false); // 삭제 중인지 여부를 관리
   const [status, setStatus] = useState(guestPost.status); // 게스트 상태를 로컬 상태로 관리하여 optimistic update 구현
+
+  // # 검사 상세에 필요한 데이터 두가지
+  // 1. 게스트 신청 상세 내용: 게스트 신청 상세 내용은 서버 사이드(getServerSideProps)에서 불러오기
+  // 2. 게스트 신청 댓글 목록: 게스트 신청 댓글 목록은 클라이언트(axios) 사이드에서 불러오기
 
   // 댓글 목록 불러오기
   const fetchComments = useCallback(
@@ -366,6 +374,13 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           </div>
         </div>
         <div className="space-y-4">
+          {/* 작성자 */}
+          <InfoSection title="작성자">
+            <InfoItem label="이름">
+              {guestPost.author?.name || '미지정'}
+            </InfoItem>
+          </InfoSection>
+
           {/* 기본 정보 섹션 */}
           <InfoSection title="기본 정보">
             <InfoItem label="이름">{guestPost.name}</InfoItem>
@@ -505,6 +520,13 @@ export const getServerSideProps = async (context: any) => {
       where: {
         id: guestId,
       },
+      include: {
+        clubMember: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
     if (!guestPost) {
       return {
@@ -514,7 +536,12 @@ export const getServerSideProps = async (context: any) => {
 
     return {
       props: {
-        guestPost: JSON.parse(JSON.stringify(guestPost)),
+        guestPost: JSON.parse(
+          JSON.stringify({
+            ...guestPost,
+            author: guestPost.clubMember,
+          })
+        ),
       },
     };
   } catch (error) {

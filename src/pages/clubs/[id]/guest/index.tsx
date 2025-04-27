@@ -152,7 +152,7 @@ function GuestPage({ user }: AuthProps) {
 
         <button
           onClick={onClickOpenModal}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+          className="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
         >
           게스트 신청하기
         </button>
@@ -168,14 +168,17 @@ function GuestPage({ user }: AuthProps) {
               <table className="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
+                    <th className="px-1 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
                       신청일
                     </th>
-                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
+                    <th className="px-1 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[22%]">
                       방문희망일
                     </th>
-                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[36%]">
+                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[16%] whitespace-nowrap">
                       가입의향
+                    </th>
+                    <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%] whitespace-nowrap">
+                      게스트 <br /> 이름
                     </th>
                     <th className="px-2 py-2 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">
                       상태
@@ -189,13 +192,15 @@ function GuestPage({ user }: AuthProps) {
                       onClick={() => onClickGuestDetail(application.id)}
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
                     >
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
+                      <td className="px-1 py-1 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
                         {formatDateSimple(application.createdAt)}
                       </td>
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
-                        {application.visitDate || '-'}
+                      <td className="px-1 py-1 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
+                        {application.visitDate
+                          ? formatDateSimple(application.visitDate)
+                          : '-'}
                       </td>
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500 truncate">
+                      <td className="px-1 py-1 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500 truncate">
                         <div className="flex items-center">
                           <input
                             type="checkbox"
@@ -205,9 +210,12 @@ function GuestPage({ user }: AuthProps) {
                           />
                         </div>
                       </td>
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+                      <td className="px-1 py-1 sm:px-4 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
+                        {application.name || '-'}
+                      </td>
+                      <td className="px-1 py-1 sm:px-4 sm:py-3 whitespace-nowrap">
                         <span
-                          className={`px-1 py-0.5 sm:px-2 sm:py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(application.status)}`}
+                          className={`px-1 py-0.5 sm:px-1 sm:py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(application.status)}`}
                         >
                           {getStatusText(application.status)}
                         </span>

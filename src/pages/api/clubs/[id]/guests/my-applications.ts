@@ -30,16 +30,12 @@ export default async function handler(
         clubId: Number(clubId),
         userId: userId,
       },
+      include: {
+        clubMember: true, // createdBy 관계를 통해 작성자 정보 포함
+      },
       orderBy: {
         createdAt: 'desc',
       },
-      // select: {
-      //   id: true,
-      //   createdAt: true,
-      //   status: true,
-      //   visitDate: true,
-      //   purpose: true,
-      // },
     });
 
     // 일반 JSON 응답 형식으로 반환
