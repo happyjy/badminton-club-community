@@ -24,8 +24,8 @@ export default async function handler(
     });
   }
 
-  console.log(`🚨 ~ code:`, code);
-  console.log(`🚨 ~ redirect_uri:`, getKakaoCallbackUrl(req.headers.host));
+  // console.log(`🚨 ~ code:`, code);
+  // console.log(`🚨 ~ redirect_uri:`, getKakaoCallbackUrl(req.headers.host));
 
   try {
     // 1. 액세스 토큰 받기
@@ -51,9 +51,9 @@ export default async function handler(
       },
     });
 
-    console.log(`🚨 ~ userResponse:`, userResponse);
+    // console.log(`🚨 ~ userResponse:`, userResponse);
     const userData = await userResponse.json();
-    console.log('카카오 사용자 정보:', userData);
+    // console.log('카카오 사용자 정보:', userData);
     // console.log('nickname', userData.kakao_account.profile.nickname);
     // console.log(
     //   'thumbnail_image_url',
@@ -83,7 +83,7 @@ export default async function handler(
         },
       });
 
-      console.log('사용자 정보 저장 완료:', user);
+      // console.log('사용자 정보 저장 완료:', user);
 
       // JWT 토큰 생성
       const token = sign({ userId: user.id }, JWT_SECRET, {
