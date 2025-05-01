@@ -18,6 +18,8 @@ export function WorkoutListItem({
 
   // 현재 참여 인원 수 계산
   const currentParticipants = workout.WorkoutParticipant.length;
+  // 게스트 인원 수
+  const guestCount = workout.guestCount || 0;
 
   // 워크아웃 상세 페이지로 이동하는 핸들러
   const onClickWorkoutClick = () => {
@@ -42,7 +44,10 @@ export function WorkoutListItem({
             {formatToKoreanTime(workout.endTime)}
           </p>
           <p>📍 장소: {workout.location}</p>
-          <p>👥 참여 인원: {currentParticipants}명</p>
+          <p>
+            👥 참여 인원: {currentParticipants}명
+            {guestCount > 0 && ` + 게스트 ${guestCount}명`}
+          </p>
           {/* <p>
             👥 참여 인원: {currentParticipants}/{workout.maxParticipants}명
             {currentParticipants >= workout.maxParticipants && (

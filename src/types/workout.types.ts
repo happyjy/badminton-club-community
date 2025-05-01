@@ -29,6 +29,13 @@ interface ClubMember {
   user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
 }
 
+export interface Guest {
+  id: string;
+  name: string;
+  userId: number;
+  user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
+}
+
 export interface Workout extends BaseEntity {
   title: string;
   description: string;
@@ -38,6 +45,8 @@ export interface Workout extends BaseEntity {
   maxParticipants: number;
   location: string;
   WorkoutParticipant: WorkoutParticipant[];
+  guests?: Guest[];
+  guestCount?: number;
 }
 
 export interface WorkoutParticipant {

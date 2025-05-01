@@ -9,7 +9,7 @@ import broomStickIcon from '@/icon/broomStick.svg';
 import keyIcon from '@/icon/key.svg';
 import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
-import { Workout } from '@/types';
+import { Workout, Guest } from '@/types';
 import { formatToKoreanTime } from '@/utils';
 
 // 선택된 아이콘 타입 정의
@@ -34,6 +34,7 @@ interface WorkoutParticipant {
 
 // CircleMenu 컴포넌트 수정
 // todo: jyoon - CircleMenu 재활용 할 수 있게 수정하기(작성-25.03.04)
+// todo: jyoon - 해당 컴포넌트 ui관련 폴더로 이동할 필요 있음
 const CircleMenu = ({
   isOpen,
   onClose,
@@ -169,6 +170,7 @@ const CircleMenu = ({
   );
 };
 
+// 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
   const router = useRouter();
   const { /* id: clubId, */ workoutId } = router.query;
@@ -326,8 +328,46 @@ function ClubWorkoutDetailPage() {
           <div className="flex items-center space-x-2">
             <span className="text-gray-500">👥</span>
             <span>{workout.WorkoutParticipant.length}명</span>
+            {workout.guests && workout.guests.length > 0 && (
+              <span className="text-blue-500 ml-1">
+                + 게스트 {workout.guests.length}명
+              </span>
+            )}
           </div>
         </div>
+
+        {/* 게스트 목록 */}
+        {workout.guests && workout.guests.length > 0 && (
+          <div className="mb-6 border-t pt-4">
+            <h2 className="text-lg font-semibold mb-3">방문 게스트</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {workout.guests.map((guest: Guest) => (
+                <div
+                  key={guest.id}
+                  className="flex items-center space-x-3 p-3 border rounded-lg bg-blue-50"
+                >
+                  {guest.user.thumbnailImageUrl && (
+                    <Image
+                      src={guest.user.thumbnailImageUrl}
+                      alt={guest.name || guest.user.nickname}
+                      width={40}
+                      height={40}
+                      className="rounded-full"
+                    />
+                  )}
+                  <div>
+                    <span className="font-medium">
+                      {guest.name || guest.user.nickname}
+                    </span>
+                    <span className="text-xs text-blue-600 ml-2 px-2 py-0.5 bg-blue-100 rounded-full">
+                      게스트
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="border-t pt-6">
           <h2 className="text-xl font-semibold mb-4">참여자 목록</h2>

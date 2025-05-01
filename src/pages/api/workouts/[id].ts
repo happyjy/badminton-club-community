@@ -4,6 +4,7 @@ import { Workout, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+// 운동 상세 정보 api
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'workout', Workout>>
@@ -63,12 +64,38 @@ export default async function handler(
       });
     }
 
+    // 운동 날짜 형식 변환 (YYYY-MM-DD 형식으로)
+    const workoutDate = new Date(workout.date).toISOString().split('T')[0];
+
+    // 방문 희망일이 운동 날짜와 일치하는 승인된 게스트 목록 가져오기
+    const guests = await prisma.guestPost.findMany({
+      where: {
+        clubId: workout.clubId || undefined, // review: jyoon - 없어도 되지 않나?
+        status: 'APPROVED',
+        visitDate: workoutDate,
+      },
+      select: {
+        id: true,
+        name: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            thumbnailImageUrl: true,
+          },
+        },
+      },
+    });
+
     const formattedWorkout = {
       ...workout,
       WorkoutParticipant: workout.WorkoutParticipant.map((participant) => ({
         ...participant,
         clubMember: participant.clubMember || undefined,
       })),
+      guests,
+      guestCount: guests.length,
     };
 
     return res.status(200).json({
