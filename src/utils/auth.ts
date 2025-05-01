@@ -12,7 +12,7 @@ export const redirectToLogin = (router: NextRouter) => {
 
   const currentHost = window.location.host;
   const redirectUri = getKakaoCallbackUrl(currentHost);
-  const { returnUrl } = router.query;
+  const returnUrl = router.asPath;
   const state = returnUrl ? returnUrl.toString() : '/clubs';
 
   try {
