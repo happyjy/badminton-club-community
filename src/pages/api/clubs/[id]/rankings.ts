@@ -34,6 +34,7 @@ export default async function handler(
 
   try {
     // 현재 달의 시작과 끝 날짜 계산
+    // const { startOfMonth, endOfMonth } = getMonthRange(new Date('2025-04-01'));
     const { startOfMonth, endOfMonth } = getMonthRange();
 
     // 1. 현재 달에 해당 클럽의 운동 목록 조회

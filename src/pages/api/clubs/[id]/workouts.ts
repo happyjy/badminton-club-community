@@ -75,6 +75,10 @@ export default async function handler(
             id: true,
             name: true,
             userId: true,
+            gender: true,
+            birthDate: true,
+            localTournamentLevel: true,
+            nationalTournamentLevel: true,
             user: {
               select: {
                 id: true,

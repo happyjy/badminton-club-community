@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Provider } from 'react-redux';
 
-import Layout from '@/components/templates/Layout';
+import { Layout } from '@/components/templates/Layout';
 import { store } from '@/store';
 import '@/types/kakao.types';
 // import setupLocatorUI from '@locator/runtime';

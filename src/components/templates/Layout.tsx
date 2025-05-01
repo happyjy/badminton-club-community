@@ -21,7 +21,7 @@ interface AuthData {
   user: User | null;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
   const dispatch = useDispatch();
   const router = useRouter();
   const { id: clubId } = router.query;
@@ -98,3 +98,5 @@ export default function Layout({ children }: LayoutProps) {
     </>
   );
 }
+
+export default Layout;

@@ -33,6 +33,10 @@ export interface Guest {
   id: string;
   name: string;
   userId: number;
+  gender?: string;
+  birthDate?: string;
+  localTournamentLevel?: string;
+  nationalTournamentLevel?: string;
   user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
 }
 

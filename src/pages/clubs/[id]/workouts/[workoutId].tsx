@@ -170,6 +170,56 @@ const CircleMenu = ({
   );
 };
 
+// 게스트 아바타 컴포넌트
+const GuestAvatar = ({ guest }: { guest: Guest }) => {
+  // 게스트의 이니셜 가져오기
+  const getInitials = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : 'G';
+  };
+
+  // 고유한 배경색 생성 (게스트 ID 기반)
+  const getBgColor = (id: string) => {
+    const colors = [
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-indigo-500',
+      'bg-blue-500',
+      'bg-teal-500',
+      'bg-green-500',
+      'bg-yellow-500',
+      'bg-orange-500',
+    ];
+
+    // ID의 각 문자 코드 합계로 색상 결정
+    const sum = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[sum % colors.length];
+  };
+
+  return (
+    <div
+      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${getBgColor(guest.id)}`}
+    >
+      {getInitials(guest.name || guest.user.nickname)}
+    </div>
+  );
+};
+
+// 연령대 계산 함수
+const calculateAgeGroup = (birthDate?: string) => {
+  if (!birthDate) return '정보없음';
+
+  try {
+    const year = parseInt(birthDate.split('-')[0]);
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - year;
+
+    const ageGroup = Math.floor(age / 10) * 10;
+    return `${ageGroup}대`;
+  } catch {
+    return '정보없음';
+  }
+};
+
 // 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
   const router = useRouter();
@@ -311,9 +361,9 @@ function ClubWorkoutDetailPage() {
 
   return (
     <div>
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-3 mb-3">
         <h1 className="text-2xl font-bold mb-4">{workout.title}</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-1 mb-3">
           <div className="flex items-center space-x-2">
             <span className="text-gray-500">📅</span>
             <span>{new Date(workout.date).toLocaleDateString('ko-KR')}</span>
@@ -338,30 +388,46 @@ function ClubWorkoutDetailPage() {
 
         {/* 게스트 목록 */}
         {workout.guests && workout.guests.length > 0 && (
-          <div className="mb-6 border-t pt-4">
-            <h2 className="text-lg font-semibold mb-3">방문 게스트</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="mb-6 border-t pt-6">
+            <h2 className="text-xl font-semibold mb-4">방문 게스트</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {workout.guests.map((guest: Guest) => (
                 <div
                   key={guest.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg bg-blue-50"
+                  className="flex items-center space-x-3 p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
                 >
-                  {guest.user.thumbnailImageUrl && (
-                    <Image
-                      src={guest.user.thumbnailImageUrl}
-                      alt={guest.name || guest.user.nickname}
-                      width={40}
-                      height={40}
-                      className="rounded-full"
-                    />
-                  )}
-                  <div>
-                    <span className="font-medium">
+                  <GuestAvatar guest={guest} />
+                  <div className="flex-1">
+                    <div className="font-medium flex items-center">
                       {guest.name || guest.user.nickname}
-                    </span>
-                    <span className="text-xs text-blue-600 ml-2 px-2 py-0.5 bg-blue-100 rounded-full">
-                      게스트
-                    </span>
+                      <span className="text-xs bg-blue-600 text-white rounded-full px-2 py-0.5 ml-2">
+                        게스트
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1 space-x-2">
+                      {guest.gender && (
+                        <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
+                          {guest.gender === 'MALE'
+                            ? '남성'
+                            : guest.gender === 'FEMALE'
+                              ? '여성'
+                              : guest.gender}
+                        </span>
+                      )}
+                      {guest.birthDate && (
+                        <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
+                          {calculateAgeGroup(guest.birthDate)}
+                        </span>
+                      )}
+                      {(guest.localTournamentLevel ||
+                        guest.nationalTournamentLevel) && (
+                        <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
+                          {guest.nationalTournamentLevel ||
+                            guest.localTournamentLevel}
+                          조
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -381,7 +447,7 @@ function ClubWorkoutDetailPage() {
                 return (
                   <div
                     key={participant.User.id}
-                    className="relative flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="relative flex items-center space-x-2 px-2 py-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       setSelectedParticipant(
                         selectedParticipant === participant.User.id
