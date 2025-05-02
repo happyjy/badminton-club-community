@@ -6,7 +6,9 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 
 import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
-import RankingTable, { RankingMember } from '@/components/RankingTable';
+import RankingTable, {
+  RankingMember,
+} from '@/components/molecules/RankingTable';
 import { withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
 import { ClubJoinFormData, ClubDetailPageProps } from '@/types';

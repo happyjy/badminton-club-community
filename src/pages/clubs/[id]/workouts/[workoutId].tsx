@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
+import GuestAvatar from '@/components/atoms/GuestAvatar';
+import CircleMenu, { SelectedIcon } from '@/components/molecules/CircleMenu';
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
@@ -11,9 +13,8 @@ import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
 import { Workout, Guest } from '@/types';
 import { formatToKoreanTime } from '@/utils';
+import { calculateAgeGroup } from '@/utils/age';
 
-// 선택된 아이콘 타입 정의
-type SelectedIcon = 'net' | 'broomStick' | 'shuttlecock' | 'key' | 'mop';
 type ParticipantIcons = Record<string, SelectedIcon[]>;
 
 // 참여자 타입 정의
@@ -31,194 +32,6 @@ interface WorkoutParticipant {
     }[];
   };
 }
-
-// CircleMenu 컴포넌트 수정
-// todo: jyoon - CircleMenu 재활용 할 수 있게 수정하기(작성-25.03.04)
-// todo: jyoon - 해당 컴포넌트 ui관련 폴더로 이동할 필요 있음
-const CircleMenu = ({
-  isOpen,
-  onClose,
-  onIconSelect,
-  selectedIcons,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onIconSelect: (icon: SelectedIcon) => void;
-  selectedIcons: SelectedIcon[];
-}) => {
-  const handleIconClick = (icon: SelectedIcon) => {
-    onIconSelect(icon);
-    onClose();
-  };
-
-  return (
-    <div className="relative">
-      <div
-        className={`fixed inset-0 ${isOpen ? 'block' : 'hidden'}`}
-        onClick={onClose}
-      />
-      <div className="absolute -top-2 -right-2">
-        <div className="relative">
-          <div
-            className={`absolute transform transition-all duration-300 ease-in-out z-50
-              ${isOpen ? 'translate-y-[-50px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
-          >
-            <button
-              className={`w-12 h-12 rounded-full ${
-                selectedIcons.includes('net')
-                  ? 'bg-blue-100 hover:bg-blue-200'
-                  : 'bg-gray-100 hover:bg-gray-200'
-              } flex items-center justify-center shadow-lg`}
-              onClick={() => handleIconClick('net')}
-            >
-              <Image
-                src={badmintonNetIcon}
-                alt="badminton net"
-                width={30}
-                height={30}
-                className="w-7 h-7"
-              />
-            </button>
-          </div>
-          <div
-            className={`absolute transform transition-all duration-300 ease-in-out z-50
-              ${isOpen ? 'translate-x-[47px] translate-y-[-15px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
-          >
-            <button
-              className={`w-12 h-12 rounded-full ${
-                selectedIcons.includes('broomStick')
-                  ? 'bg-blue-100 hover:bg-blue-200'
-                  : 'bg-gray-100 hover:bg-gray-200'
-              } flex items-center justify-center shadow-lg`}
-              onClick={() => handleIconClick('broomStick')}
-            >
-              <Image
-                src={broomStickIcon}
-                alt="broom stick"
-                width={30}
-                height={30}
-                className="w-7 h-7"
-              />
-            </button>
-          </div>
-          <div
-            className={`absolute transform transition-all duration-300 ease-in-out z-50
-              ${isOpen ? 'translate-x-[29px] translate-y-[40px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
-          >
-            <button
-              className={`w-12 h-12 rounded-full ${
-                selectedIcons.includes('shuttlecock')
-                  ? 'bg-blue-100 hover:bg-blue-200'
-                  : 'bg-gray-100 hover:bg-gray-200'
-              } flex items-center justify-center shadow-lg`}
-              onClick={() => handleIconClick('shuttlecock')}
-            >
-              <Image
-                src={badmintonShuttleCockIcon}
-                alt="shuttlecock"
-                width={30}
-                height={30}
-                className="w-7 h-7"
-              />
-            </button>
-          </div>
-          <div
-            className={`absolute transform transition-all duration-300 ease-in-out z-50
-              ${isOpen ? 'translate-x-[-29px] translate-y-[40px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
-          >
-            <button
-              className={`w-12 h-12 rounded-full ${
-                selectedIcons.includes('key')
-                  ? 'bg-blue-100 hover:bg-blue-200'
-                  : 'bg-gray-100 hover:bg-gray-200'
-              } flex items-center justify-center shadow-lg`}
-              onClick={() => handleIconClick('key')}
-            >
-              <Image
-                src={keyIcon}
-                alt="key"
-                width={30}
-                height={30}
-                className="w-7 h-7"
-              />
-            </button>
-          </div>
-          <div
-            className={`absolute transform transition-all duration-300 ease-in-out z-50
-              ${isOpen ? 'translate-x-[-47px] translate-y-[-15px]' : 'translate-y-0 translate-x-0 opacity-0 pointer-events-none'}`}
-          >
-            <button
-              className={`w-12 h-12 rounded-full ${
-                selectedIcons.includes('mop')
-                  ? 'bg-blue-100 hover:bg-blue-200'
-                  : 'bg-gray-100 hover:bg-gray-200'
-              } flex items-center justify-center shadow-lg`}
-              onClick={() => handleIconClick('mop')}
-            >
-              <Image
-                src={mopIcon}
-                alt="mop"
-                width={30}
-                height={30}
-                className="w-7 h-7"
-              />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// 게스트 아바타 컴포넌트
-const GuestAvatar = ({ guest }: { guest: Guest }) => {
-  // 게스트의 이니셜 가져오기
-  const getInitials = (name: string) => {
-    return name ? name.charAt(0).toUpperCase() : 'G';
-  };
-
-  // 고유한 배경색 생성 (게스트 ID 기반)
-  const getBgColor = (id: string) => {
-    const colors = [
-      'bg-purple-500',
-      'bg-pink-500',
-      'bg-indigo-500',
-      'bg-blue-500',
-      'bg-teal-500',
-      'bg-green-500',
-      'bg-yellow-500',
-      'bg-orange-500',
-    ];
-
-    // ID의 각 문자 코드 합계로 색상 결정
-    const sum = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[sum % colors.length];
-  };
-
-  return (
-    <div
-      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${getBgColor(guest.id)}`}
-    >
-      {getInitials(guest.name || guest.user.nickname)}
-    </div>
-  );
-};
-
-// 연령대 계산 함수
-const calculateAgeGroup = (birthDate?: string) => {
-  if (!birthDate) return '정보없음';
-
-  try {
-    const year = parseInt(birthDate.split('-')[0]);
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - year;
-
-    const ageGroup = Math.floor(age / 10) * 10;
-    return `${ageGroup}대`;
-  } catch {
-    return '정보없음';
-  }
-};
 
 // 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
