@@ -361,8 +361,9 @@ function ClubWorkoutDetailPage() {
 
   return (
     <div>
-      <div className="bg-white rounded-lg shadow-md p-3 mb-3">
-        <h1 className="text-2xl font-bold mb-4">{workout.title}</h1>
+      {/* todo: jyoon - 메뉴별로 공통된 헤더 컴포넌트 사용 하는 것 공통 컴포넌트로 리팩토링 */}
+      <div className="bg-white rounded-lg shadow p-3 mb-3 sm:p-6">
+        <h1 className="text-2xl font-bold mb-1 sm:mb-4s">{workout.title}</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-1 mb-3">
           <div className="flex items-center space-x-2">
             <span className="text-gray-500">📅</span>
@@ -388,8 +389,8 @@ function ClubWorkoutDetailPage() {
 
         {/* 게스트 목록 */}
         {workout.guests && workout.guests.length > 0 && (
-          <div className="mb-6 border-t pt-6">
-            <h2 className="text-xl font-semibold mb-4">방문 게스트</h2>
+          <div className="mb-2 pt-2 sm:mb-6 sm:pt-6 border-t ">
+            <h2 className="mb-2 sm:mb-4 text-xl font-semibold ">방문 게스트</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {workout.guests.map((guest: Guest) => (
                 <div
@@ -400,9 +401,6 @@ function ClubWorkoutDetailPage() {
                   <div className="flex-1">
                     <div className="font-medium flex items-center">
                       {guest.name || guest.user.nickname}
-                      <span className="text-xs bg-blue-600 text-white rounded-full px-2 py-0.5 ml-2">
-                        게스트
-                      </span>
                     </div>
                     <div className="text-xs text-gray-600 mt-1 space-x-2">
                       {guest.gender && (
@@ -436,8 +434,8 @@ function ClubWorkoutDetailPage() {
         )}
 
         <div className="border-t pt-6">
-          <h2 className="text-xl font-semibold mb-4">참여자 목록</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h2 className="mb-2 sm:mb-4 text-xl font-semibold">참여자 목록</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-4">
             {workout.WorkoutParticipant.map(
               (participant: WorkoutParticipant) => {
                 if (!participant.clubMember) {
@@ -456,19 +454,23 @@ function ClubWorkoutDetailPage() {
                       );
                     }}
                   >
-                    {participant.User.thumbnailImageUrl && (
+                    {participant.User.thumbnailImageUrl ? (
                       <Image
                         src={participant.User.thumbnailImageUrl}
                         alt={participant.User.nickname}
                         width={40}
                         height={40}
-                        className="rounded-full"
+                        className="w-10 h-10 rounded-full "
                       />
+                    ) : (
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200">
+                        {participant.User.nickname.charAt(0)}
+                      </div>
                     )}
-                    <span className="font-medium">
+                    <span className="font-medium ml-2 truncate">
                       {participant.User.nickname}
                     </span>
-                    <div className="flex space-x-1 ml-2">
+                    <div className="flex space-x-1">
                       {(participantIcons[participant.User.id] ?? []).map(
                         (iconType, index) => {
                           return (
@@ -486,9 +488,9 @@ function ClubWorkoutDetailPage() {
                                         : mopIcon
                               }
                               alt="status icon"
-                              width={20}
-                              height={20}
-                              className="w-5 h-5"
+                              width={16}
+                              height={16}
+                              className="w-4 h-4"
                             />
                           );
                         }

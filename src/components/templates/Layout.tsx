@@ -78,14 +78,14 @@ export function Layout({ children }: LayoutProps) {
   return (
     <>
       <MainNavigation />
-      <main className="max-w-4xl mx-auto px-4">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {isClubRoute && clubId && (
-          <div className="py-3">
+          <div className="py-1 sm:py-3">
             <ClubNavigation clubId={clubId as string} />
-            <div className="mt-6">
+            <div className="mt-3 sm:mt-6">
               {isLoading ? (
-                <div className="flex justify-center items-center py-10">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+                <div className="flex justify-center items-center py-8 sm:py-10">
+                  <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-b-2 border-gray-900" />
                 </div>
               ) : (
                 children

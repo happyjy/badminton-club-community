@@ -189,7 +189,7 @@ export default function GuestCheckPage() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-3 sm:p-6">
       <h1 className="text-2xl font-bold mb-6">게스트 신청 목록</h1>
 
       <div className="mb-4">

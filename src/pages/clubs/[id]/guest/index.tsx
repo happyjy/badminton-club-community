@@ -138,7 +138,7 @@ function GuestPage({ user }: AuthProps) {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-3 sm:p-6">
         <h1 className="text-2xl font-bold mb-4">게스트 신청</h1>
         <p className="text-gray-600 mb-6">
           이 클럽에 게스트로 참여하고 싶으시면 아래 버튼을 클릭하여 신청서를
