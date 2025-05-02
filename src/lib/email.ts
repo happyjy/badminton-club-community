@@ -30,7 +30,7 @@ export async function sendGuestApplicationEmail(
   const mailOptions = {
     from: `"배드민턴 클럽 커뮤니티" <${fromEmail}>`,
     // todo: DB로 관리할 필요 있음
-    to: 'okwoyjy@gmail.com, Jongin.oh@gmail.com',
+    to: 'okwoyjy@gmail.com, Jongin.oh@gmail.com, sm831217@gmail.comv',
     subject: `배드민턴 클럽 게스트 신청: ${application.name}님`,
     // 확실히 스레드가 끊어지도록 하기 위한 추가 헤더
     headers: {
