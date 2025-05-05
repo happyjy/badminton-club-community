@@ -4,41 +4,14 @@ import { useRouter } from 'next/router';
 import { getKakaoCallbackUrl } from '@/constants/urls';
 import kakaoLoginLargeWideIcon from '@/icon/kakao_login_large_wide.png';
 import '@/types/kakao.types';
+import { KakaoAuth } from '@/utils/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const { returnUrl } = router.query;
 
   const onClickKakaoAppLogin = () => {
-    // NEXT_PUBLIC_ 접두사를 가진 환경 변수 사용
-    const appKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-
-    if (!appKey) {
-      console.error('카카오 자바스크립트 키가 제공되지 않았습니다.');
-      return;
-    }
-
-    try {
-      if (typeof window !== 'undefined') {
-        window.Kakao.init(appKey);
-      }
-    } catch (error) {
-      console.error('카카오 초기화 실패:', error);
-    }
-
-    const currentHost = window.location.host;
-    const redirectUri = getKakaoCallbackUrl(currentHost);
-    const state = returnUrl ? returnUrl.toString() : '/clubs';
-    try {
-      if (typeof window !== 'undefined' && window.Kakao) {
-        window.Kakao.Auth.authorize({
-          redirectUri,
-          state: encodeURIComponent(state),
-        });
-      }
-    } catch (error) {
-      console.error('카카오 로그인 실패:', error);
-    }
+    KakaoAuth.login(router);
   };
 
   const onClickKakaoAccountLogin = () => {

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { RootState } from '@/store';
 import { logout } from '@/store/features/authSlice';
-import { redirectToLogin } from '@/utils/auth';
+import { KakaoAuth } from '@/utils/auth';
 
 interface SideMenuProps {
   isMenuOpen: boolean;
@@ -25,7 +25,7 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
 
   const onClickLogin = () => {
     setIsMenuOpen(false);
-    redirectToLogin(router);
+    KakaoAuth.login(router);
     // router.push('/auth/login');
   };
 

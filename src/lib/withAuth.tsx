@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 
 import { RootState } from '@/store';
 import { ClubMember, User } from '@/types';
-import { redirectToLogin } from '@/utils/auth';
+import { KakaoAuth } from '@/utils/auth';
 
 interface WithAuthOptions {
   requireAuth?: boolean;
@@ -30,7 +30,7 @@ export function withAuth<P extends AuthProps>(
     const isAuthenticated = !!user;
 
     if (!isAuthenticated && options.requireAuth) {
-      redirectToLogin(router);
+      KakaoAuth.login(router);
       return null;
     }
 

@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import { User, ClubJoinFormData, MembershipStatus } from '@/types';
-import { redirectToLogin } from '@/utils/auth';
+import { KakaoAuth } from '@/utils/auth';
 
 interface JoinClubButtonProps {
   user: User;
@@ -28,7 +28,7 @@ export const JoinClubButton = ({
 
   // 이벤트 핸들러 함수들을 명시적으로 선언
   const onClickLogin = () => {
-    redirectToLogin(router);
+    KakaoAuth.login(router);
   };
 
   const onClickJoinButton = () => {
