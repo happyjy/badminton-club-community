@@ -65,7 +65,8 @@ function ClubWorkoutDetailPage() {
         result.data.workout.WorkoutParticipant.forEach(
           (participant: WorkoutParticipant) => {
             if (participant.clubMember?.helperStatuses) {
-              const userIcons = participant.clubMember.helperStatuses
+              // helperStatuses에 따른 아이콘 설정
+              const helperStatuses = participant.clubMember.helperStatuses
                 .filter((status) => status.helped)
                 .map((status) => {
                   switch (status.helperType) {
@@ -85,8 +86,8 @@ function ClubWorkoutDetailPage() {
                 })
                 .filter((icon): icon is SelectedIcon => icon !== null);
 
-              if (userIcons.length > 0) {
-                initialIcons[participant.User.id] = userIcons;
+              if (helperStatuses.length > 0) {
+                initialIcons[participant.User.id] = helperStatuses;
               }
             }
           }
@@ -106,6 +107,7 @@ function ClubWorkoutDetailPage() {
     fetchWorkoutDetail();
   }, [workoutId]);
 
+  // 출석체크 아이콘 선택
   const handleIconSelect = async (
     userId: number,
     clubMemberId: number | undefined,
