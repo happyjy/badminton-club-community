@@ -281,7 +281,7 @@ function ClubWorkoutDetailPage() {
                       </div>
                     )}
                     <span className="font-medium ml-2 truncate">
-                      {participant.User.nickname}
+                      {participant.clubMember.name}
                     </span>
                     <div className="flex space-x-1">
                       {(participantIcons[participant.User.id] ?? []).map(
