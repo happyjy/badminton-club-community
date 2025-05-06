@@ -43,13 +43,6 @@ export default async function handler(
                     workoutId,
                   },
                 },
-                user: {
-                  select: {
-                    id: true,
-                    nickname: true,
-                    thumbnailImageUrl: true,
-                  },
-                },
               },
             },
           },
@@ -100,7 +93,7 @@ export default async function handler(
       })),
       guests,
       guestCount: guests.length,
-    };
+    } as Workout;
 
     return res.status(200).json({
       data: { workout: formattedWorkout },

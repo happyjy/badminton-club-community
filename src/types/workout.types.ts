@@ -25,8 +25,9 @@ interface HelperStatus {
 
 interface ClubMember {
   id: number;
+  name: string;
   helperStatuses: HelperStatus[];
-  user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
+  // user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
 }
 
 export interface Guest {

@@ -11,27 +11,11 @@ import broomStickIcon from '@/icon/broomStick.svg';
 import keyIcon from '@/icon/key.svg';
 import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
-import { Workout, Guest } from '@/types';
+import { Workout, WorkoutParticipant, Guest } from '@/types';
 import { formatToKoreanTime } from '@/utils';
 import { calculateAgeGroup } from '@/utils/age';
 
 type ParticipantIcons = Record<string, SelectedIcon[]>;
-
-// 참여자 타입 정의
-interface WorkoutParticipant {
-  User: {
-    id: number;
-    nickname: string;
-    thumbnailImageUrl: string | null | undefined;
-  };
-  clubMember?: {
-    id: number;
-    helperStatuses?: {
-      helped: boolean;
-      helperType: 'NET' | 'FLOOR' | 'SHUTTLE' | 'KEY' | 'MOP';
-    }[];
-  };
-}
 
 // 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
@@ -283,7 +267,8 @@ function ClubWorkoutDetailPage() {
                       </div>
                     )}
                     <span className="font-medium ml-2 truncate">
-                      {participant.clubMember.name}
+                      {participant?.clubMember?.name ||
+                        participant.User.nickname}
                     </span>
                     <div className="flex space-x-1">
                       {(participantIcons[participant.User.id] ?? []).map(
