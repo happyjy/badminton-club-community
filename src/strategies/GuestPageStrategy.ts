@@ -87,7 +87,10 @@ export class NonMemberStrategy implements GuestPageStrategy {
   }
 
   getDescription(): string {
-    return '이 클럽에 대해 문의하거나 게스트로 참여하고 싶으시면 아래 버튼을 클릭하여 신청서를 작성해주세요.';
+    return ` 
+◦ 이 클럽에 대해 문의하거나 방문 하셔서 분위기를 보고 싶으시면 싶으시면 아래 버튼을 클릭하여 신청서를 작성해주세요.
+◦ 클럽 체육관 방문날짜를 넣으세요 (평일 오후8-10시, 주말 공휴일 오후4-6시)
+◦ 방문 시 학교 후문으로 와서 체육관 입구를 지나 3층으로 오세요 (입구에 비번있음)`;
   }
 
   getButtonText(): string {
