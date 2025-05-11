@@ -16,6 +16,7 @@ import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
+import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { ClubJoinFormData } from '@/types/club.types';
 
 interface Comment {
@@ -60,6 +61,10 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const { id: clubId, guestId } = router.query;
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember); // 현재 사용자의 클럽 멤버 정보
+
+  // 사용자 유형에 따른 전략 적용
+  const strategy = getGuestPageStrategy(!!clubMember);
+
   const isAdmin = clubMember?.role === 'ADMIN'; // 관리자 여부 확인
   const isMyPost = user?.id === guestPost.userId; // 본인 게시물인지 확인
 
@@ -366,7 +371,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       <div className="mb-6">
         <div className="title-wrapper flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-2 border-b-2 border-gray-200">
           <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-0">
-            게스트 신청 상세
+            {strategy.getDetailPageTitle()}
           </h1>
           <div className="flex gap-2 flex-wrap">
             {adminButtons}
@@ -434,7 +439,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           </InfoSection>
 
           {/* 신청 메시지 섹션 */}
-          <InfoSection title="신청 메시지" fullWidth>
+          <InfoSection title={strategy.getDetailPageMessageTitle()} fullWidth>
             <div className="bg-white p-3 rounded-md">
               <p className="text-gray-700 whitespace-pre-wrap">
                 {guestPost.message || '작성된 메시지가 없습니다.'}

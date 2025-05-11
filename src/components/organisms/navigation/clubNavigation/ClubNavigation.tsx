@@ -23,7 +23,6 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
-  console.log(`🚨 ~ ClubNavigation ~ clubMember:`, clubMember);
 
   // 사용자 유형에 따른 전략 가져오기
   const strategy = getGuestPageStrategy(!!clubMember);
