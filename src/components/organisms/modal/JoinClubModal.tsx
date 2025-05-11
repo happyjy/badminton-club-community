@@ -52,7 +52,7 @@ function JoinClubModal({
     onChangeInput,
     //
     initialFormData,
-  } = useClubJoinForm(user, isGuestApplication, initialValues);
+  } = useClubJoinForm(user, isGuestApplication, initialValues, clubMember);
 
   // 개인정보 수집 및 이용 동의 모달
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -109,11 +109,17 @@ function JoinClubModal({
               <div className="flex items-center">
                 <Checkbox
                   name="intendToJoin"
-                  checked={formData.intendToJoin}
-                  onChange={onChangeInput}
+                  checked={!clubMember ? true : formData.intendToJoin}
+                  onChange={!clubMember ? undefined : onChangeInput}
+                  disabled={!clubMember}
                 />
                 <span className="text-sm font-medium text-gray-700">
                   클럽 가입 의사
+                  {!clubMember && (
+                    <span className="ml-1 text-blue-600">
+                      (비회원은 자동으로 체크됩니다)
+                    </span>
+                  )}
                 </span>
               </div>
 
