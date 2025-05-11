@@ -1,4 +1,3 @@
-import { GoogleAnalytics } from '@next/third-parties/google';
 import { Metadata } from 'next';
 
 // 메타데이터 설정
@@ -55,10 +54,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>
-        {children}
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

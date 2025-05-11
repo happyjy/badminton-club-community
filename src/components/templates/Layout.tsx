@@ -65,6 +65,7 @@ export function Layout({ children }: LayoutProps) {
 
       dispatch(
         setMembershipStatus({
+          // todo[refactoring]: jyoon - hard code 된 부분 수정하기
           isPending: memberStatus?.status === 'PENDING',
           isMember: memberStatus?.status === 'APPROVED',
         })
