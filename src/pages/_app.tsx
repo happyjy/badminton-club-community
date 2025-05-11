@@ -5,6 +5,7 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 
 // import LocatorProvider from '@/components/LocatorProvider';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Provider } from 'react-redux';
@@ -104,6 +105,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <title>배드민턴 클럽</title>
         </Head>
 
+        {/* http://locatorjs.com/ - 웹 화면의 컴포넌트를 클릭하면 해당 컴포넌트의 소스 코드 파일을 바로 IDE에서 열어줌 */}
         {/* <LocatorProvider> */}
         <Layout>
           <Component {...pageProps} />
@@ -117,6 +119,7 @@ export default function App({ Component, pageProps }: AppProps) {
               : 'top-right' // 데스크탑에서는 우측 상단
           }
         />
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
       </Provider>
     </QueryClientProvider>
   );
