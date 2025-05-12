@@ -64,6 +64,49 @@ function PersonInfo({
   // 성별 표시 텍스트 결정
   const displayGender = gender ? GENDER_DISPLAY[gender] || gender : null;
 
+  // 급수 배지 텍스트 생성 함수
+  const renderTournamentLevelBadge = () => {
+    // 둘 다 있는 경우
+    if (nationalTournamentLevel && localTournamentLevel) {
+      // 알파벳 순서 비교
+      // localTournamentLevel.localeCompare(nationalTournamentLevel) < 0 의미: localTournamentLevel 이 더 작으면 지역대회가 더 높은 것이므로 지역대회를 표시
+      /* 
+        'A'.localeCompare('C'):  -1
+        'C'.localeCompare('C'):  0
+        'C'.localeCompare('A'):  1
+      */
+      // 지역, 전국대회 급수가 같은면? 전국 대회 급수를 표시
+      if (localTournamentLevel.localeCompare(nationalTournamentLevel) < 0) {
+        return `지역 ${localTournamentLevel}`;
+      } else {
+        return `전국 ${nationalTournamentLevel}`;
+      }
+    }
+
+    // 전국대회만 있는 경우
+    if (nationalTournamentLevel) {
+      return `전국 ${nationalTournamentLevel}`;
+    }
+
+    // 지역대회만 있는 경우
+    return `지역 ${localTournamentLevel}`;
+  };
+
+  // 급수 배지 타이틀 텍스트 생성 함수
+  const getTournamentLevelTitle = () => {
+    const parts = [];
+
+    if (nationalTournamentLevel) {
+      parts.push(`전국대회: ${nationalTournamentLevel}조`);
+    }
+
+    if (localTournamentLevel) {
+      parts.push(`지역대회: ${localTournamentLevel}조`);
+    }
+
+    return parts.join(' / ');
+  };
+
   // 아바타 렌더링 함수
   const renderAvatar = () => {
     if (guestId) {
@@ -114,23 +157,18 @@ function PersonInfo({
             </span>
           )}
 
-          {birthDate && (
+          {guestId && birthDate && (
             <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
               {calculateAgeGroup(birthDate)}
             </span>
           )}
 
           {(nationalTournamentLevel || localTournamentLevel) && (
-            <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-              {nationalTournamentLevel && localTournamentLevel
-                ? localTournamentLevel.localeCompare(nationalTournamentLevel) <
-                  0
-                  ? `지역 ${localTournamentLevel}`
-                  : `전국 ${nationalTournamentLevel}`
-                : nationalTournamentLevel
-                  ? `전국 ${nationalTournamentLevel}`
-                  : `지역 ${localTournamentLevel}`}
-              조
+            <span
+              className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600 cursor-help"
+              title={getTournamentLevelTitle()}
+            >
+              {renderTournamentLevelBadge()}조
             </span>
           )}
         </div>
