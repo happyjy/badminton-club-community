@@ -122,9 +122,14 @@ function PersonInfo({
 
           {(nationalTournamentLevel || localTournamentLevel) && (
             <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-              {nationalTournamentLevel
-                ? `전국 ${nationalTournamentLevel}`
-                : `지역 ${localTournamentLevel}`}
+              {nationalTournamentLevel && localTournamentLevel
+                ? localTournamentLevel.localeCompare(nationalTournamentLevel) <
+                  0
+                  ? `지역 ${localTournamentLevel}`
+                  : `전국 ${nationalTournamentLevel}`
+                : nationalTournamentLevel
+                  ? `전국 ${nationalTournamentLevel}`
+                  : `지역 ${localTournamentLevel}`}
               조
             </span>
           )}
