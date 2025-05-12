@@ -232,6 +232,7 @@ function ClubWorkoutDetailPage() {
           </div>
         )}
 
+        {/* 참여자 목록 */}
         <div className="border-t pt-6">
           <h2 className="mb-2 sm:mb-4 text-xl font-semibold">참여자 목록</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-4">
@@ -266,10 +267,39 @@ function ClubWorkoutDetailPage() {
                         {participant.User.nickname.charAt(0)}
                       </div>
                     )}
-                    <span className="font-medium ml-2 truncate">
-                      {participant?.clubMember?.name ||
-                        participant.User.nickname}
-                    </span>
+                    {/* <div className="flex-1"> */}
+                    <div className="flex flex-col">
+                      <span className="font-medium truncate">
+                        {participant?.clubMember?.name ||
+                          participant.User.nickname}
+                      </span>
+                      <div className="text-xs text-gray-600 mt-1 space-x-2">
+                        {participant.clubMember?.gender && (
+                          <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
+                            {participant.clubMember.gender === 'MALE'
+                              ? '남성'
+                              : participant.clubMember.gender === 'FEMALE'
+                                ? '여성'
+                                : participant.clubMember.gender}
+                          </span>
+                        )}
+                        {participant.clubMember?.birthDate && (
+                          <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
+                            {calculateAgeGroup(
+                              participant.clubMember.birthDate
+                            )}
+                          </span>
+                        )}
+                        {(participant.clubMember?.localTournamentLevel ||
+                          participant.clubMember?.nationalTournamentLevel) && (
+                          <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
+                            {participant.clubMember.nationalTournamentLevel ||
+                              participant.clubMember.localTournamentLevel}
+                            조
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex space-x-1">
                       {(participantIcons[participant.User.id] ?? []).map(
                         (iconType, index) => {
