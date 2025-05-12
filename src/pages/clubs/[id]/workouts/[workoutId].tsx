@@ -253,7 +253,7 @@ function ClubWorkoutDetailPage() {
                 return (
                   <div
                     key={participant.User.id}
-                    className="relative cursor-pointer p-3 border rounded-lg hover:bg-gray-50"
+                    className="relative flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       setSelectedParticipant(
                         selectedParticipant === participant.User.id

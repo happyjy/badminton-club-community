@@ -61,9 +61,6 @@ function PersonInfo({
 }: PersonInfoProps) {
   // 실제 사용할 이니셜 계산
   const displayInitial = initial || name.charAt(0);
-  // 실제 사용할 급수
-  const displayTournamentLevel =
-    nationalTournamentLevel || localTournamentLevel;
   // 성별 표시 텍스트 결정
   const displayGender = gender ? GENDER_DISPLAY[gender] || gender : null;
 
@@ -123,9 +120,12 @@ function PersonInfo({
             </span>
           )}
 
-          {displayTournamentLevel && (
+          {(nationalTournamentLevel || localTournamentLevel) && (
             <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-              {displayTournamentLevel}조
+              {nationalTournamentLevel
+                ? `전국 ${nationalTournamentLevel}`
+                : `지역 ${localTournamentLevel}`}
+              조
             </span>
           )}
         </div>
