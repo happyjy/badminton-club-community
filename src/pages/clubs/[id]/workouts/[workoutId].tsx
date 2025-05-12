@@ -245,7 +245,7 @@ function ClubWorkoutDetailPage() {
                 return (
                   <div
                     key={participant.User.id}
-                    className="relative flex items-center space-x-2 px-2 py-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="relative flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       setSelectedParticipant(
                         selectedParticipant === participant.User.id
@@ -254,26 +254,28 @@ function ClubWorkoutDetailPage() {
                       );
                     }}
                   >
+                    {/* 프로필 이미지 */}
                     {participant.User.thumbnailImageUrl ? (
                       <Image
                         src={participant.User.thumbnailImageUrl}
                         alt={participant.User.nickname}
                         width={40}
                         height={40}
-                        className="w-10 h-10 rounded-full "
+                        className="w-10 h-10 rounded-full"
                       />
                     ) : (
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 flex-shrink-0">
                         {participant.User.nickname.charAt(0)}
                       </div>
                     )}
-                    {/* <div className="flex-1"> */}
+
+                    {/* 사용자 정보 */}
                     <div className="flex flex-col">
-                      <span className="font-medium truncate">
+                      <span className="font-medium block truncate">
                         {participant?.clubMember?.name ||
                           participant.User.nickname}
                       </span>
-                      <div className="text-xs text-gray-600 mt-1 space-x-2">
+                      <div className="text-xs text-gray-600 mt-1 flex flex-wrap gap-1">
                         {participant.clubMember?.gender && (
                           <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
                             {participant.clubMember.gender === 'MALE'
@@ -300,7 +302,11 @@ function ClubWorkoutDetailPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex space-x-1">
+
+                    {/* helper 아이콘 */}
+                    <div className="flex gap-1 flex-shrink-0">
+                      {/* flex-shrink-0: 아이콘이 줄어들지 않도록 설정 */}
+                      {/* ml-auto: 아이콘 오른족 정렬 */}
                       {(participantIcons[participant.User.id] ?? []).map(
                         (iconType, index) => {
                           return (
