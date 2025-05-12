@@ -1,0 +1,131 @@
+import { ReactNode } from 'react';
+
+import Image from 'next/image';
+
+import GuestAvatar from '@/components/atoms/GuestAvatar';
+import { calculateAgeGroup } from '@/utils/age';
+
+type Gender = 'MALE' | 'FEMALE' | string;
+
+// 성별에 따른 표시 텍스트 매핑
+const GENDER_DISPLAY = {
+  MALE: '남성',
+  FEMALE: '여성',
+};
+
+interface PersonInfoProps {
+  name: string;
+  thumbnailImageUrl?: string | null;
+  initial?: string;
+  gender?: Gender | null;
+  birthDate?: string | null;
+  nationalTournamentLevel?: string | null;
+  localTournamentLevel?: string | null;
+  extraIcons?: ReactNode;
+  className?: string;
+  avatarClassName?: string;
+  contentClassName?: string;
+  badgeContainerClassName?: string;
+  // Guest 관련 별도 props
+  guestId?: string;
+  userNickname?: string;
+}
+
+/**
+ * 게스트나 회원 등 인물 정보를 표시하는 공통 컴포넌트
+ */
+function PersonInfo({
+  name,
+  thumbnailImageUrl,
+  initial,
+  gender,
+  birthDate,
+  nationalTournamentLevel,
+  localTournamentLevel,
+  extraIcons,
+  className = '',
+  avatarClassName = '',
+  contentClassName = '',
+  badgeContainerClassName = 'flex flex-wrap gap-1 mt-1',
+  guestId,
+  userNickname,
+}: PersonInfoProps) {
+  // 실제 사용할 이니셜 계산
+  const displayInitial = initial || name.charAt(0);
+  // 실제 사용할 급수
+  const displayTournamentLevel =
+    nationalTournamentLevel || localTournamentLevel;
+  // 성별 표시 텍스트 결정
+  const displayGender = gender ? GENDER_DISPLAY[gender] || gender : null;
+
+  // 아바타 렌더링 함수
+  const renderAvatar = () => {
+    if (guestId) {
+      return (
+        <GuestAvatar
+          id={guestId}
+          name={name}
+          userNickname={userNickname}
+          className={avatarClassName}
+        />
+      );
+    }
+
+    if (thumbnailImageUrl) {
+      return (
+        <Image
+          src={thumbnailImageUrl}
+          alt={name}
+          width={40}
+          height={40}
+          className={`w-10 h-10 rounded-full flex-shrink-0 ${avatarClassName}`}
+        />
+      );
+    }
+
+    return (
+      <div
+        className={`flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 ${avatarClassName}`}
+      >
+        {displayInitial}
+      </div>
+    );
+  };
+
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      {/* 프로필 이미지 또는 아바타 */}
+      {renderAvatar()}
+
+      {/* 사용자 정보 */}
+      <div className={`${contentClassName}`}>
+        <span className="font-medium block truncate">{name}</span>
+
+        <div className={badgeContainerClassName}>
+          {gender && (
+            <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+              {displayGender}
+            </span>
+          )}
+
+          {birthDate && (
+            <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+              {calculateAgeGroup(birthDate)}
+            </span>
+          )}
+
+          {displayTournamentLevel && (
+            <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+              {displayTournamentLevel}조
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 추가 아이콘 영역 */}
+      {extraIcons}
+    </div>
+  );
+}
+
+export default PersonInfo;

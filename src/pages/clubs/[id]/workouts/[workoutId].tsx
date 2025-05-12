@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
-import GuestAvatar from '@/components/atoms/GuestAvatar';
 import CircleMenu, { SelectedIcon } from '@/components/molecules/CircleMenu';
+import PersonInfo from '@/components/molecules/PersonInfo';
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
@@ -13,7 +13,6 @@ import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
 import { Workout, WorkoutParticipant, Guest } from '@/types';
 import { formatToKoreanTime } from '@/utils';
-import { calculateAgeGroup } from '@/utils/age';
 
 type ParticipantIcons = Record<string, SelectedIcon[]>;
 
@@ -194,38 +193,17 @@ function ClubWorkoutDetailPage() {
               {workout.guests.map((guest: Guest) => (
                 <div
                   key={guest.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                  className="p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
                 >
-                  <GuestAvatar guest={guest} />
-                  <div className="flex-1">
-                    <div className="font-medium flex items-center">
-                      {guest.name || guest.user.nickname}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1 space-x-2">
-                      {guest.gender && (
-                        <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
-                          {guest.gender === 'MALE'
-                            ? '남성'
-                            : guest.gender === 'FEMALE'
-                              ? '여성'
-                              : guest.gender}
-                        </span>
-                      )}
-                      {guest.birthDate && (
-                        <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
-                          {calculateAgeGroup(guest.birthDate)}
-                        </span>
-                      )}
-                      {(guest.localTournamentLevel ||
-                        guest.nationalTournamentLevel) && (
-                        <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
-                          {guest.nationalTournamentLevel ||
-                            guest.localTournamentLevel}
-                          조
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <PersonInfo
+                    name={guest.name || guest.user.nickname}
+                    gender={guest.gender}
+                    birthDate={guest.birthDate}
+                    nationalTournamentLevel={guest.nationalTournamentLevel}
+                    localTournamentLevel={guest.localTournamentLevel}
+                    guestId={guest.id}
+                    userNickname={guest.user.nickname}
+                  />
                 </div>
               ))}
             </div>
@@ -242,10 +220,40 @@ function ClubWorkoutDetailPage() {
                   return null;
                 }
 
+                // helper 아이콘 컴포넌트
+                const helperIcons = (
+                  <div className="flex gap-1 flex-shrink-0">
+                    {(participantIcons[participant.User.id] ?? []).map(
+                      (iconType, index) => {
+                        return (
+                          <Image
+                            key={index}
+                            src={
+                              iconType === 'net'
+                                ? badmintonNetIcon
+                                : iconType === 'broomStick'
+                                  ? broomStickIcon
+                                  : iconType === 'shuttlecock'
+                                    ? badmintonShuttleCockIcon
+                                    : iconType === 'key'
+                                      ? keyIcon
+                                      : mopIcon
+                            }
+                            alt="status icon"
+                            width={16}
+                            height={16}
+                            className="w-4 h-4"
+                          />
+                        );
+                      }
+                    )}
+                  </div>
+                );
+
                 return (
                   <div
                     key={participant.User.id}
-                    className="relative flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                    className="relative cursor-pointer p-3 border rounded-lg hover:bg-gray-50"
                     onClick={() => {
                       setSelectedParticipant(
                         selectedParticipant === participant.User.id
@@ -254,84 +262,21 @@ function ClubWorkoutDetailPage() {
                       );
                     }}
                   >
-                    {/* 프로필 이미지 */}
-                    {participant.User.thumbnailImageUrl ? (
-                      <Image
-                        src={participant.User.thumbnailImageUrl}
-                        alt={participant.User.nickname}
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 rounded-full"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 flex-shrink-0">
-                        {participant.User.nickname.charAt(0)}
-                      </div>
-                    )}
+                    <PersonInfo
+                      initial={participant.User.nickname.charAt(0)}
+                      thumbnailImageUrl={participant.User.thumbnailImageUrl}
+                      name={participant?.clubMember?.name}
+                      gender={participant.clubMember?.gender}
+                      birthDate={participant.clubMember?.birthDate}
+                      nationalTournamentLevel={
+                        participant.clubMember?.nationalTournamentLevel
+                      }
+                      localTournamentLevel={
+                        participant.clubMember?.localTournamentLevel
+                      }
+                      extraIcons={helperIcons}
+                    />
 
-                    {/* 사용자 정보 */}
-                    <div className="flex flex-col">
-                      <span className="font-medium block truncate">
-                        {participant?.clubMember?.name ||
-                          participant.User.nickname}
-                      </span>
-                      <div className="text-xs text-gray-600 mt-1 flex flex-wrap gap-1">
-                        {participant.clubMember?.gender && (
-                          <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
-                            {participant.clubMember.gender === 'MALE'
-                              ? '남성'
-                              : participant.clubMember.gender === 'FEMALE'
-                                ? '여성'
-                                : participant.clubMember.gender}
-                          </span>
-                        )}
-                        {participant.clubMember?.birthDate && (
-                          <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
-                            {calculateAgeGroup(
-                              participant.clubMember.birthDate
-                            )}
-                          </span>
-                        )}
-                        {(participant.clubMember?.localTournamentLevel ||
-                          participant.clubMember?.nationalTournamentLevel) && (
-                          <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5">
-                            {participant.clubMember.nationalTournamentLevel ||
-                              participant.clubMember.localTournamentLevel}
-                            조
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* helper 아이콘 */}
-                    <div className="flex gap-1 flex-shrink-0">
-                      {/* flex-shrink-0: 아이콘이 줄어들지 않도록 설정 */}
-                      {/* ml-auto: 아이콘 오른족 정렬 */}
-                      {(participantIcons[participant.User.id] ?? []).map(
-                        (iconType, index) => {
-                          return (
-                            <Image
-                              key={index}
-                              src={
-                                iconType === 'net'
-                                  ? badmintonNetIcon
-                                  : iconType === 'broomStick'
-                                    ? broomStickIcon
-                                    : iconType === 'shuttlecock'
-                                      ? badmintonShuttleCockIcon
-                                      : iconType === 'key'
-                                        ? keyIcon
-                                        : mopIcon
-                              }
-                              alt="status icon"
-                              width={16}
-                              height={16}
-                              className="w-4 h-4"
-                            />
-                          );
-                        }
-                      )}
-                    </div>
                     <CircleMenu
                       isOpen={selectedParticipant === participant.User.id}
                       onClose={() => setSelectedParticipant(null)}
