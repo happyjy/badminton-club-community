@@ -14,41 +14,50 @@ const GENDER_DISPLAY = {
 };
 
 interface PersonInfoProps {
+  // 기본 인적 정보
   name: string;
-  thumbnailImageUrl?: string | null;
   initial?: string;
   gender?: Gender | null;
   birthDate?: string | null;
+  // 아바타/이미지 관련
+  thumbnailImageUrl?: string | null;
+  guestId?: string;
+  userNickname?: string;
+  // 급수 정보
   nationalTournamentLevel?: string | null;
   localTournamentLevel?: string | null;
+  // 추가 콘텐츠
   extraIcons?: ReactNode;
+  // 레이아웃/스타일 관련
   className?: string;
   avatarClassName?: string;
   contentClassName?: string;
   badgeContainerClassName?: string;
-  // Guest 관련 별도 props
-  guestId?: string;
-  userNickname?: string;
 }
 
 /**
  * 게스트나 회원 등 인물 정보를 표시하는 공통 컴포넌트
  */
 function PersonInfo({
+  // 기본 인적 정보
   name,
-  thumbnailImageUrl,
   initial,
   gender,
   birthDate,
+  // 아바타/이미지 관련
+  thumbnailImageUrl,
+  guestId,
+  userNickname,
+  // 급수 정보
   nationalTournamentLevel,
   localTournamentLevel,
+  // 추가 콘텐츠
   extraIcons,
+  // 레이아웃/스타일 관련
   className = '',
   avatarClassName = '',
   contentClassName = '',
   badgeContainerClassName = 'flex flex-wrap gap-1 mt-1',
-  guestId,
-  userNickname,
 }: PersonInfoProps) {
   // 실제 사용할 이니셜 계산
   const displayInitial = initial || name.charAt(0);

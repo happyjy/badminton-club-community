@@ -199,10 +199,10 @@ function ClubWorkoutDetailPage() {
                     name={guest.name || guest.user.nickname}
                     gender={guest.gender}
                     birthDate={guest.birthDate}
-                    nationalTournamentLevel={guest.nationalTournamentLevel}
-                    localTournamentLevel={guest.localTournamentLevel}
                     guestId={guest.id}
                     userNickname={guest.user.nickname}
+                    nationalTournamentLevel={guest.nationalTournamentLevel}
+                    localTournamentLevel={guest.localTournamentLevel}
                   />
                 </div>
               ))}
@@ -263,11 +263,14 @@ function ClubWorkoutDetailPage() {
                     }}
                   >
                     <PersonInfo
+                      name={
+                        participant?.clubMember?.name ||
+                        participant.User.nickname
+                      }
                       initial={participant.User.nickname.charAt(0)}
-                      thumbnailImageUrl={participant.User.thumbnailImageUrl}
-                      name={participant?.clubMember?.name}
                       gender={participant.clubMember?.gender}
                       birthDate={participant.clubMember?.birthDate}
+                      thumbnailImageUrl={participant.User.thumbnailImageUrl}
                       nationalTournamentLevel={
                         participant.clubMember?.nationalTournamentLevel
                       }
