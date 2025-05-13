@@ -16,6 +16,9 @@ import { formatToKoreanTime } from '@/utils';
 
 type ParticipantIcons = Record<string, SelectedIcon[]>;
 
+// 정렬 타입 정의
+type SortOption = 'createdAt' | 'localLevel' | 'nationalLevel';
+
 // 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
   const router = useRouter();
@@ -30,6 +33,8 @@ function ClubWorkoutDetailPage() {
   const [participantIcons, setParticipantIcons] = useState<ParticipantIcons>(
     () => ({})
   );
+  const [sortOption, setSortOption] = useState<SortOption>('createdAt');
+  const [participants, setParticipants] = useState<WorkoutParticipant[]>([]);
 
   useEffect(() => {
     if (!workoutId) return;
@@ -42,6 +47,7 @@ function ClubWorkoutDetailPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkout(result.data.workout);
+        setParticipants(result.data.workout.WorkoutParticipant);
 
         // WorkoutHelperStatus 정보로 초기 상태 설정
         const initialIcons: ParticipantIcons = {};
@@ -139,6 +145,46 @@ function ClubWorkoutDetailPage() {
     }
   };
 
+  // 정렬 함수
+  const sortParticipants = (option: SortOption) => {
+    if (!workout) return [];
+
+    const sorted = [...participants];
+
+    switch (option) {
+      case 'createdAt':
+        // 참여순서(생성일)(오름차순)
+        return sorted.sort((a, b) => {
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        });
+      case 'localLevel':
+        // 지역대회 급수 기준 정렬 (A급이 가장 위)
+        return sorted.sort((a, b) => {
+          const levelA = a.clubMember?.localTournamentLevel || 'Z';
+          const levelB = b.clubMember?.localTournamentLevel || 'Z';
+          return levelA.localeCompare(levelB);
+        });
+      case 'nationalLevel':
+        // 전국대회 급수 기준 정렬 (A급이 가장 위)
+        return sorted.sort((a, b) => {
+          const levelA = a.clubMember?.nationalTournamentLevel || 'Z';
+          const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
+          return levelA.localeCompare(levelB);
+        });
+      default:
+        return sorted;
+    }
+  };
+
+  // 정렬 옵션 변경 핸들러
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const option = e.target.value as SortOption;
+    setSortOption(option);
+    setParticipants(sortParticipants(option));
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -212,92 +258,113 @@ function ClubWorkoutDetailPage() {
 
         {/* 참여자 목록 */}
         <div className="border-t pt-6">
-          <h2 className="mb-2 sm:mb-4 text-xl font-semibold">참여자 목록</h2>
+          <div className="flex justify-between items-center mb-2 sm:mb-4">
+            <h2 className="text-xl font-semibold">참여자 목록</h2>
+            <div className="relative">
+              <select
+                value={sortOption}
+                onChange={handleSortChange}
+                className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+              >
+                <option value="createdAt">참여순서</option>
+                <option value="localLevel">지역대회 급수</option>
+                <option value="nationalLevel">전국대회 급수</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg
+                  className="w-4 h-4 fill-current"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-4">
-            {workout.WorkoutParticipant.map(
-              (participant: WorkoutParticipant) => {
-                if (!participant.clubMember) {
-                  return null;
-                }
+            {participants.map((participant: WorkoutParticipant) => {
+              if (!participant.clubMember) {
+                return null;
+              }
 
-                // helper 아이콘 컴포넌트
-                const helperIcons = (
-                  <div className="flex gap-1 flex-shrink-0">
-                    {(participantIcons[participant.User.id] ?? []).map(
-                      (iconType, index) => {
-                        return (
-                          <Image
-                            key={index}
-                            src={
-                              iconType === 'net'
-                                ? badmintonNetIcon
-                                : iconType === 'broomStick'
-                                  ? broomStickIcon
-                                  : iconType === 'shuttlecock'
-                                    ? badmintonShuttleCockIcon
-                                    : iconType === 'key'
-                                      ? keyIcon
-                                      : mopIcon
-                            }
-                            alt="status icon"
-                            width={16}
-                            height={16}
-                            className="w-4 h-4"
-                          />
-                        );
-                      }
-                    )}
-                  </div>
-                );
+              // helper 아이콘 컴포넌트
+              const helperIcons = (
+                <div className="flex gap-1 flex-shrink-0">
+                  {(participantIcons[participant.User.id] ?? []).map(
+                    (iconType, index) => {
+                      return (
+                        <Image
+                          key={index}
+                          src={
+                            iconType === 'net'
+                              ? badmintonNetIcon
+                              : iconType === 'broomStick'
+                                ? broomStickIcon
+                                : iconType === 'shuttlecock'
+                                  ? badmintonShuttleCockIcon
+                                  : iconType === 'key'
+                                    ? keyIcon
+                                    : mopIcon
+                          }
+                          alt="status icon"
+                          width={16}
+                          height={16}
+                          className="w-4 h-4"
+                        />
+                      );
+                    }
+                  )}
+                </div>
+              );
 
-                return (
-                  <div
-                    key={participant.User.id}
-                    className="relative flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                    onClick={() => {
-                      setSelectedParticipant(
-                        selectedParticipant === participant.User.id
-                          ? null
-                          : participant.User.id
+              return (
+                <div
+                  key={participant.User.id}
+                  className="relative flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    setSelectedParticipant(
+                      selectedParticipant === participant.User.id
+                        ? null
+                        : participant.User.id
+                    );
+                  }}
+                >
+                  <PersonInfo
+                    name={
+                      participant?.clubMember?.name || participant.User.nickname
+                    }
+                    initial={participant.User.nickname.charAt(0)}
+                    gender={participant.clubMember?.gender}
+                    birthDate={participant.clubMember?.birthDate}
+                    thumbnailImageUrl={participant.User.thumbnailImageUrl}
+                    nationalTournamentLevel={
+                      participant.clubMember?.nationalTournamentLevel
+                    }
+                    localTournamentLevel={
+                      participant.clubMember?.localTournamentLevel
+                    }
+                    extraIcons={helperIcons}
+                  />
+
+                  <CircleMenu
+                    isOpen={selectedParticipant === participant.User.id}
+                    onClose={() => setSelectedParticipant(null)}
+                    onIconSelect={(icon) => {
+                      handleIconSelect(
+                        participant.User.id,
+                        participant.clubMember?.id,
+                        icon
                       );
                     }}
-                  >
-                    <PersonInfo
-                      name={
-                        participant?.clubMember?.name ||
-                        participant.User.nickname
-                      }
-                      initial={participant.User.nickname.charAt(0)}
-                      gender={participant.clubMember?.gender}
-                      birthDate={participant.clubMember?.birthDate}
-                      thumbnailImageUrl={participant.User.thumbnailImageUrl}
-                      nationalTournamentLevel={
-                        participant.clubMember?.nationalTournamentLevel
-                      }
-                      localTournamentLevel={
-                        participant.clubMember?.localTournamentLevel
-                      }
-                      extraIcons={helperIcons}
-                    />
-
-                    <CircleMenu
-                      isOpen={selectedParticipant === participant.User.id}
-                      onClose={() => setSelectedParticipant(null)}
-                      onIconSelect={(icon) => {
-                        handleIconSelect(
-                          participant.User.id,
-                          participant.clubMember?.id,
-                          icon
-                        );
-                      }}
-                      selectedIcons={
-                        participantIcons[participant.User.id] || []
-                      }
-                    />
-                  </div>
-                );
-              }
-            )}
+                    selectedIcons={participantIcons[participant.User.id] || []}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
