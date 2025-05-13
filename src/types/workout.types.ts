@@ -26,6 +26,10 @@ interface HelperStatus {
 interface ClubMember {
   id: number;
   name: string;
+  gender?: string;
+  birthDate?: string;
+  localTournamentLevel?: string;
+  nationalTournamentLevel?: string;
   helperStatuses: HelperStatus[];
   // user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
 }
