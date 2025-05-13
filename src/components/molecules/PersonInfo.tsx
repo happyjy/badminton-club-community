@@ -157,7 +157,7 @@ function PersonInfo({
             </span>
           )}
 
-          {guestId && birthDate && (
+          {birthDate && (
             <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
               {calculateAgeGroup(birthDate)}
             </span>
