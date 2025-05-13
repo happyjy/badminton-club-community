@@ -8,7 +8,7 @@ import { calculateAgeGroup } from '@/utils/age';
 type Gender = 'MALE' | 'FEMALE' | string;
 
 // 성별에 따른 표시 텍스트 매핑
-const GENDER_DISPLAY = {
+const GENDER_DISPLAY: Record<string, string> = {
   MALE: '남성',
   FEMALE: '여성',
 };
