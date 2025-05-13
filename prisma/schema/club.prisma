@@ -24,6 +24,7 @@ model ClubMember {
   name                     String?
   birthDate                String?
   phoneNumber              String   @default("010-0000-0000")
+  gender                   String?
   localTournamentLevel     String?
   nationalTournamentLevel  String?
   lessonPeriod             String?

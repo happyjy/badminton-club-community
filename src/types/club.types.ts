@@ -45,6 +45,7 @@ export interface ClubMember extends BaseEntity {
   status: Status;
   name?: string;
   birthDate?: string;
+  gender?: string;
   localTournamentLevel?: string;
   nationalTournamentLevel?: string;
   lessonPeriod?: string;
