@@ -8,7 +8,7 @@ import { calculateAgeGroup } from '@/utils/age';
 type Gender = 'MALE' | 'FEMALE' | string;
 
 // 성별에 따른 표시 텍스트 매핑
-const GENDER_DISPLAY = {
+const GENDER_DISPLAY: Record<string, string> = {
   MALE: '남성',
   FEMALE: '여성',
 };
@@ -157,7 +157,7 @@ function PersonInfo({
             </span>
           )}
 
-          {guestId && birthDate && (
+          {birthDate && (
             <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
               {calculateAgeGroup(birthDate)}
             </span>

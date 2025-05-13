@@ -42,9 +42,15 @@ export default async function handler(
                   where: {
                     workoutId,
                   },
+                  orderBy: {
+                    createdAt: 'asc',
+                  },
                 },
               },
             },
+          },
+          orderBy: {
+            createdAt: 'asc',
           },
         },
       },

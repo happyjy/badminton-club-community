@@ -5,6 +5,7 @@ import { getSession } from '@/lib/session';
 import { ApiResponse, ClubMember } from '@/types';
 import { Role, Status } from '@/types/enums';
 
+// 클럽 멤버 승인
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'member', ClubMember>>
@@ -65,6 +66,7 @@ export default async function handler(
       status: updatedMember.status as Status,
       name: updatedMember.name ?? undefined,
       birthDate: updatedMember.birthDate ?? undefined,
+      gender: updatedMember.gender ?? undefined,
       localTournamentLevel: updatedMember.localTournamentLevel ?? undefined,
       nationalTournamentLevel:
         updatedMember.nationalTournamentLevel ?? undefined,

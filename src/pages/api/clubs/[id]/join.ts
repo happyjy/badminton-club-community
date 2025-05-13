@@ -6,6 +6,7 @@ import { ApiResponse } from '@/types';
 import { ClubMembershipResponse } from '@/types/club.types';
 import { Role, Status } from '@/types/enums';
 
+// 클럽 가입
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'membership', ClubMembershipResponse>>
@@ -30,6 +31,7 @@ export default async function handler(
     name,
     birthDate,
     phoneNumber,
+    gender,
     localTournamentLevel,
     nationalTournamentLevel,
     lessonPeriod,
@@ -72,6 +74,7 @@ export default async function handler(
         name,
         birthDate,
         phoneNumber,
+        gender,
         localTournamentLevel,
         nationalTournamentLevel,
         lessonPeriod,
@@ -87,6 +90,7 @@ export default async function handler(
       name: membership.name ?? undefined,
       birthDate: membership.birthDate ?? undefined,
       phoneNumber: membership.phoneNumber ?? undefined,
+      gender: membership.gender ?? undefined,
       localTournamentLevel: membership.localTournamentLevel ?? undefined,
       nationalTournamentLevel: membership.nationalTournamentLevel ?? undefined,
       lessonPeriod: membership.lessonPeriod ?? undefined,

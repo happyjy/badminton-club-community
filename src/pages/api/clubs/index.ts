@@ -5,6 +5,7 @@ import { Role, Status } from '@/types/enums';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+// 클럽 목록 조회
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'clubs', ClubWithDetails[]>>
@@ -50,6 +51,7 @@ export default async function handler(
         status: member.status as Status,
         name: member.name ?? undefined,
         birthDate: member.birthDate ?? undefined,
+        gender: member.gender ?? undefined,
         localTournamentLevel: member.localTournamentLevel ?? undefined,
         nationalTournamentLevel: member.nationalTournamentLevel ?? undefined,
         lessonPeriod: member.lessonPeriod ?? undefined,
