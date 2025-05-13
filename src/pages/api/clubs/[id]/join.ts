@@ -6,6 +6,7 @@ import { ApiResponse } from '@/types';
 import { ClubMembershipResponse } from '@/types/club.types';
 import { Role, Status } from '@/types/enums';
 
+// 클럽 가입
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'membership', ClubMembershipResponse>>
