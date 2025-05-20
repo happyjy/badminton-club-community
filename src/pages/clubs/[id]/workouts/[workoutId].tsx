@@ -17,7 +17,7 @@ import { formatToKoreanTime } from '@/utils';
 type ParticipantIcons = Record<string, SelectedIcon[]>;
 
 // 정렬 타입 정의
-type SortOption = 'createdAt' | 'localLevel' | 'nationalLevel';
+type SortOption = 'createdAt' | 'localLevel' | 'nationalLevel' | 'name';
 
 // 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
@@ -173,13 +173,33 @@ function ClubWorkoutDetailPage() {
           const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
           return levelA.localeCompare(levelB);
         });
+      case 'name':
+        // 이름 순서 정렬 (성 기준) + 성이 같을 경우 전국대회 급수 기준 정렬
+        return sorted.sort((a, b) => {
+          const nameA = a.clubMember?.name || a.User.nickname;
+          const nameB = b.clubMember?.name || b.User.nickname;
+
+          // 성 추출 (첫 글자)
+          const surnameA = nameA.charAt(0);
+          const surnameB = nameB.charAt(0);
+
+          // 성이 다른 경우 성 기준으로 정렬
+          if (surnameA !== surnameB) {
+            return surnameA.localeCompare(surnameB);
+          }
+
+          // 성이 같은 경우 전국대회 급수 기준 정렬
+          const levelA = a.clubMember?.nationalTournamentLevel || 'Z';
+          const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
+          return levelA.localeCompare(levelB);
+        });
       default:
         return sorted;
     }
   };
 
   // 정렬 옵션 변경 핸들러
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const onChangeSort = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const option = e.target.value as SortOption;
     setSortOption(option);
     setParticipants(sortParticipants(option));
@@ -263,10 +283,11 @@ function ClubWorkoutDetailPage() {
             <div className="relative">
               <select
                 value={sortOption}
-                onChange={handleSortChange}
+                onChange={onChangeSort}
                 className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
                 <option value="createdAt">참여순서</option>
+                <option value="name">이름순</option>
                 <option value="localLevel">지역대회 급수</option>
                 <option value="nationalLevel">전국대회 급수</option>
               </select>
