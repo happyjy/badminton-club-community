@@ -7,4 +7,3 @@ export interface ParticipantSortState {
   participants: WorkoutParticipant[];
   onChangeSort: (option: SortOption) => void;
 }
-g;
