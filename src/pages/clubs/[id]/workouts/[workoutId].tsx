@@ -5,6 +5,11 @@ import { useRouter } from 'next/router';
 
 import CircleMenu, { SelectedIcon } from '@/components/molecules/CircleMenu';
 import PersonInfo from '@/components/molecules/PersonInfo';
+import {
+  ParticipantSortProvider,
+  useParticipantSortContext,
+} from '@/contexts/ParticipantSortContext';
+import { SortOption } from '@/hooks/useParticipantSort';
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
@@ -16,13 +21,10 @@ import { formatToKoreanTime } from '@/utils';
 
 type ParticipantIcons = Record<string, SelectedIcon[]>;
 
-// 정렬 타입 정의
-type SortOption = 'createdAt' | 'localLevel' | 'nationalLevel' | 'name';
-
 // 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
   const router = useRouter();
-  const { /* id: clubId, */ workoutId } = router.query;
+  const { workoutId } = router.query;
 
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,8 +35,9 @@ function ClubWorkoutDetailPage() {
   const [participantIcons, setParticipantIcons] = useState<ParticipantIcons>(
     () => ({})
   );
-  const [sortOption, setSortOption] = useState<SortOption>('createdAt');
-  const [participants, setParticipants] = useState<WorkoutParticipant[]>([]);
+  const [initialParticipants, setInitialParticipants] = useState<
+    WorkoutParticipant[]
+  >([]);
 
   useEffect(() => {
     if (!workoutId) return;
@@ -47,7 +50,7 @@ function ClubWorkoutDetailPage() {
         if (!response.ok) throw new Error(result.error);
 
         setWorkout(result.data.workout);
-        setParticipants(result.data.workout.WorkoutParticipant);
+        setInitialParticipants(result.data.workout.WorkoutParticipant);
 
         // WorkoutHelperStatus 정보로 초기 상태 설정
         const initialIcons: ParticipantIcons = {};
@@ -145,66 +148,6 @@ function ClubWorkoutDetailPage() {
     }
   };
 
-  // 정렬 함수
-  const sortParticipants = (option: SortOption) => {
-    if (!workout) return [];
-
-    const sorted = [...participants];
-
-    switch (option) {
-      case 'createdAt':
-        // 참여순서(생성일)(오름차순)
-        return sorted.sort((a, b) => {
-          return (
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        });
-      case 'localLevel':
-        // 지역대회 급수 기준 정렬 (A급이 가장 위)
-        return sorted.sort((a, b) => {
-          const levelA = a.clubMember?.localTournamentLevel || 'Z';
-          const levelB = b.clubMember?.localTournamentLevel || 'Z';
-          return levelA.localeCompare(levelB);
-        });
-      case 'nationalLevel':
-        // 전국대회 급수 기준 정렬 (A급이 가장 위)
-        return sorted.sort((a, b) => {
-          const levelA = a.clubMember?.nationalTournamentLevel || 'Z';
-          const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
-          return levelA.localeCompare(levelB);
-        });
-      case 'name':
-        // 이름 순서 정렬 (성 기준) + 성이 같을 경우 전국대회 급수 기준 정렬
-        return sorted.sort((a, b) => {
-          const nameA = a.clubMember?.name || a.User.nickname;
-          const nameB = b.clubMember?.name || b.User.nickname;
-
-          // 성 추출 (첫 글자)
-          const surnameA = nameA.charAt(0);
-          const surnameB = nameB.charAt(0);
-
-          // 성이 다른 경우 성 기준으로 정렬
-          if (surnameA !== surnameB) {
-            return surnameA.localeCompare(surnameB);
-          }
-
-          // 성이 같은 경우 전국대회 급수 기준 정렬
-          const levelA = a.clubMember?.nationalTournamentLevel || 'Z';
-          const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
-          return levelA.localeCompare(levelB);
-        });
-      default:
-        return sorted;
-    }
-  };
-
-  // 정렬 옵션 변경 핸들러
-  const onChangeSort = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const option = e.target.value as SortOption;
-    setSortOption(option);
-    setParticipants(sortParticipants(option));
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -222,6 +165,47 @@ function ClubWorkoutDetailPage() {
       </div>
     );
   }
+
+  return (
+    <ParticipantSortProvider initialParticipants={initialParticipants}>
+      <WorkoutDetailContent
+        workout={workout}
+        participantIcons={participantIcons}
+        selectedParticipant={selectedParticipant}
+        setSelectedParticipant={setSelectedParticipant}
+        handleIconSelect={handleIconSelect}
+      />
+    </ParticipantSortProvider>
+  );
+}
+
+interface WorkoutDetailContentProps {
+  workout: Workout;
+  participantIcons: ParticipantIcons;
+  selectedParticipant: number | null;
+  setSelectedParticipant: (id: number | null) => void;
+  handleIconSelect: (
+    userId: number,
+    clubMemberId: number | undefined,
+    icon: SelectedIcon
+  ) => Promise<void>;
+}
+
+function WorkoutDetailContent({
+  workout,
+  participantIcons,
+  selectedParticipant,
+  setSelectedParticipant,
+  handleIconSelect,
+}: WorkoutDetailContentProps) {
+  const { sortOption, participants, onChangeSort } =
+    useParticipantSortContext();
+  // console.log(
+  //   `🚨 ~ sortOption, participants, onChangeSort:`,
+  //   sortOption,
+  //   participants,
+  //   onChangeSort
+  // );
 
   return (
     <div>
@@ -283,7 +267,7 @@ function ClubWorkoutDetailPage() {
             <div className="relative">
               <select
                 value={sortOption}
-                onChange={onChangeSort}
+                onChange={(e) => onChangeSort(e.target.value as SortOption)}
                 className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
                 <option value="createdAt">참여순서</option>
