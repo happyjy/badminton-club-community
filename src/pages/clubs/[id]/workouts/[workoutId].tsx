@@ -200,12 +200,6 @@ function WorkoutDetailContent({
 }: WorkoutDetailContentProps) {
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
-  // console.log(
-  //   `🚨 ~ sortOption, participants, onChangeSort:`,
-  //   sortOption,
-  //   participants,
-  //   onChangeSort
-  // );
 
   return (
     <div>
