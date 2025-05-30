@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ - use language Korean
+- Before modifying any code, always follow this order:
+  1. Explain the cause of the problem first.
+  2. Suggest a solution first.
+  3. Ask for pernission before saking any code changes.
