@@ -141,7 +141,9 @@ function UsersPage(/* { user }: { user: User } */) {
             />
           )}
           <h2 className="font-semibold text-lg">
-            {user.nickname || '이름 없음'}
+            {user.ClubMember.filter(
+              (member) => member.clubId === userClubs[0].clubId
+            )[0].name || '이름 없음'}
           </h2>
         </div>
         <p className="text-gray-600 text-sm mb-2">{user.email}</p>
