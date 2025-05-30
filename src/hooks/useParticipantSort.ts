@@ -1,13 +1,7 @@
 import { useState, useCallback } from 'react';
 
 import { WorkoutParticipant } from '@/types';
-
-export type SortOption = 'createdAt' | 'localLevel' | 'nationalLevel' | 'name';
-export type ParticipantSortState = {
-  sortOption: SortOption;
-  participants: WorkoutParticipant[];
-  onChangeSort: (option: SortOption) => void;
-};
+import { ParticipantSortState, SortOption } from '@/types/participantSort';
 
 export const useParticipantSort = (
   initialParticipants: WorkoutParticipant[]
