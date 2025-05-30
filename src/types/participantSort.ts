@@ -1,4 +1,4 @@
-import { WorkoutParticipant } from './workout';
+import { WorkoutParticipant } from './workout.types';
 
 export type SortOption = 'createdAt' | 'localLevel' | 'nationalLevel' | 'name';
 
@@ -7,3 +7,4 @@ export interface ParticipantSortState {
   participants: WorkoutParticipant[];
   onChangeSort: (option: SortOption) => void;
 }
+g;

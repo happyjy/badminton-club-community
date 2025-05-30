@@ -9,7 +9,6 @@ import {
   ParticipantSortProvider,
   useParticipantSortContext,
 } from '@/contexts/ParticipantSortContext';
-import { SortOption } from '@/hooks/useParticipantSort';
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
@@ -17,6 +16,7 @@ import keyIcon from '@/icon/key.svg';
 import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
 import { Workout, WorkoutParticipant, Guest } from '@/types';
+import { SortOption } from '@/types/participantSort';
 import { formatToKoreanTime } from '@/utils';
 
 type ParticipantIcons = Record<string, SelectedIcon[]>;
