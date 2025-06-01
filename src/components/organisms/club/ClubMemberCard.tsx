@@ -69,7 +69,7 @@ export function ClubMemberCard({
         <p className="text-sm flex items-center gap-2">
           <span>{club?.club?.name || `클럽 ${member.clubId}`}</span>
           <span>상태:</span>
-          {member.status === Status.APPROVED ? (
+          {member.status !== Status.PENDING ? (
             <div className="relative" ref={menuRef}>
               <SelectableButton
                 label={member.status}
