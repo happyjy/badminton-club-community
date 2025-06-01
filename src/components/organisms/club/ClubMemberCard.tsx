@@ -70,20 +70,49 @@ export function ClubMemberCard({
                 {member.status}
               </button>
               {isStatusMenuOpen && (
-                <div className="absolute z-10 mt-1 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="py-1" role="menu">
-                    {Object.values(Status).map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => handleStatusChange(status)}
-                        className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                        role="menuitem"
-                      >
-                        {status}
-                      </button>
-                    ))}
+                <>
+                  {/* 데스크톱용 드롭다운 */}
+                  <div className="hidden md:block absolute z-10 mt-1 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                    <div className="py-1" role="menu">
+                      {Object.values(Status).map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => handleStatusChange(status)}
+                          className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                          role="menuitem"
+                        >
+                          {status}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                  {/* 모바일용 바텀 시트 */}
+                  <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+                    <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">상태 변경</h3>
+                        <button
+                          onClick={() => setIsStatusMenuOpen(false)}
+                          className="text-gray-500"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {Object.values(Status).map((status) => (
+                          <button
+                            key={status}
+                            onClick={() => handleStatusChange(status)}
+                            className="w-full px-4 py-3 text-left text-base bg-gray-50 rounded-lg hover:bg-gray-100 active:bg-gray-200"
+                            role="menuitem"
+                          >
+                            {status}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           ) : (
