@@ -68,6 +68,7 @@ export default async function handler(
         nationalTournamentLevel: true,
         lessonPeriod: true,
         playingPeriod: true,
+        phoneNumber: true,
         user: {
           select: {
             id: true,

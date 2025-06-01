@@ -68,6 +68,10 @@ function MemberDetails({ member }: { member: ClubMember }) {
         : '미입력',
     },
     {
+      label: '전화번호',
+      value: member.phoneNumber || '미입력',
+    },
+    {
       label: '구대회급수',
       value: member.localTournamentLevel || '미입력',
     },

@@ -27,6 +27,7 @@ export interface ClubMemberWithUser extends User {
     nationalTournamentLevel?: string;
     playingPeriod?: number;
     lessonPeriod?: number;
+    phoneNumber?: string;
     helperStatuses: any[]; // HelperStatus 타입이 필요하다면 import 해서 사용
   };
 }
@@ -78,7 +79,8 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
     }
   };
 
-  const renderUserCard = (user: ClubMemberWithUser) => {
+  const renderUserCard = (idx: number, user: ClubMemberWithUser) => {
+    console.log(`🚨 ~ renderUserCard ~ user:`, user);
     return (
       <div
         key={user.id}
@@ -95,7 +97,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
             />
           )}
           <h2 className="font-semibold text-lg">
-            {user.clubMember.name || '이름 없음'}
+            {idx + 1}. {user.clubMember.name || '이름 없음'}
           </h2>
         </div>
         <p className="text-gray-600 text-sm mb-2">{user.email}</p>
@@ -167,7 +169,9 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {participants.length > 0 ? (
-          participants.map((user) => renderUserCard(user as ClubMemberWithUser))
+          participants.map((user, idx) =>
+            renderUserCard(idx, user as ClubMemberWithUser)
+          )
         ) : (
           <p className="col-span-full text-center text-gray-500">
             등록된 멤버가 없습니다.
