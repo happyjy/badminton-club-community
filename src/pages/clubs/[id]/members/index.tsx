@@ -80,7 +80,6 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   };
 
   const renderUserCard = (idx: number, user: ClubMemberWithUser) => {
-    console.log(`🚨 ~ renderUserCard ~ user:`, user);
     return (
       <div
         key={user.id}

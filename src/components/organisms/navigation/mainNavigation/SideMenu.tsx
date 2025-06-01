@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { RootState } from '@/store';
 import { logout } from '@/store/features/authSlice';
+import { Role } from '@/types/enums';
 import { KakaoAuth } from '@/utils/auth';
 
 interface SideMenuProps {
@@ -17,7 +18,10 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
   const dispatch = useDispatch();
 
   const user = useSelector((state: RootState) => state.auth.user);
+  const clubMember = useSelector((state: RootState) => state.auth.clubMember);
+
   const isAuthenticated = !!user;
+  const isAdmin = clubMember?.role === Role.ADMIN;
 
   const onClickLink = () => {
     setIsMenuOpen(false);
@@ -93,20 +97,15 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
                 >
                   프로필
                 </Link>
-                {/* <Link
-                  href="/workouts"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
-                  onClick={onClickLink}
-                >
-                  내 운동 일정
-                </Link>
-                <Link
-                  href="/clubs/guest/admin"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
-                  onClick={onClickLink}
-                >
-                  게스트 확인
-                </Link> */}
+                {isAdmin && (
+                  <Link
+                    href="/clubs/1/members"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
+                    onClick={onClickLink}
+                  >
+                    회원 관리
+                  </Link>
+                )}
                 <button
                   onClick={onClickLogout}
                   className="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
