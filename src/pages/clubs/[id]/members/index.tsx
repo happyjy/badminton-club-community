@@ -15,7 +15,7 @@ import { SortOption } from '@/types/participantSort';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
 interface ClubMemberWithUser extends User {
-  ClubMember: {
+  clubMember: {
     status: string;
     role: string;
     clubId: number;
@@ -56,7 +56,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
         if (user.id === userId) {
           return {
             ...user,
-            ClubMember: user.ClubMember.map((member) =>
+            clubMember: user.clubMember.map((member) =>
               member.clubId === clubId
                 ? { ...member, status: Status.APPROVED }
                 : member
@@ -91,13 +91,13 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
             />
           )}
           <h2 className="font-semibold text-lg">
-            {user.ClubMember.filter(
+            {user.clubMember.filter(
               (member) => member.clubId === userClubs[0].clubId
             )[0].name || '이름 없음'}
           </h2>
         </div>
         <p className="text-gray-600 text-sm mb-2">{user.email}</p>
-        {user.ClubMember.map((member) => (
+        {user.clubMember.map((member) => (
           <ClubMemberCard
             key={`${user.id}-${member.clubId}`}
             member={member}

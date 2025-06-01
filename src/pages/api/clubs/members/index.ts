@@ -5,6 +5,8 @@ import { getSession } from '@/lib/session';
 import { ApiResponse, User } from '@/types';
 import { Role } from '@/types/enums';
 
+const prisma = new PrismaClient();
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'users', User[]>>
@@ -36,7 +38,6 @@ export default async function handler(
     const clubIdArray = (clubIds as string).split(',').map(Number);
 
     // 요청한 사용자가 해당 클럽들의 ADMIN인지 확인
-    const prisma = new PrismaClient();
     const userClubRoles = await prisma.clubMember.findMany({
       where: {
         userId: session.id,
@@ -57,14 +58,14 @@ export default async function handler(
     //   - 예를 들어, clubIdArray가 [1, 2, 3]일 경우, 1, 2, 3 클럽의 모든 멤버를 가져오기
     let users = await prisma.user.findMany({
       where: {
-        ClubMember: {
+        clubMember: {
           some: {
             clubId: { in: clubIdArray },
           },
         },
       },
       include: {
-        ClubMember: {
+        clubMember: {
           where: {
             clubId: { in: clubIdArray },
           },
@@ -85,8 +86,8 @@ export default async function handler(
 
     // JavaScript로 정렬
     users = users.sort((a, b) => {
-      const dateA = a.ClubMember[0]?.birthDate;
-      const dateB = b.ClubMember[0]?.birthDate;
+      const dateA = a.clubMember[0]?.birthDate;
+      const dateB = b.clubMember[0]?.birthDate;
       if (!dateA || !dateB) return 0;
       return new Date(dateA).getTime() - new Date(dateB).getTime();
     });
@@ -94,7 +95,7 @@ export default async function handler(
     // Date 객체를 ISO 문자열로 변환
     const serializedUsers = users.map((user) => ({
       ...user,
-      ClubMember: user.ClubMember.map((member) => ({
+      clubMember: user.clubMember.map((member) => ({
         ...member,
         birthDate: member.birthDate
           ? typeof member.birthDate === 'string'
@@ -105,7 +106,9 @@ export default async function handler(
     }));
 
     return res.status(200).json({
-      data: { users: serializedUsers },
+      data: {
+        users: serializedUsers,
+      },
       status: 200,
       message: '클럽 멤버를 불러오는데 성공했습니다',
     });
@@ -115,5 +118,7 @@ export default async function handler(
       error: '클럽 멤버를 불러오는데 실패했습니다',
       status: 500,
     });
+  } finally {
+    await prisma.$disconnect();
   }
 }

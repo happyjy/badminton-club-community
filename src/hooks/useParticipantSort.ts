@@ -37,8 +37,8 @@ export const useParticipantSort = (
           });
         case 'name':
           return sorted.sort((a, b) => {
-            const nameA = a.clubMember?.name || a.User.nickname;
-            const nameB = b.clubMember?.name || b.User.nickname;
+            const nameA = a.clubMember?.name || a?.User?.nickname;
+            const nameB = b.clubMember?.name || b?.User?.nickname;
             const surnameA = nameA.charAt(0);
             const surnameB = nameB.charAt(0);
 
