@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { ClubResponse } from '@/types/club.types';
 import { Status } from '@/types/enums';
 
@@ -17,6 +19,7 @@ interface ClubMemberCardProps {
   userId: number;
   userClubs: ClubResponse[];
   onApprove: (userId: number, clubId: number) => void;
+  onStatusChange?: (userId: number, clubId: number, newStatus: Status) => void;
 }
 
 export function ClubMemberCard({
@@ -24,8 +27,15 @@ export function ClubMemberCard({
   userId,
   userClubs,
   onApprove,
+  onStatusChange,
 }: ClubMemberCardProps) {
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const club = userClubs.find((c) => c.clubId === member.clubId);
+
+  const handleStatusChange = (newStatus: Status) => {
+    onStatusChange?.(userId, member.clubId, newStatus);
+    setIsStatusMenuOpen(false);
+  };
 
   return (
     <div className="mt-2">
@@ -33,17 +43,42 @@ export function ClubMemberCard({
         <p className="text-sm flex items-center gap-2">
           <span>{club?.club?.name || `클럽 ${member.clubId}`}</span>
           <span>상태:</span>
-          <span
-            className={`font-semibold ${
-              member.status === Status.PENDING
-                ? 'text-yellow-600'
-                : member.status === Status.APPROVED
-                  ? 'text-green-600'
+          {member.status === Status.APPROVED ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+                className={`font-semibold text-green-600 hover:text-green-700 focus:outline-none`}
+              >
+                {member.status}
+              </button>
+              {isStatusMenuOpen && (
+                <div className="absolute z-10 mt-1 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                  <div className="py-1" role="menu">
+                    {Object.values(Status).map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => handleStatusChange(status)}
+                        className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <span
+              className={`font-semibold ${
+                member.status === Status.PENDING
+                  ? 'text-yellow-600'
                   : 'text-red-600'
-            }`}
-          >
-            {member.status}
-          </span>
+              }`}
+            >
+              {member.status}
+            </span>
+          )}
         </p>
         {member.status === Status.PENDING && (
           <button
