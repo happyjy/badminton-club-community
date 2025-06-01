@@ -79,6 +79,32 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
     }
   };
 
+  const handleStatusChange = async (
+    userId: number,
+    clubId: number,
+    newStatus: Status
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/clubs/${clubId}/members/${userId}/status`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('상태 변경에 실패했습니다');
+      }
+    } catch (error) {
+      console.error('상태 변경 중 오류가 발생했습니다:', error);
+      // TODO: 에러 처리 (예: 토스트 메시지 표시)
+    }
+  };
+
   const renderUserCard = (idx: number, user: ClubMemberWithUser) => {
     return (
       <div
@@ -106,6 +132,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
           userId={user.id}
           userClubs={userClubs}
           onApprove={handleApprove}
+          onStatusChange={handleStatusChange}
         />
         <p className="text-gray-500 text-xs mt-2">
           가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}

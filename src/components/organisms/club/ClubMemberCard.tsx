@@ -53,9 +53,8 @@ export function ClubMemberCard({
     };
   }, [isStatusMenuOpen]);
 
-  const handleStatusChange = (newStatus: Status) => {
-    console.log(`🚨 ~ handleStatusChange ~ newStatus:`, newStatus);
-    onStatusChange?.(userId, member.clubId, newStatus);
+  const handleStatusChange = async (newStatus: Status) => {
+    onStatusChange(userId, member.clubId, newStatus);
     setIsStatusMenuOpen(false);
   };
 
