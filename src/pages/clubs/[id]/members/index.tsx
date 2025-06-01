@@ -33,39 +33,9 @@ interface UsersPageContentProps {
 
 function UsersPageContent({ userClubs }: UsersPageContentProps) {
   const router = useRouter();
-  const [users, setUsers] = useState<ClubMemberWithUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { id: clubId } = router.query;
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
-
-  // 로그인 사용자가 속한 유저 조회
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (userClubs.length === 0) return;
-
-      try {
-        const clubIds = userClubs.map((club) => club.clubId).join(',');
-        const response = await fetch(`/api/clubs/members?clubIds=${clubIds}`);
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error);
-
-        setUsers(result.data.users);
-        onChangeSort('name');
-      } catch (err) {
-        console.error('사용자 데이터를 불러오는데 실패했습니다', err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : '사용자 데이터를 불러오는데 실패했습니다'
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, [userClubs]);
 
   const handleApprove = async (userId: number, clubId: number) => {
     try {
@@ -108,7 +78,6 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   };
 
   const renderUserCard = (user: ClubMemberWithUser) => {
-    console.log(userClubs);
     return (
       <div
         key={user.id}
@@ -147,22 +116,6 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500 bg-red-50 p-4 rounded-lg">{error}</div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
@@ -184,7 +137,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
           <div className="text-gray-600">
             총 회원 수:{' '}
             <span className="font-semibold text-gray-900">
-              {users.length}명
+              {participants.length}명
             </span>
           </div>
           <div className="relative">
@@ -228,11 +181,12 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
 }
 
 function UsersPage() {
+  const router = useRouter();
+  const { id: clubId } = router.query;
   const [users, setUsers] = useState<ClubMemberWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userClubs, setUserClubs] = useState<ClubResponse[]>([]);
-  const router = useRouter();
 
   // 사용자가 admin권한을 가졌는지 확인
   useEffect(() => {
@@ -265,10 +219,11 @@ function UsersPage() {
   // 로그인 사용자가 속한 유저 조회
   useEffect(() => {
     const fetchUsers = async () => {
-      if (userClubs.length === 0) return;
+      if (!clubId) return;
 
       try {
-        const clubIds = userClubs.map((club) => club.clubId).join(',');
+        // const clubIds = userClubs.map((club) => club.clubId).join(',');
+        const clubIds = clubId;
         const response = await fetch(`/api/clubs/members?clubIds=${clubIds}`);
         const result = await response.json();
         if (!response.ok) throw new Error(result.error);
@@ -287,7 +242,7 @@ function UsersPage() {
     };
 
     fetchUsers();
-  }, [userClubs]);
+  }, [clubId]);
 
   if (isLoading) {
     return (
