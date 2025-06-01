@@ -50,6 +50,12 @@ export const useParticipantSort = (
             const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
             return levelA.localeCompare(levelB);
           });
+        case 'birthDate':
+          return sorted.sort((a, b) => {
+            const dateA = a.clubMember?.birthDate;
+            const dateB = b.clubMember?.birthDate;
+            return dateA.localeCompare(dateB);
+          });
         default:
           return sorted;
       }

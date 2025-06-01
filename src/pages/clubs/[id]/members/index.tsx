@@ -75,8 +75,6 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   };
 
   const renderUserCard = (user: ClubMemberWithUser) => {
-    console.log(`🚨 ~ UsersPageContent ~ user:`, user);
-
     return (
       <div
         key={user.id}
@@ -144,6 +142,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
               <option value="name">이름순</option>
               <option value="localLevel">지역대회 급수</option>
               <option value="nationalLevel">전국대회 급수</option>
+              <option value="birthDate">생년월일</option>
               <option value="createdAt">가입순서</option>
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">

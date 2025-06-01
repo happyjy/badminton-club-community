@@ -1,6 +1,11 @@
 import { WorkoutParticipant } from './workout.types';
 
-export type SortOption = 'createdAt' | 'localLevel' | 'nationalLevel' | 'name';
+export type SortOption =
+  | 'createdAt'
+  | 'localLevel'
+  | 'nationalLevel'
+  | 'name'
+  | 'birthDate';
 
 export interface ParticipantSortState {
   sortOption: SortOption;
