@@ -3,6 +3,10 @@ import { useState, useRef, useEffect } from 'react';
 import { ClubResponse } from '@/types/club.types';
 import { Status } from '@/types/enums';
 
+import { SelectableButton } from '../../atoms/SelectableButton';
+import { OptionBottomSheet } from '../../molecules/OptionBottomSheet';
+import { OptionDropdown } from '../../molecules/OptionDropdown';
+
 interface ClubMember {
   status: string;
   role: string;
@@ -55,6 +59,11 @@ export function ClubMemberCard({
     setIsStatusMenuOpen(false);
   };
 
+  const statusOptions = Object.values(Status).map((status) => ({
+    value: status,
+    label: status,
+  }));
+
   return (
     <div className="mt-2">
       <div className="flex justify-between items-center">
@@ -63,54 +72,25 @@ export function ClubMemberCard({
           <span>상태:</span>
           {member.status === Status.APPROVED ? (
             <div className="relative" ref={menuRef}>
-              <button
+              <SelectableButton
+                label={member.status}
                 onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
-                className={`font-semibold text-green-600 hover:text-green-700 focus:outline-none`}
-              >
-                {member.status}
-              </button>
+              />
               {isStatusMenuOpen && (
                 <>
-                  {/* 데스크톱용 드롭다운 */}
-                  <div className="hidden md:block absolute z-10 mt-1 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                    <div className="py-1" role="menu">
-                      {Object.values(Status).map((status) => (
-                        <button
-                          key={status}
-                          onClick={() => handleStatusChange(status)}
-                          className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                          role="menuitem"
-                        >
-                          {status}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="hidden md:block">
+                    <OptionDropdown
+                      options={statusOptions}
+                      onSelect={handleStatusChange}
+                    />
                   </div>
-                  {/* 모바일용 바텀 시트 */}
-                  <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-                    <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold">상태 변경</h3>
-                        <button
-                          onClick={() => setIsStatusMenuOpen(false)}
-                          className="text-gray-500"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      <div className="space-y-2">
-                        {Object.values(Status).map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => handleStatusChange(status)}
-                            className="w-full px-4 py-3 text-left text-base bg-gray-50 rounded-lg hover:bg-gray-100 active:bg-gray-200"
-                            role="menuitem"
-                          >
-                            {status}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                  <div className="md:hidden">
+                    <OptionBottomSheet
+                      title="상태 변경"
+                      options={statusOptions}
+                      onSelect={handleStatusChange}
+                      onClose={() => setIsStatusMenuOpen(false)}
+                    />
                   </div>
                 </>
               )}
