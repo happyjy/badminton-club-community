@@ -74,6 +74,17 @@ export function ClubMemberCard({
               <SelectableButton
                 label={member.status}
                 onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+                className={`${
+                  member.status === Status.APPROVED
+                    ? 'text-green-600 hover:text-green-700'
+                    : member.status === Status.ON_LEAVE
+                      ? 'text-blue-600 hover:text-blue-700'
+                      : member.status === Status.REJECTED
+                        ? 'text-red-600 hover:text-red-700'
+                        : member.status === Status.LEFT
+                          ? 'text-gray-600 hover:text-gray-700'
+                          : 'text-yellow-600 hover:text-yellow-700'
+                }`}
               />
               {isStatusMenuOpen && (
                 <>

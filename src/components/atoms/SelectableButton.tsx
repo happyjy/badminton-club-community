@@ -12,7 +12,7 @@ export function SelectableButton({
   return (
     <button
       onClick={onClick}
-      className={`font-semibold text-green-600 hover:text-green-700 focus:outline-none ${className}`}
+      className={`${className} font-semibold focus:outline-none`}
     >
       {label}
     </button>
