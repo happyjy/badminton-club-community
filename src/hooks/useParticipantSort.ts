@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
 
-import { WorkoutParticipant } from '@/types';
 import { SortOption } from '@/types/participantSort';
+import { SortableItem } from '@/types/sortable';
 
 interface UseParticipantSortProps {
   initialSortOption?: SortOption;
-  initialParticipants?: WorkoutParticipant[];
+  initialParticipants?: SortableItem[];
 }
 
 export function useParticipantSort({
@@ -14,17 +14,14 @@ export function useParticipantSort({
 }: UseParticipantSortProps = {}) {
   const [sortOption, setSortOption] = useState<SortOption>(initialSortOption);
   const [participants, setParticipants] =
-    useState<WorkoutParticipant[]>(initialParticipants);
+    useState<SortableItem[]>(initialParticipants);
 
   const sortParticipants = useCallback(
-    (
-      option: SortOption,
-      participantsToSort: WorkoutParticipant[] = participants
-    ) => {
+    (option: SortOption, participantsToSort: SortableItem[] = participants) => {
       const sorted = [...participantsToSort];
 
       // 이름 정렬 함수 (공통으로 사용)
-      const sortByName = (a: WorkoutParticipant, b: WorkoutParticipant) => {
+      const sortByName = (a: SortableItem, b: SortableItem) => {
         const nameA = a.clubMember?.name || a?.User?.nickname || '';
         const nameB = b.clubMember?.name || b?.User?.nickname || '';
         return nameA.localeCompare(nameB, 'ko-KR');
@@ -75,7 +72,7 @@ export function useParticipantSort({
   );
 
   const onChangeSort = useCallback(
-    (option: SortOption, updatedParticipants?: WorkoutParticipant[]) => {
+    (option: SortOption, updatedParticipants?: SortableItem[]) => {
       setSortOption(option);
       if (updatedParticipants) {
         setParticipants(sortParticipants(option, updatedParticipants));

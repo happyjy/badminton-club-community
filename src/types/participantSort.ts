@@ -1,4 +1,4 @@
-import { WorkoutParticipant } from './workout.types';
+import { SortableItem } from './sortable';
 
 export type SortOption =
   | 'createdAt'
@@ -9,9 +9,10 @@ export type SortOption =
 
 export interface ParticipantSortState {
   sortOption: SortOption;
-  participants: WorkoutParticipant[];
+  participants: SortableItem[];
   onChangeSort: (
     option: SortOption,
-    updatedParticipants?: WorkoutParticipant[]
+    updatedParticipants?: SortableItem[]
   ) => void;
+  setSortOption: (option: SortOption) => void;
 }

@@ -14,7 +14,7 @@ import { Role, Status } from '@/types/enums';
 import { SortOption } from '@/types/participantSort';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
-interface ClubMemberWithUser extends User {
+export interface ClubMemberWithUser extends User {
   clubMember: {
     status: string;
     role: string;
@@ -24,7 +24,7 @@ interface ClubMemberWithUser extends User {
     nationalTournamentLevel?: string;
     playingPeriod?: number;
     lessonPeriod?: number;
-  }[];
+  };
 }
 
 interface UsersPageContentProps {
@@ -56,11 +56,12 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
         if (user.id === userId) {
           return {
             ...user,
-            clubMember: user.clubMember.map((member) =>
-              member.clubId === clubId
-                ? { ...member, status: Status.APPROVED }
-                : member
-            ),
+            clubMember:
+              user.clubMember.map((member) =>
+                member.clubId === clubId
+                  ? { ...member, status: Status.APPROVED }
+                  : member
+              ) || [],
           };
         }
         return user;

@@ -1,14 +1,14 @@
 import { createContext, useContext, ReactNode } from 'react';
 
 import { useParticipantSort } from '@/hooks/useParticipantSort';
-import { WorkoutParticipant } from '@/types';
 import { ParticipantSortState, SortOption } from '@/types/participantSort';
+import { SortableItem } from '@/types/sortable';
 
 const ParticipantSortContext = createContext<ParticipantSortState | null>(null);
 
 interface ParticipantSortProviderProps {
   children: ReactNode;
-  initialParticipants: WorkoutParticipant[];
+  initialParticipants: SortableItem[];
   initialSortOption?: SortOption;
 }
 
