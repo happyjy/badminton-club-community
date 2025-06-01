@@ -168,32 +168,34 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex mb-2">
-          <h2 className="text-lg font-semibold mr-2">관리중인 클럽:</h2>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6 gap-3 md:gap-0">
+        <div className="flex flex-col md:flex-row md:items-center mb-2 md:mb-0 w-full md:w-auto">
+          <h2 className="text-base md:text-lg font-semibold mr-0 md:mr-2 mb-1 md:mb-0">
+            관리중인 클럽:
+          </h2>
           <div className="flex flex-wrap gap-2">
             {userClubs.map((club) => (
               <span
                 key={club.clubId}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm mb-1"
               >
                 {club.club?.name || `클럽 ${club.clubId}`}
               </span>
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-gray-600">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 w-full md:w-auto">
+          <div className="text-gray-600 text-sm md:text-base">
             총 회원 수:{' '}
             <span className="font-semibold text-gray-900">
               {participants.length}명
             </span>
           </div>
-          <div className="relative">
+          <div className="relative w-full md:w-auto">
             <select
               value={sortOption}
               onChange={(e) => onChangeSort(e.target.value as SortOption)}
-              className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+              className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer w-full md:w-auto"
             >
               <option value="name">이름순</option>
               <option value="localLevel">지역대회 급수</option>
