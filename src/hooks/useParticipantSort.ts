@@ -11,8 +11,11 @@ export const useParticipantSort = (
     useState<WorkoutParticipant[]>(initialParticipants);
 
   const sortParticipants = useCallback(
-    (option: SortOption) => {
-      const sorted = [...participants];
+    (
+      option: SortOption,
+      participantsToSort: WorkoutParticipant[] = participants
+    ) => {
+      const sorted = [...participantsToSort];
 
       switch (option) {
         case 'createdAt':
@@ -55,9 +58,13 @@ export const useParticipantSort = (
   );
 
   const onChangeSort = useCallback(
-    (option: SortOption) => {
+    (option: SortOption, updatedParticipants?: WorkoutParticipant[]) => {
       setSortOption(option);
-      setParticipants(sortParticipants(option));
+      if (updatedParticipants) {
+        setParticipants(sortParticipants(option, updatedParticipants));
+      } else {
+        setParticipants(sortParticipants(option));
+      }
     },
     [sortParticipants]
   );

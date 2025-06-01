@@ -32,8 +32,6 @@ interface UsersPageContentProps {
 }
 
 function UsersPageContent({ userClubs }: UsersPageContentProps) {
-  const router = useRouter();
-  const { id: clubId } = router.query;
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
 
@@ -53,27 +51,26 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
         throw new Error('승인 처리에 실패했습니다');
       }
 
-      // 사용자 목록 업데이트
-      setUsers(
-        users.map((user) => {
-          if (user.id === userId) {
-            return {
-              ...user,
-              ClubMember: user.ClubMember.map((member) =>
-                member.clubId === clubId
-                  ? { ...member, status: Status.APPROVED }
-                  : member
-              ),
-            };
-          }
-          return user;
-        })
-      );
+      // 승인된 사용자의 상태를 업데이트
+      const updatedParticipants = participants.map((user) => {
+        if (user.id === userId) {
+          return {
+            ...user,
+            ClubMember: user.ClubMember.map((member) =>
+              member.clubId === clubId
+                ? { ...member, status: Status.APPROVED }
+                : member
+            ),
+          };
+        }
+        return user;
+      });
+
+      // 정렬 옵션을 다시 적용하여 목록 업데이트
+      onChangeSort(sortOption, updatedParticipants);
     } catch (err) {
       console.error('승인 처리 중 오류가 발생했습니다', err);
-      setError(
-        err instanceof Error ? err.message : '승인 처리 중 오류가 발생했습니다'
-      );
+      throw err;
     }
   };
 
