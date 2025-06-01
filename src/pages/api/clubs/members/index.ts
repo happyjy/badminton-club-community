@@ -82,26 +82,24 @@ export default async function handler(
       },
     });
 
-    // clubMember와 user 정보를 결합
-    let users = clubMembers.map((member) => ({
-      ...member.user,
-      clubMember: {
-        ...member,
-        birthDate: member.birthDate
-          ? typeof member.birthDate === 'string'
-            ? member.birthDate
-            : new Date(member.birthDate).toISOString()
-          : null,
-      },
-    }));
-
-    // JavaScript로 나이순 정렬
-    users = users.sort((a, b) => {
-      const dateA = a.clubMember.birthDate;
-      const dateB = b.clubMember.birthDate;
-      if (!dateA || !dateB) return 0;
-      return new Date(dateA).getTime() - new Date(dateB).getTime();
-    });
+    // clubMember와 user 정보를 결합하고 한글 정렬 적용
+    const users = clubMembers
+      .map((member) => ({
+        ...member.user,
+        clubMember: {
+          ...member,
+          birthDate: member.birthDate
+            ? typeof member.birthDate === 'string'
+              ? member.birthDate
+              : new Date(member.birthDate).toISOString()
+            : null,
+        },
+      }))
+      .sort((a, b) => {
+        const nameA = a.clubMember.name || '';
+        const nameB = b.clubMember.name || '';
+        return nameA.localeCompare(nameB, 'ko-KR');
+      });
 
     return res.status(200).json({
       data: {

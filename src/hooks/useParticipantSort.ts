@@ -1,12 +1,18 @@
 import { useState, useCallback } from 'react';
 
 import { WorkoutParticipant } from '@/types';
-import { ParticipantSortState, SortOption } from '@/types/participantSort';
+import { SortOption } from '@/types/participantSort';
 
-export const useParticipantSort = (
-  initialParticipants: WorkoutParticipant[]
-): ParticipantSortState => {
-  const [sortOption, setSortOption] = useState<SortOption>('createdAt');
+interface UseParticipantSortProps {
+  initialSortOption?: SortOption;
+  initialParticipants?: WorkoutParticipant[];
+}
+
+export function useParticipantSort({
+  initialParticipants = [],
+  initialSortOption = 'createdAt',
+}: UseParticipantSortProps = {}) {
+  const [sortOption, setSortOption] = useState<SortOption>(initialSortOption);
   const [participants, setParticipants] =
     useState<WorkoutParticipant[]>(initialParticipants);
 
@@ -79,5 +85,6 @@ export const useParticipantSort = (
     sortOption,
     participants,
     onChangeSort,
+    setSortOption,
   };
-};
+}

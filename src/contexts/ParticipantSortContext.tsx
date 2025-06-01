@@ -14,8 +14,12 @@ interface ParticipantSortProviderProps {
 export const ParticipantSortProvider = ({
   children,
   initialParticipants,
+  initialSortOption,
 }: ParticipantSortProviderProps) => {
-  const sortState = useParticipantSort(initialParticipants);
+  const sortState = useParticipantSort({
+    initialParticipants,
+    initialSortOption,
+  });
 
   return (
     <ParticipantSortContext.Provider value={sortState}>

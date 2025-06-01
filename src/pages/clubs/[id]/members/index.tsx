@@ -253,7 +253,10 @@ function UsersPage() {
   }
 
   return (
-    <ParticipantSortProvider initialParticipants={users}>
+    <ParticipantSortProvider
+      initialParticipants={users}
+      initialSortOption="name"
+    >
       <UsersPageContent userClubs={userClubs} />
     </ParticipantSortProvider>
   );
