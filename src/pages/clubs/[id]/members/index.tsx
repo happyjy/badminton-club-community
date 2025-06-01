@@ -56,12 +56,10 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
         if (user.id === userId) {
           return {
             ...user,
-            clubMember:
-              user.clubMember.map((member) =>
-                member.clubId === clubId
-                  ? { ...member, status: Status.APPROVED }
-                  : member
-              ) || [],
+            clubMember: {
+              ...user.clubMember,
+              status: Status.APPROVED,
+            },
           };
         }
         return user;
