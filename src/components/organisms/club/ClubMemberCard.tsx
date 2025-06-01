@@ -39,6 +39,7 @@ const getStatusStyle = (status: Status) => {
 interface ClubMember {
   status: string;
   role: string;
+  phoneNumber?: string;
   clubId: number;
   birthDate?: string;
   localTournamentLevel?: string;
@@ -52,7 +53,7 @@ interface ClubMemberCardProps {
   userId: number;
   userClubs: ClubResponse[];
   onApprove: (userId: number, clubId: number) => void;
-  onStatusChange?: (userId: number, clubId: number, newStatus: Status) => void;
+  onStatusChange: (userId: number, clubId: number, newStatus: Status) => void;
 }
 
 export function ClubMemberCard({
