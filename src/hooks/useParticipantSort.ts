@@ -40,17 +40,19 @@ export function useParticipantSort({
 
       // 이름 정렬 함수 (공통으로 사용)
       const sortByName = (a: SortableItem, b: SortableItem) => {
+        const collator = new Intl.Collator('ko-KR', { sensitivity: 'base' });
+
         // WorkoutParticipant인 경우
         if (isWorkoutParticipant(a) && isWorkoutParticipant(b)) {
-          const nameA = a.User?.nickname || '';
-          const nameB = b.User?.nickname || '';
-          return nameA.localeCompare(nameB, 'ko-KR');
+          const nameA = a.clubMember.name || '';
+          const nameB = b.clubMember.name || '';
+          return collator.compare(nameA, nameB);
         }
         // ClubMemberWithUser인 경우
         if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
-          const nameA = a.nickname || '';
-          const nameB = b.nickname || '';
-          return nameA.localeCompare(nameB, 'ko-KR');
+          const nameA = a.clubMember.name || '';
+          const nameB = b.clubMember.name || '';
+          return collator.compare(nameA, nameB);
         }
         return 0; // 타입이 일치하지 않는 경우
       };
