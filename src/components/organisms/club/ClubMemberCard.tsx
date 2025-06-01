@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import { ClubResponse } from '@/types/club.types';
 import { Status } from '@/types/enums';
@@ -30,9 +30,27 @@ export function ClubMemberCard({
   onStatusChange,
 }: ClubMemberCardProps) {
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const club = userClubs.find((c) => c.clubId === member.clubId);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsStatusMenuOpen(false);
+      }
+    };
+
+    if (isStatusMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isStatusMenuOpen]);
+
   const handleStatusChange = (newStatus: Status) => {
+    console.log(`🚨 ~ handleStatusChange ~ newStatus:`, newStatus);
     onStatusChange?.(userId, member.clubId, newStatus);
     setIsStatusMenuOpen(false);
   };
@@ -44,7 +62,7 @@ export function ClubMemberCard({
           <span>{club?.club?.name || `클럽 ${member.clubId}`}</span>
           <span>상태:</span>
           {member.status === Status.APPROVED ? (
-            <div className="relative">
+            <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
                 className={`font-semibold text-green-600 hover:text-green-700 focus:outline-none`}
