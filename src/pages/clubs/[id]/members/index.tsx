@@ -4,9 +4,14 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 
 import { ClubMemberCard } from '@/components/organisms/club/ClubMemberCard';
+import {
+  ParticipantSortProvider,
+  useParticipantSortContext,
+} from '@/contexts/ParticipantSortContext';
 import { withAuth } from '@/lib/withAuth';
 import { ClubResponse, User } from '@/types';
 import { Role, Status } from '@/types/enums';
+import { SortOption } from '@/types/participantSort';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
 interface ClubMemberWithUser extends User {
@@ -22,40 +27,17 @@ interface ClubMemberWithUser extends User {
   }[];
 }
 
-function UsersPage(/* { user }: { user: User } */) {
+interface UsersPageContentProps {
+  userClubs: ClubResponse[];
+}
+
+function UsersPageContent({ userClubs }: UsersPageContentProps) {
   const router = useRouter();
   const [users, setUsers] = useState<ClubMemberWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userClubs, setUserClubs] = useState<ClubResponse[]>([]); // 타입 수정
-
-  // 사용자가 admin권한을 가졌는지 확인
-  useEffect(() => {
-    const fetchUserClubs = async () => {
-      try {
-        const response = await fetch('/api/users/me/clubs');
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error);
-
-        const clubs = result.data.clubs;
-        const adminClubs = clubs.filter(
-          (club: { role: string }) => club.role === Role.ADMIN
-        );
-        setUserClubs(adminClubs);
-
-        // ADMIN 권한이 없는 경우
-        if (adminClubs.length === 0) {
-          router.push('/');
-          return;
-        }
-      } catch (err) {
-        console.error('클럽 정보를 불러오는데 실패했습니다', err);
-        setError('클럽 정보를 불러오는데 실패했습니다');
-      }
-    };
-
-    fetchUserClubs();
-  }, [router]);
+  const { sortOption, participants, onChangeSort } =
+    useParticipantSortContext();
 
   // 로그인 사용자가 속한 유저 조회
   useEffect(() => {
@@ -69,6 +51,7 @@ function UsersPage(/* { user }: { user: User } */) {
         if (!response.ok) throw new Error(result.error);
 
         setUsers(result.data.users);
+        onChangeSort('name');
       } catch (err) {
         console.error('사용자 데이터를 불러오는데 실패했습니다', err);
         setError(
@@ -125,6 +108,7 @@ function UsersPage(/* { user }: { user: User } */) {
   };
 
   const renderUserCard = (user: ClubMemberWithUser) => {
+    console.log(userClubs);
     return (
       <div
         key={user.id}
@@ -196,14 +180,43 @@ function UsersPage(/* { user }: { user: User } */) {
             ))}
           </div>
         </div>
-        <div className="text-gray-600">
-          총 회원 수:{' '}
-          <span className="font-semibold text-gray-900">{users.length}명</span>
+        <div className="flex items-center gap-4">
+          <div className="text-gray-600">
+            총 회원 수:{' '}
+            <span className="font-semibold text-gray-900">
+              {users.length}명
+            </span>
+          </div>
+          <div className="relative">
+            <select
+              value={sortOption}
+              onChange={(e) => onChangeSort(e.target.value as SortOption)}
+              className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+            >
+              <option value="name">이름순</option>
+              <option value="localLevel">지역대회 급수</option>
+              <option value="nationalLevel">전국대회 급수</option>
+              <option value="createdAt">가입순서</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <svg
+                className="w-4 h-4 fill-current"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {users.length > 0 ? (
-          users.map(renderUserCard)
+        {participants.length > 0 ? (
+          participants.map(renderUserCard)
         ) : (
           <p className="col-span-full text-center text-gray-500">
             등록된 멤버가 없습니다.
@@ -211,6 +224,91 @@ function UsersPage(/* { user }: { user: User } */) {
         )}
       </div>
     </div>
+  );
+}
+
+function UsersPage() {
+  const [users, setUsers] = useState<ClubMemberWithUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userClubs, setUserClubs] = useState<ClubResponse[]>([]);
+  const router = useRouter();
+
+  // 사용자가 admin권한을 가졌는지 확인
+  useEffect(() => {
+    const fetchUserClubs = async () => {
+      try {
+        const response = await fetch('/api/users/me/clubs');
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        const clubs = result.data.clubs;
+        const adminClubs = clubs.filter(
+          (club: { role: string }) => club.role === Role.ADMIN
+        );
+        setUserClubs(adminClubs);
+
+        // ADMIN 권한이 없는 경우
+        if (adminClubs.length === 0) {
+          router.push('/');
+          return;
+        }
+      } catch (err) {
+        console.error('클럽 정보를 불러오는데 실패했습니다', err);
+        setError('클럽 정보를 불러오는데 실패했습니다');
+      }
+    };
+
+    fetchUserClubs();
+  }, [router]);
+
+  // 로그인 사용자가 속한 유저 조회
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (userClubs.length === 0) return;
+
+      try {
+        const clubIds = userClubs.map((club) => club.clubId).join(',');
+        const response = await fetch(`/api/clubs/members?clubIds=${clubIds}`);
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        setUsers(result.data.users);
+      } catch (err) {
+        console.error('사용자 데이터를 불러오는데 실패했습니다', err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : '사용자 데이터를 불러오는데 실패했습니다'
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [userClubs]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-red-500 bg-red-50 p-4 rounded-lg">{error}</div>
+      </div>
+    );
+  }
+
+  return (
+    <ParticipantSortProvider initialParticipants={users}>
+      <UsersPageContent userClubs={userClubs} />
+    </ParticipantSortProvider>
   );
 }
 
