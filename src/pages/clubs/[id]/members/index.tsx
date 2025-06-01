@@ -84,6 +84,26 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
     clubId: number,
     newStatus: Status
   ) => {
+    // 이전 상태 저장
+    const previousParticipants = [...participants];
+
+    // 낙관적 업데이트: UI 먼저 업데이트
+    const updatedParticipants = participants.map((user) => {
+      if (user.id === userId) {
+        return {
+          ...user,
+          clubMember: {
+            ...user.clubMember,
+            status: newStatus,
+          },
+        };
+      }
+      return user;
+    });
+
+    // 정렬 옵션을 다시 적용하여 목록 업데이트
+    onChangeSort(sortOption, updatedParticipants as SortableItem[]);
+
     try {
       const response = await fetch(
         `/api/clubs/${clubId}/members/${userId}/status`,
@@ -99,8 +119,12 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
       if (!response.ok) {
         throw new Error('상태 변경에 실패했습니다');
       }
+
+      // 성공 시 추가 작업이 필요한 경우 여기에 구현
     } catch (error) {
       console.error('상태 변경 중 오류가 발생했습니다:', error);
+      // 실패 시 이전 상태로 복원
+      onChangeSort(sortOption, previousParticipants as SortableItem[]);
       // TODO: 에러 처리 (예: 토스트 메시지 표시)
     }
   };
