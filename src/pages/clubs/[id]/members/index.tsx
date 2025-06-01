@@ -75,6 +75,8 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   };
 
   const renderUserCard = (user: ClubMemberWithUser) => {
+    console.log(`🚨 ~ UsersPageContent ~ user:`, user);
+
     return (
       <div
         key={user.id}
@@ -91,21 +93,17 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
             />
           )}
           <h2 className="font-semibold text-lg">
-            {user.clubMember.filter(
-              (member) => member.clubId === userClubs[0].clubId
-            )[0].name || '이름 없음'}
+            {user.clubMember.name || '이름 없음'}
           </h2>
         </div>
         <p className="text-gray-600 text-sm mb-2">{user.email}</p>
-        {user.clubMember.map((member) => (
-          <ClubMemberCard
-            key={`${user.id}-${member.clubId}`}
-            member={member}
-            userId={user.id}
-            userClubs={userClubs}
-            onApprove={handleApprove}
-          />
-        ))}
+        <ClubMemberCard
+          key={user.id}
+          member={user.clubMember}
+          userId={user.id}
+          userClubs={userClubs}
+          onApprove={handleApprove}
+        />
         <p className="text-gray-500 text-xs mt-2">
           가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
         </p>
@@ -219,9 +217,7 @@ function UsersPage() {
       if (!clubId) return;
 
       try {
-        // const clubIds = userClubs.map((club) => club.clubId).join(',');
-        const clubIds = clubId;
-        const response = await fetch(`/api/clubs/members?clubIds=${clubIds}`);
+        const response = await fetch(`/api/clubs/members?clubId=${clubId}`);
         const result = await response.json();
         if (!response.ok) throw new Error(result.error);
 
