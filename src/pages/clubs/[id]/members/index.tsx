@@ -167,7 +167,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {participants.length > 0 ? (
-          participants.map(renderUserCard)
+          participants.map((user) => renderUserCard(user as ClubMemberWithUser))
         ) : (
           <p className="col-span-full text-center text-gray-500">
             등록된 멤버가 없습니다.
