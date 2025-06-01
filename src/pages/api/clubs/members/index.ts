@@ -5,6 +5,8 @@ import { getSession } from '@/lib/session';
 import { ApiResponse, User } from '@/types';
 import { Role } from '@/types/enums';
 
+const prisma = new PrismaClient();
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'users', User[]>>
@@ -25,87 +27,84 @@ export default async function handler(
       });
     }
 
-    const { clubIds } = req.query;
-    if (!clubIds) {
+    const { clubId } = req.query;
+    if (!clubId) {
       return res.status(400).json({
         error: '클럽 ID가 필요합니다',
         status: 400,
       });
     }
 
-    const clubIdArray = (clubIds as string).split(',').map(Number);
+    const clubIdNumber = Number(clubId);
 
-    // 요청한 사용자가 해당 클럽들의 ADMIN인지 확인
-    const prisma = new PrismaClient();
-    const userClubRoles = await prisma.clubMember.findMany({
+    // 요청한 사용자가 해당 클럽의 ADMIN인지 확인
+    const userClubRole = await prisma.clubMember.findFirst({
       where: {
         userId: session.id,
-        clubId: { in: clubIdArray },
+        clubId: clubIdNumber,
         role: Role.ADMIN,
       },
     });
 
-    if (userClubRoles.length === 0) {
+    if (!userClubRole) {
       return res.status(403).json({
         error: '권한이 없습니다',
         status: 403,
       });
     }
 
-    // "로그인 사용자"가 여러 클럽에 속해있을 경우 모든 클럽의 멤버를 가져오기
-    //   - clubIdArray가 여러 클럽에 속할 수 있는 상황을 고려한 변수
-    //   - 예를 들어, clubIdArray가 [1, 2, 3]일 경우, 1, 2, 3 클럽의 모든 멤버를 가져오기
-    let users = await prisma.user.findMany({
+    // 클럽의 멤버를 가져오기
+    const clubMembers = await prisma.clubMember.findMany({
       where: {
-        ClubMember: {
-          some: {
-            clubId: { in: clubIdArray },
-          },
-        },
+        clubId: clubIdNumber,
       },
-      include: {
-        ClubMember: {
-          where: {
-            clubId: { in: clubIdArray },
-          },
+      select: {
+        status: true,
+        role: true,
+        clubId: true,
+        name: true,
+        birthDate: true,
+        localTournamentLevel: true,
+        nationalTournamentLevel: true,
+        lessonPeriod: true,
+        playingPeriod: true,
+        user: {
           select: {
-            status: true,
-            role: true,
-            clubId: true,
-            name: true,
-            birthDate: true,
-            localTournamentLevel: true,
-            nationalTournamentLevel: true,
-            lessonPeriod: true,
-            playingPeriod: true,
+            id: true,
+            kakaoId: true,
+            email: true,
+            nickname: true,
+            thumbnailImageUrl: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
       },
     });
 
-    // JavaScript로 정렬
-    users = users.sort((a, b) => {
-      const dateA = a.ClubMember[0]?.birthDate;
-      const dateB = b.ClubMember[0]?.birthDate;
-      if (!dateA || !dateB) return 0;
-      return new Date(dateA).getTime() - new Date(dateB).getTime();
-    });
-
-    // Date 객체를 ISO 문자열로 변환
-    const serializedUsers = users.map((user) => ({
-      ...user,
-      ClubMember: user.ClubMember.map((member) => ({
-        ...member,
-        birthDate: member.birthDate
-          ? typeof member.birthDate === 'string'
-            ? member.birthDate
-            : new Date(member.birthDate).toISOString()
-          : null,
-      })),
-    }));
+    // clubMember와 user 정보를 결합하고 한글 정렬 적용
+    const users = clubMembers
+      .map((member) => ({
+        ...member.user,
+        clubMember: {
+          ...member,
+          birthDate: member.birthDate
+            ? typeof member.birthDate === 'string'
+              ? member.birthDate
+              : new Date(member.birthDate).toISOString()
+            : null,
+        },
+      }))
+      .sort((a, b) => {
+        const nameA = a.clubMember.name || '';
+        const nameB = b.clubMember.name || '';
+        return nameA.localeCompare(nameB, 'ko-KR');
+      });
 
     return res.status(200).json({
-      data: { users: serializedUsers },
+      data: {
+        users,
+      },
       status: 200,
       message: '클럽 멤버를 불러오는데 성공했습니다',
     });
@@ -115,5 +114,7 @@ export default async function handler(
       error: '클럽 멤버를 불러오는데 실패했습니다',
       status: 500,
     });
+  } finally {
+    await prisma.$disconnect();
   }
 }

@@ -1,51 +1,128 @@
 import { useState, useCallback } from 'react';
 
-import { WorkoutParticipant } from '@/types';
-import { ParticipantSortState, SortOption } from '@/types/participantSort';
+import { SortOption } from '@/types/participantSort';
+import { SortableItem } from '@/types/sortable';
 
-export const useParticipantSort = (
-  initialParticipants: WorkoutParticipant[]
-): ParticipantSortState => {
-  const [sortOption, setSortOption] = useState<SortOption>('createdAt');
+interface UseParticipantSortProps {
+  initialSortOption?: SortOption;
+  initialParticipants?: SortableItem[];
+}
+
+// 타입 가드 함수
+function isWorkoutParticipant(
+  item: SortableItem
+): item is SortableItem & { User: { nickname?: string } } {
+  return 'User' in item;
+}
+
+function isClubMemberWithUser(item: SortableItem): item is SortableItem & {
+  nickname: string;
+  clubMember: {
+    localTournamentLevel?: string;
+    nationalTournamentLevel?: string;
+    birthDate?: string;
+  };
+} {
+  return 'nickname' in item && 'clubMember' in item;
+}
+
+export function useParticipantSort({
+  initialParticipants = [],
+  initialSortOption = 'createdAt',
+}: UseParticipantSortProps = {}) {
+  const [sortOption, setSortOption] = useState<SortOption>(initialSortOption);
   const [participants, setParticipants] =
-    useState<WorkoutParticipant[]>(initialParticipants);
+    useState<SortableItem[]>(initialParticipants);
 
   const sortParticipants = useCallback(
-    (option: SortOption) => {
-      const sorted = [...participants];
+    (option: SortOption, participantsToSort: SortableItem[] = participants) => {
+      const sorted = [...participantsToSort];
+
+      // 이름 정렬 함수 (공통으로 사용)
+      const sortByName = (a: SortableItem, b: SortableItem) => {
+        // WorkoutParticipant인 경우
+        if (isWorkoutParticipant(a) && isWorkoutParticipant(b)) {
+          const nameA = a.User?.nickname || '';
+          const nameB = b.User?.nickname || '';
+          return nameA.localeCompare(nameB, 'ko-KR');
+        }
+        // ClubMemberWithUser인 경우
+        if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
+          const nameA = a.nickname || '';
+          const nameB = b.nickname || '';
+          return nameA.localeCompare(nameB, 'ko-KR');
+        }
+        return 0; // 타입이 일치하지 않는 경우
+      };
 
       switch (option) {
+        case 'name':
+          return sorted.sort(sortByName);
         case 'createdAt':
-          return sorted.sort(
-            (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
+          return sorted.sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return dateA === dateB ? sortByName(a, b) : dateA - dateB;
+          });
         case 'localLevel':
           return sorted.sort((a, b) => {
-            const levelA = a.clubMember?.localTournamentLevel || 'Z';
-            const levelB = b.clubMember?.localTournamentLevel || 'Z';
-            return levelA.localeCompare(levelB);
+            // WorkoutParticipant인 경우
+            if (isWorkoutParticipant(a) && isWorkoutParticipant(b)) {
+              const levelA = a.clubMember?.localTournamentLevel || 'Z';
+              const levelB = b.clubMember?.localTournamentLevel || 'Z';
+              return levelA === levelB
+                ? sortByName(a, b)
+                : levelA.localeCompare(levelB);
+            }
+            // ClubMemberWithUser인 경우
+            if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
+              const levelA = a.clubMember.localTournamentLevel || 'Z';
+              const levelB = b.clubMember.localTournamentLevel || 'Z';
+              return levelA === levelB
+                ? sortByName(a, b)
+                : levelA.localeCompare(levelB);
+            }
+            return 0; // 타입이 일치하지 않는 경우
           });
         case 'nationalLevel':
           return sorted.sort((a, b) => {
-            const levelA = a.clubMember?.nationalTournamentLevel || 'Z';
-            const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
-            return levelA.localeCompare(levelB);
-          });
-        case 'name':
-          return sorted.sort((a, b) => {
-            const nameA = a.clubMember?.name || a.User.nickname;
-            const nameB = b.clubMember?.name || b.User.nickname;
-            const surnameA = nameA.charAt(0);
-            const surnameB = nameB.charAt(0);
-
-            if (surnameA !== surnameB) {
-              return surnameA.localeCompare(surnameB);
+            // WorkoutParticipant인 경우
+            if (isWorkoutParticipant(a) && isWorkoutParticipant(b)) {
+              const levelA = a.clubMember?.nationalTournamentLevel || 'Z';
+              const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
+              return levelA === levelB
+                ? sortByName(a, b)
+                : levelA.localeCompare(levelB);
             }
-
-            const levelA = a.clubMember?.nationalTournamentLevel || 'Z';
-            const levelB = b.clubMember?.nationalTournamentLevel || 'Z';
-            return levelA.localeCompare(levelB);
+            // ClubMemberWithUser인 경우
+            if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
+              const levelA = a.clubMember.nationalTournamentLevel || 'Z';
+              const levelB = b.clubMember.nationalTournamentLevel || 'Z';
+              return levelA === levelB
+                ? sortByName(a, b)
+                : levelA.localeCompare(levelB);
+            }
+            return 0; // 타입이 일치하지 않는 경우
+          });
+        case 'birthDate':
+          return sorted.sort((a, b) => {
+            // WorkoutParticipant인 경우
+            if (isWorkoutParticipant(a) && isWorkoutParticipant(b)) {
+              const dateA = a.clubMember?.birthDate || '';
+              const dateB = b.clubMember?.birthDate || '';
+              return dateA === dateB
+                ? sortByName(a, b)
+                : dateA.localeCompare(dateB);
+            }
+            // ClubMemberWithUser인 경우
+            if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
+              const dateA = a.clubMember.birthDate || '';
+              const dateB = b.clubMember.birthDate || '';
+              return dateA === dateB
+                ? sortByName(a, b)
+                : dateA.localeCompare(dateB);
+            }
+            return 0; // 타입이 일치하지 않는 경우
           });
         default:
           return sorted;
@@ -55,9 +132,13 @@ export const useParticipantSort = (
   );
 
   const onChangeSort = useCallback(
-    (option: SortOption) => {
+    (option: SortOption, updatedParticipants?: SortableItem[]) => {
       setSortOption(option);
-      setParticipants(sortParticipants(option));
+      if (updatedParticipants) {
+        setParticipants(sortParticipants(option, updatedParticipants));
+      } else {
+        setParticipants(sortParticipants(option));
+      }
     },
     [sortParticipants]
   );
@@ -66,5 +147,6 @@ export const useParticipantSort = (
     sortOption,
     participants,
     onChangeSort,
+    setSortOption,
   };
-};
+}

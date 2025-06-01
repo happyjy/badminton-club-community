@@ -17,6 +17,7 @@ import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
 import { Workout, WorkoutParticipant, Guest } from '@/types';
 import { SortOption } from '@/types/participantSort';
+import { SortableItem } from '@/types/sortable';
 import { formatToKoreanTime } from '@/utils';
 
 type ParticipantIcons = Record<string, SelectedIcon[]>;
@@ -191,6 +192,11 @@ interface WorkoutDetailContentProps {
   ) => Promise<void>;
 }
 
+// 타입 가드 함수: 참여자 목록 정렬 조건 확인
+function isWorkoutParticipant(item: SortableItem): item is WorkoutParticipant {
+  return 'workoutId' in item && 'User' in item;
+}
+
 function WorkoutDetailContent({
   workout,
   participantIcons,
@@ -285,8 +291,11 @@ function WorkoutDetailContent({
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-4">
-            {participants.map((participant: WorkoutParticipant) => {
-              if (!participant.clubMember) {
+            {participants.map((participant) => {
+              if (
+                !isWorkoutParticipant(participant) ||
+                !participant.clubMember
+              ) {
                 return null;
               }
 
