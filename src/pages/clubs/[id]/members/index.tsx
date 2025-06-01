@@ -12,10 +12,13 @@ import { withAuth } from '@/lib/withAuth';
 import { ClubResponse, User } from '@/types';
 import { Role, Status } from '@/types/enums';
 import { SortOption } from '@/types/participantSort';
+import { SortableItem } from '@/types/sortable';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
 export interface ClubMemberWithUser extends User {
   clubMember: {
+    id: number;
+    name: string;
     status: string;
     role: string;
     clubId: number;
@@ -24,6 +27,7 @@ export interface ClubMemberWithUser extends User {
     nationalTournamentLevel?: string;
     playingPeriod?: number;
     lessonPeriod?: number;
+    helperStatuses: any[]; // HelperStatus 타입이 필요하다면 import 해서 사용
   };
 }
 
@@ -54,19 +58,20 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
       // 승인된 사용자의 상태를 업데이트
       const updatedParticipants = participants.map((user) => {
         if (user.id === userId) {
+          const updatedClubMember = {
+            ...user.clubMember,
+            status: Status.APPROVED,
+          };
           return {
             ...user,
-            clubMember: {
-              ...user.clubMember,
-              status: Status.APPROVED,
-            },
+            clubMember: updatedClubMember,
           };
         }
         return user;
       });
 
       // 정렬 옵션을 다시 적용하여 목록 업데이트
-      onChangeSort(sortOption, updatedParticipants);
+      onChangeSort(sortOption, updatedParticipants as SortableItem[]);
     } catch (err) {
       console.error('승인 처리 중 오류가 발생했습니다', err);
       throw err;
