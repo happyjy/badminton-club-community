@@ -7,6 +7,35 @@ import { SelectableButton } from '../../atoms/SelectableButton';
 import { OptionBottomSheet } from '../../molecules/OptionBottomSheet';
 import { OptionDropdown } from '../../molecules/OptionDropdown';
 
+// 상태별 스타일 정의
+const STATUS_STYLES = {
+  [Status.PENDING]: {
+    text: 'text-yellow-600',
+    hover: 'hover:text-yellow-700',
+  },
+  [Status.APPROVED]: {
+    text: 'text-green-600',
+    hover: 'hover:text-green-700',
+  },
+  [Status.ON_LEAVE]: {
+    text: 'text-blue-600',
+    hover: 'hover:text-blue-700',
+  },
+  [Status.REJECTED]: {
+    text: 'text-red-600',
+    hover: 'hover:text-red-700',
+  },
+  [Status.LEFT]: {
+    text: 'text-gray-600',
+    hover: 'hover:text-gray-700',
+  },
+} as const;
+
+// 상태 스타일 가져오기 함수
+const getStatusStyle = (status: Status) => {
+  return `${STATUS_STYLES[status].text} ${STATUS_STYLES[status].hover}`;
+};
+
 interface ClubMember {
   status: string;
   role: string;
@@ -53,7 +82,7 @@ export function ClubMemberCard({
     };
   }, [isStatusMenuOpen]);
 
-  const handleStatusChange = async (newStatus: Status) => {
+  const handleStatusChange = (newStatus: Status) => {
     onStatusChange(userId, member.clubId, newStatus);
     setIsStatusMenuOpen(false);
   };
@@ -74,17 +103,7 @@ export function ClubMemberCard({
               <SelectableButton
                 label={member.status}
                 onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
-                className={`${
-                  member.status === Status.APPROVED
-                    ? 'text-green-600 hover:text-green-700'
-                    : member.status === Status.ON_LEAVE
-                      ? 'text-blue-600 hover:text-blue-700'
-                      : member.status === Status.REJECTED
-                        ? 'text-red-600 hover:text-red-700'
-                        : member.status === Status.LEFT
-                          ? 'text-gray-600 hover:text-gray-700'
-                          : 'text-yellow-600 hover:text-yellow-700'
-                }`}
+                className={getStatusStyle(member.status as Status)}
               />
               {isStatusMenuOpen && (
                 <>
@@ -106,13 +125,7 @@ export function ClubMemberCard({
               )}
             </div>
           ) : (
-            <span
-              className={`font-semibold ${
-                member.status === Status.PENDING
-                  ? 'text-yellow-600'
-                  : 'text-red-600'
-              }`}
-            >
+            <span className={`font-semibold ${getStatusStyle(Status.PENDING)}`}>
               {member.status}
             </span>
           )}
