@@ -27,6 +27,7 @@ export interface ClubMemberWithUser extends User {
     nationalTournamentLevel?: string;
     playingPeriod?: number;
     lessonPeriod?: number;
+    phoneNumber?: string;
     helperStatuses: any[]; // HelperStatus 타입이 필요하다면 import 해서 사용
   };
 }
@@ -78,7 +79,57 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
     }
   };
 
-  const renderUserCard = (user: ClubMemberWithUser) => {
+  const handleStatusChange = async (
+    userId: number,
+    clubId: number,
+    newStatus: Status
+  ) => {
+    // 이전 상태 저장
+    const previousParticipants = [...participants];
+
+    // 낙관적 업데이트: UI 먼저 업데이트
+    const updatedParticipants = participants.map((user) => {
+      if (user.id === userId) {
+        return {
+          ...user,
+          clubMember: {
+            ...user.clubMember,
+            status: newStatus,
+          },
+        };
+      }
+      return user;
+    });
+
+    // 정렬 옵션을 다시 적용하여 목록 업데이트
+    onChangeSort(sortOption, updatedParticipants as SortableItem[]);
+
+    try {
+      const response = await fetch(
+        `/api/clubs/${clubId}/members/${userId}/status`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('상태 변경에 실패했습니다');
+      }
+
+      // 성공 시 추가 작업이 필요한 경우 여기에 구현
+    } catch (error) {
+      console.error('상태 변경 중 오류가 발생했습니다:', error);
+      // 실패 시 이전 상태로 복원
+      onChangeSort(sortOption, previousParticipants as SortableItem[]);
+      // TODO: 에러 처리 (예: 토스트 메시지 표시)
+    }
+  };
+
+  const renderUserCard = (idx: number, user: ClubMemberWithUser) => {
     return (
       <div
         key={user.id}
@@ -95,7 +146,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
             />
           )}
           <h2 className="font-semibold text-lg">
-            {user.clubMember.name || '이름 없음'}
+            {idx + 1}. {user.clubMember.name || '이름 없음'}
           </h2>
         </div>
         <p className="text-gray-600 text-sm mb-2">{user.email}</p>
@@ -105,6 +156,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
           userId={user.id}
           userClubs={userClubs}
           onApprove={handleApprove}
+          onStatusChange={handleStatusChange}
         />
         <p className="text-gray-500 text-xs mt-2">
           가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
@@ -116,32 +168,34 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex mb-2">
-          <h2 className="text-lg font-semibold mr-2">관리중인 클럽:</h2>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6 gap-3 md:gap-0">
+        <div className="flex flex-col md:flex-row md:items-center mb-2 md:mb-0 w-full md:w-auto">
+          <h2 className="text-base md:text-lg font-semibold mr-0 md:mr-2 mb-1 md:mb-0">
+            관리중인 클럽:
+          </h2>
           <div className="flex flex-wrap gap-2">
             {userClubs.map((club) => (
               <span
                 key={club.clubId}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm mb-1"
               >
                 {club.club?.name || `클럽 ${club.clubId}`}
               </span>
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-gray-600">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 w-full md:w-auto">
+          <div className="text-gray-600 text-sm md:text-base">
             총 회원 수:{' '}
             <span className="font-semibold text-gray-900">
               {participants.length}명
             </span>
           </div>
-          <div className="relative">
+          <div className="relative w-full md:w-auto">
             <select
               value={sortOption}
               onChange={(e) => onChangeSort(e.target.value as SortOption)}
-              className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+              className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer w-full md:w-auto"
             >
               <option value="name">이름순</option>
               <option value="localLevel">지역대회 급수</option>
@@ -167,7 +221,9 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
       </div>
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {participants.length > 0 ? (
-          participants.map((user) => renderUserCard(user as ClubMemberWithUser))
+          participants.map((user, idx) =>
+            renderUserCard(idx, user as ClubMemberWithUser)
+          )
         ) : (
           <p className="col-span-full text-center text-gray-500">
             등록된 멤버가 없습니다.
