@@ -3,11 +3,16 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
+import { StatusFilter } from '@/components/molecules/StatusFilter';
 import { ClubMemberCard } from '@/components/organisms/club/ClubMemberCard';
 import {
   ParticipantSortProvider,
   useParticipantSortContext,
 } from '@/contexts/ParticipantSortContext';
+import {
+  StatusFilterProvider,
+  useStatusFilter,
+} from '@/contexts/StatusFilterContext';
 import { withAuth } from '@/lib/withAuth';
 import { ClubResponse, User } from '@/types';
 import { Role, Status } from '@/types/enums';
@@ -39,6 +44,27 @@ interface UsersPageContentProps {
 function UsersPageContent({ userClubs }: UsersPageContentProps) {
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
+  const { statusFilters } = useStatusFilter();
+
+  // 필터링된 참가자 목록 계산
+  const filteredParticipants = participants.filter((user) => {
+    const userStatus = (user as ClubMemberWithUser).clubMember.status as Status;
+
+    // 포함 필터가 있고 해당 상태가 포함되지 않은 경우 제외
+    if (
+      statusFilters.included.length > 0 &&
+      !statusFilters.included.includes(userStatus)
+    ) {
+      return false;
+    }
+
+    // 제외 필터에 해당 상태가 있는 경우 제외
+    if (statusFilters.excluded.includes(userStatus)) {
+      return false;
+    }
+
+    return true;
+  });
 
   const handleApprove = async (userId: number, clubId: number) => {
     try {
@@ -168,6 +194,12 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
+
+      {/* 필터 섹션 추가 */}
+      <div className="mb-6">
+        <StatusFilter />
+      </div>
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6 gap-3 md:gap-0">
         <div className="flex flex-col md:flex-row md:items-center mb-2 md:mb-0 w-full md:w-auto">
           <h2 className="text-base md:text-lg font-semibold mr-0 md:mr-2 mb-1 md:mb-0">
@@ -219,14 +251,17 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
           </div>
         </div>
       </div>
+
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {participants.length > 0 ? (
-          participants.map((user, idx) =>
+        {filteredParticipants.length > 0 ? (
+          filteredParticipants.map((user, idx) =>
             renderUserCard(idx, user as ClubMemberWithUser)
           )
         ) : (
           <p className="col-span-full text-center text-gray-500">
-            등록된 멤버가 없습니다.
+            {participants.length > 0
+              ? '선택한 필터에 맞는 멤버가 없습니다.'
+              : '등록된 멤버가 없습니다.'}
           </p>
         )}
       </div>
@@ -313,12 +348,14 @@ function UsersPage() {
   }
 
   return (
-    <ParticipantSortProvider
-      initialParticipants={users}
-      initialSortOption="name"
-    >
-      <UsersPageContent userClubs={userClubs} />
-    </ParticipantSortProvider>
+    <StatusFilterProvider>
+      <ParticipantSortProvider
+        initialParticipants={users}
+        initialSortOption="name"
+      >
+        <UsersPageContent userClubs={userClubs} />
+      </ParticipantSortProvider>
+    </StatusFilterProvider>
   );
 }
 
