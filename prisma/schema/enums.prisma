@@ -16,3 +16,8 @@ enum MemberRole {
   ADMIN     // 임원
   MEMBER    // 회원
 }
+
+enum GuestPostType {
+  GUEST_REQUEST    // 게스트 요청
+  INQUIRY_REQUEST  // 문의하기 요청
+}

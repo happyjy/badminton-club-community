@@ -8,8 +8,12 @@ import { createInitialFormData } from '@/utils/clubForms';
 export const useClubJoinForm = (
   user: User,
   isGuestApplication = false,
-  initialValues?: Partial<ClubJoinFormData>
+  initialValues?: Partial<ClubJoinFormData>,
+  clubMember?: any
 ) => {
+  // 클럽 멤버 여부에 따라 postType 결정
+  const postType = clubMember ? 'GUEST_REQUEST' : 'INQUIRY_REQUEST';
+
   // 폼 데이터 입력 필드 상태 관리
   const [formData, setFormData] = useState<ClubJoinFormData>(() => {
     // initialValues가 있으면 그것을 우선 사용
@@ -19,12 +23,18 @@ export const useClubJoinForm = (
           isGuestApplication,
         }),
         ...initialValues,
+        ...(!clubMember && { intendToJoin: true }), // 클럽 멤버가 아닌 경우 가입 의사를 true로 설정
+        postType, // postType 추가
       };
     }
     // 없으면 기본값 사용
-    return createInitialFormData({
-      isGuestApplication,
-    });
+    return {
+      ...createInitialFormData({
+        isGuestApplication,
+      }),
+      ...(!clubMember && { intendToJoin: true }), // 클럽 멤버가 아닌 경우 가입 의사를 true로 설정
+      postType, // postType 추가
+    };
   });
   // 전화번호 입력 필드 상태 관리
   const [phoneNumbers, setPhoneNumbers] = useState(() => {

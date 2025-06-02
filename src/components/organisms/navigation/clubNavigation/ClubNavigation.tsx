@@ -9,6 +9,7 @@ import { useClubMember } from '@/hooks/useClubMember';
 import { cn } from '@/lib/utils';
 import { RootState } from '@/store';
 import { setClubMember, setInitClubMember } from '@/store/features/authSlice';
+import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { ClubMember } from '@/types';
 
 interface ClubNavigationProps {
@@ -22,6 +23,9 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
+
+  // 사용자 유형에 따른 전략 가져오기
+  const strategy = getGuestPageStrategy(!!clubMember);
 
   // 현재 경로에서 출석체크 탭이 활성화 되어야 하는지 확인하는 로직 추가
   const isAttendancePath =
@@ -82,7 +86,10 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
         </svg>
       ),
     },
-    { name: '게스트', href: `/clubs/${clubId}/guest` },
+    {
+      name: strategy.getNavMenuName(),
+      href: `/clubs/${clubId}/guest`,
+    },
     // { name: '게시판', href: `/clubs/${clubId}/board` },
     // { name: '사진첩', href: `/clubs/${clubId}/photos` },
   ];

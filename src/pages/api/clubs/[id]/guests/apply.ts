@@ -48,6 +48,7 @@ export default async function handler(
       intendToJoin = false,
       visitDate = null,
       message = '',
+      postType = 'GUEST_REQUEST', // postType 기본값 설정
     } = req.body || {};
 
     // 필수 데이터 검증
@@ -89,6 +90,7 @@ export default async function handler(
         intendToJoin, // 게스트 신청 타입
         visitDate,
         message,
+        postType,
         // 작성자 ClubMember ID 추가 (있는 경우에만)
         createdBy: clubMember?.id || null,
       },

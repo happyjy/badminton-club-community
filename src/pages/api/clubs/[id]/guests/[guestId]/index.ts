@@ -70,6 +70,7 @@ export default async function handler(
           intendToJoin,
           message,
           visitDate,
+          postType,
         } = req.body;
 
         const updatedGuestPost = await prisma.guestPost.update({
@@ -93,6 +94,7 @@ export default async function handler(
                 : guestPost.intendToJoin,
             message: message || guestPost.message,
             visitDate: visitDate || guestPost.visitDate,
+            postType: postType || guestPost.postType,
             updatedBy: session.id,
             updatedAt: new Date(),
           },

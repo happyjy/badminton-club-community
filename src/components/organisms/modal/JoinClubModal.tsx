@@ -1,5 +1,7 @@
 import { FormEvent, useState } from 'react';
 
+import { useSelector } from 'react-redux';
+
 import { Button } from '@/components/atoms/buttons/Button';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
@@ -7,6 +9,8 @@ import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
+import { RootState } from '@/store';
+import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { TOURNAMENT_LEVELS, DEFAULT_DATE } from '@/utils/clubForms';
@@ -36,6 +40,11 @@ function JoinClubModal({
   isGuestApplication = false,
   initialValues,
 }: JoinClubModalProps) {
+  // 클럽 멤버 정보 가져오기
+  const clubMember = useSelector((state: RootState) => state.auth.clubMember);
+  // 사용자 유형에 따른 전략 적용
+  const strategy = getGuestPageStrategy(!!clubMember);
+
   const {
     formData,
     phoneNumbers,
@@ -43,7 +52,7 @@ function JoinClubModal({
     onChangeInput,
     //
     initialFormData,
-  } = useClubJoinForm(user, isGuestApplication, initialValues);
+  } = useClubJoinForm(user, isGuestApplication, initialValues, clubMember);
 
   // 개인정보 수집 및 이용 동의 모달
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -61,13 +70,17 @@ function JoinClubModal({
     label: level,
   }));
 
-  // 조건부 렌더링 로직을 변수로 추출
+  // 전략 패턴을 사용하여 텍스트 결정
   const modalTitle = isGuestApplication
-    ? initialValues
-      ? '게스트 신청 수정'
-      : '게스트 신청'
+    ? strategy.getModalTitle(!!initialValues)
     : '모임 가입 신청';
-  const submitButtonText = initialValues ? '수정하기' : '신청하기';
+
+  const submitButtonText = isGuestApplication
+    ? strategy.getModalSubmitText(!!initialValues)
+    : initialValues
+      ? '수정하기'
+      : '신청하기';
+
   // 게스트 신규 신청(게스트 수정이 아닌 경우)
   const isNewGuestApplication = isGuestApplication && !initialValues;
 
@@ -75,6 +88,11 @@ function JoinClubModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
         <h2 className="text-xl font-bold mb-4">{modalTitle}</h2>
+        {isGuestApplication && (
+          <p className="text-gray-600 text-sm mb-4">
+            {strategy.getModalDescription()}
+          </p>
+        )}
         <form onSubmit={onSubmitJoinClubModal} className="space-y-4">
           <FormField label="이름" required>
             <Input
@@ -91,11 +109,17 @@ function JoinClubModal({
               <div className="flex items-center">
                 <Checkbox
                   name="intendToJoin"
-                  checked={formData.intendToJoin}
-                  onChange={onChangeInput}
+                  checked={!clubMember ? true : formData.intendToJoin}
+                  onChange={!clubMember ? undefined : onChangeInput}
+                  disabled={!clubMember}
                 />
                 <span className="text-sm font-medium text-gray-700">
                   클럽 가입 의사
+                  {!clubMember && (
+                    <span className="ml-1 text-blue-600">
+                      (비회원은 자동으로 체크됩니다)
+                    </span>
+                  )}
                 </span>
               </div>
 
@@ -201,12 +225,12 @@ function JoinClubModal({
           </FormField>
 
           {isGuestApplication && (
-            <FormField label="가입 문의">
+            <FormField label={strategy.getMessageFieldLabel()}>
               <textarea
                 name="message"
                 value={formData.message || ''}
                 onChange={onChangeInput}
-                placeholder="클럽에 전달할 메시지나 문의사항을 입력해주세요"
+                placeholder={strategy.getMessagePlaceholder()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
               />
             </FormField>
