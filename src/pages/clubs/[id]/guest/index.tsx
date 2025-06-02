@@ -86,13 +86,22 @@ function GuestPage({ user }: AuthProps) {
         ...formData,
       });
 
-      toast.success('게스트 신청이 완료되었습니다');
+      toast.success(
+        clubMember ? '게스트 신청이 완료되었습니다' : '문의가 완료되었습니다'
+      );
       onCloseModal();
       // 신청 후 목록 다시 불러오기
       fetchMyApplications();
     } catch (error: unknown) {
-      toast.error('게스트 신청 중 오류가 발생했습니다');
-      console.error('게스트 신청 중 오류 발생:', error);
+      toast.error(
+        clubMember
+          ? '게스트 신청 중 오류가 발생했습니다'
+          : '문의 중 오류가 발생했습니다'
+      );
+      console.error(
+        clubMember ? '게스트 신청 중 오류 발생:' : '문의 중 오류 발생:',
+        error
+      );
     } finally {
       setIsSubmitting(false);
     }

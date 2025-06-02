@@ -18,8 +18,8 @@ export interface ClubInput {
 export interface ClubJoinFormData {
   name: string;
   birthDate: string;
-  phoneNumber: string;
   gender: string;
+  phoneNumber: string;
   localTournamentLevel: string;
   nationalTournamentLevel: string;
   lessonPeriod: string;
@@ -28,6 +28,7 @@ export interface ClubJoinFormData {
   visitDate?: string;
   message?: string;
   privacyAgreement?: boolean;
+  postType: 'GUEST_REQUEST' | 'INQUIRY_REQUEST';
 }
 
 // 클럽 게스트 신청 타입
