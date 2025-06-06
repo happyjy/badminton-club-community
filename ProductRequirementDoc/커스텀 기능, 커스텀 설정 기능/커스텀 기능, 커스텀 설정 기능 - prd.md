@@ -1,6 +1,3 @@
-"커스텀 하게 설정할 부분"을 작업하고 사이드 메뉴에서 "커스텀 하게 설정할 부분"을 클럽 별로 설정할 수 있게 하는 작업을 하려해
-뭐 부터 시작하면 좋을까?
-
 # 설정 하기 기능
 
 각 클럽 별로 "커스텀 하게 설정할 부분"을 아래 기능을 설정하는 기능을 만들려고 해
@@ -13,21 +10,22 @@
 1. "클럽 문의하기 기능"또는 "클럽 게스트 신청 기능" 하기 설명글 custom
 
    - 설정할 필드
-     - 클럽 설명
-     - 클럽 운동 시간
+     - "클럽 설명" 또는 "게스트 신청 설명"
+     - "클럽 운동 시간"
    - 화면 dir: src/pages/clubs/[id]/guest/index.tsx
    - 특이 사항
      - src/pages/clubs/[id]/guest/index.tsx 코드 중 아래 코드에 의해서 "clubMember" 멤버 여부에 따라
        클럽에 가입 전이면 "문의하기 기능"으로 클럽에 가입 이후에는 "게스트 신청 기능"으로 변경돼
      - 전략 패턴으로(전략 패턴 설정된 dir: src/strategies/GuestPageStrategy.ts) 나뉘어져 있어
-     - 이 부분을 한개 테이블로 해야 할지 두개 테이블로 해야 할지 고민이야
      ```
      //src/pages/clubs/[id]/guest/index.tsx
      const strategy = getGuestPageStrategy(!!clubMember);
      ```
 
 2. 이메일 발송 custom
+   - 이메일 받을 사람은 한명 이상
 3. 문자 발송 custom
+   - 문자를 받을 살마은 한명 이상
 
 # 고민 사항
 
