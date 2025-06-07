@@ -9,6 +9,7 @@ import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
 import RankingTable, {
   RankingMember,
 } from '@/components/molecules/RankingTable';
+import { useClubHomeSettings } from '@/hooks/useCustomSettings';
 import { withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
 import { ClubJoinFormData, ClubDetailPageProps } from '@/types';
@@ -27,7 +28,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   });
   const [isRankingLoading, setIsRankingLoading] = useState(false);
 
-  const club = useSelector((state: RootState) => state.club.currentClub);
+  // const club = useSelector((state: RootState) => state.club.currentClub);
   const membershipStatus = useSelector(
     (state: RootState) => state.auth.membershipStatus
   );
@@ -37,6 +38,9 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     user && !membershipStatus.isMember && !membershipStatus.isPending;
   const isAbleJoinclubButton =
     !user || membershipStatus.isPending || canJoinClub;
+
+  const { data: clubHomeSettings, isLoading: clubHomeSettingsLoading } =
+    useClubHomeSettings(clubId as string);
 
   // 랭킹 데이터 로드2
   useEffect(() => {
@@ -72,6 +76,10 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
     }
   };
 
+  if (clubHomeSettingsLoading) {
+    return <div>로딩 중...</div>;
+  }
+
   return (
     <>
       {isAbleJoinclubButton && (
@@ -86,18 +94,32 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
         </div>
       )}
       <div className="space-y-4">
-        <div>
-          <h3 className="font-bold">운영 시간</h3>
-          <p className="whitespace-pre-wrap">{club?.meetingTime}</p>
-        </div>
-        <div>
-          <h3 className="font-bold">장소</h3>
-          <p>{club?.location}</p>
-        </div>
-        <div>
-          <h3 className="font-bold">설명</h3>
-          <p>{club?.description}</p>
-        </div>
+        {clubHomeSettings?.clubDescription && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">클럽 소개</h2>
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {clubHomeSettings.clubDescription}
+            </p>
+          </div>
+        )}
+
+        {clubHomeSettings?.clubOperatingTime && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">운영 시간</h2>
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {clubHomeSettings.clubOperatingTime}
+            </p>
+          </div>
+        )}
+
+        {clubHomeSettings?.clubLocation && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">장소</h2>
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {clubHomeSettings.clubLocation}
+            </p>
+          </div>
+        )}
 
         {/* 랭킹 테이블 */}
         {isRankingLoading ? (
