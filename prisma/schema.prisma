@@ -63,7 +63,7 @@ model Club {
   members            ClubMember[]
   workouts           Workout[]
   guestPosts         GuestPost[]
-  clubCustomSettings ClubCustomSettings? @relation(fields: [id], references: [clubId])
+  clubCustomSettings ClubCustomSettings?
 }
 
 model ClubMember {
