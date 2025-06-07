@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
+import { ClubHomeSettingsForm } from '@/components/organisms/forms/ClubHomeSettingsForm';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
 
@@ -11,6 +12,12 @@ interface CustomSetting {
   id: string;
   name: string;
   description: string;
+}
+
+interface ClubHomeSettings {
+  clubOperatingTime?: string;
+  clubLocation?: string;
+  clubDescription?: string;
 }
 
 const customSettings: CustomSetting[] = [
@@ -40,9 +47,23 @@ export default function CustomSettingPage() {
   const router = useRouter();
   const { id: clubId } = router.query;
   const [selectedSetting, setSelectedSetting] = useState<string>('club-home');
+  const [clubHomeSettings, setClubHomeSettings] = useState<ClubHomeSettings>(
+    {}
+  );
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
   const isAdmin = clubMember?.role === Role.ADMIN;
+
+  useEffect(() => {
+    if (clubId && selectedSetting === 'club-home') {
+      fetch(`/api/clubs/${clubId}/custom/home`)
+        .then((res) => res.json())
+        .then((data) => setClubHomeSettings(data))
+        .catch((error) =>
+          console.error('Error fetching club home settings:', error)
+        );
+    }
+  }, [clubId, selectedSetting]);
 
   if (!isAdmin) {
     return (
@@ -86,7 +107,10 @@ export default function CustomSettingPage() {
           {selectedSetting === 'club-home' && (
             <div>
               <h2 className="text-xl font-semibold mb-4">클럽 홈 설명 설정</h2>
-              {/* 여기에 클럽 홈 설명 설정 폼 추가 예정 */}
+              <ClubHomeSettingsForm
+                clubId={clubId as string}
+                initialData={clubHomeSettings}
+              />
             </div>
           )}
           {selectedSetting === 'guest-page' && (
