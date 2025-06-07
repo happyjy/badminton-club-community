@@ -77,10 +77,12 @@ export function ClubHomeSettingsForm({
           >
             운영 시간
           </label>
-          <Input
+          <Textarea
             id="clubOperatingTime"
             {...register('clubOperatingTime')}
             className="mt-1"
+            rows={3}
+            placeholder="예시:&#10;평일: 18:00 - 22:00&#10;주말: 10:00 - 18:00"
           />
           {errors.clubOperatingTime && (
             <p className="mt-1 text-sm text-red-600">
