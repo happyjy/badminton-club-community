@@ -62,7 +62,7 @@ function CustomSettingPage() {
     emailRecipients: string;
   } | null>(null);
   const [smsSettings, setSmsSettings] = useState<{
-    smsRecipients?: string | null;
+    smsRecipients: string;
   } | null>(null);
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
@@ -127,10 +127,13 @@ function CustomSettingPage() {
         .get(`/api/clubs/${clubId}/custom/sms`)
         .then(({ data }) => {
           // smsRecipients가 배열이면 string으로 변환
-          if (Array.isArray(data.smsRecipients)) {
-            data.smsRecipients = data.smsRecipients.join(',');
-          }
-          return setSmsSettings(data);
+          const smsRecipients = Array.isArray(data.smsRecipients)
+            ? data.smsRecipients.join(',')
+            : data.smsRecipients || '';
+
+          return setSmsSettings({
+            smsRecipients,
+          });
         })
         .catch((error) => console.error('Error fetching SMS settings:', error));
     }
