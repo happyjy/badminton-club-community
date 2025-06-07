@@ -5,8 +5,8 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
-import { ClubHomeSettingsForm } from '@/components/organisms/forms/ClubHomeSettingsForm';
-import { GuestPageSettingsForm } from '@/components/organisms/forms/GuestPageSettingsForm';
+import ClubHomeSettingsForm from '@/components/organisms/forms/ClubHomeSettingsForm';
+import GuestPageSettingsForm from '@/components/organisms/forms/GuestPageSettingsForm';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
 
