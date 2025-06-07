@@ -15,6 +15,8 @@ export const useClubHomeSettings = (clubId: string) => {
       return data;
     },
     enabled: !!clubId,
+    staleTime: 1000 * 60 * 5, // 5분 동안 데이터를 신선한 상태로 유지
+    cacheTime: 1000 * 60 * 30, // 30분 동안 캐시 유지
   });
 };
 
@@ -29,5 +31,7 @@ export const useGuestPageSettings = (clubId: string) => {
       return data;
     },
     enabled: !!clubId,
+    staleTime: 1000 * 60 * 5, // 5분 동안 데이터를 신선한 상태로 유지
+    cacheTime: 1000 * 60 * 30, // 30분 동안 캐시 유지
   });
 };
