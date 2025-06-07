@@ -17,7 +17,7 @@ type SmsSettingsFormData = z.infer<typeof smsSettingsSchema>;
 interface SmsSettingsFormProps {
   clubId: string;
   initialData?: {
-    smsRecipients?: string | null;
+    smsRecipients: string;
   } | null;
 }
 
@@ -37,7 +37,9 @@ function SmsSettingsForm({ clubId, initialData }: SmsSettingsFormProps) {
   // 초기 데이터 설정
   useEffect(() => {
     if (initialData) {
-      reset(initialData);
+      reset({
+        smsRecipients: initialData.smsRecipients || '',
+      });
     }
   }, [initialData, reset]);
 
