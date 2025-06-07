@@ -20,9 +20,9 @@ type GuestPageSettingsFormData = z.infer<typeof guestPageSettingsSchema>;
 interface GuestPageSettingsFormProps {
   clubId: string;
   initialData?: {
-    inquiryDescription?: string | null;
-    guestDescription?: string | null;
-  };
+    inquiryDescription: string;
+    guestDescription: string;
+  } | null;
 }
 
 function GuestPageSettingsForm({
@@ -43,9 +43,13 @@ function GuestPageSettingsForm({
   });
 
   useEffect(() => {
+    if (!initialData) {
+      return;
+    }
+
     reset({
-      inquiryDescription: initialData?.inquiryDescription || '',
-      guestDescription: initialData?.guestDescription || '',
+      inquiryDescription: initialData.inquiryDescription || '',
+      guestDescription: initialData.guestDescription || '',
     });
   }, [initialData, reset]);
 
