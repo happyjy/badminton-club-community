@@ -13,6 +13,7 @@ const schemaFiles = [
   'club.prisma',
   'workout.prisma',
   'guest.prisma',
+  'clubCustomSetting.prisma',
 ];
 
 let finalSchema = '';

@@ -1,18 +1,19 @@
 model Club { 
-  id          Int          @id @default(autoincrement())
-  name        String
-  description String?
-  location    String
-  meetingTime String
-  maxMembers  Int
-  etc         String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            Int          @id @default(autoincrement())
+  name          String
+  description   String?
+  location      String
+  meetingTime   String
+  maxMembers    Int
+  etc           String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   // 관계 필드 설정
-  members     ClubMember[]
-  workouts    Workout[]
-  guestPosts  GuestPost[]
+  members            ClubMember[]
+  workouts           Workout[]
+  guestPosts         GuestPost[]
+  clubCustomSettings ClubCustomSettings? @relation(fields: [id], references: [clubId])
 }
 
 model ClubMember {
