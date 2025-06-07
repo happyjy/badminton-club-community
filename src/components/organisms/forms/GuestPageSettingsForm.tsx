@@ -25,7 +25,7 @@ interface GuestPageSettingsFormProps {
   };
 }
 
-export function GuestPageSettingsForm({
+function GuestPageSettingsForm({
   clubId,
   initialData,
 }: GuestPageSettingsFormProps) {
@@ -119,3 +119,5 @@ export function GuestPageSettingsForm({
     </form>
   );
 }
+
+export default GuestPageSettingsForm;
