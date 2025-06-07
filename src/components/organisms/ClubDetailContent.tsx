@@ -18,7 +18,7 @@ interface ClubDetailContentProps {
   isRankingLoading: boolean;
 }
 
-export function ClubDetailContent({
+function ClubDetailContent({
   clubHomeSettings,
   rankings,
   isRankingLoading,
@@ -49,3 +49,5 @@ export function ClubDetailContent({
     </div>
   );
 }
+
+export default ClubDetailContent;
