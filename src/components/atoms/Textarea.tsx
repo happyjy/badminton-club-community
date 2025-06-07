@@ -1,10 +1,11 @@
-import React, { TextareaHTMLAttributes } from 'react';
+import React from 'react';
 
-import TextareaAutosize from 'react-textarea-autosize';
+import TextareaAutosize, {
+  TextareaAutosizeProps,
+} from 'react-textarea-autosize';
 
-interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  minRows?: number;
-  maxRows?: number;
+interface TextareaProps extends Omit<TextareaAutosizeProps, 'style'> {
+  className?: string;
 }
 
 export function Textarea({
