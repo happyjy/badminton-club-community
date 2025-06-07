@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import * as z from 'zod';
 
 import { Textarea } from '@/components/atoms/Textarea';
@@ -21,10 +22,6 @@ interface EmailSettingsFormProps {
 }
 
 function EmailSettingsForm({ clubId, initialData }: EmailSettingsFormProps) {
-  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(
-    null
-  );
-
   const {
     register,
     handleSubmit,
@@ -48,10 +45,10 @@ function EmailSettingsForm({ clubId, initialData }: EmailSettingsFormProps) {
   const onSubmit = async (data: EmailSettingsFormData) => {
     try {
       await axios.put(`/api/clubs/${clubId}/custom/email`, data);
-      setSubmitStatus('success');
+      toast.success('설정이 저장되었습니다');
     } catch (error) {
       console.error('Error saving email settings:', error);
-      setSubmitStatus('error');
+      toast.error('설정 저장에 실패했습니다');
     }
   };
 
@@ -77,22 +74,6 @@ function EmailSettingsForm({ clubId, initialData }: EmailSettingsFormProps) {
           </p>
         )}
       </div>
-
-      {submitStatus === 'success' && (
-        <div className="rounded-md bg-green-50 p-4">
-          <p className="text-sm text-green-700">
-            설정이 성공적으로 저장되었습니다.
-          </p>
-        </div>
-      )}
-
-      {submitStatus === 'error' && (
-        <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm text-red-700">
-            설정 저장 중 오류가 발생했습니다. 다시 시도해주세요.
-          </p>
-        </div>
-      )}
 
       <div className="flex justify-end">
         <button
