@@ -17,7 +17,7 @@ type EmailSettingsFormData = z.infer<typeof emailSettingsSchema>;
 interface EmailSettingsFormProps {
   clubId: string;
   initialData?: {
-    emailRecipients?: string | null;
+    emailRecipients: string;
   } | null;
 }
 
@@ -37,7 +37,9 @@ function EmailSettingsForm({ clubId, initialData }: EmailSettingsFormProps) {
   // 초기 데이터 설정
   useEffect(() => {
     if (initialData) {
-      reset(initialData);
+      reset({
+        emailRecipients: initialData.emailRecipients || '',
+      });
     }
   }, [initialData, reset]);
 
