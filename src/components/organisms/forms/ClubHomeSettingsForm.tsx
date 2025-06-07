@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { z } from 'zod';
@@ -48,18 +49,7 @@ function ClubHomeSettingsForm({
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await fetch(`/api/clubs/${clubId}/custom/home`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('설정 저장에 실패했습니다');
-      }
-
+      await axios.put(`/api/clubs/${clubId}/custom/home`, data);
       toast.success('클럽 홈 설정이 저장되었습니다');
     } catch (error) {
       console.error('Error saving club home settings:', error);
