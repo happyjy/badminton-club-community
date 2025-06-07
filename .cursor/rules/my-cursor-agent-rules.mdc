@@ -9,6 +9,9 @@ alwaysApply: true
   2. Suggest a solution first.
   3. Ask for pernission before saking any code changes.
 
+# code convention
+- earyly return 
+
 # api 작업
 - axios를 사용한다.(fetch 대신에)
 - useQuery가 필요 할때는 사용한다.
@@ -41,3 +44,4 @@ alwaysApply: true
   - 위 예시에서 `MyComponent` 함수는 파일의 하단에서 `export` 되고 있습니다. 이를 통해 함수 선언과 `export`를 명확하게 구분하고, 코드 구조의 일관성을 유지할 수 있습니다.
 
 
+2. atomic design system을 사용하고 있어. 
