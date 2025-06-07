@@ -59,8 +59,6 @@ export default function CustomSettingPage() {
   } | null>(null);
   const [emailSettings, setEmailSettings] = useState<{
     emailRecipients?: string | null;
-    emailSubject?: string | null;
-    emailTemplate?: string | null;
   } | null>(null);
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
@@ -100,6 +98,9 @@ export default function CustomSettingPage() {
       axios
         .get(`/api/clubs/${clubId}/custom/email`)
         .then(({ data }) => {
+          // emailRecipients가 배열이면 string으로 변환
+          const emailRecipients = data.emailRecipients.join(',');
+          data.emailRecipients = emailRecipients;
           return setEmailSettings(data);
         })
         .catch((error) =>
