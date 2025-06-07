@@ -61,3 +61,4 @@
   - description, location, meetingTime, maxMembers, etc
 - email 제목, 템플릿 설정 추가 고민하기
   - emailSubject, emailTemplate
+- 원하지 않는 이메일을 받는 사람에게는 구독하지 않게 하는 기능
