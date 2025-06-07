@@ -49,20 +49,21 @@ model User {
 } 
 
 model Club { 
-  id          Int          @id @default(autoincrement())
-  name        String
-  description String?
-  location    String
-  meetingTime String
-  maxMembers  Int
-  etc         String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            Int          @id @default(autoincrement())
+  name          String
+  description   String?
+  location      String
+  meetingTime   String
+  maxMembers    Int
+  etc           String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   // 관계 필드 설정
-  members     ClubMember[]
-  workouts    Workout[]
-  guestPosts  GuestPost[]
+  members            ClubMember[]
+  workouts           Workout[]
+  guestPosts         GuestPost[]
+  clubCustomSettings ClubCustomSettings? @relation(fields: [id], references: [clubId])
 }
 
 model ClubMember {
@@ -233,5 +234,33 @@ model GuestPost_copy {
     
   @@index([clubId])
   @@index([userId])
+}
+
+// 클럽 커스텀 설정
+model ClubCustomSettings {
+  id                   Int      @id @default(autoincrement())
+  clubId               Int      @unique
+  // 클럽 홈 설명 설정
+  clubOperatingTime    String?  // 운영 시간
+  clubLocation         String?  // 장소
+  clubDescription      String?  // 설명
+  
+  // 문의하기/게스트 신청 설명글 설정
+  inquiryDescription   String?  // 클럽 문의하기 설명
+  guestDescription     String?  // 게스트 신청 설명
+  
+  // 이메일 발송 설정
+  emailRecipients      String[] // 이메일 수신자 목록 (JSON 배열로 저장)
+  
+  // 문자 발송 설정
+  smsRecipients        String[] // 문자 수신자 목록 (JSON 배열로 저장)
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
 }
 
