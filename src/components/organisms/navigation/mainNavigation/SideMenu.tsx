@@ -98,13 +98,22 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
                   프로필
                 </Link>
                 {isAdmin && (
-                  <Link
-                    href="/clubs/1/members"
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
-                    onClick={onClickLink}
-                  >
-                    회원 관리
-                  </Link>
+                  <>
+                    <Link
+                      href="/clubs/1/members"
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
+                      onClick={onClickLink}
+                    >
+                      회원 관리
+                    </Link>
+                    <Link
+                      href="/clubs/1/custom"
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
+                      onClick={onClickLink}
+                    >
+                      커스텀 설정
+                    </Link>
+                  </>
                 )}
                 <button
                   onClick={onClickLogout}
