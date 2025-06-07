@@ -54,3 +54,8 @@
 - ui 구현시 주의 사항 모바일 화면까지 지원
 - 다음 패키지를 활용해서 구현해줘: @hookform/resolvers zod react-hook-form
 - admin 조건을 가진 사람만 접근 할 수 있어(Role.ADMIN)
+
+# 완료 되고 나서 마무리 작업
+
+- Club model에 있는 아래 필드 제거 필요
+  - description, location, meetingTime, maxMembers, etc

@@ -80,7 +80,7 @@ export function ClubHomeSettingsForm({
           <Textarea
             id="clubOperatingTime"
             {...register('clubOperatingTime')}
-            className="mt-1"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             rows={3}
             placeholder="예시:&#10;평일: 18:00 - 22:00&#10;주말: 10:00 - 18:00"
           />
@@ -101,7 +101,7 @@ export function ClubHomeSettingsForm({
           <Input
             id="clubLocation"
             {...register('clubLocation')}
-            className="mt-1"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
           {errors.clubLocation && (
             <p className="mt-1 text-sm text-red-600">
@@ -120,7 +120,7 @@ export function ClubHomeSettingsForm({
           <Textarea
             id="clubDescription"
             {...register('clubDescription')}
-            className="mt-1"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             rows={4}
           />
           {errors.clubDescription && (
