@@ -7,7 +7,14 @@
 
 # 커스텀 하게 설정할 부분
 
-1. "클럽 문의하기 기능"또는 "클럽 게스트 신청 기능" 하기 설명글 custom
+1. 클럽 홈 설명 부분
+
+- 설정할 필드
+  - 운영 시간
+  - 장소
+  - 설명
+
+2. "클럽 문의하기 기능"또는 "클럽 게스트 신청 기능" 하기 설명글 custom
 
    - 설정할 필드
      - "클럽 설명" 또는 "게스트 신청 설명"
@@ -22,50 +29,15 @@
      const strategy = getGuestPageStrategy(!!clubMember);
      ```
 
-2. 이메일 발송 custom
+3. 이메일 발송 custom
    - 이메일 받을 사람은 한명 이상
-3. 문자 발송 custom
+4. 문자 발송 custom
    - 문자를 받을 살마은 한명 이상
 
 # 고민 사항
 
 - 테이블 구조: 커스텀 하게 설정할 부분 관련 작업과 설정하기 기능을 구현할때 테이블 구조를 효율적, 최적화 해서 만들고 싶어
 
----
-
-# 클럽 문의 하기
-
-- [ ] 이메일 전송 db로 관리 하기
-- [ ] 설명 부분 db로 관리 하기
-
-# 회원 관리
-
-- 회원 관리 페이지 추가
-
-# 세팅
-
-- 임원 관리
-- 게스트 신청 하기 안내글
-- 클럽 문의 하기 안내글
-- [ ] 이메일 전송 관리 하기
--
-
-# 메인 페이지
-
-- 회원 목록
-  - 전체 회원이 볼 수 있도록
-
-# 컴포넌트
-
-- dropdown layer
-  - 아래 메뉴에 있음
-  - src/components/organisms/club/ClubMemberCard.tsx
-
-# refactoring
-
-- useParticipantSortContext > participants 수정
-
-```
-const { sortOption, participants, onChangeSort } =
-    useParticipantSortContext();
-```
+- 조회 타이밍:
+  - 클럽별 커스텀한 내용을 처음에 모두 받아서 redux에 setting할지 아니면 화면 접속시 필요한 api를 따로 보낼지
+  - 이번에 redux 대신에 zustand를 쓰고 redux와 비교 하고 싶어서 두개 모두 사용해보고 싶음
