@@ -6,9 +6,8 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 
 import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
-import RankingTable, {
-  RankingMember,
-} from '@/components/molecules/RankingTable';
+import { RankingMember } from '@/components/molecules/RankingTable';
+import { ClubDetailContent } from '@/components/organisms/ClubDetailContent';
 import { useClubHomeSettings } from '@/hooks/useCustomSettings';
 import { withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
@@ -93,47 +92,11 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
           />
         </div>
       )}
-      <div className="space-y-4">
-        {clubHomeSettings?.clubDescription && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">클럽 소개</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {clubHomeSettings.clubDescription}
-            </p>
-          </div>
-        )}
-
-        {clubHomeSettings?.clubOperatingTime && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">운영 시간</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {clubHomeSettings.clubOperatingTime}
-            </p>
-          </div>
-        )}
-
-        {clubHomeSettings?.clubLocation && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">장소</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {clubHomeSettings.clubLocation}
-            </p>
-          </div>
-        )}
-
-        {/* 랭킹 테이블 */}
-        {isRankingLoading ? (
-          <div className="mt-8">
-            <h3 className="font-bold mb-4">랭킹</h3>
-            <p className="text-gray-500">랭킹 데이터를 불러오는 중...</p>
-          </div>
-        ) : (
-          <RankingTable
-            attendanceRanking={rankings.attendance}
-            helperRanking={rankings.helper}
-          />
-        )}
-      </div>
+      <ClubDetailContent
+        clubHomeSettings={clubHomeSettings}
+        rankings={rankings}
+        isRankingLoading={isRankingLoading}
+      />
     </>
   );
 }
