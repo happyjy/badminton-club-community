@@ -86,7 +86,7 @@ function CustomSettingPage() {
   useEffect(() => {
     if (clubId && selectedSetting === 'guest-page') {
       axios
-        .get(`/api/clubs/${clubId}/custom-settings`)
+        .get(`/api/clubs/${clubId}/custom/guest-page`)
         .then(({ data }) => {
           return setClubCustomSettings({
             inquiryDescription: data.inquiryDescription || '',

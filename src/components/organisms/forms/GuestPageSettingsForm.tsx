@@ -55,7 +55,7 @@ function GuestPageSettingsForm({
 
   const onSubmit = async (data: GuestPageSettingsFormData) => {
     try {
-      await axios.patch(`/api/clubs/${clubId}/custom-settings`, {
+      await axios.patch(`/api/clubs/${clubId}/custom/guest-page`, {
         inquiryDescription: data.inquiryDescription,
         guestDescription: data.guestDescription,
       });
