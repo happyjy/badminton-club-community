@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import ClubHomeSettingsForm from '@/components/organisms/forms/ClubHomeSettingsForm';
 import EmailSettingsForm from '@/components/organisms/forms/EmailSettingsForm';
 import GuestPageSettingsForm from '@/components/organisms/forms/GuestPageSettingsForm';
+import SmsSettingsForm from '@/components/organisms/forms/SmsSettingsForm';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
 
@@ -46,7 +47,7 @@ const customSettings: CustomSetting[] = [
   },
 ];
 
-export default function CustomSettingPage() {
+function CustomSettingPage() {
   const router = useRouter();
   const { id: clubId } = router.query;
   const [selectedSetting, setSelectedSetting] = useState<string>('club-home');
@@ -59,6 +60,9 @@ export default function CustomSettingPage() {
   } | null>(null);
   const [emailSettings, setEmailSettings] = useState<{
     emailRecipients?: string | null;
+  } | null>(null);
+  const [smsSettings, setSmsSettings] = useState<{
+    smsRecipients?: string | null;
   } | null>(null);
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
@@ -99,13 +103,30 @@ export default function CustomSettingPage() {
         .get(`/api/clubs/${clubId}/custom/email`)
         .then(({ data }) => {
           // emailRecipients가 배열이면 string으로 변환
-          const emailRecipients = data.emailRecipients.join(',');
-          data.emailRecipients = emailRecipients;
+          if (Array.isArray(data.emailRecipients)) {
+            data.emailRecipients = data.emailRecipients.join(',');
+          }
           return setEmailSettings(data);
         })
         .catch((error) =>
           console.error('Error fetching email settings:', error)
         );
+    }
+  }, [clubId, selectedSetting]);
+
+  // 문자 발송 설정 불러오기
+  useEffect(() => {
+    if (clubId && selectedSetting === 'sms') {
+      axios
+        .get(`/api/clubs/${clubId}/custom/sms`)
+        .then(({ data }) => {
+          // smsRecipients가 배열이면 string으로 변환
+          if (Array.isArray(data.smsRecipients)) {
+            data.smsRecipients = data.smsRecipients.join(',');
+          }
+          return setSmsSettings(data);
+        })
+        .catch((error) => console.error('Error fetching SMS settings:', error));
     }
   }, [clubId, selectedSetting]);
 
@@ -180,7 +201,10 @@ export default function CustomSettingPage() {
           {selectedSetting === 'sms' && (
             <div>
               <h2 className="text-xl font-semibold mb-4">문자 발송 설정</h2>
-              {/* 여기에 문자 발송 설정 폼 추가 예정 */}
+              <SmsSettingsForm
+                clubId={clubId as string}
+                initialData={smsSettings}
+              />
             </div>
           )}
         </div>
@@ -188,3 +212,5 @@ export default function CustomSettingPage() {
     </div>
   );
 }
+
+export default CustomSettingPage;
