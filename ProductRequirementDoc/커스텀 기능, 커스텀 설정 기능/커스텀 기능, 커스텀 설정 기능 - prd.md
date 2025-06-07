@@ -49,6 +49,8 @@
   - 클럽별 커스텀한 내용을 처음에 모두 받아서 redux에 setting할지 아니면 화면 접속시 필요한 api를 따로 보낼지
   - 이번에 redux 대신에 zustand를 쓰고 redux와 비교 하고 싶어서 두개 모두 사용해보고 싶음
 
-# 주의 사하
+# 주의 사항
 
 - ui 구현시 주의 사항 모바일 화면까지 지원
+- 다음 패키지를 활용해서 구현해줘: @hookform/resolvers zod react-hook-form
+- admin 조건을 가진 사람만 접근 할 수 있어(Role.ADMIN)
