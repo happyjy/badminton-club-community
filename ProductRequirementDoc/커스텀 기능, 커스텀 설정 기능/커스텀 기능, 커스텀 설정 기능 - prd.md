@@ -59,3 +59,5 @@
 
 - Club model에 있는 아래 필드 제거 필요
   - description, location, meetingTime, maxMembers, etc
+- email 제목, 템플릿 설정 추가 고민하기
+  - emailSubject, emailTemplate
