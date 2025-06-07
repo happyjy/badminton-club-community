@@ -55,11 +55,11 @@ function CustomSettingPage() {
     {}
   );
   const [clubCustomSettings, setClubCustomSettings] = useState<{
-    inquiryDescription?: string | null;
-    guestDescription?: string | null;
+    inquiryDescription: string;
+    guestDescription: string;
   } | null>(null);
   const [emailSettings, setEmailSettings] = useState<{
-    emailRecipients?: string | null;
+    emailRecipients: string;
   } | null>(null);
   const [smsSettings, setSmsSettings] = useState<{
     smsRecipients?: string | null;
@@ -88,7 +88,10 @@ function CustomSettingPage() {
       axios
         .get(`/api/clubs/${clubId}/custom-settings`)
         .then(({ data }) => {
-          return setClubCustomSettings(data);
+          return setClubCustomSettings({
+            inquiryDescription: data.inquiryDescription || '',
+            guestDescription: data.guestDescription || '',
+          });
         })
         .catch((error) =>
           console.error('Error fetching guest page settings:', error)
@@ -103,10 +106,13 @@ function CustomSettingPage() {
         .get(`/api/clubs/${clubId}/custom/email`)
         .then(({ data }) => {
           // emailRecipients가 배열이면 string으로 변환
-          if (Array.isArray(data.emailRecipients)) {
-            data.emailRecipients = data.emailRecipients.join(',');
-          }
-          return setEmailSettings(data);
+          const emailRecipients = Array.isArray(data.emailRecipients)
+            ? data.emailRecipients.join(',')
+            : data.emailRecipients || '';
+
+          return setEmailSettings({
+            emailRecipients,
+          });
         })
         .catch((error) =>
           console.error('Error fetching email settings:', error)
