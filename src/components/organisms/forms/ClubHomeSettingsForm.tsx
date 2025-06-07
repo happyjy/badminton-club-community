@@ -41,12 +41,14 @@ function ClubHomeSettingsForm({
     defaultValues: initialData,
   });
 
+  // 초기 데이터 설정
   useEffect(() => {
     if (initialData) {
       reset(initialData);
     }
   }, [initialData, reset]);
 
+  // 클럽 홈 설정 저장
   const onSubmit = async (data: FormData) => {
     try {
       await axios.put(`/api/clubs/${clubId}/custom/home`, data);

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 
 import ClubHomeSettingsForm from '@/components/organisms/forms/ClubHomeSettingsForm';
+import EmailSettingsForm from '@/components/organisms/forms/EmailSettingsForm';
 import GuestPageSettingsForm from '@/components/organisms/forms/GuestPageSettingsForm';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
@@ -56,6 +57,11 @@ export default function CustomSettingPage() {
     inquiryDescription?: string | null;
     guestDescription?: string | null;
   } | null>(null);
+  const [emailSettings, setEmailSettings] = useState<{
+    emailRecipients?: string | null;
+    emailSubject?: string | null;
+    emailTemplate?: string | null;
+  } | null>(null);
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
   const isAdmin = clubMember?.role === Role.ADMIN;
@@ -66,7 +72,6 @@ export default function CustomSettingPage() {
       axios
         .get(`/api/clubs/${clubId}/custom/home`)
         .then(({ data }) => {
-          console.log(`🚨 ~ useEffect ~ data:`, data);
           return setClubHomeSettings(data);
         })
         .catch((error) =>
@@ -81,11 +86,24 @@ export default function CustomSettingPage() {
       axios
         .get(`/api/clubs/${clubId}/custom-settings`)
         .then(({ data }) => {
-          console.log(`🚨 ~ useEffect ~ data:`, data);
           return setClubCustomSettings(data);
         })
         .catch((error) =>
           console.error('Error fetching guest page settings:', error)
+        );
+    }
+  }, [clubId, selectedSetting]);
+
+  // 이메일 설정 불러오기
+  useEffect(() => {
+    if (clubId && selectedSetting === 'email') {
+      axios
+        .get(`/api/clubs/${clubId}/custom/email`)
+        .then(({ data }) => {
+          return setEmailSettings(data);
+        })
+        .catch((error) =>
+          console.error('Error fetching email settings:', error)
         );
     }
   }, [clubId, selectedSetting]);
@@ -152,7 +170,10 @@ export default function CustomSettingPage() {
           {selectedSetting === 'email' && (
             <div>
               <h2 className="text-xl font-semibold mb-4">이메일 발송 설정</h2>
-              {/* 여기에 이메일 발송 설정 폼 추가 예정 */}
+              <EmailSettingsForm
+                clubId={clubId as string}
+                initialData={emailSettings}
+              />
             </div>
           )}
           {selectedSetting === 'sms' && (
