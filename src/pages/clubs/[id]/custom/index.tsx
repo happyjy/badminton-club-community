@@ -63,9 +63,12 @@ export default function CustomSettingPage() {
   // 클럽 홈 설정 불러오기
   useEffect(() => {
     if (clubId && selectedSetting === 'club-home') {
-      fetch(`/api/clubs/${clubId}/custom/home`)
-        .then((res) => res.json())
-        .then((data) => setClubHomeSettings(data))
+      axios
+        .get(`/api/clubs/${clubId}/custom/home`)
+        .then(({ data }) => {
+          console.log(`🚨 ~ useEffect ~ data:`, data);
+          return setClubHomeSettings(data);
+        })
         .catch((error) =>
           console.error('Error fetching club home settings:', error)
         );
@@ -77,7 +80,10 @@ export default function CustomSettingPage() {
     if (clubId && selectedSetting === 'guest-page') {
       axios
         .get(`/api/clubs/${clubId}/custom-settings`)
-        .then((response) => setClubCustomSettings(response.data))
+        .then(({ data }) => {
+          console.log(`🚨 ~ useEffect ~ data:`, data);
+          return setClubCustomSettings(data);
+        })
         .catch((error) =>
           console.error('Error fetching guest page settings:', error)
         );
