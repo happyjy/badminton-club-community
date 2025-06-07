@@ -21,7 +21,6 @@ model ClubCustomSettings {
   updatedAt            DateTime @updatedAt
 
   // Relations
-  club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-
+  club                Club     @relation("ClubToSettings", fields: [clubId], references: [id], onDelete: Cascade)
   @@index([clubId])
 }
