@@ -15,8 +15,8 @@ export const initialState: ClubState = {
     maxMembers: 0,
     etc: '',
     members: [],
-    createdAt: new Date('1990-01-01'),
-    updatedAt: new Date('1990-01-01'),
+    createdAt: '1990-01-01T00:00:00.000Z',
+    updatedAt: '1990-01-01T00:00:00.000Z',
   },
 };
 
