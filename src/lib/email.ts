@@ -23,7 +23,7 @@ export async function sendGuestApplicationEmail({
 }: {
   req: NextApiRequest;
   application: GuestPost;
-  writer: string;
+  writer: string | null;
 }) {
   const url = `${getBaseUrl(req.headers.host)}/clubs/${application.clubId}/guest/${application.id}`;
 
@@ -47,10 +47,16 @@ export async function sendGuestApplicationEmail({
   // 이메일 수신자 목록이 없는 경우 기본 이메일 사용
   const recipients = clubSettings?.emailRecipients;
 
+  if (!recipients) return;
+
   const mailOptions = {
     from: `"배드민턴 클럽 커뮤니티" <${fromEmail}>`,
     to: recipients.join(', '),
-    subject: `배드민턴 클럽 게스트 신청: ${writer}님이 ${application.name}님을 게스트로 초대합니다.`,
+    subject:
+      `배드민턴 클럽 게스트 신청: ` +
+      (writer
+        ? `${writer}님이 ${application.name}님을 게스트로 초대합니다.`
+        : `${application.name}님을 게스트로 초대합니다.`),
     // 확실히 스레드가 끊어지도록 하기 위한 추가 헤더
     headers: {
       'X-Entity-Ref-ID': uniqueId,

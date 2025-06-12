@@ -63,7 +63,13 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
         </div>
       )}
       <ClubDetailContent
-        clubHomeSettings={clubHomeSettings}
+        clubHomeSettings={
+          clubHomeSettings ?? {
+            clubDescription: '',
+            clubOperatingTime: '',
+            clubLocation: '',
+          }
+        }
         rankings={rankings}
         isRankingLoading={isRankingLoading}
       />

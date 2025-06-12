@@ -102,7 +102,7 @@ export default async function handler(
       await sendGuestApplicationEmail({
         req,
         application,
-        writer: clubMember?.name,
+        writer: clubMember?.name || null,
       });
     } catch (emailError) {
       // 이메일 전송 실패는 전체 요청을 실패시키지 않음
