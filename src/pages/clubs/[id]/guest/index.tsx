@@ -15,12 +15,6 @@ import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { ClubJoinFormData } from '@/types/club.types';
 
-// 게스트 페이지 설정 타입 정의
-interface GuestPageSettings {
-  inquiryDescription?: string;
-  guestDescription?: string;
-}
-
 function GuestPage({ user }: AuthProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
