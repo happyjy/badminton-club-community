@@ -25,7 +25,6 @@ export async function sendGuestApplicationEmail({
   application: GuestPost;
   writer: string;
 }) {
-  console.log(`🚨 ~ application:`, application);
   const url = `${getBaseUrl(req.headers.host)}/clubs/${application.clubId}/guest/${application.id}`;
 
   // 유니크한 식별자 생성
