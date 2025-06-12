@@ -69,6 +69,7 @@ export default async function handler(
       },
       select: {
         id: true,
+        name: true,
       },
     });
 
@@ -98,7 +99,11 @@ export default async function handler(
 
     // 이메일 전송
     try {
-      await sendGuestApplicationEmail(req, application);
+      await sendGuestApplicationEmail({
+        req,
+        application,
+        writer: clubMember?.name,
+      });
     } catch (emailError) {
       // 이메일 전송 실패는 전체 요청을 실패시키지 않음
       console.error('이메일 전송 실패:', emailError);

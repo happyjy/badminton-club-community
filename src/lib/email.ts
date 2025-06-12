@@ -16,10 +16,15 @@ const transporter = createTransport({
   },
 });
 
-export async function sendGuestApplicationEmail(
-  req: NextApiRequest,
-  application: GuestPost
-) {
+export async function sendGuestApplicationEmail({
+  req,
+  application,
+  writer,
+}: {
+  req: NextApiRequest;
+  application: GuestPost;
+  writer: string;
+}) {
   console.log(`🚨 ~ application:`, application);
   const url = `${getBaseUrl(req.headers.host)}/clubs/${application.clubId}/guest/${application.id}`;
 
@@ -46,7 +51,7 @@ export async function sendGuestApplicationEmail(
   const mailOptions = {
     from: `"배드민턴 클럽 커뮤니티" <${fromEmail}>`,
     to: recipients.join(', '),
-    subject: `배드민턴 클럽 게스트 신청: ${application.name}님`,
+    subject: `배드민턴 클럽 게스트 신청: ${writer}님이 ${application.name}님을 게스트로 초대합니다.`,
     // 확실히 스레드가 끊어지도록 하기 위한 추가 헤더
     headers: {
       'X-Entity-Ref-ID': uniqueId,
