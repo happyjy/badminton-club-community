@@ -1,10 +1,12 @@
-import { GuestPost } from '@prisma/client';
+import { GuestPost, PrismaClient } from '@prisma/client';
 import { NextApiRequest } from 'next';
 import { createTransport } from 'nodemailer';
 
 import { getBaseUrl } from '@/constants/urls';
 
 import { generateGuestApplicationEmailTemplate } from './email/templates/guestApplication';
+
+const prisma = new PrismaClient();
 
 const transporter = createTransport({
   service: 'gmail',
@@ -18,7 +20,8 @@ export async function sendGuestApplicationEmail(
   req: NextApiRequest,
   application: GuestPost
 ) {
-  const url = `${getBaseUrl(req.headers.host)}/clubs/1/guest/${application.id}`;
+  console.log(`🚨 ~ application:`, application);
+  const url = `${getBaseUrl(req.headers.host)}/clubs/${application.clubId}/guest/${application.id}`;
 
   // 유니크한 식별자 생성
   const timestamp = Date.now();
@@ -27,10 +30,22 @@ export async function sendGuestApplicationEmail(
   // Gmail은 '+' 이후의 문자를 무시하므로 이를 활용
   const fromEmail = process.env.EMAIL_USER?.replace('@', `+guest${uniqueId}@`);
 
+  // 클럽의 이메일 수신자 목록 가져오기
+  const clubSettings = await prisma.clubCustomSettings.findUnique({
+    where: {
+      clubId: application.clubId,
+    },
+    select: {
+      emailRecipients: true,
+    },
+  });
+
+  // 이메일 수신자 목록이 없는 경우 기본 이메일 사용
+  const recipients = clubSettings?.emailRecipients;
+
   const mailOptions = {
     from: `"배드민턴 클럽 커뮤니티" <${fromEmail}>`,
-    // todo: DB로 관리할 필요 있음
-    to: 'okwoyjy@gmail.com, Jongin.oh@gmail.com, sm831217@gmail.com',
+    to: recipients.join(', '),
     subject: `배드민턴 클럽 게스트 신청: ${application.name}님`,
     // 확실히 스레드가 끊어지도록 하기 위한 추가 헤더
     headers: {
