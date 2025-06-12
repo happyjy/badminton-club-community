@@ -27,13 +27,16 @@ function ClubDetailContent({
     <div className="space-y-4">
       <ClubInfoSection
         title="클럽 소개"
-        content={clubHomeSettings.clubDescription}
+        content={clubHomeSettings.clubDescription ?? ''}
       />
       <ClubInfoSection
         title="운영 시간"
-        content={clubHomeSettings.clubOperatingTime}
+        content={clubHomeSettings.clubOperatingTime ?? ''}
       />
-      <ClubInfoSection title="장소" content={clubHomeSettings.clubLocation} />
+      <ClubInfoSection
+        title="장소"
+        content={clubHomeSettings.clubLocation ?? ''}
+      />
 
       {isRankingLoading ? (
         <div className="mt-8">
