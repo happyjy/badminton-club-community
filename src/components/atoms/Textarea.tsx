@@ -1,14 +1,32 @@
-import React, { TextareaHTMLAttributes } from 'react';
+import React from 'react';
 
-interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {}
+import TextareaAutosize, {
+  TextareaAutosizeProps,
+} from 'react-textarea-autosize';
 
-export function Textarea({ className = '', ...props }: TextareaProps) {
+interface TextareaProps extends Omit<TextareaAutosizeProps, 'style'> {
+  className?: string;
+}
+
+export function Textarea({
+  className = '',
+  minRows = 1,
+  maxRows = 10,
+  ...props
+}: TextareaProps) {
   const baseClasses =
     'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 
   const combinedClasses = `${baseClasses} ${className}`.trim();
 
-  return <textarea className={combinedClasses} {...props} />;
+  return (
+    <TextareaAutosize
+      className={combinedClasses}
+      minRows={minRows}
+      maxRows={maxRows}
+      {...props}
+    />
+  );
 }
 
 export default Textarea;

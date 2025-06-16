@@ -8,28 +8,28 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+import { useGuestPageSettings } from '@/hooks/useCustomSettings';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { ClubJoinFormData } from '@/types/club.types';
 
-// 게스트 신청 타입 정의
-// interface GuestApplication {
-//   id: string;
-//   createdAt: string;
-//   status: 'PENDING' | 'APPROVED' | 'REJECTED';
-//   visitDate?: string;
-//   purpose?: string;
-// }
-
 function GuestPage({ user }: AuthProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
 
+  // 커스텀 설정 불러오기
+  const { data: customSettings } = useGuestPageSettings(clubId as string);
+
   // 사용자 유형에 따른 전략 가져오기
-  const strategy = getGuestPageStrategy(!!clubMember);
+  const strategy = getGuestPageStrategy(
+    !!clubMember,
+    clubMember
+      ? customSettings?.guestDescription
+      : customSettings?.inquiryDescription
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -159,11 +159,6 @@ function GuestPage({ user }: AuthProps) {
 
         <p className="text-gray-600 mb-6 whitespace-pre-wrap">
           {strategy.getDescription()}
-          <br />
-          <br />
-          평일: 오후 7시 30분 ~ 오후 10시
-          <br />
-          주말, 공휴일: 오후 3시 30분 ~ 오후 6시
         </p>
 
         <button

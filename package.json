@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
+    "@hookform/resolvers": "^5.0.1",
     "@next/third-parties": "^15.3.2",
     "@prisma/client": "^6.2.1",
     "@radix-ui/react-slot": "^1.1.2",
@@ -33,10 +34,12 @@
     "nodemailer": "^6.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.57.0",
     "react-hot-toast": "^2.5.2",
     "react-redux": "^9.2.0",
+    "react-textarea-autosize": "^8.5.9",
     "tailwind-merge": "^3.0.2",
-    "zod": "^3.24.1"
+    "zod": "^3.25.56"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

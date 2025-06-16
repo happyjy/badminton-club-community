@@ -6,17 +6,17 @@ import Head from 'next/head';
 
 // import LocatorProvider from '@/components/LocatorProvider';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Provider } from 'react-redux';
 
 import { Layout } from '@/components/templates/Layout';
+import { queryClient } from '@/lib/react-query';
 import { store } from '@/store';
 import { KakaoAuth } from '@/utils/auth';
 import '@/types/kakao.types';
 // import setupLocatorUI from '@locator/runtime';
 
-const queryClient = new QueryClient();
 // if (process.env.NODE_ENV === 'development') {
 //   setupLocatorUI();
 // }

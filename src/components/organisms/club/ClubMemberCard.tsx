@@ -96,7 +96,7 @@ export function ClubMemberCard({
   return (
     <div className="mt-2">
       <div className="flex justify-between items-center">
-        <p className="text-sm flex items-center gap-2">
+        <div className="text-sm flex items-center gap-2">
           <span>{club?.club?.name || `클럽 ${member.clubId}`}</span>
           <span>상태:</span>
           {member.status !== Status.PENDING ? (
@@ -130,7 +130,7 @@ export function ClubMemberCard({
               {member.status}
             </span>
           )}
-        </p>
+        </div>
         {member.status === Status.PENDING && (
           <button
             onClick={() => onApprove(userId, member.clubId)}

@@ -23,6 +23,12 @@ export interface GuestPageStrategy {
 
 // 클럽 멤버를 위한 전략
 export class MemberStrategy implements GuestPageStrategy {
+  private customDescription?: string;
+
+  constructor(customDescription?: string) {
+    this.customDescription = customDescription;
+  }
+
   // 네비게이션 및 페이지 관련
   getNavMenuName(): string {
     return '게스트';
@@ -33,7 +39,10 @@ export class MemberStrategy implements GuestPageStrategy {
   }
 
   getDescription(): string {
-    return '이 클럽에 게스트로 참여하고 싶으시면 아래 버튼을 클릭하여 신청서를 작성해주세요.';
+    return (
+      this.customDescription ||
+      '이 클럽에 게스트로 참여하고 싶으시면 아래 버튼을 클릭하여 신청서를 작성해주세요.'
+    );
   }
 
   getButtonText(): string {
@@ -77,6 +86,12 @@ export class MemberStrategy implements GuestPageStrategy {
 
 // 비회원을 위한 전략
 export class NonMemberStrategy implements GuestPageStrategy {
+  private customDescription?: string;
+
+  constructor(customDescription?: string) {
+    this.customDescription = customDescription;
+  }
+
   // 네비게이션 및 페이지 관련
   getNavMenuName(): string {
     return '문의하기';
@@ -87,10 +102,13 @@ export class NonMemberStrategy implements GuestPageStrategy {
   }
 
   getDescription(): string {
-    return ` 
+    return (
+      this.customDescription ||
+      `
 ◦ 이 클럽에 대해 문의하거나 방문 하셔서 분위기를 보고 싶으시면 싶으시면 아래 버튼을 클릭하여 신청서를 작성해주세요.
-◦ 클럽 체육관 방문날짜를 넣으세요 (평일 오후8-10시, 주말 공휴일 오후4-6시)
-◦ 방문 시 학교 후문으로 와서 체육관 입구를 지나 3층으로 오세요 (입구에 비번있음)`;
+◦ 클럽 체육관 방문날짜를 확인하세요.
+`
+    );
   }
 
   getButtonText(): string {
@@ -133,6 +151,11 @@ export class NonMemberStrategy implements GuestPageStrategy {
 }
 
 // 전략 팩토리 함수
-export const getGuestPageStrategy = (isMember: boolean): GuestPageStrategy => {
-  return isMember ? new MemberStrategy() : new NonMemberStrategy();
+export const getGuestPageStrategy = (
+  isMember: boolean,
+  customDescription?: string
+): GuestPageStrategy => {
+  return isMember
+    ? new MemberStrategy(customDescription)
+    : new NonMemberStrategy(customDescription);
 };
