@@ -19,6 +19,7 @@ interface PersonInfoProps {
   initial?: string;
   gender?: Gender | null;
   birthDate?: string | null;
+  intendToJoin?: boolean | null;
   // 아바타/이미지 관련
   thumbnailImageUrl?: string | null;
   guestId?: string;
@@ -44,6 +45,7 @@ function PersonInfo({
   gender,
   birthDate,
   guestRequestName,
+  intendToJoin,
   // 아바타/이미지 관련
   thumbnailImageUrl,
   guestId,
@@ -134,18 +136,21 @@ function PersonInfo({
         <span className="font-medium block truncate">{name}</span>
 
         <div className={badgeContainerClassName}>
+          {intendToJoin && (
+            <span className="inline-block bg-green-100 rounded-full px-2 py-0.5 text-xs text-green-800 font-semibold">
+              가입희망
+            </span>
+          )}
           {gender && (
             <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
               {displayGender}
             </span>
           )}
-
           {birthDate && (
             <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
               {calculateAgeGroup(birthDate)}
             </span>
           )}
-
           {(nationalTournamentLevel || localTournamentLevel) && (
             <span
               className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600 cursor-help"

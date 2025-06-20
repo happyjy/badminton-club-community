@@ -256,6 +256,7 @@ function WorkoutDetailContent({
                       nationalTournamentLevel={guest.nationalTournamentLevel}
                       localTournamentLevel={guest.localTournamentLevel}
                       guestRequestName={guestRequestName}
+                      intendToJoin={guest.intendToJoin}
                     />
                   </div>
                 );
