@@ -42,7 +42,7 @@ export interface Guest {
   birthDate?: string;
   localTournamentLevel?: string;
   nationalTournamentLevel?: string;
-  user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>; // 게스트 작성 정보
+  clubMember: Pick<ClubMember, 'id' | 'name'>;
 }
 
 export interface Workout extends BaseEntity {

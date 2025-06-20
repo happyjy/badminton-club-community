@@ -241,7 +241,8 @@ function WorkoutDetailContent({
             <h2 className="mb-2 sm:mb-4 text-xl font-semibold ">방문 게스트</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {workout.guests.map((guest: Guest) => {
-                console.log(`🚨 ~ {workout.guests.map ~ guest:`, guest);
+                const guestRequestName = guest.clubMember?.name || '본인작성';
+
                 return (
                   <div
                     key={guest.id}
@@ -254,6 +255,7 @@ function WorkoutDetailContent({
                       guestId={guest.id}
                       nationalTournamentLevel={guest.nationalTournamentLevel}
                       localTournamentLevel={guest.localTournamentLevel}
+                      guestRequestName={guestRequestName}
                     />
                   </div>
                 );

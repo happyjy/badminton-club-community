@@ -43,6 +43,7 @@ function PersonInfo({
   initial,
   gender,
   birthDate,
+  guestRequestName,
   // 아바타/이미지 관련
   thumbnailImageUrl,
   guestId,
@@ -129,7 +130,7 @@ function PersonInfo({
       {renderAvatar()}
 
       {/* 사용자 정보 */}
-      <div className={`${contentClassName}`}>
+      <div className={`flex-1 ${contentClassName}`}>
         <span className="font-medium block truncate">{name}</span>
 
         <div className={badgeContainerClassName}>
@@ -154,6 +155,11 @@ function PersonInfo({
             </span>
           )}
         </div>
+        {guestRequestName && (
+          <p className="text-sm text-gray-500 mt-1 text-right">
+            신청자: {guestRequestName}
+          </p>
+        )}
       </div>
 
       {/* 추가 아이콘 영역 */}

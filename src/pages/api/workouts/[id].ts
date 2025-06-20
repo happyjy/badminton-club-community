@@ -81,11 +81,11 @@ export default async function handler(
         birthDate: true,
         localTournamentLevel: true,
         nationalTournamentLevel: true,
-        user: {
+        intendToJoin: true,
+        clubMember: {
           select: {
             id: true,
-            nickname: true,
-            thumbnailImageUrl: true,
+            name: true,
           },
         },
       },
