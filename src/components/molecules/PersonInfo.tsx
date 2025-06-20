@@ -19,6 +19,7 @@ interface PersonInfoProps {
   initial?: string;
   gender?: Gender | null;
   birthDate?: string | null;
+  guestRequestName?: string | null;
   intendToJoin?: boolean | null;
   // 아바타/이미지 관련
   thumbnailImageUrl?: string | null;
