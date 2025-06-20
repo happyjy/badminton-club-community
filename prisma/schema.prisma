@@ -178,9 +178,9 @@ model GuestPost {
   updatedAt                DateTime       @default(now()) @updatedAt
   
   // Relations
-  club                     Club           @relation(fields: [clubId], references: [id])
-  user                     User           @relation(fields: [userId], references: [id])
-  clubMember               ClubMember?    @relation("CreatedByClubMember", fields: [createdBy], references: [id])
+  club                     Club           @relation(fields: [clubId], references: [id]) // 게스트 신청 게시글 작성 클럽
+  user                     User           @relation(fields: [userId], references: [id]) // 게스트 신청 게시글 작성자
+  clubMember               ClubMember?    @relation("CreatedByClubMember", fields: [createdBy], references: [id]) // 게스트 신청 게시글 작성자 클럽 멤버
   comments                 GuestComment[]
 
   @@index([clubId])
