@@ -22,7 +22,6 @@ interface PersonInfoProps {
   // 아바타/이미지 관련
   thumbnailImageUrl?: string | null;
   guestId?: string;
-  userNickname?: string;
   // 급수 정보
   nationalTournamentLevel?: string | null;
   localTournamentLevel?: string | null;
@@ -47,7 +46,6 @@ function PersonInfo({
   // 아바타/이미지 관련
   thumbnailImageUrl,
   guestId,
-  userNickname,
   // 급수 정보
   nationalTournamentLevel,
   localTournamentLevel,
@@ -100,12 +98,7 @@ function PersonInfo({
   const renderAvatar = () => {
     if (guestId) {
       return (
-        <GuestAvatar
-          id={guestId}
-          name={name}
-          userNickname={userNickname}
-          className={avatarClassName}
-        />
+        <GuestAvatar id={guestId} className={avatarClassName} name={name} />
       );
     }
 

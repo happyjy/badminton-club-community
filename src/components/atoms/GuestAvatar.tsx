@@ -3,28 +3,20 @@ import { Guest } from '@/types';
 interface GuestAvatarProps {
   id: string;
   name?: string;
-  userNickname?: string;
   className?: string;
   guest?: Guest; // 기존 코드 호환성을 위해 남겨둠
 }
 
-function GuestAvatar({
-  id,
-  name,
-  userNickname,
-  className = '',
-  guest,
-}: GuestAvatarProps) {
+function GuestAvatar({ id, name, className = '', guest }: GuestAvatarProps) {
   // 하위 호환성을 위해 guest 객체에서 값 추출
   const guestId = id || (guest?.id ?? '');
   const guestName = name || (guest?.name ?? '');
-  const guestNickname = userNickname || (guest?.user?.nickname ?? '');
 
   // 게스트의 이니셜 가져오기
-  const getInitials = (displayName: string, fallbackName: string) => {
+  const getInitials = (displayName: string) => {
     // 빈 문자열 체크를 간소화
-    if (!displayName && !fallbackName) return 'G';
-    return (displayName || fallbackName).charAt(0).toUpperCase();
+    if (!displayName) return 'G';
+    return displayName.charAt(0).toUpperCase();
   };
 
   // 고유한 배경색 생성 (게스트 ID 기반)
@@ -53,9 +45,7 @@ function GuestAvatar({
   // CSS 클래스 구성
   const avatarClass = `w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${getBgColor(guestId)} ${className}`;
 
-  return (
-    <div className={avatarClass}>{getInitials(guestName, guestNickname)}</div>
-  );
+  return <div className={avatarClass}>{getInitials(guestName)}</div>;
 }
 
 export default GuestAvatar;
