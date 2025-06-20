@@ -240,22 +240,27 @@ function WorkoutDetailContent({
           <div className="mb-2 pt-2 sm:mb-6 sm:pt-6 border-t ">
             <h2 className="mb-2 sm:mb-4 text-xl font-semibold ">방문 게스트</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {workout.guests.map((guest: Guest) => (
-                <div
-                  key={guest.id}
-                  className="p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
-                >
-                  <PersonInfo
-                    name={guest.name || guest.user.nickname}
-                    gender={guest.gender}
-                    birthDate={guest.birthDate}
-                    guestId={guest.id}
-                    userNickname={guest.user.nickname}
-                    nationalTournamentLevel={guest.nationalTournamentLevel}
-                    localTournamentLevel={guest.localTournamentLevel}
-                  />
-                </div>
-              ))}
+              {workout.guests.map((guest: Guest) => {
+                const guestRequestName = guest.clubMember?.name || '본인작성';
+
+                return (
+                  <div
+                    key={guest.id}
+                    className="p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                  >
+                    <PersonInfo
+                      name={guest.name}
+                      gender={guest.gender}
+                      birthDate={guest.birthDate}
+                      guestId={guest.id}
+                      nationalTournamentLevel={guest.nationalTournamentLevel}
+                      localTournamentLevel={guest.localTournamentLevel}
+                      guestRequestName={guestRequestName}
+                      intendToJoin={guest.intendToJoin}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

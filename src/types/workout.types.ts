@@ -42,7 +42,9 @@ export interface Guest {
   birthDate?: string;
   localTournamentLevel?: string;
   nationalTournamentLevel?: string;
-  user: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
+  guestRequestName?: string;
+  intendToJoin?: boolean;
+  clubMember?: Pick<ClubMember, 'id' | 'name'>;
 }
 
 export interface Workout extends BaseEntity {
