@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
+import CustomDatePicker from '@/components/atoms/inputs/DatePicker';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
@@ -13,7 +14,7 @@ import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
-import { TOURNAMENT_LEVELS, DEFAULT_DATE } from '@/utils/clubForms';
+import { TOURNAMENT_LEVELS } from '@/utils/clubForms';
 
 import PrivacyModal from './PrivacyModal';
 
@@ -84,6 +85,31 @@ function JoinClubModal({
   // 게스트 신규 신청(게스트 수정이 아닌 경우)
   const isNewGuestApplication = isGuestApplication && !initialValues;
 
+  // 날짜 변환 헬퍼 함수
+  const parseDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
+  const formatDate = (date: Date | null): string => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
+  };
+
+  // 생년월일 날짜 범위 설정 (1900년 ~ 현재)
+  const today = new Date();
+  const minBirthDate = new Date(1900, 0, 1);
+  const maxBirthDate = today;
+
+  // 방문 날짜 범위 설정 (오늘 ~ 1년 후)
+  const minVisitDate = today;
+  const maxVisitDate = new Date(
+    today.getFullYear() + 1,
+    today.getMonth(),
+    today.getDate()
+  );
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
@@ -124,25 +150,52 @@ function JoinClubModal({
               </div>
 
               <FormField label="방문 날짜" required>
-                <Input
-                  type="date"
-                  name="visitDate"
-                  value={formData.visitDate}
-                  onChange={onChangeInput}
+                <CustomDatePicker
+                  selected={parseDate(formData.visitDate || '')}
+                  onChange={(date) => {
+                    const event = {
+                      target: {
+                        name: 'visitDate',
+                        value: formatDate(date),
+                      },
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    onChangeInput(event);
+                  }}
+                  placeholderText="방문 날짜를 선택하세요"
                   required
+                  minDate={minVisitDate}
+                  maxDate={maxVisitDate}
+                  showYearDropdown
+                  showMonthDropdown
+                  dropdownMode="select"
+                  yearDropdownItemNumber={5}
+                  scrollableYearDropdown
                 />
               </FormField>
             </>
           )}
 
           <FormField label="생년월일" required>
-            <Input
-              type="date"
-              name="birthDate"
-              value={formData.birthDate}
-              defaultValue={DEFAULT_DATE}
-              onChange={onChangeInput}
+            <CustomDatePicker
+              selected={parseDate(formData.birthDate || '')}
+              onChange={(date) => {
+                const event = {
+                  target: {
+                    name: 'birthDate',
+                    value: formatDate(date),
+                  },
+                } as React.ChangeEvent<HTMLInputElement>;
+                onChangeInput(event);
+              }}
+              placeholderText="생년월일을 선택하세요"
               required
+              minDate={minBirthDate}
+              maxDate={maxBirthDate}
+              showYearDropdown
+              showMonthDropdown
+              dropdownMode="select"
+              yearDropdownItemNumber={50}
+              scrollableYearDropdown
             />
           </FormField>
 
