@@ -6,23 +6,11 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 import { formatDateSimple } from '@/lib/utils';
-
-type GuestRequest = {
-  id: string;
-  clubMember: {
-    name?: string;
-  };
-  name: string;
-  phoneNumber: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  createdAt: string;
-  updatedAt: string;
-  visitDate?: string;
-  intendToJoin?: boolean;
-  birthDate?: string;
-  nationalTournamentLevel?: string;
-  localTournamentLevel?: string;
-};
+import {
+  GuestPostWithClubMember,
+  GuestStatusType,
+  GuestPostTypeType,
+} from '@/types/guest.types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -30,15 +18,17 @@ export default function GuestCheckPage() {
   const router = useRouter();
   const { id: clubId } = router.query;
   const [currentPage, setCurrentPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ['guestRequests', clubId, currentPage, statusFilter],
+    queryKey: ['guestRequests', clubId, currentPage, typeFilter, statusFilter],
     queryFn: async () => {
       const response = await axios.get(`/api/clubs/${clubId}/guests`, {
         params: {
           page: currentPage,
           limit: ITEMS_PER_PAGE,
+          postType: typeFilter !== 'ALL' ? typeFilter : undefined,
           status: statusFilter !== 'ALL' ? statusFilter : undefined,
         },
       });
@@ -48,6 +38,12 @@ export default function GuestCheckPage() {
   });
 
   const guestRequests = response?.data;
+
+  // 게시글 타입 변경
+  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTypeFilter(e.target.value);
+    setCurrentPage(1);
+  };
 
   // 신청 상태 변경
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -61,9 +57,8 @@ export default function GuestCheckPage() {
   };
 
   // 신청 상태에 따른 배지 색상
-  const getStatusBadgeColor = (status: string) => {
+  const getStatusBadgeColor = (status: GuestStatusType) => {
     switch (status) {
-      // todo: 매직 스트링 처리
       case 'APPROVED':
         return 'bg-green-100 text-green-800';
       case 'REJECTED':
@@ -74,15 +69,38 @@ export default function GuestCheckPage() {
   };
 
   // 신청 상태 한글 표시
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: GuestStatusType) => {
     switch (status) {
-      // todo: 매직 스트링 처리
       case 'APPROVED':
         return '승인됨';
       case 'REJECTED':
         return '거절됨';
       default:
         return '검토중';
+    }
+  };
+
+  // 게시글 타입 한글 표시
+  const getTypeText = (postType: GuestPostTypeType) => {
+    switch (postType) {
+      case 'GUEST_REQUEST':
+        return '게스트 신청';
+      case 'INQUIRY_REQUEST':
+        return '문의하기';
+      default:
+        return '-';
+    }
+  };
+
+  // 게시글 타입에 따른 배지 색상
+  const getTypeBadgeColor = (postType: GuestPostTypeType) => {
+    switch (postType) {
+      case 'GUEST_REQUEST':
+        return 'bg-blue-100 text-blue-800';
+      case 'INQUIRY_REQUEST':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -192,13 +210,23 @@ export default function GuestCheckPage() {
     <div className="bg-white rounded-lg shadow p-3 sm:p-6">
       <h1 className="text-2xl font-bold mb-6">게스트 신청 목록</h1>
 
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col sm:flex-row gap-3">
+        <select
+          value={typeFilter}
+          onChange={handleTypeChange}
+          className="w-full sm:w-[180px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="ALL">전체 타입</option>
+          <option value="GUEST_REQUEST">게스트 신청</option>
+          <option value="INQUIRY_REQUEST">문의하기</option>
+        </select>
+
         <select
           value={statusFilter}
           onChange={handleStatusChange}
-          className="w-[180px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full sm:w-[180px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="ALL">전체</option>
+          <option value="ALL">전체 상태</option>
           <option value="PENDING">대기 중</option>
           <option value="APPROVED">승인됨</option>
           <option value="REJECTED">거절됨</option>
@@ -212,6 +240,12 @@ export default function GuestCheckPage() {
               {/* todo: th에 반복되는 className 처리 */}
               {/* todo: 테이블 컴포넌트 형식으로 변경하기 */}
               <tr>
+                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  타입
+                </th>
+                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  상태
+                </th>
                 <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   방문희망일
                 </th>
@@ -227,18 +261,33 @@ export default function GuestCheckPage() {
                     |전국/구대회
                   </label>
                 </th>
-                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  상태
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {guestRequests.items.map((guest: GuestRequest) => (
+              {guestRequests.items.map((guest: GuestPostWithClubMember) => (
                 <tr
                   key={guest.id}
                   onClick={() => handleRowClick(guest.id)}
                   className="hover:bg-gray-50 cursor-pointer transition-colors"
                 >
+                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap">
+                    <span
+                      className={`px-1 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getTypeBadgeColor(
+                        guest.postType
+                      )}`}
+                    >
+                      {getTypeText(guest.postType)}
+                    </span>
+                  </td>
+                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap">
+                    <span
+                      className={`px-1 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
+                        guest.status
+                      )}`}
+                    >
+                      {getStatusText(guest.status)}
+                    </span>
+                  </td>
                   <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
                     {guest.visitDate ? formatDateSimple(guest.visitDate) : '-'}
                   </td>
@@ -268,15 +317,6 @@ export default function GuestCheckPage() {
                           : '-'}
                       </div>
                     </div>
-                  </td>
-                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap">
-                    <span
-                      className={`px-1 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
-                        guest.status
-                      )}`}
-                    >
-                      {getStatusText(guest.status)}
-                    </span>
                   </td>
                 </tr>
               ))}
