@@ -221,10 +221,6 @@ export default function GuestCheckPage() {
     return <div>로딩 중...</div>;
   }
 
-  console.log(
-    `🚨 ~ GuestCheckPage ~ guestRequests:`,
-    guestRequests?.items?.[0]?.postType
-  );
   return (
     <div className="bg-white rounded-lg shadow p-3 sm:p-6">
       <h1 className="text-2xl font-bold mb-6">게스트 신청 목록</h1>
@@ -263,6 +259,9 @@ export default function GuestCheckPage() {
                   타입
                 </th>
                 <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  상태
+                </th>
+                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   방문희망일
                 </th>
                 <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
@@ -276,9 +275,6 @@ export default function GuestCheckPage() {
                     <br />
                     |전국/구대회
                   </label>
-                </th>
-                <th className="px-1 py-1 sm:px-4 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  상태
                 </th>
               </tr>
             </thead>
@@ -296,6 +292,15 @@ export default function GuestCheckPage() {
                       )}`}
                     >
                       {getTypeText(guest.postType)}
+                    </span>
+                  </td>
+                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap">
+                    <span
+                      className={`px-1 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
+                        guest.status
+                      )}`}
+                    >
+                      {getStatusText(guest.status)}
                     </span>
                   </td>
                   <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate">
@@ -327,15 +332,6 @@ export default function GuestCheckPage() {
                           : '-'}
                       </div>
                     </div>
-                  </td>
-                  <td className="px-1 py-1.5 sm:px-4 sm:py-1 whitespace-nowrap">
-                    <span
-                      className={`px-1 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(
-                        guest.status
-                      )}`}
-                    >
-                      {getStatusText(guest.status)}
-                    </span>
                   </td>
                 </tr>
               ))}
