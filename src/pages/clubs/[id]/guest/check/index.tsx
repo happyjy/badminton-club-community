@@ -7,7 +7,7 @@ import axios from 'axios';
 
 import { formatDateSimple } from '@/lib/utils';
 import {
-  GuestRequest,
+  GuestPostWithClubMember,
   GuestStatusType,
   GuestPostTypeType,
 } from '@/types/guest.types';
@@ -264,7 +264,7 @@ export default function GuestCheckPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {guestRequests.items.map((guest: GuestRequest) => (
+              {guestRequests.items.map((guest: GuestPostWithClubMember) => (
                 <tr
                   key={guest.id}
                   onClick={() => handleRowClick(guest.id)}

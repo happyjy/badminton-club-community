@@ -85,7 +85,7 @@ export default async function handler(
 
     const response: GuestListResponse = {
       data: {
-        items: guests || [],
+        items: guests,
         total: total || 0,
         page,
         limit,
