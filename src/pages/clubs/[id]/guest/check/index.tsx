@@ -6,24 +6,11 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 import { formatDateSimple } from '@/lib/utils';
-
-type GuestRequest = {
-  id: string;
-  clubMember: {
-    name?: string;
-  };
-  name: string;
-  phoneNumber: string;
-  postType: 'GUEST_REQUEST' | 'INQUIRY_REQUEST';
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  createdAt: string;
-  updatedAt: string;
-  visitDate?: string;
-  intendToJoin?: boolean;
-  birthDate?: string;
-  nationalTournamentLevel?: string;
-  localTournamentLevel?: string;
-};
+import {
+  GuestRequest,
+  GuestStatusType,
+  GuestPostTypeType,
+} from '@/types/guest.types';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -70,9 +57,8 @@ export default function GuestCheckPage() {
   };
 
   // 신청 상태에 따른 배지 색상
-  const getStatusBadgeColor = (status: string) => {
+  const getStatusBadgeColor = (status: GuestStatusType) => {
     switch (status) {
-      // todo: 매직 스트링 처리
       case 'APPROVED':
         return 'bg-green-100 text-green-800';
       case 'REJECTED':
@@ -83,9 +69,8 @@ export default function GuestCheckPage() {
   };
 
   // 신청 상태 한글 표시
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: GuestStatusType) => {
     switch (status) {
-      // todo: 매직 스트링 처리
       case 'APPROVED':
         return '승인됨';
       case 'REJECTED':
@@ -96,7 +81,7 @@ export default function GuestCheckPage() {
   };
 
   // 게시글 타입 한글 표시
-  const getTypeText = (postType: string) => {
+  const getTypeText = (postType: GuestPostTypeType) => {
     switch (postType) {
       case 'GUEST_REQUEST':
         return '게스트 신청';
@@ -108,7 +93,7 @@ export default function GuestCheckPage() {
   };
 
   // 게시글 타입에 따른 배지 색상
-  const getTypeBadgeColor = (postType: string) => {
+  const getTypeBadgeColor = (postType: GuestPostTypeType) => {
     switch (postType) {
       case 'GUEST_REQUEST':
         return 'bg-blue-100 text-blue-800';
