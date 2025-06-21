@@ -154,13 +154,13 @@ model WorkoutHelperStatus {
 // 게스트 신청 게시글
 model GuestPost {
   id                       String         @id @default(cuid()) 
-  clubId                   Int                                   // 게스트 신청한 클럽 ID
-  userId                   Int                                   // 게스트 신청한 유저 ID
+  clubId                   Int                                    // 게스트 신청한 클럽 ID
+  userId                   Int                                    // 게스트 신청한 유저 ID
   postType                 GuestPostType  @default(GUEST_REQUEST) // 게시글 타입 (게스트 요청 또는 문의하기 요청)
   name                     String
   birthDate                String         @default("")
   phoneNumber              String
-  gender                   String         @default("")          // 성별 필드 추가
+  gender                   String         @default("")            // 성별 필드 추가
   localTournamentLevel     String         @default("")
   nationalTournamentLevel  String         @default("")
   lessonPeriod             String         @default("")
