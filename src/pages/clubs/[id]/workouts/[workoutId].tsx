@@ -210,7 +210,6 @@ function WorkoutDetailContent({
   const { data: rankings = { attendance: [], helper: [] } } = useClubRankings(
     workout.clubId as string
   );
-  console.log(`🚨 ~ rankings:`, rankings);
 
   // 헬퍼 활동 횟수를 매핑하는 함수
   const getHelperCount = (clubMemberId: number | undefined) => {
@@ -331,7 +330,6 @@ function WorkoutDetailContent({
               const attendanceCount = getAttendanceCount(
                 participant.clubMember.id
               );
-              console.log(`🚨 ~ {participants.map ~ helperCount:`, helperCount);
 
               // helper 아이콘 컴포넌트
               const helperIcons = (
@@ -394,25 +392,26 @@ function WorkoutDetailContent({
                       extraIcons={helperIcons}
                     />
 
-                    {/* 출석 횟수 표시 */}
-                    {attendanceCount > 0 && (
-                      <div className="absolute -top-2 right-12 bg-gradient-to-r from-green-400 to-lime-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform scale-90 hover:scale-100 transition-transform duration-200">
-                        <span className="flex items-center gap-1">
-                          <span className="text-xs">👏</span>
-                          <span>{attendanceCount}회</span>
-                        </span>
-                      </div>
-                    )}
+                    {/* 출석 횟수와 헬퍼 활동 횟수 표시 */}
+                    <div className="absolute -top-2 -right-2 flex gap-0">
+                      {attendanceCount > 0 && (
+                        <div className="bg-gradient-to-r from-green-400 to-lime-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform scale-90 hover:scale-100 transition-transform duration-200">
+                          <span className="flex items-center gap-1">
+                            <span className="text-xs">📒</span>
+                            <span>{attendanceCount}회</span>
+                          </span>
+                        </div>
+                      )}
 
-                    {/* 헬퍼 활동 횟수 표시 */}
-                    {helperCount > 0 && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform scale-90 hover:scale-100 transition-transform duration-200">
-                        <span className="flex items-center gap-1">
-                          <span className="text-xs">🤝</span>
-                          <span>{helperCount}회</span>
-                        </span>
-                      </div>
-                    )}
+                      {helperCount > 0 && (
+                        <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform scale-90 hover:scale-100 transition-transform duration-200">
+                          <span className="flex items-center gap-1">
+                            <span className="text-xs">🤝</span>
+                            <span>{helperCount}회</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
                     {/* CircleMenu를 중앙에 배치 */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
