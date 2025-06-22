@@ -80,6 +80,7 @@ function CustomDatePicker({
       locale="ko"
       popperClassName="z-50"
       autoComplete="off"
+      calendarClassName="swap-year-month-dropdowns"
     />
   );
 }
