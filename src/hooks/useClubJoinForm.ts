@@ -12,7 +12,7 @@ export const useClubJoinForm = (
   clubMember?: any
 ) => {
   // 클럽 멤버 여부에 따라 postType 결정
-  const postType = clubMember ? 'GUEST_REQUEST' : 'INQUIRY_REQUEST';
+  const postType = clubMember ? 'GUEST_REQUEST' : 'JOIN_INQUIRY_REQUEST';
 
   // 폼 데이터 입력 필드 상태 관리
   const [formData, setFormData] = useState<ClubJoinFormData>(() => {
