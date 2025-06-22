@@ -76,6 +76,7 @@ function CustomDatePicker({
       // customInput을 사용하여 readOnly 속성이 적용된 입력 필드를 렌더링합니다.
       customInput={<CustomInput className={finalClassName} />}
       dateFormat="yyyy-MM-dd"
+      dateFormatCalendar="yyyy년 MM월"
       locale="ko"
       popperClassName="z-50"
       autoComplete="off"
