@@ -94,11 +94,11 @@ export class NonMemberStrategy implements GuestPageStrategy {
 
   // 네비게이션 및 페이지 관련
   getNavMenuName(): string {
-    return '문의하기';
+    return '가입신청';
   }
 
   getPageTitle(): string {
-    return '클럽 문의하기';
+    return '클럽 가입신청';
   }
 
   getDescription(): string {
@@ -112,20 +112,20 @@ export class NonMemberStrategy implements GuestPageStrategy {
   }
 
   getButtonText(): string {
-    return '문의하기';
+    return '가입신청';
   }
 
   getHistoryTitle(): string {
-    return '내 문의 내역';
+    return '내 가입신청 내역';
   }
 
   // 모달 관련
   getModalTitle(isEditing: boolean): string {
-    return isEditing ? '문의 내용 수정' : '클럽 문의하기';
+    return isEditing ? '가입신청 내용 수정' : '클럽 가입신청';
   }
 
   getModalSubmitText(isEditing: boolean): string {
-    return isEditing ? '수정하기' : '문의하기';
+    return isEditing ? '수정하기' : '가입신청';
   }
 
   getModalDescription(): string {
@@ -142,11 +142,11 @@ export class NonMemberStrategy implements GuestPageStrategy {
 
   // 상세 페이지 관련
   getDetailPageTitle(): string {
-    return '클럽 문의 상세';
+    return '클럽 가입신청 상세';
   }
 
   getDetailPageMessageTitle(): string {
-    return '문의 메시지';
+    return '가입신청 메시지';
   }
 }
 

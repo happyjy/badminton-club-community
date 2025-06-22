@@ -85,8 +85,8 @@ export default function GuestCheckPage() {
     switch (postType) {
       case 'GUEST_REQUEST':
         return '게스트 신청';
-      case 'INQUIRY_REQUEST':
-        return '문의하기';
+      case 'JOIN_INQUIRY_REQUEST':
+        return '가입 신청';
       default:
         return '-';
     }
@@ -97,7 +97,7 @@ export default function GuestCheckPage() {
     switch (postType) {
       case 'GUEST_REQUEST':
         return 'bg-blue-100 text-blue-800';
-      case 'INQUIRY_REQUEST':
+      case 'JOIN_INQUIRY_REQUEST':
         return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -218,7 +218,7 @@ export default function GuestCheckPage() {
         >
           <option value="ALL">전체 타입</option>
           <option value="GUEST_REQUEST">게스트 신청</option>
-          <option value="INQUIRY_REQUEST">문의하기</option>
+          <option value="JOIN_INQUIRY_REQUEST">가입 신청</option>
         </select>
 
         <select

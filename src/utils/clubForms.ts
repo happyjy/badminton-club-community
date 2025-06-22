@@ -20,7 +20,7 @@ export const createInitialFormData = ({
   lessonPeriod: '',
   playingPeriod: '',
   privacyAgreement: false,
-  postType: isGuestApplication ? 'GUEST_REQUEST' : 'INQUIRY_REQUEST',
+  postType: isGuestApplication ? 'GUEST_REQUEST' : 'JOIN_INQUIRY_REQUEST',
   ...(isGuestApplication && {
     intendToJoin: false,
     visitDate: DEFAULT_VISIT_DATE,

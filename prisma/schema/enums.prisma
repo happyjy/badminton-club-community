@@ -19,5 +19,6 @@ enum MemberRole {
 
 enum GuestPostType {
   GUEST_REQUEST    // 게스트 요청
-  INQUIRY_REQUEST  // 문의하기 요청
+  INQUIRY_REQUEST  // 문의하기 요청(현재 사용하지 않고 있음, 추후 사용 예정)
+  JOIN_INQUIRY_REQUEST  // 가입 문의하기 요청
 }
