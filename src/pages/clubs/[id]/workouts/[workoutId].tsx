@@ -221,6 +221,15 @@ function WorkoutDetailContent({
     return helperRanking?.count || 0;
   };
 
+  // 출석 횟수를 매핑하는 함수
+  const getAttendanceCount = (clubMemberId: number | undefined) => {
+    if (!clubMemberId) return 0;
+    const attendanceRanking = rankings.attendance.find(
+      (ranking) => ranking.id === clubMemberId
+    );
+    return attendanceRanking?.count || 0;
+  };
+
   return (
     <div>
       {/* todo: jyoon - 메뉴별로 공통된 헤더 컴포넌트 사용 하는 것 공통 컴포넌트로 리팩토링 */}
@@ -319,6 +328,9 @@ function WorkoutDetailContent({
               }
 
               const helperCount = getHelperCount(participant.clubMember.id);
+              const attendanceCount = getAttendanceCount(
+                participant.clubMember.id
+              );
               console.log(`🚨 ~ {participants.map ~ helperCount:`, helperCount);
 
               // helper 아이콘 컴포넌트
@@ -381,6 +393,16 @@ function WorkoutDetailContent({
                       }
                       extraIcons={helperIcons}
                     />
+
+                    {/* 출석 횟수 표시 */}
+                    {attendanceCount > 0 && (
+                      <div className="absolute -top-2 right-12 bg-gradient-to-r from-green-400 to-lime-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform scale-90 hover:scale-100 transition-transform duration-200">
+                        <span className="flex items-center gap-1">
+                          <span className="text-xs">👏</span>
+                          <span>{attendanceCount}회</span>
+                        </span>
+                      </div>
+                    )}
 
                     {/* 헬퍼 활동 횟수 표시 */}
                     {helperCount > 0 && (
