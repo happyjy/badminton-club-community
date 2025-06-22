@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import { ko } from 'date-fns/locale/ko';
 import DatePicker, { registerLocale } from 'react-datepicker';
@@ -24,6 +24,23 @@ interface DatePickerProps {
   scrollableYearDropdown?: boolean;
 }
 
+// eslint-disable-next-line react/display-name
+const CustomInput = forwardRef<
+  HTMLInputElement,
+  React.ButtonHTMLAttributes<HTMLInputElement>
+>(({ value, onClick, className, placeholder }, ref) => (
+  <input
+    type="text"
+    className={className}
+    onClick={onClick}
+    value={value}
+    ref={ref}
+    readOnly
+    placeholder={placeholder}
+    autoComplete="off"
+  />
+));
+
 function CustomDatePicker({
   selected,
   onChange,
@@ -40,6 +57,7 @@ function CustomDatePicker({
   yearDropdownItemNumber = 100,
   scrollableYearDropdown = true,
 }: DatePickerProps) {
+  const finalClassName = `mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${className}`;
   return (
     <DatePicker
       selected={selected}
@@ -55,9 +73,10 @@ function CustomDatePicker({
       dropdownMode={dropdownMode}
       yearDropdownItemNumber={yearDropdownItemNumber}
       scrollableYearDropdown={scrollableYearDropdown}
+      // customInput을 사용하여 readOnly 속성이 적용된 입력 필드를 렌더링합니다.
+      customInput={<CustomInput className={finalClassName} />}
       dateFormat="yyyy-MM-dd"
       locale="ko"
-      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${className}`}
       popperClassName="z-50"
       autoComplete="off"
     />
