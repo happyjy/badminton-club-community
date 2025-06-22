@@ -133,7 +133,7 @@ function PersonInfo({
       {renderAvatar()}
 
       {/* 사용자 정보 */}
-      <div className={`flex-1 ${contentClassName}`}>
+      <div className={`${contentClassName}`}>
         <span className="font-medium block truncate">{name}</span>
 
         <div className={badgeContainerClassName}>
@@ -169,7 +169,7 @@ function PersonInfo({
       </div>
 
       {/* 추가 아이콘 영역 */}
-      {extraIcons}
+      <div className="flex items-center gap-1">{extraIcons}</div>
     </div>
   );
 }
