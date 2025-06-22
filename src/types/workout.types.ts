@@ -55,6 +55,7 @@ export interface Workout extends BaseEntity {
   endTime: Date;
   maxParticipants: number;
   location: string;
+  clubId?: number | null;
   WorkoutParticipant: WorkoutParticipant[];
   guests?: Guest[];
   guestCount?: number;

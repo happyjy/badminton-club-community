@@ -9,6 +9,7 @@ import {
   ParticipantSortProvider,
   useParticipantSortContext,
 } from '@/contexts/ParticipantSortContext';
+import { useClubRankings } from '@/hooks/useClubRankings';
 import badmintonNetIcon from '@/icon/badmintonNet.svg';
 import badmintonShuttleCockIcon from '@/icon/badmintonShuttleCock.svg';
 import broomStickIcon from '@/icon/broomStick.svg';
@@ -206,6 +207,27 @@ function WorkoutDetailContent({
 }: WorkoutDetailContentProps) {
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
+  const { data: rankings = { attendance: [], helper: [] } } = useClubRankings(
+    workout.clubId?.toString()
+  );
+
+  // 헬퍼 활동 횟수를 매핑하는 함수
+  const getHelperCount = (clubMemberId: number | undefined) => {
+    if (!clubMemberId) return 0;
+    const helperRanking = rankings.helper.find(
+      (ranking) => ranking.id === clubMemberId
+    );
+    return helperRanking?.count || 0;
+  };
+
+  // 출석 횟수를 매핑하는 함수
+  const getAttendanceCount = (clubMemberId: number | undefined) => {
+    if (!clubMemberId) return 0;
+    const attendanceRanking = rankings.attendance.find(
+      (ranking) => ranking.id === clubMemberId
+    );
+    return attendanceRanking?.count || 0;
+  };
 
   return (
     <div>
@@ -304,6 +326,11 @@ function WorkoutDetailContent({
                 return null;
               }
 
+              const helperCount = getHelperCount(participant.clubMember.id);
+              const attendanceCount = getAttendanceCount(
+                participant.clubMember.id
+              );
+
               // helper 아이콘 컴포넌트
               const helperIcons = (
                 <div className="flex gap-1 flex-shrink-0">
@@ -346,35 +373,66 @@ function WorkoutDetailContent({
                     );
                   }}
                 >
-                  <PersonInfo
-                    name={
-                      participant?.clubMember?.name || participant.User.nickname
-                    }
-                    initial={participant.User.nickname.charAt(0)}
-                    gender={participant.clubMember?.gender}
-                    birthDate={participant.clubMember?.birthDate}
-                    thumbnailImageUrl={participant.User.thumbnailImageUrl}
-                    nationalTournamentLevel={
-                      participant.clubMember?.nationalTournamentLevel
-                    }
-                    localTournamentLevel={
-                      participant.clubMember?.localTournamentLevel
-                    }
-                    extraIcons={helperIcons}
-                  />
+                  <div className="flex-1 relatives">
+                    <PersonInfo
+                      name={
+                        participant?.clubMember?.name ||
+                        participant.User.nickname
+                      }
+                      initial={participant.User.nickname.charAt(0)}
+                      gender={participant.clubMember?.gender}
+                      birthDate={participant.clubMember?.birthDate}
+                      thumbnailImageUrl={participant.User.thumbnailImageUrl}
+                      nationalTournamentLevel={
+                        participant.clubMember?.nationalTournamentLevel
+                      }
+                      localTournamentLevel={
+                        participant.clubMember?.localTournamentLevel
+                      }
+                      extraIcons={helperIcons}
+                    />
 
-                  <CircleMenu
-                    isOpen={selectedParticipant === participant.User.id}
-                    onClose={() => setSelectedParticipant(null)}
-                    onIconSelect={(icon) => {
-                      handleIconSelect(
-                        participant.User.id,
-                        participant.clubMember?.id,
-                        icon
-                      );
-                    }}
-                    selectedIcons={participantIcons[participant.User.id] || []}
-                  />
+                    {/* 출석 횟수와 헬퍼 활동 횟수 표시 */}
+                    <div className="absolute -top-2 -right-2 flex gap-0">
+                      {attendanceCount > 0 && (
+                        <div className="bg-gradient-to-r from-green-400 to-lime-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform scale-90 hover:scale-100 transition-transform duration-200">
+                          <span className="flex items-center gap-1">
+                            <span className="text-xs">📒</span>
+                            <span>{attendanceCount}회</span>
+                          </span>
+                        </div>
+                      )}
+
+                      {helperCount > 0 && (
+                        <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform scale-90 hover:scale-100 transition-transform duration-200">
+                          <span className="flex items-center gap-1">
+                            <span className="text-xs">🤝</span>
+                            <span>{helperCount}회</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* CircleMenu를 중앙에 배치 */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="pointer-events-auto">
+                        <CircleMenu
+                          isOpen={selectedParticipant === participant.User.id}
+                          onClose={() => setSelectedParticipant(null)}
+                          onIconSelect={(icon) => {
+                            handleIconSelect(
+                              participant.User.id,
+                              participant.clubMember?.id,
+                              icon
+                            );
+                          }}
+                          selectedIcons={
+                            participantIcons[participant.User.id] || []
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}
