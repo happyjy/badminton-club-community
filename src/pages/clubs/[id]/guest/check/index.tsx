@@ -86,7 +86,7 @@ export default function GuestCheckPage() {
       case 'GUEST_REQUEST':
         return '게스트 신청';
       case 'INQUIRY_REQUEST':
-        return '문의하기';
+        return '가입신청';
       default:
         return '-';
     }
