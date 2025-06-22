@@ -208,7 +208,7 @@ function WorkoutDetailContent({
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
   const { data: rankings = { attendance: [], helper: [] } } = useClubRankings(
-    workout.clubId as string
+    workout.clubId?.toString()
   );
 
   // 헬퍼 활동 횟수를 매핑하는 함수
