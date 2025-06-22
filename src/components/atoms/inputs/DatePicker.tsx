@@ -27,7 +27,7 @@ interface DatePickerProps {
 // eslint-disable-next-line react/display-name
 const CustomInput = forwardRef<
   HTMLInputElement,
-  React.ButtonHTMLAttributes<HTMLInputElement>
+  React.InputHTMLAttributes<HTMLInputElement>
 >(({ value, onClick, className, placeholder }, ref) => (
   <input
     type="text"
