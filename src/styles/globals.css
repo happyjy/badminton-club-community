@@ -161,3 +161,18 @@ body {
     font-size: 0.75rem;
   }
 }
+
+.swap-year-month-dropdowns .react-datepicker__header__dropdown--select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* 8px */
+}
+
+.swap-year-month-dropdowns .react-datepicker__year-dropdown-container {
+  order: 1;
+}
+
+.swap-year-month-dropdowns .react-datepicker__month-dropdown-container {
+  order: 2;
+}

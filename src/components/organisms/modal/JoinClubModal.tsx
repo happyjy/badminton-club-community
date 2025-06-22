@@ -99,7 +99,7 @@ function JoinClubModal({
 
   // 생년월일 날짜 범위 설정 (1900년 ~ 현재)
   const today = new Date();
-  const minBirthDate = new Date(1900, 0, 1);
+  const minBirthDate = new Date(1950, 0, 1);
   const maxBirthDate = today;
 
   // 방문 날짜 범위 설정 (오늘 ~ 1년 후)
