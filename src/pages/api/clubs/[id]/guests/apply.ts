@@ -3,9 +3,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendGuestApplicationEmail } from '@/lib/email';
 import { getSession } from '@/lib/session';
+import { sendSMS, createGuestApplicationSMSMessage } from '@/lib/sms';
 
 const prisma = new PrismaClient();
 
+// 게스트 신청 처리(이메일 및 SMS 전송 기능 포함)
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -59,6 +61,12 @@ export default async function handler(
       });
     }
 
+    // 클럽 정보 조회 (SMS 메시지용)
+    const club = await prisma.club.findUnique({
+      where: { id: parseInt(clubId as string) },
+      select: { name: true },
+    });
+
     // 사용자의 clubMember ID 조회 (있는 경우)
     const clubMember = await prisma.clubMember.findUnique({
       where: {
@@ -97,16 +105,37 @@ export default async function handler(
       },
     });
 
+    // 이메일 및 SMS 전송
+    const notificationPromises = [];
+
     // 이메일 전송
     try {
-      await sendGuestApplicationEmail({
-        req,
-        application,
-        writer: clubMember?.name || null,
-      });
+      notificationPromises.push(
+        sendGuestApplicationEmail({
+          req,
+          application,
+          writer: clubMember?.name || null,
+        })
+      );
     } catch (emailError) {
-      // 이메일 전송 실패는 전체 요청을 실패시키지 않음
       console.error('이메일 전송 실패:', emailError);
+    }
+
+    // SMS 전송
+    try {
+      if (club?.name) {
+        const smsMessage = createGuestApplicationSMSMessage(name, club.name);
+        notificationPromises.push(sendSMS(phoneNumber, smsMessage));
+      }
+    } catch (smsError) {
+      console.error('SMS 전송 실패:', smsError);
+    }
+
+    // 모든 알림 전송 시도 (실패해도 전체 요청은 성공)
+    try {
+      await Promise.allSettled(notificationPromises);
+    } catch (notificationError) {
+      console.error('알림 전송 중 오류:', notificationError);
     }
 
     return res.status(201).json({

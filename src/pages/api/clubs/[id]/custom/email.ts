@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 const prisma = new PrismaClient();
 
+// 클럽 이메일 설정 관리
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
