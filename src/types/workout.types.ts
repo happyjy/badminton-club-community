@@ -1,6 +1,5 @@
 import { HelperType } from '@prisma/client';
 
-import { BaseEntity } from './common.types';
 import { MembershipStatus } from './membership.types';
 import { User } from './user.types';
 
@@ -47,7 +46,8 @@ export interface Guest {
   clubMember?: Pick<ClubMember, 'id' | 'name'>;
 }
 
-export interface Workout extends BaseEntity {
+export interface Workout {
+  id: number;
   title: string;
   description: string;
   date: Date;
@@ -55,21 +55,47 @@ export interface Workout extends BaseEntity {
   endTime: Date;
   maxParticipants: number;
   location: string;
-  clubId?: number | null;
-  WorkoutParticipant: WorkoutParticipant[];
-  guests?: Guest[];
-  guestCount?: number;
+  createdAt: Date;
+  updatedAt: Date;
+  clubId?: number;
 }
 
 export interface WorkoutParticipant {
   id: number;
   workoutId: number;
   userId: number;
+  clubMemberId?: number;
   status: string;
   createdAt: Date;
   updatedAt: Date;
-  User: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
-  clubMember?: ClubMember;
+}
+
+export interface WorkoutHelperStatus {
+  id: number;
+  workoutId: number;
+  clubMemberId: number;
+  helperType: string;
+  helped: boolean;
+  updatedById: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkoutScheduleRequest {
+  startDate: string;
+  endDate: string;
+  weekdayStartTime: string;
+  weekdayEndTime: string;
+  weekendStartTime: string;
+  weekendEndTime: string;
+  location: string;
+  maxParticipants: number;
+}
+
+export interface WorkoutScheduleResponse {
+  message: string;
+  count: number;
+  workouts: Workout[];
 }
 
 export interface WorkoutWithParticipants extends Workout {

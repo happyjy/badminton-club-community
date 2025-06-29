@@ -9,6 +9,7 @@ import ClubHomeSettingsForm from '@/components/organisms/forms/ClubHomeSettingsF
 import EmailSettingsForm from '@/components/organisms/forms/EmailSettingsForm';
 import GuestPageSettingsForm from '@/components/organisms/forms/GuestPageSettingsForm';
 import SmsSettingsForm from '@/components/organisms/forms/SmsSettingsForm';
+import WorkoutScheduleForm from '@/components/organisms/forms/WorkoutScheduleForm';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
 
@@ -45,6 +46,11 @@ const customSettings: CustomSetting[] = [
     name: '문자 발송',
     description: '문자를 받을 사람을 설정합니다.',
   },
+  {
+    id: 'workout-schedule',
+    name: '운동 일정 생성',
+    description: '정기적인 운동 일정을 자동으로 생성합니다.',
+  },
 ];
 
 function CustomSettingPage() {
@@ -63,6 +69,16 @@ function CustomSettingPage() {
   } | null>(null);
   const [smsSettings, setSmsSettings] = useState<{
     smsRecipients: string;
+  } | null>(null);
+  const [workoutScheduleSettings, setWorkoutScheduleSettings] = useState<{
+    startDate: string;
+    endDate: string;
+    weekdayStartTime: string;
+    weekdayEndTime: string;
+    weekendStartTime: string;
+    weekendEndTime: string;
+    location: string;
+    maxParticipants: number;
   } | null>(null);
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
@@ -136,6 +152,23 @@ function CustomSettingPage() {
           });
         })
         .catch((error) => console.error('Error fetching SMS settings:', error));
+    }
+  }, [clubId, selectedSetting]);
+
+  // 운동 일정 설정 불러오기
+  useEffect(() => {
+    if (clubId && selectedSetting === 'workout-schedule') {
+      // 운동 일정 설정은 기본값으로 초기화
+      setWorkoutScheduleSettings({
+        startDate: '',
+        endDate: '',
+        weekdayStartTime: '',
+        weekdayEndTime: '',
+        weekendStartTime: '',
+        weekendEndTime: '',
+        location: '',
+        maxParticipants: 10,
+      });
     }
   }, [clubId, selectedSetting]);
 
@@ -213,6 +246,15 @@ function CustomSettingPage() {
               <SmsSettingsForm
                 clubId={clubId as string}
                 initialData={smsSettings}
+              />
+            </div>
+          )}
+          {selectedSetting === 'workout-schedule' && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">운동 일정 설정</h2>
+              <WorkoutScheduleForm
+                clubId={clubId as string}
+                initialData={workoutScheduleSettings}
               />
             </div>
           )}
