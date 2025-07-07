@@ -81,6 +81,12 @@ export default async function handler(
       },
     });
 
+    // ClubCustomSettings에서 SMS 수신자 목록 조회
+    const clubCustomSettings = await prisma.clubCustomSettings.findUnique({
+      where: { clubId: parseInt(clubId as string) },
+      select: { smsRecipients: true },
+    });
+
     // 게스트 신청 생성
     const application = await prisma.guestPost.create({
       data: {
@@ -121,14 +127,46 @@ export default async function handler(
       console.error('이메일 전송 실패:', emailError);
     }
 
-    // SMS 전송
+    // SMS 전송 - ClubCustomSettings의 smsRecipients에 등록된 모든 수신자에게 전송
     try {
-      if (club?.name) {
+      if (club?.name && clubCustomSettings?.smsRecipients?.length > 0) {
         const smsMessage = createGuestApplicationSMSMessage(name, club.name);
-        notificationPromises.push(sendSMS(phoneNumber, smsMessage));
+
+        // 모든 SMS 수신자에게 문자 전송
+        const smsPromises = clubCustomSettings.smsRecipients.map(
+          async (recipientPhone) => {
+            try {
+              const smsResult = await sendSMS(recipientPhone, smsMessage);
+              console.log(`SMS 전송 성공 (${recipientPhone}):`, smsResult);
+              return {
+                phone: recipientPhone,
+                success: true,
+                result: smsResult,
+              };
+            } catch (error) {
+              console.error(`SMS 전송 실패 (${recipientPhone}):`, error);
+              return { phone: recipientPhone, success: false, error };
+            }
+          }
+        );
+
+        const smsResults = await Promise.allSettled(smsPromises);
+        console.log('SMS 전송 결과:', smsResults);
+      } else {
+        console.log('SMS 수신자가 설정되지 않았거나 클럽 정보가 없습니다.');
       }
     } catch (smsError) {
-      console.error('SMS 전송 실패:', smsError);
+      console.error('SMS 전송 중 오류:', {
+        error: smsError,
+        clubName: club?.name,
+        guestName: name,
+        smsRecipients: clubCustomSettings?.smsRecipients,
+      });
+
+      // SMS 전송 실패 시에도 게스트 신청은 성공으로 처리
+      console.warn(
+        `게스트 신청은 성공했지만 SMS 전송에 실패했습니다. 게스트: ${name}`
+      );
     }
 
     // 모든 알림 전송 시도 (실패해도 전체 요청은 성공)
