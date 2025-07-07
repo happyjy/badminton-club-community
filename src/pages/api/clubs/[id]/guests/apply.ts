@@ -129,7 +129,11 @@ export default async function handler(
 
     // SMS 전송 - ClubCustomSettings의 smsRecipients에 등록된 모든 수신자에게 전송
     try {
-      if (club?.name && clubCustomSettings?.smsRecipients?.length > 0) {
+      if (
+        club?.name &&
+        Array.isArray(clubCustomSettings?.smsRecipients) &&
+        clubCustomSettings.smsRecipients.length > 0
+      ) {
         const smsMessage = createGuestApplicationSMSMessage(name, club.name);
 
         // 모든 SMS 수신자에게 문자 전송
