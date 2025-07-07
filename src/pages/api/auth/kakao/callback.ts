@@ -41,10 +41,10 @@ export default async function handler(
         code: code.toString(),
       }),
     });
-    console.log(`🚨 ~ tokenResponse:`, tokenResponse);
+    // console.log(`🚨 ~ tokenResponse:`, tokenResponse);
 
     const tokenData = await tokenResponse.json();
-    console.log(`🚨 ~ tokenData:`, tokenData);
+    // console.log(`🚨 ~ tokenData:`, tokenData);
     // 2. 사용자 정보 가져오기
     const userResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: {
@@ -52,9 +52,9 @@ export default async function handler(
       },
     });
 
-    console.log(`🚨 ~ userResponse:`, userResponse);
+    // console.log(`🚨 ~ userResponse:`, userResponse);
     const userData = await userResponse.json();
-    console.log('카카오 사용자 정보:', userData);
+    // console.log('카카오 사용자 정보:', userData);
     // console.log('nickname', userData.kakao_account.profile.nickname);
     // console.log(
     //   'thumbnail_image_url',
