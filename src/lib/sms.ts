@@ -54,14 +54,20 @@ function generateSignature(
 export async function sendSMS(to: string, content: string): Promise<any> {
   validateSensConfig();
 
+  // 환경변수 검증 후 타입 단언으로 타입 에러 해결
+  const serviceId = SENS_SERVICE_ID as string;
+  const accessKey = SENS_ACCESS_KEY as string;
+  const secretKey = SENS_SECRET_KEY as string;
+  const fromNumber = SENS_FROM_NUMBER as string;
+
   const timestamp = Date.now().toString();
   const method = 'POST';
-  const url = `/sms/v2/services/${SENS_SERVICE_ID}/messages`;
+  const url = `/sms/v2/services/${serviceId}/messages`;
 
   // 디버깅을 위한 로그
   console.log('SMS 전송 설정:', {
-    serviceId: SENS_SERVICE_ID,
-    fromNumber: SENS_FROM_NUMBER,
+    serviceId: serviceId,
+    fromNumber: fromNumber,
     to: to,
     content: content,
     url: url,
@@ -72,15 +78,15 @@ export async function sendSMS(to: string, content: string): Promise<any> {
     timestamp,
     method,
     url,
-    SENS_ACCESS_KEY,
-    SENS_SECRET_KEY
+    accessKey,
+    secretKey
   );
 
   // 요청 헤더
   const headers = {
     'Content-Type': 'application/json; charset=utf-8',
     'x-ncp-apigw-timestamp': timestamp,
-    'x-ncp-iam-access-key': SENS_ACCESS_KEY,
+    'x-ncp-iam-access-key': accessKey,
     'x-ncp-apigw-signature-v2': signature,
   };
 
@@ -89,7 +95,7 @@ export async function sendSMS(to: string, content: string): Promise<any> {
     type: 'SMS',
     contentType: 'COMM',
     countryCode: '82',
-    from: SENS_FROM_NUMBER,
+    from: fromNumber,
     content: content,
     messages: [
       {
@@ -119,11 +125,13 @@ export async function sendSMS(to: string, content: string): Promise<any> {
       throw new Error(`SMS 전송 실패: ${response.data.statusName}`);
     }
   } catch (error) {
+    // axios 에러 타입으로 캐스팅하여 안전하게 접근
+    const axiosError = error as any;
     console.error('SMS 전송 오류 상세:', {
       error: error,
-      response: error.response?.data,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
+      response: axiosError.response?.data,
+      status: axiosError.response?.status,
+      statusText: axiosError.response?.statusText,
     });
     throw error;
   }
