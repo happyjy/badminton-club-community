@@ -3,9 +3,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendGuestApplicationEmail } from '@/lib/email';
 import { getSession } from '@/lib/session';
+import { sendSMS, createGuestApplicationSMSMessage } from '@/lib/sms';
 
 const prisma = new PrismaClient();
 
+// 게스트 신청 처리(이메일 및 SMS 전송 기능 포함)
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -59,6 +61,12 @@ export default async function handler(
       });
     }
 
+    // 클럽 정보 조회 (SMS 메시지용)
+    const club = await prisma.club.findUnique({
+      where: { id: parseInt(clubId as string) },
+      select: { name: true },
+    });
+
     // 사용자의 clubMember ID 조회 (있는 경우)
     const clubMember = await prisma.clubMember.findUnique({
       where: {
@@ -71,6 +79,12 @@ export default async function handler(
         id: true,
         name: true,
       },
+    });
+
+    // ClubCustomSettings에서 SMS 수신자 목록 조회
+    const clubCustomSettings = await prisma.clubCustomSettings.findUnique({
+      where: { clubId: parseInt(clubId as string) },
+      select: { smsRecipients: true },
     });
 
     // 게스트 신청 생성
@@ -97,16 +111,73 @@ export default async function handler(
       },
     });
 
+    // 이메일 및 SMS 전송
+    const notificationPromises = [];
+
     // 이메일 전송
     try {
-      await sendGuestApplicationEmail({
-        req,
-        application,
-        writer: clubMember?.name || null,
-      });
+      notificationPromises.push(
+        sendGuestApplicationEmail({
+          req,
+          application,
+          writer: clubMember?.name || null,
+        })
+      );
     } catch (emailError) {
-      // 이메일 전송 실패는 전체 요청을 실패시키지 않음
       console.error('이메일 전송 실패:', emailError);
+    }
+
+    // SMS 전송 - ClubCustomSettings의 smsRecipients에 등록된 모든 수신자에게 전송
+    try {
+      if (
+        club?.name &&
+        Array.isArray(clubCustomSettings?.smsRecipients) &&
+        clubCustomSettings.smsRecipients.length > 0
+      ) {
+        const smsMessage = createGuestApplicationSMSMessage(name, club.name);
+
+        // 모든 SMS 수신자에게 문자 전송
+        const smsPromises = clubCustomSettings.smsRecipients.map(
+          async (recipientPhone) => {
+            try {
+              const smsResult = await sendSMS(recipientPhone, smsMessage);
+              console.log(`SMS 전송 성공 (${recipientPhone}):`, smsResult);
+              return {
+                phone: recipientPhone,
+                success: true,
+                result: smsResult,
+              };
+            } catch (error) {
+              console.error(`SMS 전송 실패 (${recipientPhone}):`, error);
+              return { phone: recipientPhone, success: false, error };
+            }
+          }
+        );
+
+        const smsResults = await Promise.allSettled(smsPromises);
+        console.log('SMS 전송 결과:', smsResults);
+      } else {
+        console.log('SMS 수신자가 설정되지 않았거나 클럽 정보가 없습니다.');
+      }
+    } catch (smsError) {
+      console.error('SMS 전송 중 오류:', {
+        error: smsError,
+        clubName: club?.name,
+        guestName: name,
+        smsRecipients: clubCustomSettings?.smsRecipients,
+      });
+
+      // SMS 전송 실패 시에도 게스트 신청은 성공으로 처리
+      console.warn(
+        `게스트 신청은 성공했지만 SMS 전송에 실패했습니다. 게스트: ${name}`
+      );
+    }
+
+    // 모든 알림 전송 시도 (실패해도 전체 요청은 성공)
+    try {
+      await Promise.allSettled(notificationPromises);
+    } catch (notificationError) {
+      console.error('알림 전송 중 오류:', notificationError);
     }
 
     return res.status(201).json({
