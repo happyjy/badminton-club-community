@@ -100,10 +100,12 @@ export interface WorkoutScheduleResponse {
 
 export interface WorkoutWithParticipants extends Workout {
   WorkoutParticipant: WorkoutParticipant[];
+  guests?: Guest[];
+  guestCount?: number;
 }
 
 export interface WorkoutListItemProps {
-  workout: Workout;
+  workout: WorkoutWithParticipants;
   user?: User;
   isLoggedIn: boolean;
   onParticipate: (workoutId: number, isParticipating: boolean) => void;
