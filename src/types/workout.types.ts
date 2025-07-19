@@ -1,6 +1,5 @@
 import { HelperType } from '@prisma/client';
 
-import { BaseEntity } from './common.types';
 import { MembershipStatus } from './membership.types';
 import { User } from './user.types';
 
@@ -47,7 +46,8 @@ export interface Guest {
   clubMember?: Pick<ClubMember, 'id' | 'name'>;
 }
 
-export interface Workout extends BaseEntity {
+export interface Workout {
+  id: number;
   title: string;
   description: string;
   date: Date;
@@ -55,8 +55,10 @@ export interface Workout extends BaseEntity {
   endTime: Date;
   maxParticipants: number;
   location: string;
+  createdAt: Date;
+  updatedAt: Date;
   clubId?: number | null;
-  WorkoutParticipant: WorkoutParticipant[];
+  WorkoutParticipant?: WorkoutParticipant[];
   guests?: Guest[];
   guestCount?: number;
 }
@@ -65,15 +67,58 @@ export interface WorkoutParticipant {
   id: number;
   workoutId: number;
   userId: number;
+  clubMemberId?: number | null;
   status: string;
   createdAt: Date;
   updatedAt: Date;
-  User: Pick<User, 'id' | 'thumbnailImageUrl' | 'nickname'>;
-  clubMember?: ClubMember;
+  User: {
+    id: number;
+    nickname: string;
+    thumbnailImageUrl: string;
+  };
+  clubMember?: {
+    id: number;
+    name: string;
+    gender?: string;
+    birthDate?: string;
+    localTournamentLevel?: string;
+    nationalTournamentLevel?: string;
+    helperStatuses?: HelperStatus[];
+  };
+}
+
+export interface WorkoutHelperStatus {
+  id: number;
+  workoutId: number;
+  clubMemberId: number;
+  helperType: string;
+  helped: boolean;
+  updatedById: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkoutScheduleRequest {
+  startDate: string;
+  endDate: string;
+  weekdayStartTime: string;
+  weekdayEndTime: string;
+  weekendStartTime: string;
+  weekendEndTime: string;
+  location: string;
+  maxParticipants: number;
+}
+
+export interface WorkoutScheduleResponse {
+  message: string;
+  count: number;
+  workouts: Workout[];
 }
 
 export interface WorkoutWithParticipants extends Workout {
   WorkoutParticipant: WorkoutParticipant[];
+  guests?: Guest[];
+  guestCount?: number;
 }
 
 export interface WorkoutListItemProps {
