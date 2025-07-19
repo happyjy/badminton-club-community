@@ -12,12 +12,13 @@ export function WorkoutListItem({
 }: WorkoutListItemProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
-  const isParticipating = workout.WorkoutParticipant.some(
-    (participant) => participant.userId === user?.id
-  );
+  const isParticipating =
+    workout.WorkoutParticipant?.some(
+      (participant) => participant.userId === user?.id
+    ) || false;
 
   // 현재 참여 인원 수 계산
-  const currentParticipants = workout.WorkoutParticipant.length;
+  const currentParticipants = workout.WorkoutParticipant?.length || 0;
   // 게스트 인원 수
   const guestCount = workout.guestCount || 0;
 

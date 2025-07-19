@@ -45,7 +45,7 @@ interface WorkoutScheduleFormProps {
     weekendEndTime: string;
     location: string;
     maxParticipants: number;
-  };
+  } | null;
 }
 
 function WorkoutScheduleForm({

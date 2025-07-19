@@ -248,7 +248,7 @@ function WorkoutDetailContent({
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-gray-500">👥</span>
-            <span>{workout.WorkoutParticipant.length}명</span>
+            <span>{workout.WorkoutParticipant?.length || 0}명</span>
             {workout.guests && workout.guests.length > 0 && (
               <span className="text-blue-500 ml-1">
                 + 게스트 {workout.guests.length}명
