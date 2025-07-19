@@ -57,17 +57,34 @@ export interface Workout {
   location: string;
   createdAt: Date;
   updatedAt: Date;
-  clubId?: number;
+  clubId?: number | null;
+  WorkoutParticipant?: WorkoutParticipant[];
+  guests?: Guest[];
+  guestCount?: number;
 }
 
 export interface WorkoutParticipant {
   id: number;
   workoutId: number;
   userId: number;
-  clubMemberId?: number;
+  clubMemberId?: number | null;
   status: string;
   createdAt: Date;
   updatedAt: Date;
+  User: {
+    id: number;
+    nickname: string;
+    thumbnailImageUrl: string;
+  };
+  clubMember?: {
+    id: number;
+    name: string;
+    gender?: string;
+    birthDate?: string;
+    localTournamentLevel?: string;
+    nationalTournamentLevel?: string;
+    helperStatuses?: HelperStatus[];
+  };
 }
 
 export interface WorkoutHelperStatus {
@@ -105,7 +122,7 @@ export interface WorkoutWithParticipants extends Workout {
 }
 
 export interface WorkoutListItemProps {
-  workout: WorkoutWithParticipants;
+  workout: Workout;
   user?: User;
   isLoggedIn: boolean;
   onParticipate: (workoutId: number, isParticipating: boolean) => void;
