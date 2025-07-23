@@ -39,6 +39,8 @@ model User {
   email               String               @unique
   nickname            String               @default("")
   thumbnailImageUrl   String               @default("")
+  phoneNumber         String?              // 전화번호 필드 추가
+  phoneVerifiedAt     DateTime?            // 전화번호 인증 완료 시간
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @default(now()) @updatedAt
   
@@ -47,6 +49,7 @@ model User {
   WorkoutParticipant  WorkoutParticipant[]
   guestPosts          GuestPost[]
   guestComments       GuestComment[]
+  phoneVerifications  PhoneVerification[]  // 전화번호 인증 관계 추가
 } 
 
 model Club { 
@@ -64,7 +67,8 @@ model Club {
   members            ClubMember[]
   workouts           Workout[]
   guestPosts         GuestPost[]
- clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
+  clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
+  phoneVerifications PhoneVerification[] // 전화번호 인증 관계 추가
 
 }
 
@@ -263,5 +267,26 @@ model ClubCustomSettings {
   // Relations
   club                Club     @relation("ClubToSettings", fields: [clubId], references: [id], onDelete: Cascade)
   @@index([clubId])
+}
+
+// 전화번호 인증
+model PhoneVerification {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  clubId            Int
+  phoneNumber       String
+  verificationCode  String    @db.VarChar(6)
+  isVerified        Boolean   @default(false)
+  expiresAt         DateTime
+  verifiedAt        DateTime?
+  createdAt         DateTime  @default(now())
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club              Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId, phoneNumber])
+  @@index([userId, clubId])
+  @@index([expiresAt])
 }
 

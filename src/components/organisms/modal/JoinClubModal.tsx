@@ -10,11 +10,14 @@ import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
+import { usePhoneVerification } from '@/hooks/usePhoneVerification';
 import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { TOURNAMENT_LEVELS } from '@/utils/clubForms';
+
+import PhoneVerificationStep from '../forms/PhoneVerificationStep';
 
 import PrivacyModal from './PrivacyModal';
 
@@ -26,6 +29,7 @@ interface JoinClubModalProps {
   isSubmitting?: boolean;
   isGuestApplication?: boolean;
   initialValues?: Partial<ClubJoinFormData>;
+  clubId: string;
 }
 
 // todo: jyoon - join club modal과 guest modal 분리
@@ -40,12 +44,14 @@ function JoinClubModal({
   isSubmitting = false,
   isGuestApplication = false,
   initialValues,
+  clubId,
 }: JoinClubModalProps) {
   // 클럽 멤버 정보 가져오기
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
   // 사용자 유형에 따른 전략 적용
   const strategy = getGuestPageStrategy(!!clubMember);
 
+  // 폼 데이터 관리 훅
   const {
     formData,
     phoneNumbers,
@@ -54,14 +60,61 @@ function JoinClubModal({
     //
     initialFormData,
   } = useClubJoinForm(user, isGuestApplication, initialValues, clubMember);
+  // 휴대폰 인증 훅
+  const { status: verificationStatus } = usePhoneVerification({ clubId });
 
   // 개인정보 수집 및 이용 동의 모달
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  // 휴대폰 인증 관련 상태
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+
+  // 전화번호 문자열 생성 함수
+  const getFullPhoneNumber = () =>
+    `${phoneNumbers.first}${phoneNumbers.second}${phoneNumbers.third}`;
 
   const onSubmitJoinClubModal = (e: FormEvent) => {
     e.preventDefault();
+
+    // 전화번호가 입력되었는지 확인
+    const currentPhoneNumber = `${phoneNumbers.first}${phoneNumbers.second}${phoneNumbers.third}`;
+    if (!currentPhoneNumber) {
+      alert('전화번호를 입력해주세요.');
+      return;
+    }
+
+    // 이미 인증된 전화번호인지 확인
+    if (
+      verificationStatus?.isVerified &&
+      verificationStatus.phoneNumber === currentPhoneNumber
+    ) {
+      // 이미 인증된 전화번호라면 바로 제출
+      onSubmit(formData);
+      initialFormData();
+      return;
+    }
+
+    // 인증이 필요하거나 다른 전화번호라면 인증 모달 표시
+    setShowPhoneVerification(true);
+  };
+
+  const handleVerificationComplete = () => {
+    setShowPhoneVerification(false);
+
+    // 인증 완료 후 폼 제출
     onSubmit(formData);
-    initialFormData(); // form 초기화
+    initialFormData();
+  };
+
+  const handleSkipVerification = () => {
+    setShowPhoneVerification(false);
+
+    // 인증 건너뛰기 후 폼 제출
+    onSubmit(formData);
+    initialFormData();
+  };
+
+  const handleClosePhoneVerification = () => {
+    setShowPhoneVerification(false);
   };
 
   if (!isOpen) return null;
@@ -109,6 +162,24 @@ function JoinClubModal({
     today.getMonth(),
     today.getDate()
   );
+
+  // 휴대폰 인증 모달이 표시되는 경우
+  console.log(`🚨 ~ showPhoneVerification:`, showPhoneVerification);
+  if (showPhoneVerification) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
+          <PhoneVerificationStep
+            clubId={clubId}
+            userPhoneNumber={getFullPhoneNumber()}
+            onVerificationComplete={handleVerificationComplete}
+            onSkipVerification={handleSkipVerification}
+            onBack={handleClosePhoneVerification}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
@@ -233,6 +304,13 @@ function JoinClubModal({
               onChange={onChangePhoneNumber}
               required
             />
+            {/* 인증 상태 표시 */}
+            {verificationStatus?.isVerified &&
+              verificationStatus.phoneNumber === getFullPhoneNumber() && (
+                <div className="mt-1 text-sm text-green-600">
+                  ✓ 인증된 전화번호입니다
+                </div>
+              )}
           </FormField>
 
           <FormField label="구대회 신청 가능 급수" required>

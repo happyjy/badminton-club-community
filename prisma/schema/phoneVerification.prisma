@@ -1,0 +1,19 @@
+ model PhoneVerification {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  clubId            Int
+  phoneNumber       String
+  verificationCode  String    @db.VarChar(6)
+  isVerified        Boolean   @default(false)
+  expiresAt         DateTime
+  verifiedAt        DateTime?
+  createdAt         DateTime  @default(now())
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club              Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId, phoneNumber])
+  @@index([userId, clubId])
+  @@index([expiresAt])
+} 

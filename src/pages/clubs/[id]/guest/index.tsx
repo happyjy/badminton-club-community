@@ -8,7 +8,9 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+import PhoneVerificationModal from '@/components/organisms/modal/PhoneVerificationModal';
 import { useGuestPageSettings } from '@/hooks/useCustomSettings';
+import { usePhoneVerification } from '@/hooks/usePhoneVerification';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
@@ -32,9 +34,18 @@ function GuestPage({ user }: AuthProps) {
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPhoneVerificationModalOpen, setIsPhoneVerificationModalOpen] =
+    useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [myApplications, setMyApplications] = useState<GuestPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingFormData, setPendingFormData] =
+    useState<ClubJoinFormData | null>(null);
+
+  // 전화번호 인증 훅
+  const { status: phoneVerificationStatus } = usePhoneVerification({
+    clubId: clubId as string,
+  });
 
   // 사용자의 게스트 신청 목록 불러오기
   const fetchMyApplications = useCallback(async () => {
@@ -79,6 +90,17 @@ function GuestPage({ user }: AuthProps) {
   const onSubmitGuestApplication = async (formData: ClubJoinFormData) => {
     if (!clubId) return;
 
+    // 전화번호 인증 상태 확인
+    if (
+      !phoneVerificationStatus?.isVerified ||
+      phoneVerificationStatus.phoneNumber !== formData.phoneNumber
+    ) {
+      // 인증되지 않은 경우 전화번호 인증 모달 열기
+      setPendingFormData(formData);
+      setIsPhoneVerificationModalOpen(true);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // API 연동 - 게스트 신청 요청
@@ -104,6 +126,42 @@ function GuestPage({ user }: AuthProps) {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // 전화번호 인증 완료 처리
+  const handlePhoneVerificationComplete = (phoneNumber: string) => {
+    if (pendingFormData) {
+      // 인증된 전화번호로 폼 데이터 업데이트
+      const updatedFormData = {
+        ...pendingFormData,
+        phoneNumber,
+      };
+
+      // 인증 모달 닫기
+      setIsPhoneVerificationModalOpen(false);
+      setPendingFormData(null);
+
+      // 게스트 신청 진행
+      onSubmitGuestApplication(updatedFormData);
+    }
+  };
+
+  // 기존 전화번호 사용 처리
+  const handleSkipVerification = (phoneNumber: string) => {
+    if (pendingFormData) {
+      // 기존 전화번호로 폼 데이터 업데이트
+      const updatedFormData = {
+        ...pendingFormData,
+        phoneNumber,
+      };
+
+      // 인증 모달 닫기
+      setIsPhoneVerificationModalOpen(false);
+      setPendingFormData(null);
+
+      // 게스트 신청 진행
+      onSubmitGuestApplication(updatedFormData);
     }
   };
 
@@ -248,12 +306,28 @@ function GuestPage({ user }: AuthProps) {
       {user && (
         <JoinClubModal
           user={user}
+          clubId={clubId as string}
           isOpen={isModalOpen}
           onClose={onCloseModal}
           onSubmit={onSubmitGuestApplication}
           isGuestApplication={true}
           isSubmitting={isSubmitting}
           // initialValues={initialValues}
+        />
+      )}
+
+      {/* 전화번호 인증 모달 */}
+      {user && (
+        <PhoneVerificationModal
+          isOpen={isPhoneVerificationModalOpen}
+          onClose={() => {
+            setIsPhoneVerificationModalOpen(false);
+            setPendingFormData(null);
+          }}
+          clubId={clubId as string}
+          userPhoneNumber={phoneVerificationStatus?.phoneNumber}
+          onVerificationComplete={handlePhoneVerificationComplete}
+          onSkipVerification={handleSkipVerification}
         />
       )}
     </>
