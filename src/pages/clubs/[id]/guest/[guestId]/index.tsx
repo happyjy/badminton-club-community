@@ -490,6 +490,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       {user && isMyPost && (
         <JoinClubModal
           user={user}
+          clubId={clubId as string}
           isOpen={isEditModalOpen}
           onClose={onCloseEditModal}
           onSubmit={onSubmitEditGuestApplication}

@@ -55,6 +55,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
         <div className="flex justify-end">
           <JoinClubButton
             user={user}
+            clubId={clubId as string}
             isLoading={isLoading}
             membershipStatus={membershipStatus}
             canJoinClub={canJoinClub}

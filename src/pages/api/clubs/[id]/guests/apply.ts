@@ -61,6 +61,20 @@ export default async function handler(
       });
     }
 
+    // 전화번호 인증 상태 확인
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { phoneNumber: true, phoneVerifiedAt: true },
+    });
+
+    if (!user?.phoneVerifiedAt || user.phoneNumber !== phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message:
+          '전화번호 인증이 필요합니다. 인증되지 않은 전화번호로는 신청할 수 없습니다.',
+      });
+    }
+
     // 클럽 정보 조회 (SMS 메시지용)
     const club = await prisma.club.findUnique({
       where: { id: parseInt(clubId as string) },
@@ -114,64 +128,64 @@ export default async function handler(
     // 이메일 및 SMS 전송
     const notificationPromises = [];
 
-    // 이메일 전송
-    try {
-      notificationPromises.push(
-        sendGuestApplicationEmail({
-          req,
-          application,
-          writer: clubMember?.name || null,
-        })
-      );
-    } catch (emailError) {
-      console.error('이메일 전송 실패:', emailError);
-    }
+    // // 이메일 전송
+    // try {
+    //   notificationPromises.push(
+    //     sendGuestApplicationEmail({
+    //       req,
+    //       application,
+    //       writer: clubMember?.name || null,
+    //     })
+    //   );
+    // } catch (emailError) {
+    //   console.error('이메일 전송 실패:', emailError);
+    // }
 
-    // SMS 전송 - ClubCustomSettings의 smsRecipients에 등록된 모든 수신자에게 전송
-    try {
-      if (
-        club?.name &&
-        Array.isArray(clubCustomSettings?.smsRecipients) &&
-        clubCustomSettings.smsRecipients.length > 0
-      ) {
-        const smsMessage = createGuestApplicationSMSMessage(name, club.name);
+    // // SMS 전송 - ClubCustomSettings의 smsRecipients에 등록된 모든 수신자에게 전송
+    // try {
+    //   if (
+    //     club?.name &&
+    //     Array.isArray(clubCustomSettings?.smsRecipients) &&
+    //     clubCustomSettings.smsRecipients.length > 0
+    //   ) {
+    //     const smsMessage = createGuestApplicationSMSMessage(name, club.name);
 
-        // 모든 SMS 수신자에게 문자 전송
-        const smsPromises = clubCustomSettings.smsRecipients.map(
-          async (recipientPhone) => {
-            try {
-              const smsResult = await sendSMS(recipientPhone, smsMessage);
-              console.log(`SMS 전송 성공 (${recipientPhone}):`, smsResult);
-              return {
-                phone: recipientPhone,
-                success: true,
-                result: smsResult,
-              };
-            } catch (error) {
-              console.error(`SMS 전송 실패 (${recipientPhone}):`, error);
-              return { phone: recipientPhone, success: false, error };
-            }
-          }
-        );
+    //     // 모든 SMS 수신자에게 문자 전송
+    //     const smsPromises = clubCustomSettings.smsRecipients.map(
+    //       async (recipientPhone) => {
+    //         try {
+    //           const smsResult = await sendSMS(recipientPhone, smsMessage);
+    //           console.log(`SMS 전송 성공 (${recipientPhone}):`, smsResult);
+    //           return {
+    //             phone: recipientPhone,
+    //             success: true,
+    //             result: smsResult,
+    //           };
+    //         } catch (error) {
+    //           console.error(`SMS 전송 실패 (${recipientPhone}):`, error);
+    //           return { phone: recipientPhone, success: false, error };
+    //         }
+    //       }
+    //     );
 
-        const smsResults = await Promise.allSettled(smsPromises);
-        console.log('SMS 전송 결과:', smsResults);
-      } else {
-        console.log('SMS 수신자가 설정되지 않았거나 클럽 정보가 없습니다.');
-      }
-    } catch (smsError) {
-      console.error('SMS 전송 중 오류:', {
-        error: smsError,
-        clubName: club?.name,
-        guestName: name,
-        smsRecipients: clubCustomSettings?.smsRecipients,
-      });
+    //     const smsResults = await Promise.allSettled(smsPromises);
+    //     console.log('SMS 전송 결과:', smsResults);
+    //   } else {
+    //     console.log('SMS 수신자가 설정되지 않았거나 클럽 정보가 없습니다.');
+    //   }
+    // } catch (smsError) {
+    //   console.error('SMS 전송 중 오류:', {
+    //     error: smsError,
+    //     clubName: club?.name,
+    //     guestName: name,
+    //     smsRecipients: clubCustomSettings?.smsRecipients,
+    //   });
 
-      // SMS 전송 실패 시에도 게스트 신청은 성공으로 처리
-      console.warn(
-        `게스트 신청은 성공했지만 SMS 전송에 실패했습니다. 게스트: ${name}`
-      );
-    }
+    //   // SMS 전송 실패 시에도 게스트 신청은 성공으로 처리
+    //   console.warn(
+    //     `게스트 신청은 성공했지만 SMS 전송에 실패했습니다. 게스트: ${name}`
+    //   );
+    // }
 
     // 모든 알림 전송 시도 (실패해도 전체 요청은 성공)
     try {
