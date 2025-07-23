@@ -14,9 +14,11 @@ export default async function handler(
   }
 
   try {
-    const session = await getSession({ req });
-    if (!session?.user?.email) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    const session = await getSession(req);
+    if (!session?.email) {
+      return res
+        .status(401)
+        .json({ message: 'Unauthorized - No session or email' });
     }
 
     const { id: clubId } = req.query;
@@ -26,7 +28,7 @@ export default async function handler(
 
     // 사용자 정보 조회
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email: session.email },
       select: {
         id: true,
         phoneNumber: true,
