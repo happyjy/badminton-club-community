@@ -70,13 +70,13 @@ function JoinClubModal({
 
   // 전화번호 문자열 생성 함수
   const getFullPhoneNumber = () =>
-    `${phoneNumbers.first}${phoneNumbers.second}${phoneNumbers.third}`;
+    `${phoneNumbers.first}-${phoneNumbers.second}-${phoneNumbers.third}`;
 
   const onSubmitJoinClubModal = (e: FormEvent) => {
     e.preventDefault();
 
     // 전화번호가 입력되었는지 확인
-    const currentPhoneNumber = `${phoneNumbers.first}${phoneNumbers.second}${phoneNumbers.third}`;
+    const currentPhoneNumber = getFullPhoneNumber();
     if (!currentPhoneNumber) {
       alert('전화번호를 입력해주세요.');
       return;
@@ -164,7 +164,6 @@ function JoinClubModal({
   );
 
   // 휴대폰 인증 모달이 표시되는 경우
-  console.log(`🚨 ~ showPhoneVerification:`, showPhoneVerification);
   if (showPhoneVerification) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">

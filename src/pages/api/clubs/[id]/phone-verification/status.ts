@@ -15,6 +15,7 @@ export default async function handler(
 
   try {
     const session = await getSession(req);
+
     if (!session?.email) {
       return res
         .status(401)
