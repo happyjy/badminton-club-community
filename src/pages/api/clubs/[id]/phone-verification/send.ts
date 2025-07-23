@@ -6,6 +6,7 @@ import { sendSMS } from '@/lib/sms';
 import {
   generateVerificationCode,
   validatePhoneNumber,
+  normalizePhoneNumber,
   saveVerificationCode,
   checkPreviouslyVerifiedPhone,
 } from '@/lib/sms-verification';
@@ -88,7 +89,8 @@ export default async function handler(
 
     // SMS 발송
     const message = `[배드민턴 클럽] 인증번호: ${verificationCode} (3분간 유효)`;
-    await sendSMS(phoneNumber, message);
+    const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
+    await sendSMS(normalizedPhoneNumber, message);
 
     return res.status(200).json({
       success: true,
