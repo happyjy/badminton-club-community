@@ -44,10 +44,15 @@ function PhoneVerificationStep({
     verifyCode,
   } = usePhoneVerification({ clubId });
 
+  // 컴포넌트 마운트 시 사용자의 전화번호 인증 상태를 확인
   useEffect(() => {
     checkVerificationStatus();
   }, [checkVerificationStatus]);
 
+  // 인증 상태 변경 시 단계(step)와 전화번호를 업데이트
+  // - 이미 인증된 경우: PREVIOUSLY_VERIFIED 단계로 이동
+  // - 전화번호만 있는 경우: PENDING 단계로 이동하고 전화번호 설정
+  // - 전화번호가 없는 경우: PENDING 단계로 이동
   useEffect(() => {
     if (status) {
       if (status.isVerified && status.phoneNumber) {
@@ -62,17 +67,24 @@ function PhoneVerificationStep({
     }
   }, [status]);
 
+  // API 에러 발생 시 에러 상태 업데이트
   useEffect(() => {
     if (apiError) {
       setError(apiError);
     }
   }, [apiError]);
 
+  // 전화번호 입력 필드 변경 핸들러
+  // 입력 시 기존 에러 메시지를 제거
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhoneNumber(e.target.value);
     setError(null);
   };
 
+  // 인증번호 발송 처리
+  // 1. 전화번호 유효성 검사
+  // 2. SENT 단계로 변경 후 인증번호 발송
+  // 3. 실패 시 FAILED 단계로 변경
   const handleSendCode = async () => {
     if (!phoneNumber) {
       setError('전화번호를 입력해주세요');
@@ -87,6 +99,11 @@ function PhoneVerificationStep({
     }
   };
 
+  // 인증번호 확인 처리
+  // 1. VERIFYING 단계로 변경
+  // 2. 인증번호 검증 API 호출
+  // 3. 성공 시 VERIFIED 단계로 변경하고 완료 콜백 호출
+  // 4. 실패 시 FAILED 단계로 변경
   const handleVerifyCode = async (code: string) => {
     try {
       setStep('VERIFYING');
@@ -98,6 +115,8 @@ function PhoneVerificationStep({
     }
   };
 
+  // 인증번호 재발송 처리
+  // resend 플래그를 true로 설정하여 재발송 요청
   const handleResendCode = async () => {
     try {
       setStep('SENT');
@@ -107,12 +126,16 @@ function PhoneVerificationStep({
     }
   };
 
+  // 기존에 인증된 전화번호 사용
+  // 이미 인증된 전화번호가 있을 때 재인증 없이 진행
   const handleUseExistingPhone = () => {
     if (status?.phoneNumber) {
       onSkipVerification(status.phoneNumber);
     }
   };
 
+  // 다른 전화번호로 변경
+  // PENDING 단계로 돌아가서 새 전화번호 입력 가능
   const handleChangePhone = () => {
     setStep('PENDING');
     setError(null);
