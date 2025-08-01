@@ -54,18 +54,27 @@ export default async function handler(
     // 인증 과정을 건너뛸 수 있는지 확인 (이미 인증된 전화번호가 있는 경우)
     const canSkipVerification = isPreviouslyVerified;
 
-    return res.status(200).json({
+    // 응답 데이터를 명시적으로 구성
+    const responseData = {
       success: true,
       data: {
-        isVerified,
-        phoneNumber: user.phoneNumber,
-        verifiedAt: user.phoneVerifiedAt,
-        isPreviouslyVerified,
-        canSkipVerification,
+        isVerified: Boolean(isVerified),
+        phoneNumber: user.phoneNumber || null,
+        verifiedAt: user.phoneVerifiedAt
+          ? user.phoneVerifiedAt.toISOString()
+          : null,
+        isPreviouslyVerified: Boolean(isPreviouslyVerified),
+        canSkipVerification: Boolean(canSkipVerification),
       },
-    });
+    };
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error('Phone verification status error:', error);
+    console.error(
+      'Error stack:',
+      error instanceof Error ? error.stack : 'No stack'
+    );
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
