@@ -30,11 +30,6 @@ export default async function handler(
     // 사용자 정보 조회
     const user = await prisma.user.findUnique({
       where: { email: session.email },
-      select: {
-        id: true,
-        phoneNumber: true,
-        phoneVerifiedAt: true,
-      },
     });
 
     if (!user) {
