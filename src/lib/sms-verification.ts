@@ -32,7 +32,6 @@ export async function checkPreviouslyVerifiedPhone(
   // User 테이블에서 인증된 전화번호 확인
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { phoneNumber: true, phoneVerifiedAt: true },
   });
 
   if (user?.phoneNumber === phoneNumber && user?.phoneVerifiedAt) {
