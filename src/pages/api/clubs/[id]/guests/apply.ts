@@ -64,7 +64,6 @@ export default async function handler(
     // 전화번호 인증 상태 확인
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      select: { phoneNumber: true, phoneVerifiedAt: true },
     });
 
     if (!user?.phoneVerifiedAt || user.phoneNumber !== phoneNumber) {
