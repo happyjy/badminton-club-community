@@ -14,6 +14,7 @@ const schemaFiles = [
   'workout.prisma',
   'guest.prisma',
   'clubCustomSetting.prisma',
+  'phoneVerification.prisma',
 ];
 
 let finalSchema = '';

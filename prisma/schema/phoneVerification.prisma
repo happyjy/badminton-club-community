@@ -1,3 +1,4 @@
+// 전화번호 인증
  model PhoneVerification {
   id                Int       @id @default(autoincrement())
   userId            Int

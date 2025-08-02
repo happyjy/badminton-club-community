@@ -67,8 +67,10 @@ model Club {
   members            ClubMember[]
   workouts           Workout[]
   guestPosts         GuestPost[]
+  
+  // Relations
   clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
-  phoneVerifications PhoneVerification[] // 전화번호 인증 관계 추가
+  phoneVerifications PhoneVerification[]
 
 }
 
@@ -270,7 +272,7 @@ model ClubCustomSettings {
 }
 
 // 전화번호 인증
-model PhoneVerification {
+ model PhoneVerification {
   id                Int       @id @default(autoincrement())
   userId            Int
   clubId            Int
@@ -288,5 +290,5 @@ model PhoneVerification {
   @@unique([userId, clubId, phoneNumber])
   @@index([userId, clubId])
   @@index([expiresAt])
-}
+} 
 
