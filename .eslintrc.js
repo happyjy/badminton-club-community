@@ -47,6 +47,16 @@ module.exports = {
             position: 'before',
           },
           {
+            pattern: '@/components/**',
+            group: 'internal',
+            position: 'after',
+          },
+          {
+            pattern: '@/hooks/**',
+            group: 'internal',
+            position: 'after',
+          },
+          {
             pattern: '@/**',
             group: 'internal',
             position: 'after',
