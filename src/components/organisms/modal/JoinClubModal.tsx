@@ -10,7 +10,7 @@ import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
-import { usePhoneVerification } from '@/hooks/usePhoneVerification';
+import usePhoneVerification from '@/hooks/usePhoneVerification';
 import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { User } from '@/types';

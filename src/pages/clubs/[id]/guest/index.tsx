@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import PhoneVerificationModal from '@/components/organisms/modal/PhoneVerificationModal';
 import { useGuestPageSettings } from '@/hooks/useCustomSettings';
-import { usePhoneVerification } from '@/hooks/usePhoneVerification';
+import usePhoneVerification from '@/hooks/usePhoneVerification';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';

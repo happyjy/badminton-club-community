@@ -4,7 +4,7 @@ import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import PhoneNumberDisplay from '@/components/molecules/form/PhoneNumberDisplay';
 import VerificationCodeInput from '@/components/molecules/form/VerificationCodeInput';
-import { usePhoneVerification } from '@/hooks/usePhoneVerification';
+import usePhoneVerification from '@/hooks/usePhoneVerification';
 
 interface PhoneVerificationStepProps {
   clubId: string;

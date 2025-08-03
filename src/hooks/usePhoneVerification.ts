@@ -14,7 +14,7 @@ interface UsePhoneVerificationProps {
   clubId: string;
 }
 
-export function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
+function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
   const [status, setStatus] = useState<PhoneVerificationStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,12 +123,16 @@ export function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
   );
 
   return {
+    // local state
     status,
     loading,
     error,
+    // functions
     checkVerificationStatus,
     sendVerificationCode,
     verifyCode,
     updatePhoneNumber,
   };
 }
+
+export default usePhoneVerification;
