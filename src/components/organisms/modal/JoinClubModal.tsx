@@ -72,6 +72,7 @@ function JoinClubModal({
   const getFullPhoneNumber = () =>
     `${phoneNumbers.first}-${phoneNumbers.second}-${phoneNumbers.third}`;
 
+  // 폼 제출 처리
   const onSubmitJoinClubModal = (e: FormEvent) => {
     e.preventDefault();
 
@@ -97,6 +98,7 @@ function JoinClubModal({
     setShowPhoneVerification(true);
   };
 
+  // 인증 완료 처리
   const handleVerificationComplete = () => {
     setShowPhoneVerification(false);
 
@@ -105,6 +107,7 @@ function JoinClubModal({
     initialFormData();
   };
 
+  // 인증 건너뛰기 처리
   const handleSkipVerification = () => {
     setShowPhoneVerification(false);
 
@@ -113,12 +116,15 @@ function JoinClubModal({
     initialFormData();
   };
 
+  // 인증 모달 닫기
   const handleClosePhoneVerification = () => {
     setShowPhoneVerification(false);
   };
 
+  // 화면 렌더링
   if (!isOpen) return null;
 
+  // 토너먼트 레벨 옵션
   const tournamentLevelOptions = TOURNAMENT_LEVELS.map((level) => ({
     value: level,
     label: level,
