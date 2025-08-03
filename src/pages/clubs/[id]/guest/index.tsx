@@ -9,8 +9,10 @@ import { useSelector } from 'react-redux';
 
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
 import PhoneVerificationModal from '@/components/organisms/modal/PhoneVerificationModal';
+
 import { useGuestPageSettings } from '@/hooks/useCustomSettings';
 import usePhoneVerification from '@/hooks/usePhoneVerification';
+
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
@@ -43,7 +45,14 @@ function GuestPage({ user }: AuthProps) {
     useState<ClubJoinFormData | null>(null);
 
   // 전화번호 인증 훅
-  const { status: phoneVerificationStatus } = usePhoneVerification({
+  const {
+    status: phoneVerificationStatus,
+    loading: phoneVerificationLoading,
+    error: phoneVerificationError,
+    checkVerificationStatus,
+    sendVerificationCode,
+    verifyCode,
+  } = usePhoneVerification({
     clubId: clubId as string,
   });
 
@@ -212,6 +221,7 @@ function GuestPage({ user }: AuthProps) {
 
   return (
     <>
+      {/* 페이지 타이틀 */}
       <div className="bg-white rounded-lg shadow p-3 sm:p-6">
         <h1 className="text-2xl font-bold mb-4">{strategy.getPageTitle()}</h1>
 
@@ -313,6 +323,13 @@ function GuestPage({ user }: AuthProps) {
           isGuestApplication={true}
           isSubmitting={isSubmitting}
           // initialValues={initialValues}
+          // 전화번호 인증 관련 props 전달
+          verificationStatus={phoneVerificationStatus}
+          verificationLoading={phoneVerificationLoading}
+          verificationError={phoneVerificationError}
+          checkVerificationStatus={checkVerificationStatus}
+          sendVerificationCode={sendVerificationCode}
+          verifyCode={verifyCode}
         />
       )}
 
@@ -324,10 +341,15 @@ function GuestPage({ user }: AuthProps) {
             setIsPhoneVerificationModalOpen(false);
             setPendingFormData(null);
           }}
-          clubId={clubId as string}
           userPhoneNumber={phoneVerificationStatus?.phoneNumber}
           onVerificationComplete={handlePhoneVerificationComplete}
           onSkipVerification={handleSkipVerification}
+          verificationStatus={phoneVerificationStatus}
+          verificationLoading={phoneVerificationLoading}
+          verificationError={phoneVerificationError}
+          checkVerificationStatus={checkVerificationStatus}
+          sendVerificationCode={sendVerificationCode}
+          verifyCode={verifyCode}
         />
       )}
     </>

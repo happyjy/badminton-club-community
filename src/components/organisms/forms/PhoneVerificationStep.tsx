@@ -4,14 +4,29 @@ import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import PhoneNumberDisplay from '@/components/molecules/form/PhoneNumberDisplay';
 import VerificationCodeInput from '@/components/molecules/form/VerificationCodeInput';
-import usePhoneVerification from '@/hooks/usePhoneVerification';
+
+interface PhoneVerificationStatus {
+  isVerified: boolean;
+  phoneNumber?: string;
+  verifiedAt?: string;
+  isPreviouslyVerified: boolean;
+  canSkipVerification: boolean;
+}
 
 interface PhoneVerificationStepProps {
-  clubId: string;
   userPhoneNumber?: string;
   onVerificationComplete: (phoneNumber: string) => void;
   onSkipVerification: (phoneNumber: string) => void;
   onBack: () => void;
+  verificationStatus: PhoneVerificationStatus | null;
+  verificationLoading: boolean;
+  verificationError: string | null;
+  checkVerificationStatus: () => Promise<void>;
+  sendVerificationCode: (
+    phoneNumber: string,
+    forceNewVerification?: boolean
+  ) => Promise<any>;
+  verifyCode: (phoneNumber: string, code: string) => Promise<any>;
 }
 
 type VerificationStep =
@@ -25,24 +40,25 @@ type VerificationStep =
   | 'FAILED';
 
 function PhoneVerificationStep({
-  clubId,
   userPhoneNumber,
   onVerificationComplete,
   onSkipVerification,
   onBack,
+  verificationStatus,
+  verificationLoading,
+  verificationError,
+  checkVerificationStatus,
+  sendVerificationCode,
+  verifyCode,
 }: PhoneVerificationStepProps) {
   const [step, setStep] = useState<VerificationStep>('CHECKING');
   const [phoneNumber, setPhoneNumber] = useState(userPhoneNumber || '');
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    status,
-    loading,
-    error: apiError,
-    checkVerificationStatus,
-    sendVerificationCode,
-    verifyCode,
-  } = usePhoneVerification({ clubId });
+  // 외부에서 전달받은 상태와 함수 사용
+  const status = verificationStatus;
+  const loading = verificationLoading;
+  const apiError = verificationError;
 
   // 컴포넌트 마운트 시 사용자의 전화번호 인증 상태를 확인
   useEffect(() => {
@@ -129,6 +145,7 @@ function PhoneVerificationStep({
   // 기존에 인증된 전화번호 사용
   // 이미 인증된 전화번호가 있을 때 재인증 없이 진행
   const handleUseExistingPhone = () => {
+    //
     if (status?.phoneNumber) {
       onSkipVerification(status.phoneNumber);
     }

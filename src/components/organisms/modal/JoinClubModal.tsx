@@ -9,8 +9,9 @@ import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
+
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
-import usePhoneVerification from '@/hooks/usePhoneVerification';
+
 import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { User } from '@/types';
@@ -21,6 +22,14 @@ import PhoneVerificationStep from '../forms/PhoneVerificationStep';
 
 import PrivacyModal from './PrivacyModal';
 
+interface PhoneVerificationStatus {
+  isVerified: boolean;
+  phoneNumber?: string;
+  verifiedAt?: string;
+  isPreviouslyVerified: boolean;
+  canSkipVerification: boolean;
+}
+
 interface JoinClubModalProps {
   user: User;
   isOpen: boolean;
@@ -29,7 +38,16 @@ interface JoinClubModalProps {
   isSubmitting?: boolean;
   isGuestApplication?: boolean;
   initialValues?: Partial<ClubJoinFormData>;
-  clubId: string;
+  // 전화번호 인증 관련 props
+  verificationStatus?: PhoneVerificationStatus | null;
+  verificationLoading?: boolean;
+  verificationError?: string | null;
+  checkVerificationStatus?: () => Promise<void>;
+  sendVerificationCode?: (
+    phoneNumber: string,
+    forceNewVerification?: boolean
+  ) => Promise<any>;
+  verifyCode?: (phoneNumber: string, code: string) => Promise<any>;
 }
 
 // todo: jyoon - join club modal과 guest modal 분리
@@ -44,7 +62,13 @@ function JoinClubModal({
   isSubmitting = false,
   isGuestApplication = false,
   initialValues,
-  clubId,
+  // 전화번호 인증 관련 props
+  verificationStatus: externalVerificationStatus,
+  verificationLoading: externalVerificationLoading,
+  verificationError: externalVerificationError,
+  checkVerificationStatus: externalCheckVerificationStatus,
+  sendVerificationCode: externalSendVerificationCode,
+  verifyCode: externalVerifyCode,
 }: JoinClubModalProps) {
   // 클럽 멤버 정보 가져오기
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
@@ -60,8 +84,15 @@ function JoinClubModal({
     //
     initialFormData,
   } = useClubJoinForm(user, isGuestApplication, initialValues, clubMember);
-  // 휴대폰 인증 훅
-  const { status: verificationStatus } = usePhoneVerification({ clubId });
+  // 외부에서 전달받은 인증 관련 상태/함수가 있으면 사용, 없으면 기본값 사용
+  const verificationStatus = externalVerificationStatus ?? null;
+  const verificationLoading = externalVerificationLoading ?? false;
+  const verificationError = externalVerificationError ?? null;
+  const checkVerificationStatus =
+    externalCheckVerificationStatus ?? (() => Promise.resolve());
+  const sendVerificationCode =
+    externalSendVerificationCode ?? (() => Promise.resolve());
+  const verifyCode = externalVerifyCode ?? (() => Promise.resolve());
 
   // 개인정보 수집 및 이용 동의 모달
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -99,7 +130,12 @@ function JoinClubModal({
   };
 
   // 인증 완료 처리
-  const handleVerificationComplete = () => {
+  const handleVerificationComplete = async () => {
+    // 인증 상태 다시 확인
+    if (checkVerificationStatus) {
+      await checkVerificationStatus();
+    }
+
     setShowPhoneVerification(false);
 
     // 인증 완료 후 폼 제출
@@ -175,11 +211,16 @@ function JoinClubModal({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
         <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
           <PhoneVerificationStep
-            clubId={clubId}
             userPhoneNumber={getFullPhoneNumber()}
             onVerificationComplete={handleVerificationComplete}
             onSkipVerification={handleSkipVerification}
             onBack={handleClosePhoneVerification}
+            verificationStatus={verificationStatus}
+            verificationLoading={verificationLoading}
+            verificationError={verificationError}
+            checkVerificationStatus={checkVerificationStatus}
+            sendVerificationCode={sendVerificationCode}
+            verifyCode={verifyCode}
           />
         </div>
       </div>

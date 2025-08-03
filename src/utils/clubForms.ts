@@ -30,7 +30,7 @@ export const createInitialFormData = ({
   // 테스트용 초기화 데이터
   name: name || '홍길동',
   birthDate: '1995-03-15',
-  phoneNumber: '010-1234-5678',
+  phoneNumber: '010-6636-8962',
   gender: '남성',
   localTournamentLevel: 'C',
   nationalTournamentLevel: 'D',
