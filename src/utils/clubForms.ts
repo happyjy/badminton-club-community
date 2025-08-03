@@ -11,18 +11,35 @@ export const createInitialFormData = ({
   name?: string;
   isGuestApplication?: boolean;
 }): ClubJoinFormData => ({
-  name,
-  birthDate: DEFAULT_DATE,
-  phoneNumber: '',
-  gender: '',
-  localTournamentLevel: '',
-  nationalTournamentLevel: '',
-  lessonPeriod: '',
-  playingPeriod: '',
-  privacyAgreement: false,
+  // 기존 코드 (production용)
+  // name,
+  // birthDate: DEFAULT_DATE,
+  // phoneNumber: '',
+  // gender: '',
+  // localTournamentLevel: '',
+  // nationalTournamentLevel: '',
+  // lessonPeriod: '',
+  // playingPeriod: '',
+  // privacyAgreement: false,
+  // postType: isGuestApplication ? 'GUEST_REQUEST' : 'JOIN_INQUIRY_REQUEST',
+  // ...(isGuestApplication && {
+  //   intendToJoin: false,
+  //   visitDate: DEFAULT_VISIT_DATE,
+  // }),
+
+  // 테스트용 초기화 데이터
+  name: name || '홍길동',
+  birthDate: '1995-03-15',
+  phoneNumber: '010-1234-5678',
+  gender: '남성',
+  localTournamentLevel: 'C',
+  nationalTournamentLevel: 'D',
+  lessonPeriod: '2년',
+  playingPeriod: '5년',
+  privacyAgreement: true,
   postType: isGuestApplication ? 'GUEST_REQUEST' : 'JOIN_INQUIRY_REQUEST',
   ...(isGuestApplication && {
-    intendToJoin: false,
+    intendToJoin: true,
     visitDate: DEFAULT_VISIT_DATE,
   }),
 });

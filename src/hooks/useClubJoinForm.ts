@@ -55,10 +55,15 @@ export const useClubJoinForm = (
       };
     }
     return {
-      first: '',
-      second: '',
-      third: '',
+      first: '010',
+      second: '6636',
+      third: '8962',
     };
+    // return {
+    //   first: '',
+    //   second: '',
+    //   third: '',
+    // };
   });
 
   // 닉네임 변경 시 폼 데이터 업데이트
