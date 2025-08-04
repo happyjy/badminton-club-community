@@ -16,15 +16,18 @@ interface PhoneVerificationModalProps {
   userPhoneNumber?: string;
   onVerificationComplete: (phoneNumber: string) => void;
   onSkipVerification: (phoneNumber: string) => void;
-  verificationStatus: PhoneVerificationStatus | null;
-  verificationLoading: boolean;
-  verificationError: string | null;
-  checkVerificationStatus: () => Promise<void>;
-  sendVerificationCode: (
+  // 전화번호 인증 관련 props 전달
+  // phone verification state
+  phoneVerificationStatus: PhoneVerificationStatus | null;
+  phoneVerificationLoading: boolean;
+  phoneVerificationError: string | null;
+  // phone verification functions
+  checkPhoneVerificationStatus: () => Promise<void>;
+  sendPhoneVerificationCode: (
     phoneNumber: string,
     forceNewVerification?: boolean
   ) => Promise<any>;
-  verifyCode: (phoneNumber: string, code: string) => Promise<any>;
+  verifyPhoneCode: (phoneNumber: string, code: string) => Promise<any>;
 }
 
 function PhoneVerificationModal({
@@ -33,12 +36,15 @@ function PhoneVerificationModal({
   userPhoneNumber,
   onVerificationComplete,
   onSkipVerification,
-  verificationStatus,
-  verificationLoading,
-  verificationError,
-  checkVerificationStatus,
-  sendVerificationCode,
-  verifyCode,
+  // 전화번호 인증 관련 props 전달
+  // phone verification state
+  phoneVerificationStatus,
+  phoneVerificationLoading,
+  phoneVerificationError,
+  // phone verification functions
+  checkPhoneVerificationStatus,
+  sendPhoneVerificationCode,
+  verifyPhoneCode,
 }: PhoneVerificationModalProps) {
   if (!isOpen) return null;
 
@@ -50,12 +56,14 @@ function PhoneVerificationModal({
           onVerificationComplete={onVerificationComplete}
           onSkipVerification={onSkipVerification}
           onBack={onClose}
-          verificationStatus={verificationStatus}
-          verificationLoading={verificationLoading}
-          verificationError={verificationError}
-          checkVerificationStatus={checkVerificationStatus}
-          sendVerificationCode={sendVerificationCode}
-          verifyCode={verifyCode}
+          // phone verification state
+          phoneVerificationStatus={phoneVerificationStatus}
+          phoneVerificationLoading={phoneVerificationLoading}
+          phoneVerificationError={phoneVerificationError}
+          // phone verification functions
+          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+          sendPhoneVerificationCode={sendPhoneVerificationCode}
+          verifyPhoneCode={verifyPhoneCode}
         />
       </div>
     </div>

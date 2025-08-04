@@ -39,15 +39,17 @@ interface JoinClubModalProps {
   isGuestApplication?: boolean;
   initialValues?: Partial<ClubJoinFormData>;
   // 전화번호 인증 관련 props
-  verificationStatus?: PhoneVerificationStatus | null;
-  verificationLoading?: boolean;
-  verificationError?: string | null;
-  checkVerificationStatus?: () => Promise<void>;
-  sendVerificationCode?: (
+  // phone verification state
+  phoneVerificationStatus?: PhoneVerificationStatus | null;
+  phoneVerificationLoading?: boolean;
+  phoneVerificationError?: string | null;
+  // phone verification functions
+  checkPhoneVerificationStatus?: () => Promise<void>;
+  sendPhoneVerificationCode?: (
     phoneNumber: string,
     forceNewVerification?: boolean
   ) => Promise<any>;
-  verifyCode?: (phoneNumber: string, code: string) => Promise<any>;
+  verifyPhoneCode?: (phoneNumber: string, code: string) => Promise<any>;
 }
 
 // todo: jyoon - join club modal과 guest modal 분리
@@ -63,12 +65,14 @@ function JoinClubModal({
   isGuestApplication = false,
   initialValues,
   // 전화번호 인증 관련 props
-  verificationStatus: externalVerificationStatus,
-  verificationLoading: externalVerificationLoading,
-  verificationError: externalVerificationError,
-  checkVerificationStatus: externalCheckVerificationStatus,
-  sendVerificationCode: externalSendVerificationCode,
-  verifyCode: externalVerifyCode,
+  // phone verification state
+  phoneVerificationStatus,
+  phoneVerificationLoading,
+  phoneVerificationError,
+  // phone verification functions
+  checkPhoneVerificationStatus,
+  sendPhoneVerificationCode,
+  verifyPhoneCode,
 }: JoinClubModalProps) {
   // 클럽 멤버 정보 가져오기
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
@@ -84,15 +88,6 @@ function JoinClubModal({
     //
     initialFormData,
   } = useClubJoinForm(user, isGuestApplication, initialValues, clubMember);
-  // 외부에서 전달받은 인증 관련 상태/함수가 있으면 사용, 없으면 기본값 사용
-  const verificationStatus = externalVerificationStatus ?? null;
-  const verificationLoading = externalVerificationLoading ?? false;
-  const verificationError = externalVerificationError ?? null;
-  const checkVerificationStatus =
-    externalCheckVerificationStatus ?? (() => Promise.resolve());
-  const sendVerificationCode =
-    externalSendVerificationCode ?? (() => Promise.resolve());
-  const verifyCode = externalVerifyCode ?? (() => Promise.resolve());
 
   // 개인정보 수집 및 이용 동의 모달
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
@@ -116,8 +111,8 @@ function JoinClubModal({
 
     // 이미 인증된 전화번호인지 확인
     if (
-      verificationStatus?.isVerified &&
-      verificationStatus.phoneNumber === currentPhoneNumber
+      phoneVerificationStatus?.isVerified &&
+      phoneVerificationStatus.phoneNumber === currentPhoneNumber
     ) {
       // 이미 인증된 전화번호라면 바로 제출
       onSubmit(formData);
@@ -132,8 +127,8 @@ function JoinClubModal({
   // 인증 완료 처리
   const handleVerificationComplete = async () => {
     // 인증 상태 다시 확인
-    if (checkVerificationStatus) {
-      await checkVerificationStatus();
+    if (checkPhoneVerificationStatus) {
+      await checkPhoneVerificationStatus();
     }
 
     setShowPhoneVerification(false);
@@ -215,12 +210,15 @@ function JoinClubModal({
             onVerificationComplete={handleVerificationComplete}
             onSkipVerification={handleSkipVerification}
             onBack={handleClosePhoneVerification}
-            verificationStatus={verificationStatus}
-            verificationLoading={verificationLoading}
-            verificationError={verificationError}
-            checkVerificationStatus={checkVerificationStatus}
-            sendVerificationCode={sendVerificationCode}
-            verifyCode={verifyCode}
+            // 전화번호 인증 관련 props 전달
+            // phone verification state
+            phoneVerificationStatus={phoneVerificationStatus}
+            phoneVerificationLoading={phoneVerificationLoading}
+            phoneVerificationError={phoneVerificationError}
+            // phone verification functions
+            checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+            sendPhoneVerificationCode={sendPhoneVerificationCode}
+            verifyPhoneCode={verifyPhoneCode}
           />
         </div>
       </div>
@@ -351,8 +349,8 @@ function JoinClubModal({
               required
             />
             {/* 인증 상태 표시 */}
-            {verificationStatus?.isVerified &&
-              verificationStatus.phoneNumber === getFullPhoneNumber() && (
+            {phoneVerificationStatus?.isVerified &&
+              phoneVerificationStatus.phoneNumber === getFullPhoneNumber() && (
                 <div className="mt-1 text-sm text-green-600">
                   ✓ 인증된 전화번호입니다
                 </div>

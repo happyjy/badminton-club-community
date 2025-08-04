@@ -3,11 +3,11 @@ import { useState, useCallback } from 'react';
 import axios from 'axios';
 
 interface PhoneVerificationStatus {
-  isVerified: boolean;
+  isPhoneVerified: boolean;
   phoneNumber?: string;
-  verifiedAt?: string;
-  isPreviouslyVerified: boolean;
-  canSkipVerification: boolean;
+  phoneVerifiedAt?: string;
+  isPreviouslyPhoneVerified: boolean;
+  canSkipPhoneVerification: boolean;
 }
 
 interface UsePhoneVerificationProps {
@@ -19,8 +19,8 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 인증 상태 확인
-  const checkVerificationStatus = useCallback(async () => {
+  // 전화번호 인증 상태 확인
+  const checkPhoneVerificationStatus = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -36,8 +36,8 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
     }
   }, [clubId]);
 
-  // 인증번호 발송
-  const sendVerificationCode = useCallback(
+  // 전화번호 인증코드 발송
+  const sendPhoneVerificationCode = useCallback(
     async (phoneNumber: string, forceNewVerification = false) => {
       setLoading(true);
       setError(null);
@@ -64,8 +64,8 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
     [clubId]
   );
 
-  // 인증번호 확인
-  const verifyCode = useCallback(
+  // 전화번호 인증코드 확인
+  const verifyPhoneCode = useCallback(
     async (phoneNumber: string, code: string) => {
       setLoading(true);
       setError(null);
@@ -80,7 +80,7 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
         );
 
         // 인증 완료 후 상태 업데이트
-        await checkVerificationStatus();
+        await checkPhoneVerificationStatus();
 
         return response.data;
       } catch (err: any) {
@@ -92,7 +92,7 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
         setLoading(false);
       }
     },
-    [clubId, checkVerificationStatus]
+    [clubId, checkPhoneVerificationStatus]
   );
 
   // 전화번호 업데이트
@@ -107,7 +107,7 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
         });
 
         // 전화번호 변경 후 상태 업데이트
-        await checkVerificationStatus();
+        await checkPhoneVerificationStatus();
 
         return response.data;
       } catch (err: any) {
@@ -119,18 +119,18 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
         setLoading(false);
       }
     },
-    [checkVerificationStatus]
+    [checkPhoneVerificationStatus]
   );
 
   return {
     // local state
-    status,
-    loading,
-    error,
+    phoneVerificationStatus: status,
+    phoneVerificationLoading: loading,
+    phoneVerificationError: error,
     // functions
-    checkVerificationStatus,
-    sendVerificationCode,
-    verifyCode,
+    checkPhoneVerificationStatus,
+    sendPhoneVerificationCode,
+    verifyPhoneCode,
     updatePhoneNumber,
   };
 }

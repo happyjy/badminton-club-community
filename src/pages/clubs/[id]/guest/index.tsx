@@ -46,12 +46,14 @@ function GuestPage({ user }: AuthProps) {
 
   // 전화번호 인증 훅
   const {
-    status: phoneVerificationStatus,
-    loading: phoneVerificationLoading,
-    error: phoneVerificationError,
-    checkVerificationStatus,
-    sendVerificationCode,
-    verifyCode,
+    // local state
+    phoneVerificationStatus,
+    phoneVerificationLoading,
+    phoneVerificationError,
+    // functions
+    checkPhoneVerificationStatus,
+    sendPhoneVerificationCode,
+    verifyPhoneCode,
   } = usePhoneVerification({
     clubId: clubId as string,
   });
@@ -324,12 +326,14 @@ function GuestPage({ user }: AuthProps) {
           isSubmitting={isSubmitting}
           // initialValues={initialValues}
           // 전화번호 인증 관련 props 전달
-          verificationStatus={phoneVerificationStatus}
-          verificationLoading={phoneVerificationLoading}
-          verificationError={phoneVerificationError}
-          checkVerificationStatus={checkVerificationStatus}
-          sendVerificationCode={sendVerificationCode}
-          verifyCode={verifyCode}
+          // phone verification state
+          phoneVerificationStatus={phoneVerificationStatus}
+          phoneVerificationLoading={phoneVerificationLoading}
+          phoneVerificationError={phoneVerificationError}
+          // phone verification functions
+          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+          sendPhoneVerificationCode={sendPhoneVerificationCode}
+          verifyPhoneCode={verifyPhoneCode}
         />
       )}
 
@@ -344,12 +348,15 @@ function GuestPage({ user }: AuthProps) {
           userPhoneNumber={phoneVerificationStatus?.phoneNumber}
           onVerificationComplete={handlePhoneVerificationComplete}
           onSkipVerification={handleSkipVerification}
-          verificationStatus={phoneVerificationStatus}
-          verificationLoading={phoneVerificationLoading}
-          verificationError={phoneVerificationError}
-          checkVerificationStatus={checkVerificationStatus}
-          sendVerificationCode={sendVerificationCode}
-          verifyCode={verifyCode}
+          // 전화번호 인증 관련 props 전달
+          // phone verification state
+          phoneVerificationStatus={phoneVerificationStatus}
+          phoneVerificationLoading={phoneVerificationLoading}
+          phoneVerificationError={phoneVerificationError}
+          // phone verification functions
+          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+          sendPhoneVerificationCode={sendPhoneVerificationCode}
+          verifyPhoneCode={verifyPhoneCode}
         />
       )}
     </>

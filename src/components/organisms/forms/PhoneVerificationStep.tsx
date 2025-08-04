@@ -18,15 +18,17 @@ interface PhoneVerificationStepProps {
   onVerificationComplete: (phoneNumber: string) => void;
   onSkipVerification: (phoneNumber: string) => void;
   onBack: () => void;
-  verificationStatus: PhoneVerificationStatus | null;
-  verificationLoading: boolean;
-  verificationError: string | null;
-  checkVerificationStatus: () => Promise<void>;
-  sendVerificationCode: (
+  // phone verification state
+  phoneVerificationStatus: PhoneVerificationStatus | null;
+  phoneVerificationLoading: boolean;
+  phoneVerificationError: string | null;
+  // phone verification functions
+  checkPhoneVerificationStatus: () => Promise<void>;
+  sendPhoneVerificationCode: (
     phoneNumber: string,
     forceNewVerification?: boolean
   ) => Promise<any>;
-  verifyCode: (phoneNumber: string, code: string) => Promise<any>;
+  verifyPhoneCode: (phoneNumber: string, code: string) => Promise<any>;
 }
 
 type VerificationStep =
@@ -44,51 +46,51 @@ function PhoneVerificationStep({
   onVerificationComplete,
   onSkipVerification,
   onBack,
-  verificationStatus,
-  verificationLoading,
-  verificationError,
-  checkVerificationStatus,
-  sendVerificationCode,
-  verifyCode,
+  // phone verification state
+  phoneVerificationStatus,
+  phoneVerificationLoading,
+  phoneVerificationError,
+  // phone verification functions
+  checkPhoneVerificationStatus,
+  sendPhoneVerificationCode,
+  verifyPhoneCode,
 }: PhoneVerificationStepProps) {
   const [step, setStep] = useState<VerificationStep>('CHECKING');
   const [phoneNumber, setPhoneNumber] = useState(userPhoneNumber || '');
   const [error, setError] = useState<string | null>(null);
 
-  // 외부에서 전달받은 상태와 함수 사용
-  const status = verificationStatus;
-  const loading = verificationLoading;
-  const apiError = verificationError;
-
   // 컴포넌트 마운트 시 사용자의 전화번호 인증 상태를 확인
   useEffect(() => {
-    checkVerificationStatus();
-  }, [checkVerificationStatus]);
+    checkPhoneVerificationStatus();
+  }, [checkPhoneVerificationStatus]);
 
   // 인증 상태 변경 시 단계(step)와 전화번호를 업데이트
   // - 이미 인증된 경우: PREVIOUSLY_VERIFIED 단계로 이동
   // - 전화번호만 있는 경우: PENDING 단계로 이동하고 전화번호 설정
   // - 전화번호가 없는 경우: PENDING 단계로 이동
   useEffect(() => {
-    if (status) {
-      if (status.isVerified && status.phoneNumber) {
+    if (phoneVerificationStatus) {
+      if (
+        phoneVerificationStatus.isVerified &&
+        phoneVerificationStatus.phoneNumber
+      ) {
         setStep('PREVIOUSLY_VERIFIED');
-        setPhoneNumber(status.phoneNumber);
-      } else if (status.phoneNumber) {
-        setPhoneNumber(status.phoneNumber);
+        setPhoneNumber(phoneVerificationStatus.phoneNumber);
+      } else if (phoneVerificationStatus.phoneNumber) {
         setStep('PENDING');
+        setPhoneNumber(phoneVerificationStatus.phoneNumber);
       } else {
         setStep('PENDING');
       }
     }
-  }, [status]);
+  }, [phoneVerificationStatus]);
 
   // API 에러 발생 시 에러 상태 업데이트
   useEffect(() => {
-    if (apiError) {
-      setError(apiError);
+    if (phoneVerificationError) {
+      setError(phoneVerificationError);
     }
-  }, [apiError]);
+  }, [phoneVerificationError]);
 
   // 전화번호 입력 필드 변경 핸들러
   // 입력 시 기존 에러 메시지를 제거
@@ -109,7 +111,7 @@ function PhoneVerificationStep({
 
     try {
       setStep('SENT');
-      await sendVerificationCode(phoneNumber);
+      await sendPhoneVerificationCode(phoneNumber);
     } catch {
       setStep('FAILED');
     }
@@ -123,7 +125,7 @@ function PhoneVerificationStep({
   const handleVerifyCode = async (code: string) => {
     try {
       setStep('VERIFYING');
-      await verifyCode(phoneNumber, code);
+      await verifyPhoneCode(phoneNumber, code);
       setStep('VERIFIED');
       onVerificationComplete(phoneNumber);
     } catch {
@@ -136,7 +138,7 @@ function PhoneVerificationStep({
   const handleResendCode = async () => {
     try {
       setStep('SENT');
-      await sendVerificationCode(phoneNumber, true);
+      await sendPhoneVerificationCode(phoneNumber, true);
     } catch {
       setStep('FAILED');
     }
@@ -146,8 +148,8 @@ function PhoneVerificationStep({
   // 이미 인증된 전화번호가 있을 때 재인증 없이 진행
   const handleUseExistingPhone = () => {
     //
-    if (status?.phoneNumber) {
-      onSkipVerification(status.phoneNumber);
+    if (phoneVerificationStatus?.phoneNumber) {
+      onSkipVerification(phoneVerificationStatus.phoneNumber);
     }
   };
 
@@ -158,7 +160,7 @@ function PhoneVerificationStep({
     setError(null);
   };
 
-  if (step === 'CHECKING' || loading) {
+  if (step === 'CHECKING' || phoneVerificationLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -169,7 +171,7 @@ function PhoneVerificationStep({
     );
   }
 
-  if (step === 'PREVIOUSLY_VERIFIED' && status?.phoneNumber) {
+  if (step === 'PREVIOUSLY_VERIFIED' && phoneVerificationStatus?.phoneNumber) {
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -182,9 +184,9 @@ function PhoneVerificationStep({
         </div>
 
         <PhoneNumberDisplay
-          phoneNumber={status.phoneNumber}
-          isVerified={status.isVerified}
-          verifiedAt={status.verifiedAt}
+          phoneNumber={phoneVerificationStatus.phoneNumber}
+          isPhoneVerified={phoneVerificationStatus.isVerified}
+          phoneVerifiedAt={phoneVerificationStatus.verifiedAt}
           onChangePhone={handleChangePhone}
           onUseExisting={handleUseExistingPhone}
         />
