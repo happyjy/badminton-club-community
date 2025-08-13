@@ -11,6 +11,7 @@ import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
 
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
+import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
 
 import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
@@ -21,14 +22,6 @@ import { getVisitDate, TOURNAMENT_LEVELS } from '@/utils/clubForms';
 import PhoneVerificationStep from '../forms/PhoneVerificationStep';
 
 import PrivacyModal from './PrivacyModal';
-
-interface PhoneVerificationStatus {
-  isVerified: boolean;
-  phoneNumber?: string;
-  verifiedAt?: string;
-  isPreviouslyVerified: boolean;
-  canSkipVerification: boolean;
-}
 
 interface JoinClubModalProps {
   user: User;

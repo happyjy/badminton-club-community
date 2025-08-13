@@ -2,19 +2,34 @@ import { useState, useCallback } from 'react';
 
 import axios from 'axios';
 
-interface PhoneVerificationStatus {
-  isPhoneVerified: boolean;
+export interface PhoneVerificationStatus {
+  canSkipVerification: boolean;
+  isVerified: boolean;
+  isPreviouslyVerified: boolean;
   phoneNumber?: string;
-  phoneVerifiedAt?: string;
-  isPreviouslyPhoneVerified: boolean;
-  canSkipPhoneVerification: boolean;
+  verifiedAt?: string;
 }
 
 interface UsePhoneVerificationProps {
   clubId: string;
 }
 
-function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
+interface UsePhoneVerificationReturn {
+  phoneVerificationStatus: PhoneVerificationStatus | null;
+  phoneVerificationLoading: boolean;
+  phoneVerificationError: string | null;
+  checkPhoneVerificationStatus: () => Promise<void>;
+  sendPhoneVerificationCode: (
+    phoneNumber: string,
+    forceNewVerification?: boolean
+  ) => Promise<any>;
+  verifyPhoneCode: (phoneNumber: string, code: string) => Promise<any>;
+  updatePhoneNumber: (phoneNumber: string) => Promise<any>;
+}
+
+function usePhoneVerification({
+  clubId,
+}: UsePhoneVerificationProps): UsePhoneVerificationReturn {
   const [status, setStatus] = useState<PhoneVerificationStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +42,10 @@ function usePhoneVerification({ clubId }: UsePhoneVerificationProps) {
     try {
       const response = await axios.get(
         `/api/clubs/${clubId}/phone-verification/status`
+      );
+      console.log(
+        `🌸 ~ usePhoneVerification ~ response.data.data:`,
+        response.data.data
       );
       setStatus(response.data.data);
     } catch (err: any) {

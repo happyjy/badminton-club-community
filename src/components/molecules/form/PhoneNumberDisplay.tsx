@@ -4,14 +4,14 @@ import { Button } from '@/components/atoms/buttons/Button';
 
 interface PhoneNumberDisplayProps {
   phoneNumber: string;
-  isPhoneVerified: boolean;
+  isVerified: boolean;
   phoneVerifiedAt?: string;
   onChangePhone: () => void;
 }
 
 function PhoneNumberDisplay({
   phoneNumber,
-  isPhoneVerified,
+  isVerified,
   phoneVerifiedAt,
   onChangePhone,
 }: PhoneNumberDisplayProps) {
@@ -32,7 +32,7 @@ function PhoneNumberDisplay({
           <div>
             <p className="text-sm text-gray-600 mb-1">현재 전화번호</p>
             <p className="text-lg font-medium">{phoneNumber}</p>
-            {isPhoneVerified && phoneVerifiedAt && (
+            {isVerified && phoneVerifiedAt && (
               <p className="text-sm text-green-600 mt-1">
                 ✓ {formatVerifiedAt(phoneVerifiedAt)}에 인증 완료
               </p>
@@ -50,7 +50,7 @@ function PhoneNumberDisplay({
         </div>
       </div>
 
-      {!isPhoneVerified && (
+      {!isVerified && (
         <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
           <p className="text-sm text-yellow-800">
             이 전화번호는 아직 인증되지 않았습니다. 새 인증을 진행해주세요.
