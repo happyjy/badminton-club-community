@@ -32,6 +32,7 @@ interface PhoneVerificationStatus {
 
 interface JoinClubModalProps {
   user: User;
+  clubId: string;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: ClubJoinFormData) => void;
