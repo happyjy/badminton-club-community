@@ -16,7 +16,7 @@ import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
-import { TOURNAMENT_LEVELS } from '@/utils/clubForms';
+import { getVisitDate, TOURNAMENT_LEVELS } from '@/utils/clubForms';
 
 import PhoneVerificationStep from '../forms/PhoneVerificationStep';
 
@@ -55,7 +55,10 @@ interface JoinClubModalProps {
 // todo: jyoon - join club modal과 guest modal 분리
 // todo: jyoon - 'react-hook-form' 사용
 
-// 사용 범위: 회원가입, 게스트 신규 신청, 게스트 수정
+// # 사용 범위
+// 1. 클럽 회원 가입(isGuestApplication === false)
+// 2.1 클럽 가입 문의(isGuestApplication === true && isClubMember === false)
+// 2.2 게스트 신규 신청, 게스트 수정(isGuestApplication === true && isClubMember === true)
 function JoinClubModal({
   user,
   isOpen,
@@ -76,8 +79,10 @@ function JoinClubModal({
 }: JoinClubModalProps) {
   // 클럽 멤버 정보 가져오기
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
+  // true: 클럽 멤버 -> 게스트 신청 모달, false: 클럽 멤버 아님 -> 클럽 가입 문의 모달
+  const isClubMember = !!clubMember;
   // 사용자 유형에 따른 전략 적용
-  const strategy = getGuestPageStrategy(!!clubMember);
+  const strategy = getGuestPageStrategy(isClubMember);
 
   // 폼 데이터 관리 훅
   const {
@@ -192,8 +197,8 @@ function JoinClubModal({
   const minBirthDate = new Date(1950, 0, 1);
   const maxBirthDate = today;
 
-  // 방문 날짜 범위 설정 (오늘 ~ 1년 후)
-  const minVisitDate = today;
+  // 방문 날짜 범위 설정 (isClubMember에 따라 오늘 날짜 또는 내일 날짜 ~ 1년 후)
+  const minVisitDate = getVisitDate(isClubMember);
   const maxVisitDate = new Date(
     today.getFullYear() + 1,
     today.getMonth(),

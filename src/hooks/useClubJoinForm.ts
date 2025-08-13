@@ -28,6 +28,7 @@ export const useClubJoinForm = (
       return {
         ...createInitialFormData({
           isGuestApplication,
+          isClubMember: !!clubMember,
         }),
         ...initialValues,
         ...(!clubMember && { intendToJoin: true }), // 클럽 멤버가 아닌 경우 가입 의사를 true로 설정
@@ -38,6 +39,7 @@ export const useClubJoinForm = (
     return {
       ...createInitialFormData({
         isGuestApplication,
+        isClubMember: !!clubMember,
       }),
       ...(!clubMember && { intendToJoin: true }), // 클럽 멤버가 아닌 경우 가입 의사를 true로 설정
       postType, // postType 추가
