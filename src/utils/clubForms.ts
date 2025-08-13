@@ -12,23 +12,23 @@ export const createInitialFormData = ({
   isGuestApplication?: boolean;
 }): ClubJoinFormData => ({
   // 기존 코드 (production용)
-  // name,
-  // birthDate: DEFAULT_DATE,
-  // phoneNumber: '',
-  // gender: '',
-  // localTournamentLevel: '',
-  // nationalTournamentLevel: '',
-  // lessonPeriod: '',
-  // playingPeriod: '',
-  // privacyAgreement: false,
-  // postType: isGuestApplication ? 'GUEST_REQUEST' : 'JOIN_INQUIRY_REQUEST',
-  // ...(isGuestApplication && {
-  //   intendToJoin: false,
-  //   visitDate: DEFAULT_VISIT_DATE,
-  // }),
+  name,
+  birthDate: DEFAULT_DATE,
+  phoneNumber: '',
+  gender: '',
+  localTournamentLevel: '',
+  nationalTournamentLevel: '',
+  lessonPeriod: '',
+  playingPeriod: '',
+  privacyAgreement: false,
+  postType: isGuestApplication ? 'GUEST_REQUEST' : 'JOIN_INQUIRY_REQUEST',
+  ...(isGuestApplication && {
+    intendToJoin: false,
+    visitDate: DEFAULT_VISIT_DATE,
+  }),
 
-  // 테스트용 초기화 데이터
-  name: name || '홍길동',
+  // 테스트용 코드
+  /* name: name || '홍길동',
   birthDate: '1995-03-15',
   phoneNumber: '010-6636-8962',
   gender: '남성',
@@ -41,5 +41,5 @@ export const createInitialFormData = ({
   ...(isGuestApplication && {
     intendToJoin: true,
     visitDate: DEFAULT_VISIT_DATE,
-  }),
+  }), */
 });
