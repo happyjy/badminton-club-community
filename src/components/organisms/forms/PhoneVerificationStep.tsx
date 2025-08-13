@@ -254,7 +254,7 @@ function PhoneVerificationStep({
           onVerify={handleVerifyCode}
           onResend={handleResendCode}
           loading={step === 'VERIFYING'}
-          error={error}
+          error={error || undefined}
         />
 
         <Button onClick={onBack} variant="outline" className="w-full">
