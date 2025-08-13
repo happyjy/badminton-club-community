@@ -2,13 +2,7 @@ import React from 'react';
 
 import PhoneVerificationStep from '@/components/organisms/forms/PhoneVerificationStep';
 
-interface PhoneVerificationStatus {
-  isVerified: boolean;
-  phoneNumber?: string;
-  verifiedAt?: string;
-  isPreviouslyVerified: boolean;
-  canSkipVerification: boolean;
-}
+import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
 
 interface PhoneVerificationModalProps {
   isOpen: boolean;

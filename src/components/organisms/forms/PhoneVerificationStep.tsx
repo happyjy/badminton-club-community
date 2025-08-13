@@ -5,13 +5,7 @@ import { Input } from '@/components/atoms/inputs/Input';
 import PhoneNumberDisplay from '@/components/molecules/form/PhoneNumberDisplay';
 import VerificationCodeInput from '@/components/molecules/form/VerificationCodeInput';
 
-interface PhoneVerificationStatus {
-  isVerified: boolean;
-  phoneNumber?: string;
-  verifiedAt?: string;
-  isPreviouslyVerified: boolean;
-  canSkipVerification: boolean;
-}
+import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
 
 interface PhoneVerificationStepProps {
   userPhoneNumber?: string;
@@ -185,7 +179,7 @@ function PhoneVerificationStep({
 
         <PhoneNumberDisplay
           phoneNumber={phoneVerificationStatus.phoneNumber}
-          isPhoneVerified={phoneVerificationStatus.isVerified}
+          isVerified={phoneVerificationStatus.isVerified}
           phoneVerifiedAt={phoneVerificationStatus.verifiedAt}
           onChangePhone={handleChangePhone}
         />
@@ -254,7 +248,7 @@ function PhoneVerificationStep({
           onVerify={handleVerifyCode}
           onResend={handleResendCode}
           loading={step === 'VERIFYING'}
-          error={error}
+          error={error || undefined}
         />
 
         <Button onClick={onBack} variant="outline" className="w-full">

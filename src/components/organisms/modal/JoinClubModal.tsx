@@ -11,6 +11,7 @@ import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
 
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
+import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
 
 import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
@@ -22,16 +23,9 @@ import PhoneVerificationStep from '../forms/PhoneVerificationStep';
 
 import PrivacyModal from './PrivacyModal';
 
-interface PhoneVerificationStatus {
-  isVerified: boolean;
-  phoneNumber?: string;
-  verifiedAt?: string;
-  isPreviouslyVerified: boolean;
-  canSkipVerification: boolean;
-}
-
 interface JoinClubModalProps {
   user: User;
+  clubId: string;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: ClubJoinFormData) => void;
@@ -198,7 +192,7 @@ function JoinClubModal({
   const maxBirthDate = today;
 
   // 방문 날짜 범위 설정 (isClubMember에 따라 오늘 날짜 또는 내일 날짜 ~ 1년 후)
-  const minVisitDate = getVisitDate(isClubMember);
+  const minVisitDate = new Date(getVisitDate(isClubMember));
   const maxVisitDate = new Date(
     today.getFullYear() + 1,
     today.getMonth(),
@@ -207,6 +201,20 @@ function JoinClubModal({
 
   // 휴대폰 인증 모달이 표시되는 경우
   if (showPhoneVerification) {
+    // 전화번호 인증 관련 함수들이 모두 존재하는지 확인
+    if (
+      !checkPhoneVerificationStatus ||
+      !sendPhoneVerificationCode ||
+      !verifyPhoneCode
+    ) {
+      // 함수들이 없으면 인증을 건너뛰고 폼 제출
+      onSubmit(formData);
+      initialFormData();
+      setShowPhoneVerification(false);
+
+      return null;
+    }
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
         <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
@@ -217,9 +225,9 @@ function JoinClubModal({
             onBack={handleClosePhoneVerification}
             // 전화번호 인증 관련 props 전달
             // phone verification state
-            phoneVerificationStatus={phoneVerificationStatus}
-            phoneVerificationLoading={phoneVerificationLoading}
-            phoneVerificationError={phoneVerificationError}
+            phoneVerificationStatus={phoneVerificationStatus || null}
+            phoneVerificationLoading={phoneVerificationLoading || false}
+            phoneVerificationError={phoneVerificationError || null}
             // phone verification functions
             checkPhoneVerificationStatus={checkPhoneVerificationStatus}
             sendPhoneVerificationCode={sendPhoneVerificationCode}

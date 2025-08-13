@@ -111,7 +111,7 @@ function VerificationCodeInput({
           onClick={handleVerify}
           disabled={code.length !== 6 || loading || timeLeft <= 0}
           className="w-full"
-          loading={loading}
+          pending={loading}
         >
           인증 확인
         </Button>

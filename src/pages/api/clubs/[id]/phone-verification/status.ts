@@ -58,13 +58,13 @@ export default async function handler(
     const responseData = {
       success: true,
       data: {
+        canSkipVerification: Boolean(canSkipVerification),
         isVerified: Boolean(isVerified),
+        isPreviouslyVerified: Boolean(isPreviouslyVerified),
         phoneNumber: user.phoneNumber || null,
         verifiedAt: user.phoneVerifiedAt
           ? user.phoneVerifiedAt.toISOString()
           : null,
-        isPreviouslyVerified: Boolean(isPreviouslyVerified),
-        canSkipVerification: Boolean(canSkipVerification),
       },
     };
 

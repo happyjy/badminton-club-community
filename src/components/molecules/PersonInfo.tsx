@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import Image from 'next/image';
 
 import GuestAvatar from '@/components/atoms/GuestAvatar';
+
 import { calculateAgeGroup } from '@/utils/age';
 
 type Gender = 'MALE' | 'FEMALE' | string;

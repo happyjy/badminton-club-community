@@ -13,6 +13,7 @@ import { CommentInput } from '@/components/organisms/comment/CommentInput';
 import { CommentItem } from '@/components/organisms/comment/CommentItem';
 import { InfoSection } from '@/components/organisms/InfoSection';
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';

@@ -11,6 +11,7 @@ import { Toaster } from 'react-hot-toast';
 import { Provider } from 'react-redux';
 
 import { Layout } from '@/components/templates/Layout';
+
 import { queryClient } from '@/lib/react-query';
 import { store } from '@/store';
 import { KakaoAuth } from '@/utils/auth';

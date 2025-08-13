@@ -3,7 +3,7 @@ import React, { ButtonHTMLAttributes } from 'react';
 import { Spinner } from '@/components/atoms/Spinner';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'primary' | 'secondary' | 'ghost';
+  variant?: 'default' | 'primary' | 'secondary' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   pending?: boolean;
   pendingText?: string;
@@ -18,6 +18,8 @@ const getVariantClasses = (variant: ButtonProps['variant'] = 'default') => {
       return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
     case 'ghost':
       return 'bg-transparent text-gray-600 hover:bg-gray-100';
+    case 'outline':
+      return 'bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400';
     default:
       return 'bg-gray-800 text-white hover:bg-gray-900';
   }
