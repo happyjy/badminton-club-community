@@ -5,8 +5,10 @@ import { useSelector } from 'react-redux';
 
 import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
 import ClubDetailContent from '@/components/organisms/ClubDetailContent';
+
 import { useClubRankings } from '@/hooks/useClubRankings';
 import { useClubHomeSettings } from '@/hooks/useCustomSettings';
+
 import { withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
 import { ClubJoinFormData, ClubDetailPageProps } from '@/types';

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useClub } from '@/hooks/useClub';
+
 import { RootState } from '@/store';
 import { setUser, setMembershipStatus } from '@/store/features/authSlice';
 import { setClubData } from '@/store/features/clubSlice';

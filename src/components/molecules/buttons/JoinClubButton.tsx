@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 
 import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+
 import { User, ClubJoinFormData, MembershipStatus } from '@/types';
 import { KakaoAuth } from '@/utils/auth';
 
