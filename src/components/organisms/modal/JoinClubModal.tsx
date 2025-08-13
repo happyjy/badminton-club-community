@@ -208,6 +208,20 @@ function JoinClubModal({
 
   // 휴대폰 인증 모달이 표시되는 경우
   if (showPhoneVerification) {
+    // 전화번호 인증 관련 함수들이 모두 존재하는지 확인
+    if (
+      !checkPhoneVerificationStatus ||
+      !sendPhoneVerificationCode ||
+      !verifyPhoneCode
+    ) {
+      // 함수들이 없으면 인증을 건너뛰고 폼 제출
+      onSubmit(formData);
+      initialFormData();
+      setShowPhoneVerification(false);
+
+      return null;
+    }
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
         <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
