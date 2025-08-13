@@ -7,7 +7,6 @@ interface PhoneNumberDisplayProps {
   isPhoneVerified: boolean;
   phoneVerifiedAt?: string;
   onChangePhone: () => void;
-  onUseExisting: () => void;
 }
 
 function PhoneNumberDisplay({
@@ -15,7 +14,6 @@ function PhoneNumberDisplay({
   isPhoneVerified,
   phoneVerifiedAt,
   onChangePhone,
-  onUseExisting,
 }: PhoneNumberDisplayProps) {
   const formatVerifiedAt = (dateString?: string) => {
     if (!dateString) return '';
@@ -41,13 +39,6 @@ function PhoneNumberDisplay({
             )}
           </div>
           <div className="flex space-x-2">
-            <Button
-              onClick={onUseExisting}
-              disabled={!isPhoneVerified}
-              className="px-4 py-2 text-sm"
-            >
-              기존 전화번호 사용
-            </Button>
             <Button
               onClick={onChangePhone}
               variant="outline"

@@ -188,7 +188,6 @@ function PhoneVerificationStep({
           isPhoneVerified={phoneVerificationStatus.isVerified}
           phoneVerifiedAt={phoneVerificationStatus.verifiedAt}
           onChangePhone={handleChangePhone}
-          onUseExisting={handleUseExistingPhone}
         />
 
         <div className="flex space-x-3">
@@ -196,7 +195,7 @@ function PhoneVerificationStep({
             뒤로
           </Button>
           <Button onClick={handleUseExistingPhone} className="flex-1">
-            기존 전화번호 사용
+            현재 전화번호 사용
           </Button>
         </div>
       </div>
