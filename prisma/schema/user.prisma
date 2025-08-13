@@ -4,6 +4,8 @@ model User {
   email               String               @unique
   nickname            String               @default("")
   thumbnailImageUrl   String               @default("")
+  phoneNumber         String?              // 전화번호 필드 추가
+  phoneVerifiedAt     DateTime?            // 전화번호 인증 완료 시간
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @default(now()) @updatedAt
   
@@ -12,4 +14,5 @@ model User {
   WorkoutParticipant  WorkoutParticipant[]
   guestPosts          GuestPost[]
   guestComments       GuestComment[]
+  phoneVerifications  PhoneVerification[]  // 전화번호 인증 관계 추가
 } 

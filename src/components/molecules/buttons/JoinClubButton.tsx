@@ -8,6 +8,7 @@ import { KakaoAuth } from '@/utils/auth';
 
 interface JoinClubButtonProps {
   user: User;
+  clubId: string;
   isLoading: boolean;
   membershipStatus: MembershipStatus;
   canJoinClub: boolean;
@@ -16,6 +17,7 @@ interface JoinClubButtonProps {
 
 export const JoinClubButton = ({
   user,
+  clubId,
   isLoading,
   membershipStatus,
   canJoinClub,
@@ -81,6 +83,7 @@ export const JoinClubButton = ({
         </button>
         <JoinClubModal
           user={user}
+          clubId={clubId}
           isOpen={isModalOpen}
           onClose={onCloseModal}
           onSubmit={onSubmitJoinForm}

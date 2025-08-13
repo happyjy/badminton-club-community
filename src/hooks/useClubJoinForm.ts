@@ -5,6 +5,13 @@ import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { createInitialFormData } from '@/utils/clubForms';
 
+// 전화번호 부분별 타입 정의
+interface PhoneNumberParts {
+  first: string;
+  second: string;
+  third: string;
+}
+
 export const useClubJoinForm = (
   user: User,
   isGuestApplication = false,
@@ -21,6 +28,7 @@ export const useClubJoinForm = (
       return {
         ...createInitialFormData({
           isGuestApplication,
+          isClubMember: !!clubMember,
         }),
         ...initialValues,
         ...(!clubMember && { intendToJoin: true }), // 클럽 멤버가 아닌 경우 가입 의사를 true로 설정
@@ -31,13 +39,14 @@ export const useClubJoinForm = (
     return {
       ...createInitialFormData({
         isGuestApplication,
+        isClubMember: !!clubMember,
       }),
       ...(!clubMember && { intendToJoin: true }), // 클럽 멤버가 아닌 경우 가입 의사를 true로 설정
       postType, // postType 추가
     };
   });
   // 전화번호 입력 필드 상태 관리
-  const [phoneNumbers, setPhoneNumbers] = useState(() => {
+  const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberParts>(() => {
     if (initialValues?.phoneNumber) {
       // phoneNumber 형식: "010-1234-5678"
       const parts = initialValues.phoneNumber.split('-');
@@ -47,6 +56,12 @@ export const useClubJoinForm = (
         third: parts[2] || '',
       };
     }
+    // 테스트용 코드
+    // return {
+    //   first: '010',
+    //   second: '6636',
+    //   third: '8962',
+    // };
     return {
       first: '',
       second: '',

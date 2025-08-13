@@ -61,6 +61,19 @@ export default async function handler(
       });
     }
 
+    // 전화번호 인증 상태 확인
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+    });
+
+    if (!user?.phoneVerifiedAt || user.phoneNumber !== phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message:
+          '전화번호 인증이 필요합니다. 인증되지 않은 전화번호로는 신청할 수 없습니다.',
+      });
+    }
+
     // 클럽 정보 조회 (SMS 메시지용)
     const club = await prisma.club.findUnique({
       where: { id: parseInt(clubId as string) },
@@ -114,6 +127,7 @@ export default async function handler(
     // 이메일 및 SMS 전송
     const notificationPromises = [];
 
+    // # 이메일, SMS 전송 과정 start
     // 이메일 전송
     try {
       notificationPromises.push(
@@ -172,6 +186,7 @@ export default async function handler(
         `게스트 신청은 성공했지만 SMS 전송에 실패했습니다. 게스트: ${name}`
       );
     }
+    // # 이메일, SMS 전송 과정 end
 
     // 모든 알림 전송 시도 (실패해도 전체 요청은 성공)
     try {
