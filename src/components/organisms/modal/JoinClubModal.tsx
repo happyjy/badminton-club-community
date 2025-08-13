@@ -218,9 +218,9 @@ function JoinClubModal({
             onBack={handleClosePhoneVerification}
             // 전화번호 인증 관련 props 전달
             // phone verification state
-            phoneVerificationStatus={phoneVerificationStatus}
-            phoneVerificationLoading={phoneVerificationLoading}
-            phoneVerificationError={phoneVerificationError}
+            phoneVerificationStatus={phoneVerificationStatus || null}
+            phoneVerificationLoading={phoneVerificationLoading || false}
+            phoneVerificationError={phoneVerificationError || null}
             // phone verification functions
             checkPhoneVerificationStatus={checkPhoneVerificationStatus}
             sendPhoneVerificationCode={sendPhoneVerificationCode}
