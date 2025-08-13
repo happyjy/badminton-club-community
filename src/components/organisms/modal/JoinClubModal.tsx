@@ -199,7 +199,7 @@ function JoinClubModal({
   const maxBirthDate = today;
 
   // 방문 날짜 범위 설정 (isClubMember에 따라 오늘 날짜 또는 내일 날짜 ~ 1년 후)
-  const minVisitDate = getVisitDate(isClubMember);
+  const minVisitDate = new Date(getVisitDate(isClubMember));
   const maxVisitDate = new Date(
     today.getFullYear() + 1,
     today.getMonth(),
