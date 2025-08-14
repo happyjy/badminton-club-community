@@ -3,10 +3,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { getSession } from '@/lib/session';
 
+// 댓글 목록 조회 및 작성
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  console.log(
+    `🌸 ~ handler ~ src/pages/api/clubs/[id]/guests/[guestId]/comments/index.ts`
+  );
   const session = await getSession(req);
 
   if (!session) {
