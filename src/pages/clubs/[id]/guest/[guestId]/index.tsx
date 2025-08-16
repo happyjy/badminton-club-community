@@ -235,7 +235,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         requestData
       );
       // 서버로부터 받은 새 댓글을 기존 댓글 배열에 추가 (낙관적 업데이트)
-      const newComment = response.data.data; // API 응답 구조에 맞게 수정
+      const newComment = response.data.comment;
       setComments((prevComments) => [...prevComments, newComment]);
       toast.success('댓글이 작성되었습니다');
 
@@ -274,7 +274,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         requestData
       );
       // 로컬에서 댓글 업데이트 (낙관적 업데이트)
-      const updatedComment = response.data.data; // API 응답 구조에 맞게 수정
+      const updatedComment = response.data.comment;
       setComments((prevComments) =>
         prevComments.map((comment) =>
           comment.id === commentId ? updatedComment : comment
