@@ -22,6 +22,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // 인증 실패 시 자동으로 로그인 페이지로 리다이렉트
+    if (error.response?.status === 401) {
+      // 클라이언트 사이드에서만 리다이렉트
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login';
+      }
+    }
+    
     // 에러 처리 공통 로직
     return Promise.reject(error);
   }

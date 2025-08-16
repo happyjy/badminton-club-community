@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
+import { getSession } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { getMonthRange } from '@/utils/date';
 import { sortRankingByCountAndId } from '@/utils/sort';
@@ -25,6 +26,15 @@ export default async function handler(
     return res.status(405).json({
       error: '허용되지 않는 메소드입니다',
       status: 405,
+    });
+  }
+
+  // 인증 체크
+  const user = await getSession(req);
+  if (!user) {
+    return res.status(401).json({ 
+      error: '인증이 필요합니다',
+      status: 401 
     });
   }
 

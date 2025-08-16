@@ -15,6 +15,7 @@ const schemaFiles = [
   'guest.prisma',
   'clubCustomSetting.prisma',
   'phoneVerification.prisma',
+  'smsNotificationLog.prisma',
 ];
 
 let finalSchema = '';
