@@ -124,37 +124,37 @@ export async function sendSMS(to: string, content: string): Promise<any> {
     ],
   };
 
-  // try {
-  //   const fullUrl = `${SENS_API_URL}${url}`;
-  //   console.log('SMS API 요청 URL:', fullUrl);
-  //   console.log('SMS API 요청 헤더:', headers);
-  //   console.log('SMS API 요청 바디:', body);
+  try {
+    const fullUrl = `${SENS_API_URL}${url}`;
+    console.log('SMS API 요청 URL:', fullUrl);
+    console.log('SMS API 요청 헤더:', headers);
+    console.log('SMS API 요청 바디:', body);
 
-  //   const response = await axios.post(fullUrl, body, { headers });
+    const response = await axios.post(fullUrl, body, { headers });
 
-  //   console.log('SMS API 응답:', response.data);
+    console.log('SMS API 응답:', response.data);
 
-  //   if (response.data.statusCode === '202') {
-  //     return {
-  //       success: true,
-  //       requestId: response.data.requestId,
-  //       statusCode: response.data.statusCode,
-  //       statusName: response.data.statusName,
-  //     };
-  //   } else {
-  //     throw new Error(`SMS 전송 실패: ${response.data.statusName}`);
-  //   }
-  // } catch (error) {
-  //   // axios 에러 타입으로 캐스팅하여 안전하게 접근
-  //   const axiosError = error as any;
-  //   console.error('SMS 전송 오류 상세:', {
-  //     error: error,
-  //     response: axiosError.response?.data,
-  //     status: axiosError.response?.status,
-  //     statusText: axiosError.response?.statusText,
-  //   });
-  //   throw error;
-  // }
+    if (response.data.statusCode === '202') {
+      return {
+        success: true,
+        requestId: response.data.requestId,
+        statusCode: response.data.statusCode,
+        statusName: response.data.statusName,
+      };
+    } else {
+      throw new Error(`SMS 전송 실패: ${response.data.statusName}`);
+    }
+  } catch (error) {
+    // axios 에러 타입으로 캐스팅하여 안전하게 접근
+    const axiosError = error as any;
+    console.error('SMS 전송 오류 상세:', {
+      error: error,
+      response: axiosError.response?.data,
+      status: axiosError.response?.status,
+      statusText: axiosError.response?.statusText,
+    });
+    throw error;
+  }
 }
 
 // 게스트 신청 SMS 메시지 생성

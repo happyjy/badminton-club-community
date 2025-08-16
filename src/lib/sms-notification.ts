@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 import { NotificationType } from '@/types/sms.types';
 
-import { sendSms } from './sms';
+import { sendSMS } from './sms';
 
 const prisma = new PrismaClient();
 
@@ -14,13 +14,12 @@ export async function checkSmsNotificationSent(
   userId: number,
   notificationType: NotificationType
 ): Promise<boolean> {
-  const existingLog = await prisma.smsNotificationLog.findUnique({
+  // 스키마에 맞게 쿼리 수정: 복합 인덱스 대신 개별 필드로 조회
+  const existingLog = await prisma.smsNotificationLog.findFirst({
     where: {
-      guestPostId_userId_notificationType: {
         guestPostId,
         userId,
         notificationType,
-      },
     },
   });
 
@@ -168,22 +167,18 @@ export async function getSmsNotificationStatus(
   commentAddedSmsSent: boolean;
 }> {
   const [statusUpdateLog, commentAddedLog] = await Promise.all([
-    prisma.smsNotificationLog.findUnique({
+    prisma.smsNotificationLog.findFirst({
       where: {
-        guestPostId_userId_notificationType: {
           guestPostId,
           userId,
           notificationType: NotificationType.STATUS_UPDATE,
-        },
       },
     }),
-    prisma.smsNotificationLog.findUnique({
+    prisma.smsNotificationLog.findFirst({
       where: {
-        guestPostId_userId_notificationType: {
           guestPostId,
           userId,
           notificationType: NotificationType.COMMENT_ADDED,
-        },
       },
     }),
   ]);
