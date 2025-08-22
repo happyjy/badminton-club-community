@@ -7,10 +7,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  console.log(
-    `🌸 ~ handler ~ src/pages/api/clubs/[clubId]/guests/[guestId]/comments/index.ts`
-  );
-
   const { id, guestId } = req.query;
 
   if (!id || !guestId) {
@@ -100,15 +96,11 @@ export default async function handler(
           where: { id: guestId as string },
           select: { userId: true },
         });
-        console.log(`🌸 ~ handler ~ guestPost:`, guestPost);
 
         if (guestPost) {
           // 댓글 작성자가 게시글 작성자와 다른 경우 SMS 전송
           const commentUserId = userId || clubMemberId;
           if (commentUserId && commentUserId !== guestPost.userId) {
-            console.log(`🌸 ~ handler ~ guestId:`, guestId);
-            console.log(`🌸 ~ handler ~ guestPost:`, guestPost);
-            console.log(`🌸 ~ handler ~ commentUserId:`, commentUserId);
             try {
               await sendCommentAddedSms(
                 guestId as string,

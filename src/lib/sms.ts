@@ -67,7 +67,6 @@ function validateAndCleanPhoneNumber(phoneNumber: string): string {
 
 // SMS 전송 함수
 export async function sendSMS(to: string, content: string): Promise<any> {
-  console.trace(`🌸 ~ sendSMS ~ to, content:`, to, content);
   validateSensConfig();
 
   // 환경변수 검증 후 타입 단언으로 타입 에러 해결
