@@ -311,7 +311,7 @@ model SmsNotificationLog {
   guestPost          GuestPost          @relation(fields: [guestPostId], references: [id], onDelete: Cascade)
   user               User               @relation(fields: [userId], references: [id])
 
-  @@unique([guestPostId, userId]) // 중복 전송 방지 (notificationType 제외)
+  @@unique([guestPostId, userId, notificationType]) // 중복 전송 방지(guestPostId, userId, notificationType 필드가 모두 같은 경우 중복 전송 방지)
   @@index([guestPostId])
   @@index([userId])
 }
