@@ -17,9 +17,9 @@ export async function checkSmsNotificationSent(
   // 스키마에 맞게 쿼리 수정: 복합 인덱스 대신 개별 필드로 조회
   const existingLog = await prisma.smsNotificationLog.findFirst({
     where: {
-        guestPostId,
-        userId,
-        notificationType,
+      guestPostId,
+      userId,
+      notificationType,
     },
   });
 
@@ -80,7 +80,7 @@ export async function sendStatusUpdateSms(
     const message = `[배드민턴 클럽] 게스트 신청이 ${statusText}되었습니다.`;
 
     // SMS 전송
-    await sendSms(user.phoneNumber, message);
+    await sendSMS(user.phoneNumber, message);
 
     // 전송 로그 생성
     await createSmsNotificationLog(
@@ -139,7 +139,7 @@ export async function sendCommentAddedSms(
       '[배드민턴 클럽] 게스트 신청 게시글에 새로운 댓글이 작성되었습니다.';
 
     // SMS 전송
-    await sendSms(user.phoneNumber, message);
+    await sendSMS(user.phoneNumber, message);
 
     // 전송 로그 생성
     await createSmsNotificationLog(
@@ -169,16 +169,16 @@ export async function getSmsNotificationStatus(
   const [statusUpdateLog, commentAddedLog] = await Promise.all([
     prisma.smsNotificationLog.findFirst({
       where: {
-          guestPostId,
-          userId,
-          notificationType: NotificationType.STATUS_UPDATE,
+        guestPostId,
+        userId,
+        notificationType: NotificationType.STATUS_UPDATE,
       },
     }),
     prisma.smsNotificationLog.findFirst({
       where: {
-          guestPostId,
-          userId,
-          notificationType: NotificationType.COMMENT_ADDED,
+        guestPostId,
+        userId,
+        notificationType: NotificationType.COMMENT_ADDED,
       },
     }),
   ]);
