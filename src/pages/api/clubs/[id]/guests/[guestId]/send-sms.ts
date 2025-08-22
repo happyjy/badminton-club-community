@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import {
@@ -33,9 +34,7 @@ export default async function handler(
     // }
 
     // 게스트 신청 게시글 정보 조회
-    const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
-
     const guestPost = await prisma.guestPost.findUnique({
       where: { id: guestId as string },
       select: { userId: true, status: true },

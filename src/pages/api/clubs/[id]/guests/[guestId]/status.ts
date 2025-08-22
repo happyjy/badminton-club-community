@@ -1,4 +1,4 @@
-import { GuestStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendStatusUpdateSms } from '@/lib/sms-notification';
@@ -30,9 +30,7 @@ export default async function handler(
     // }
 
     // 게스트 신청 상태 업데이트
-    const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
-
     const updatedGuestPost = await prisma.guestPost.update({
       where: { id: guestId as string },
       data: {

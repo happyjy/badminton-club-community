@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendCommentAddedSms } from '@/lib/sms-notification';
@@ -17,7 +18,6 @@ export default async function handler(
   }
 
   try {
-    const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
 
     switch (req.method) {
