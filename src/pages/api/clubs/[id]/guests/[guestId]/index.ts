@@ -6,6 +6,7 @@ import { sendCommentAddedSms } from '@/lib/sms-notification';
 
 const prisma = new PrismaClient();
 
+// 게스트 신청 게시글 조회, 생성, 수정, 삭제 API
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -39,7 +40,7 @@ export default async function handler(
 
   // HTTP 메서드에 따라 처리
   switch (req.method) {
-    case 'GET':
+    case 'GET': // 게스트 신청 게시글 조회
       try {
         // 게스트 신청과 댓글 목록을 함께 조회
         const [guestPostWithDetails, comments] = await Promise.all([
@@ -117,7 +118,7 @@ export default async function handler(
         return res.status(500).json({ message: '서버 오류가 발생했습니다' });
       }
 
-    case 'POST':
+    case 'POST': // 댓글 생성
       try {
         // 댓글 생성
         const { content, parentId } = req.body;
@@ -154,8 +155,8 @@ export default async function handler(
           try {
             await sendCommentAddedSms(guestId, guestPost.userId, session.id);
           } catch (smsError) {
-            console.error('Failed to send SMS notification:', smsError);
             // SMS 전송 실패는 전체 요청을 실패시키지 않음
+            console.error('Failed to send SMS notification:', smsError);
           }
         }
 

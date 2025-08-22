@@ -7,6 +7,7 @@ import {
 } from '@/lib/sms-notification';
 import { NotificationType } from '@/types/sms.types';
 
+// 게스트 신청 게시글의 SMS 전송 API
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse

@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { getSmsNotificationStatus } from '@/lib/sms-notification';
 
+// 게스트 신청 게시글의 SMS 전송 상태 조회 API
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
