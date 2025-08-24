@@ -27,8 +27,8 @@ export default async function handler(
     });
   }
 
-  const { id } = req.query;
-  if (!id || Array.isArray(id)) {
+  const { workoutId } = req.query;
+  if (!workoutId || Array.isArray(workoutId)) {
     return res.status(400).json({
       error: '잘못된 workout ID입니다',
       status: 400,
@@ -65,7 +65,7 @@ export default async function handler(
 
       await prisma.workoutParticipant.create({
         data: {
-          workoutId: Number(id),
+          workoutId: Number(workoutId),
           userId: Number(session.id),
           clubMemberId: Number(clubMember.id),
           status: Status.PENDING,
@@ -81,7 +81,7 @@ export default async function handler(
       await prisma.workoutParticipant.delete({
         where: {
           workoutId_userId: {
-            workoutId: Number(id),
+            workoutId: Number(workoutId),
             userId: Number(session.id),
           },
         },
