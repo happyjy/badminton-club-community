@@ -29,7 +29,7 @@ api.interceptors.response.use(
         window.location.href = '/auth/login';
       }
     }
-    
+
     // 에러 처리 공통 로직
     return Promise.reject(error);
   }

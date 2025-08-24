@@ -32,9 +32,9 @@ export default async function handler(
   // 인증 체크
   const user = await getSession(req);
   if (!user) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       error: '인증이 필요합니다',
-      status: 401 
+      status: 401,
     });
   }
 
