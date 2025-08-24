@@ -22,3 +22,8 @@ enum GuestPostType {
   INQUIRY_REQUEST  // 문의하기 요청(현재 사용하지 않고 있음, 추후 사용 예정)
   JOIN_INQUIRY_REQUEST  // 가입 문의하기 요청
 }
+
+enum NotificationType {
+  STATUS_UPDATE    // 승인/거절 상태 업데이트
+  COMMENT_ADDED    // 댓글 추가
+}

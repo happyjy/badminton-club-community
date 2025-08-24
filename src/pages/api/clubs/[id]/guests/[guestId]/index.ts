@@ -2,9 +2,11 @@ import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { getSession } from '@/lib/session';
+import { sendCommentAddedSms } from '@/lib/sms-notification';
 
 const prisma = new PrismaClient();
 
+// 게스트 신청 게시글 조회, 생성, 수정, 삭제 API
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -36,28 +38,159 @@ export default async function handler(
     return res.status(404).json({ message: '게스트 신청을 찾을 수 없습니다' });
   }
 
-  // 해당 게시물의 작성자인지 확인
-  if (guestPost.userId !== session.id) {
-    return res
-      .status(403)
-      .json({ message: '본인의 게시물만 수정/삭제할 수 있습니다' });
-  }
-
   // HTTP 메서드에 따라 처리
   switch (req.method) {
-    case 'GET':
+    case 'GET': // 게스트 신청 게시글 조회
       try {
+        // 게스트 신청과 댓글 목록을 함께 조회
+        const [guestPostWithDetails, comments] = await Promise.all([
+          prisma.guestPost.findUnique({
+            where: { id: guestId },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  thumbnailImageUrl: true,
+                },
+              },
+              clubMember: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          }),
+          prisma.guestComment.findMany({
+            where: {
+              postId: guestId,
+              isDeleted: false,
+            },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                },
+              },
+              clubMember: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'asc',
+            },
+          }),
+        ]);
+
+        // 댓글 데이터 포맷팅
+        const formattedComments = comments.map((comment) => ({
+          id: comment.id,
+          content: comment.content,
+          createdAt: comment.createdAt.toISOString(),
+          author: comment.user
+            ? {
+                id: comment.user.id,
+                name: comment.user.nickname,
+              }
+            : comment.clubMember
+              ? {
+                  id: comment.clubMember.id,
+                  name: comment.clubMember.name,
+                }
+              : null,
+          isDeleted: comment.isDeleted,
+        }));
+
         return res.status(200).json({
           message: '게스트 신청 조회 성공',
-          data: { guestPost },
+          data: {
+            guestPost: guestPostWithDetails,
+            comments: formattedComments,
+          },
         });
       } catch (error) {
         console.error('게스트 신청 조회 실패:', error);
         return res.status(500).json({ message: '서버 오류가 발생했습니다' });
       }
 
+    case 'POST': // 댓글 생성
+      try {
+        // 댓글 생성
+        const { content, parentId } = req.body;
+
+        if (!content) {
+          return res.status(400).json({ message: '댓글 내용이 필요합니다' });
+        }
+
+        if (content.length > 1000) {
+          return res
+            .status(400)
+            .json({ message: '댓글은 1000자 이하여야 합니다' });
+        }
+
+        const newComment = await prisma.guestComment.create({
+          data: {
+            postId: guestId,
+            userId: session.id,
+            content,
+            parentId: parentId || null,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                nickname: true,
+              },
+            },
+          },
+        });
+
+        // 댓글 작성자가 게시글 작성자와 다른 경우 SMS 전송
+        if (session.id !== guestPost.userId) {
+          try {
+            await sendCommentAddedSms(guestId, guestPost.userId, session.id);
+          } catch (smsError) {
+            // SMS 전송 실패는 전체 요청을 실패시키지 않음
+            console.error('Failed to send SMS notification:', smsError);
+          }
+        }
+
+        const formattedComment = {
+          id: newComment.id,
+          content: newComment.content,
+          createdAt: newComment.createdAt.toISOString(),
+          author: newComment.user
+            ? {
+                id: newComment.user.id,
+                name: newComment.user.nickname,
+              }
+            : null,
+          isDeleted: newComment.isDeleted,
+        };
+
+        return res.status(201).json({
+          message: '댓글이 작성되었습니다',
+          data: { comment: formattedComment },
+        });
+      } catch (error) {
+        console.error('댓글 작성 실패:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다' });
+      }
+
     case 'PUT': // 수정된 게스트 신청 정보 업데이트
       try {
+        // 해당 게시물의 작성자인지 확인
+        if (guestPost.userId !== session.id) {
+          return res
+            .status(403)
+            .json({ message: '본인의 게시물만 수정할 수 있습니다' });
+        }
+
         const {
           name,
           birthDate,
@@ -111,6 +244,13 @@ export default async function handler(
 
     case 'DELETE': // 게스트 신청 삭제
       try {
+        // 해당 게시물의 작성자인지 확인
+        if (guestPost.userId !== session.id) {
+          return res
+            .status(403)
+            .json({ message: '본인의 게시물만 삭제할 수 있습니다' });
+        }
+
         await prisma.guestPost.delete({
           where: {
             id: guestId,

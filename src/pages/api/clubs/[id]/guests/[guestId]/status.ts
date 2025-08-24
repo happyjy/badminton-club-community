@@ -2,9 +2,9 @@ import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { getSession } from '@/lib/session';
+import { sendStatusUpdateSms } from '@/lib/sms-notification';
 
-const prisma = new PrismaClient();
-
+// 게스트 신청 상태 변경 API
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -45,6 +45,7 @@ export default async function handler(
     const now = new Date();
 
     // 게스트 신청 상태 업데이트
+    const prisma = new PrismaClient();
     const updatedGuestPost = await prisma.guestPost.update({
       where: {
         id: guestId as string,
@@ -55,7 +56,32 @@ export default async function handler(
         updatedBy: session.id,
         updatedAt: now,
       },
+      select: {
+        id: true,
+        userId: true,
+        status: true,
+        user: {
+          select: { phoneNumber: true },
+        },
+      },
     });
+
+    // 승인/거절 상태로 변경된 경우 SMS 전송
+    if (status === 'APPROVED' || status === 'REJECTED') {
+      try {
+        await sendStatusUpdateSms(
+          guestId as string,
+          updatedGuestPost.userId,
+          status as 'APPROVED' | 'REJECTED'
+        );
+      } catch (smsError) {
+        // SMS 전송 실패는 전체 요청을 실패시키지 않음
+        console.error(
+          'Failed to send SMS notification from status.ts:',
+          smsError
+        );
+      }
+    }
 
     return res.status(200).json({
       success: true,

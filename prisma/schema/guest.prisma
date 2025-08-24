@@ -1,34 +1,35 @@
 // 게스트 신청 게시글
 model GuestPost {
-  id                       String         @id @default(cuid()) 
-  clubId                   Int                                    // 게스트 신청한 클럽 ID
-  userId                   Int                                    // 게스트 신청한 유저 ID
-  postType                 GuestPostType  @default(GUEST_REQUEST) // 게시글 타입 (게스트 요청 또는 문의하기 요청)
-  name                     String
-  birthDate                String         @default("")
-  phoneNumber              String
-  gender                   String         @default("")            // 성별 필드 추가
-  localTournamentLevel     String         @default("")
-  nationalTournamentLevel  String         @default("")
-  lessonPeriod             String         @default("")
-  playingPeriod            String         @default("")
-  status                   GuestStatus    @default(PENDING)
-  // 클럽 가입 필드에서 게스트 신청시 추가 된 필드
-  intendToJoin             Boolean        @default(false)
-  visitDate                String         @default("")
-  message                  String         @default("")
-  // 게스트 신청 게시글 작성자
-  createdBy                Int?
-  createdAt                DateTime       @default(now())
-  // 업데이트 
-  updatedBy                Int            @default(0)
-  updatedAt                DateTime       @default(now()) @updatedAt
-  
-  // Relations
-  club                     Club           @relation(fields: [clubId], references: [id]) // 게스트 신청 게시글 작성 클럽
-  user                     User           @relation(fields: [userId], references: [id]) // 게스트 신청 게시글 작성자
-  clubMember               ClubMember?    @relation("CreatedByClubMember", fields: [createdBy], references: [id]) // 게스트 신청 게시글 작성자 클럽 멤버
+  id                       String                @id @default(cuid()) 
+  clubId                   Int                                           // 게스트 신청한 클럽 ID
+  userId                   Int                                           // 게스트 신청한 유저 ID
+  postType                 GuestPostType         @default(GUEST_REQUEST) // 게시글 타입 (게스트 요청 또는 문의하기 요청)
+  name                     String       
+  birthDate                String                @default("")
+  phoneNumber              String       
+  gender                   String                @default("")            // 성별 필드 추가
+  localTournamentLevel     String                @default("")
+  nationalTournamentLevel  String                @default("")
+  lessonPeriod             String                @default("")
+  playingPeriod            String                @default("")
+  status                   GuestStatus           @default(PENDING)
+  // 클럽 가입 필드에서 게스트 신청시 추가        된 필드
+  intendToJoin             Boolean               @default(false)
+  visitDate                String                @default("")
+  message                  String                @default("")
+  // 게스트 신청 게시글 작성자       
+  createdBy                Int?       
+  createdAt                DateTime              @default(now())
+  // 업데이트        
+  updatedBy                Int                   @default(0)
+  updatedAt                DateTime              @default(now()) @updatedAt
+        
+  // Relations       
+  club                     Club                  @relation(fields: [clubId], references: [id]) // 게스트 신청 게시글 작성 클럽
+  user                     User                  @relation(fields: [userId], references: [id]) // 게스트 신청 게시글 작성자
+  clubMember               ClubMember?           @relation("CreatedByClubMember", fields: [createdBy], references: [id]) // 게스트 신청 게시글 작성자 클럽 멤버
   comments                 GuestComment[]
+  smsNotificationLogs      SmsNotificationLog[] // SMS 알림 로그 관계 추가
 
   @@index([clubId])
   @@index([userId])
@@ -48,7 +49,7 @@ model GuestComment {
   updatedAt     DateTime        @default(now()) @updatedAt
   
   // Relations
-  user          User?            @relation(fields: [userId], references: [id])
+  user          User?           @relation(fields: [userId], references: [id])
   clubMember    ClubMember?     @relation(fields: [clubMemberId], references: [id])
   post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
   parent        GuestComment?   @relation("CommentToComment", fields: [parentId], references: [id])

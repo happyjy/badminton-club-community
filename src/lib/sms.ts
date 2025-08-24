@@ -50,6 +50,21 @@ function generateSignature(
   return signature;
 }
 
+// 전화번호 형식 검증 및 정리 함수
+function validateAndCleanPhoneNumber(phoneNumber: string): string {
+  // 숫자만 추출
+  const cleaned = phoneNumber.replace(/[^0-9]/g, '');
+
+  // 한국 전화번호 형식 검증 (010, 011, 016, 017, 018, 019로 시작하는 10-11자리)
+  const phoneRegex = /^(01[0-9])\d{7,8}$/;
+
+  if (!phoneRegex.test(cleaned)) {
+    throw new Error(`유효하지 않은 전화번호 형식입니다: ${phoneNumber}`);
+  }
+
+  return cleaned;
+}
+
 // SMS 전송 함수
 export async function sendSMS(to: string, content: string): Promise<any> {
   validateSensConfig();
@@ -60,6 +75,10 @@ export async function sendSMS(to: string, content: string): Promise<any> {
   const secretKey = SENS_SECRET_KEY as string;
   const fromNumber = SENS_FROM_NUMBER as string;
 
+  // 발신번호 형식 검증 및 정리
+  const cleanedFromNumber = validateAndCleanPhoneNumber(fromNumber);
+  const cleanedToNumber = validateAndCleanPhoneNumber(to);
+
   const timestamp = Date.now().toString();
   const method = 'POST';
   const url = `/sms/v2/services/${serviceId}/messages`;
@@ -67,8 +86,8 @@ export async function sendSMS(to: string, content: string): Promise<any> {
   // 디버깅을 위한 로그
   console.log('SMS 전송 설정:', {
     serviceId: serviceId,
-    fromNumber: fromNumber,
-    to: to,
+    fromNumber: cleanedFromNumber,
+    to: cleanedToNumber,
     content: content,
     url: url,
   });
@@ -95,11 +114,11 @@ export async function sendSMS(to: string, content: string): Promise<any> {
     type: 'SMS',
     contentType: 'COMM',
     countryCode: '82',
-    from: fromNumber,
+    from: cleanedFromNumber,
     content: content,
     messages: [
       {
-        to: to.replace(/-/g, ''), // 하이픈 제거
+        to: cleanedToNumber,
       },
     ],
   };

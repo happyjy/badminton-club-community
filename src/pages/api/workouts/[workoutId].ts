@@ -16,14 +16,14 @@ export default async function handler(
     });
   }
 
-  const { id } = req.query;
-  const workoutId = Number(id);
+  const { workoutId } = req.query;
+  const workoutIdNum = Number(workoutId);
   const prisma = new PrismaClient();
 
   try {
     const workout = await prisma.workout.findUnique({
       where: {
-        id: workoutId,
+        id: workoutIdNum,
       },
       include: {
         // helperStatuses: true, // WorkoutHelperStatus 전체가 조회 됨
@@ -40,7 +40,7 @@ export default async function handler(
               include: {
                 helperStatuses: {
                   where: {
-                    workoutId,
+                    workoutId: workoutIdNum,
                   },
                   orderBy: {
                     createdAt: 'asc',

@@ -215,11 +215,24 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
 
     setIsCommenting(true);
     try {
+      const requestData: {
+        content: string;
+        userId?: number;
+        clubMemberId?: number;
+      } = {
+        content,
+      };
+
+      // 사용자 유형에 따라 적절한 ID 설정
+      if (user?.id) {
+        requestData.userId = user.id;
+      } else if (clubMember?.id) {
+        requestData.clubMemberId = clubMember.id;
+      }
+
       const response = await axios.post(
         `/api/clubs/${clubId}/guests/${guestId}/comments`,
-        {
-          content,
-        }
+        requestData
       );
       // 서버로부터 받은 새 댓글을 기존 댓글 배열에 추가 (낙관적 업데이트)
       const newComment = response.data.comment;
@@ -241,11 +254,24 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
 
     setIsCommenting(true);
     try {
+      const requestData: {
+        content: string;
+        userId?: number;
+        clubMemberId?: number;
+      } = {
+        content,
+      };
+
+      // 사용자 유형에 따라 적절한 ID 설정
+      if (user?.id) {
+        requestData.userId = user.id;
+      } else if (clubMember?.id) {
+        requestData.clubMemberId = clubMember.id;
+      }
+
       const response = await axios.put(
         `/api/clubs/${clubId}/guests/${guestId}/comments/${commentId}`,
-        {
-          content,
-        }
+        requestData
       );
       // 로컬에서 댓글 업데이트 (낙관적 업데이트)
       const updatedComment = response.data.comment;

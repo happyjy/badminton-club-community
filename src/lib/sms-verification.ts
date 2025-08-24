@@ -14,13 +14,22 @@ export function calculateExpiryTime(): Date {
 
 // 전화번호 형식 검증
 export function validatePhoneNumber(phoneNumber: string): boolean {
-  const phoneRegex = /^01[0-9]-[0-9]{3,4}-[0-9]{4}$/;
-  return phoneRegex.test(phoneNumber);
+  // 하이픈 제거 후 검증
+  const cleaned = phoneNumber.replace(/-/g, '');
+  const phoneRegex = /^01[0-9][0-9]{7,8}$/;
+  return phoneRegex.test(cleaned);
 }
 
-// 전화번호 정규화 (하이픈 제거)
+// 전화번호 정규화 (하이픈 제거 및 형식 검증)
 export function normalizePhoneNumber(phoneNumber: string): string {
-  return phoneNumber.replace(/-/g, '');
+  const cleaned = phoneNumber.replace(/-/g, '');
+
+  // 형식 검증
+  if (!validatePhoneNumber(phoneNumber)) {
+    throw new Error(`유효하지 않은 전화번호 형식입니다: ${phoneNumber}`);
+  }
+
+  return cleaned;
 }
 
 // 사용자의 기존 인증된 전화번호 확인

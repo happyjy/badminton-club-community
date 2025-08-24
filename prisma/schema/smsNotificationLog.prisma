@@ -1,0 +1,16 @@
+// SMS 알림 로그
+model SmsNotificationLog {
+  id                 Int                @id @default(autoincrement())
+  guestPostId        String             // 게스트 신청 게시글 ID
+  userId             Int                // 문자를 받을 사용자 ID
+  notificationType   NotificationType   // 알림 타입
+  sentAt             DateTime           @default(now())
+
+  // Relations
+  guestPost          GuestPost          @relation(fields: [guestPostId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id])
+
+  @@unique([guestPostId, userId, notificationType]) // 중복 전송 방지(guestPostId, userId, notificationType 필드가 모두 같은 경우 중복 전송 방지)
+  @@index([guestPostId])
+  @@index([userId])
+}

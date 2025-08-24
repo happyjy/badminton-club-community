@@ -14,7 +14,7 @@ export default async function handler(
   res: NextApiResponse<ApiResponse<'helperStatus', HelperStatus>>
 ) {
   const session = await getSession(req);
-  const workoutId = req.query.id;
+  const workoutId = req.query.workoutId;
   const { iconType, isSelected, targetUserId, clubMemberId } = req.body;
 
   if (!session || !workoutId || !iconType || !targetUserId || !clubMemberId) {
