@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Button } from '@/components/atoms/buttons/Button';
 
-import { useSmsNotification } from '@/hooks/useSmsNotification';
+import useSmsNotification from '@/hooks/useSmsNotification';
 
 import { NotificationType } from '@/types/sms.types';
 

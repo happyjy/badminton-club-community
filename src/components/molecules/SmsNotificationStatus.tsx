@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Label } from '@/components/atoms/Label';
 import { Spinner } from '@/components/atoms/Spinner';
 
-import { useSmsNotification } from '@/hooks/useSmsNotification';
+import useSmsNotification from '@/hooks/useSmsNotification';
 
 interface SmsNotificationStatusProps {
   clubId: string;
