@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
 import { ClubWithDetails, ApiResponse } from '@/types';
-import { Role, Status } from '@/types/enums';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -21,18 +20,16 @@ export default async function handler(
 
   try {
     /**
-      members 는 클럽 멤버 목록을 가져오는 것이고
-      user 는 클럽 멤버의 유저 정보를 가져오는 것이다.
+      클럽 목록과 각 클럽의 APPROVED 상태 멤버 수를 조회합니다.
+      성능 최적화를 위해 전체 멤버 정보 대신 카운트만 가져옵니다.
      */
     const rawClubs = await prisma.club.findMany({
       include: {
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                nickname: true,
-                thumbnailImageUrl: true,
+        _count: {
+          select: {
+            members: {
+              where: {
+                status: 'APPROVED',
               },
             },
           },
@@ -44,20 +41,17 @@ export default async function handler(
     });
 
     const clubs: ClubWithDetails[] = rawClubs.map((club) => ({
-      ...club,
-      members: club.members.map((member) => ({
-        ...member,
-        role: member.role as Role,
-        status: member.status as Status,
-        name: member.name ?? undefined,
-        birthDate: member.birthDate ?? undefined,
-        gender: member.gender ?? undefined,
-        localTournamentLevel: member.localTournamentLevel ?? undefined,
-        nationalTournamentLevel: member.nationalTournamentLevel ?? undefined,
-        lessonPeriod: member.lessonPeriod ?? undefined,
-        playingPeriod: member.playingPeriod ?? undefined,
-        user: member.user,
-      })),
+      id: club.id,
+      name: club.name,
+      description: club.description,
+      location: club.location,
+      meetingTime: club.meetingTime,
+      maxMembers: club.maxMembers,
+      etc: club.etc,
+      createdAt: club.createdAt,
+      updatedAt: club.updatedAt,
+      approvedMemberCount: club._count.members,
+      members: [], // 빈 배열로 초기화 (필요시 별도 API에서 조회)
     }));
 
     return res.status(200).json({

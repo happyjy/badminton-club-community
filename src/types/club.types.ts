@@ -63,6 +63,7 @@ export interface Club extends BaseEntity {
   maxMembers: number;
   etc?: string | null;
   members?: ClubMember[];
+  approvedMemberCount?: number;
 }
 
 // 상세 정보가 포함된 클럽 타입
