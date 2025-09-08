@@ -79,6 +79,42 @@ export function useParticipantSort({
         return collator.compare(nameA, nameB);
       };
 
+      // 레벨 정렬 공통 함수
+      const sortByLevel = (
+        a: SortableItem,
+        b: SortableItem,
+        levelField: 'localTournamentLevel' | 'nationalTournamentLevel',
+        fallbackSort: (a: SortableItem, b: SortableItem) => number
+      ): number => {
+        if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
+          const levelA = a.clubMember[levelField] || 'Z';
+          const levelB = b.clubMember[levelField] || 'Z';
+          return levelA === levelB
+            ? fallbackSort(a, b)
+            : levelA.localeCompare(levelB);
+        }
+        return 0;
+      };
+
+      // 생년월일 정렬 함수
+      const sortByBirthDate = (a: SortableItem, b: SortableItem) => {
+        if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
+          const dateA = a.clubMember.birthDate || '';
+          const dateB = b.clubMember.birthDate || '';
+          return dateA === dateB
+            ? sortByGenderAndName(a, b)
+            : dateA.localeCompare(dateB);
+        }
+        return 0;
+      };
+
+      // 생성일 정렬 함수
+      const sortByCreatedAt = (a: SortableItem, b: SortableItem) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateA === dateB ? sortByGenderAndName(a, b) : dateA - dateB;
+      };
+
       // 성별 → 이름 순으로 정렬하는 함수
       const sortByGenderAndName = (a: SortableItem, b: SortableItem) => {
         const genderResult = sortByGender(a, b);
@@ -94,14 +130,7 @@ export function useParticipantSort({
         if (genderResult !== 0) return genderResult;
 
         // 성별이 같으면 전국대회 레벨로 정렬
-        if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
-          const levelA = a.clubMember.nationalTournamentLevel || 'Z';
-          const levelB = b.clubMember.nationalTournamentLevel || 'Z';
-          return levelA === levelB
-            ? sortByName(a, b)
-            : levelA.localeCompare(levelB);
-        }
-        return 0;
+        return sortByLevel(a, b, 'nationalTournamentLevel', sortByName);
       };
 
       switch (option) {
@@ -110,44 +139,17 @@ export function useParticipantSort({
         case 'gender':
           return sorted.sort(sortByGenderAndNationalLevel);
         case 'localLevel':
-          return sorted.sort((a, b) => {
-            if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
-              const levelA = a.clubMember.localTournamentLevel || 'Z';
-              const levelB = b.clubMember.localTournamentLevel || 'Z';
-              return levelA === levelB
-                ? sortByGenderAndName(a, b)
-                : levelA.localeCompare(levelB);
-            }
-            return 0;
-          });
+          return sorted.sort((a, b) =>
+            sortByLevel(a, b, 'localTournamentLevel', sortByGenderAndName)
+          );
         case 'nationalLevel':
-          return sorted.sort((a, b) => {
-            if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
-              const levelA = a.clubMember.nationalTournamentLevel || 'Z';
-              const levelB = b.clubMember.nationalTournamentLevel || 'Z';
-              return levelA === levelB
-                ? sortByGenderAndName(a, b)
-                : levelA.localeCompare(levelB);
-            }
-            return 0;
-          });
+          return sorted.sort((a, b) =>
+            sortByLevel(a, b, 'nationalTournamentLevel', sortByGenderAndName)
+          );
         case 'birthDate':
-          return sorted.sort((a, b) => {
-            if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
-              const dateA = a.clubMember.birthDate || '';
-              const dateB = b.clubMember.birthDate || '';
-              return dateA === dateB
-                ? sortByGenderAndName(a, b)
-                : dateA.localeCompare(dateB);
-            }
-            return 0;
-          });
+          return sorted.sort(sortByBirthDate);
         case 'createdAt':
-          return sorted.sort((a, b) => {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return dateA === dateB ? sortByGenderAndName(a, b) : dateA - dateB;
-          });
+          return sorted.sort(sortByCreatedAt);
         default:
           return sorted;
       }
