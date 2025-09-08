@@ -5,7 +5,8 @@ export type SortOption =
   | 'localLevel'
   | 'nationalLevel'
   | 'name'
-  | 'birthDate';
+  | 'birthDate'
+  | 'gender';
 
 export interface ParticipantSortState {
   sortOption: SortOption;
