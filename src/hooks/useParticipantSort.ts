@@ -56,6 +56,22 @@ export function useParticipantSort({
       const sorted = [...participantsToSort];
       const collator = new Intl.Collator('ko-KR', { sensitivity: 'base' });
 
+      // 성별 우선순위 정의 (남성 > 여성 > 기타)
+      const getGenderPriority = (gender: string): number => {
+        if (gender === '남성') return 1;
+        if (gender === '여성') return 2;
+        return 3;
+      };
+
+      // 성별로 정렬하는 공통 함수
+      const sortByGender = (a: SortableItem, b: SortableItem): number => {
+        const genderA = getGender(a);
+        const genderB = getGender(b);
+        const priorityA = getGenderPriority(genderA);
+        const priorityB = getGenderPriority(genderB);
+        return priorityA - priorityB;
+      };
+
       // 이름 정렬 함수 (이름만으로 정렬)
       const sortByName = (a: SortableItem, b: SortableItem) => {
         const nameA = getName(a);
@@ -65,26 +81,8 @@ export function useParticipantSort({
 
       // 성별 → 이름 순으로 정렬하는 함수
       const sortByGenderAndName = (a: SortableItem, b: SortableItem) => {
-        const genderA = getGender(a);
-        const genderB = getGender(b);
-
-        // 성별 우선순위 정의 (남성 > 여성 > 기타)
-        const getGenderPriority = (gender: string): number => {
-          if (gender === '남성') return 1;
-          if (gender === '여성') return 2;
-          return 3;
-        };
-
-        const priorityA = getGenderPriority(genderA);
-        const priorityB = getGenderPriority(genderB);
-
-        // 성별이 다르면 성별로 정렬
-        if (priorityA !== priorityB) {
-          return priorityA - priorityB;
-        }
-
-        // 성별이 같으면 이름으로 정렬
-        return sortByName(a, b);
+        const genderResult = sortByGender(a, b);
+        return genderResult !== 0 ? genderResult : sortByName(a, b);
       };
 
       // 성별 → 전국대회 레벨 순으로 정렬하는 함수
@@ -92,23 +90,8 @@ export function useParticipantSort({
         a: SortableItem,
         b: SortableItem
       ) => {
-        const genderA = getGender(a);
-        const genderB = getGender(b);
-
-        // 성별 우선순위 정의 (남성 > 여성 > 기타)
-        const getGenderPriority = (gender: string): number => {
-          if (gender === '남성') return 1;
-          if (gender === '여성') return 2;
-          return 3;
-        };
-
-        const priorityA = getGenderPriority(genderA);
-        const priorityB = getGenderPriority(genderB);
-
-        // 성별이 다르면 성별로 정렬
-        if (priorityA !== priorityB) {
-          return priorityA - priorityB;
-        }
+        const genderResult = sortByGender(a, b);
+        if (genderResult !== 0) return genderResult;
 
         // 성별이 같으면 전국대회 레벨로 정렬
         if (isClubMemberWithUser(a) && isClubMemberWithUser(b)) {
