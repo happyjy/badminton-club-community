@@ -301,6 +301,7 @@ function WorkoutDetailContent({
               >
                 <option value="createdAt">참여순서</option>
                 <option value="name">이름순</option>
+                <option value="gender">성별</option>
                 <option value="localLevel">지역대회 급수</option>
                 <option value="nationalLevel">전국대회 급수</option>
               </select>

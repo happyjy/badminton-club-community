@@ -29,6 +29,7 @@ export interface ClubMemberWithUser extends User {
     role: string;
     clubId: number;
     birthDate?: string;
+    gender?: string;
     localTournamentLevel?: string;
     nationalTournamentLevel?: string;
     playingPeriod?: number;
