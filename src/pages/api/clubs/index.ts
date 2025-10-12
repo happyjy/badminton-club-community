@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 import { ClubWithDetails, ApiResponse } from '@/types';
 
@@ -16,7 +16,7 @@ export default async function handler(
     });
   }
 
-  const prisma = new PrismaClient();
+  
 
   try {
     /**
@@ -66,6 +66,6 @@ export default async function handler(
       status: 500,
     });
   } finally {
-    await prisma.$disconnect();
+    // no-op
   }
 }

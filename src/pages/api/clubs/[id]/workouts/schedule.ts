@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
-
-const prisma = new PrismaClient();
 
 interface WorkoutScheduleRequest {
   startDate: string;

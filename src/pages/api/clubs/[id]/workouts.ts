@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 import { Workout, ApiResponse } from '@/types';
 
@@ -17,7 +17,6 @@ export default async function handler(
   }
 
   const { id } = req.query;
-  const prisma = new PrismaClient();
 
   try {
     const today = new Date();
@@ -109,6 +108,6 @@ export default async function handler(
       status: 500,
     });
   } finally {
-    await prisma.$disconnect();
+    // no-op
   }
 }

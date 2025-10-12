@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-import { getSession } from '@/lib/session';
+import { getAuthUser } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
 import { Workout, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -16,8 +15,7 @@ export default async function handler(
     });
   }
 
-  const session = await getSession(req);
-  const prisma = new PrismaClient();
+  const session = await getAuthUser(req);
 
   try {
     const workouts = await prisma.workout.findMany({
@@ -53,7 +51,5 @@ export default async function handler(
       error: '운동 목록을 가져오는데 실패했습니다',
       status: 500,
     });
-  } finally {
-    await prisma.$disconnect();
   }
 }

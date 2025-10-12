@@ -1,20 +1,14 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { withAuth } from '@/lib/session';
 import { sendCommentAddedSms } from '@/lib/sms-notification';
 
-const prisma = new PrismaClient();
-
 // 게스트 신청 게시글 조회, 생성, 수정, 삭제 API
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
-  const session = await getSession(req);
-  if (!session || !session.id) {
-    return res.status(401).json({ message: '로그인이 필요합니다' });
-  }
 
   const { id: clubId, guestId } = req.query;
 
@@ -151,9 +145,9 @@ export default async function handler(
         });
 
         // 댓글 작성자가 게시글 작성자와 다른 경우 SMS 전송
-        if (session.id !== guestPost.userId) {
+        if (req.user.id !== guestPost.userId) {
           try {
-            await sendCommentAddedSms(guestId, guestPost.userId, session.id);
+            await sendCommentAddedSms(guestId, guestPost.userId, req.user.id);
           } catch (smsError) {
             // SMS 전송 실패는 전체 요청을 실패시키지 않음
             console.error('Failed to send SMS notification:', smsError);
@@ -185,7 +179,7 @@ export default async function handler(
     case 'PUT': // 수정된 게스트 신청 정보 업데이트
       try {
         // 해당 게시물의 작성자인지 확인
-        if (guestPost.userId !== session.id) {
+        if (guestPost.userId !== req.user.id) {
           return res
             .status(403)
             .json({ message: '본인의 게시물만 수정할 수 있습니다' });
@@ -228,7 +222,7 @@ export default async function handler(
             message: message || guestPost.message,
             visitDate: visitDate || guestPost.visitDate,
             postType: postType || guestPost.postType,
-            updatedBy: session.id,
+            updatedBy: req.user.id,
             updatedAt: new Date(),
           },
         });
@@ -245,7 +239,7 @@ export default async function handler(
     case 'DELETE': // 게스트 신청 삭제
       try {
         // 해당 게시물의 작성자인지 확인
-        if (guestPost.userId !== session.id) {
+        if (guestPost.userId !== req.user.id) {
           return res
             .status(403)
             .json({ message: '본인의 게시물만 삭제할 수 있습니다' });
@@ -270,4 +264,4 @@ export default async function handler(
         .status(405)
         .json({ message: '허용되지 않는 요청 메서드입니다' });
   }
-}
+});

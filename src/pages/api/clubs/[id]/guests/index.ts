@@ -1,9 +1,8 @@
-import { PrismaClient, GuestStatus, GuestPostType } from '@prisma/client';
+import { GuestStatus, GuestPostType } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { GuestListResponse } from '@/types/guest.types';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export default async function handler(
   req: NextApiRequest,

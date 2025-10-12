@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendCommentAddedSms } from '@/lib/sms-notification';
@@ -15,7 +15,6 @@ export default async function handler(
   }
 
   try {
-    const prisma = new PrismaClient();
 
     switch (req.method) {
       case 'GET': {

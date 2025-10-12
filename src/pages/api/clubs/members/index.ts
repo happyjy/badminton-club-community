@@ -1,14 +1,12 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { withAuth } from '@/lib/session';
 import { ApiResponse, User } from '@/types';
 import { Role } from '@/types/enums';
 
-const prisma = new PrismaClient();
-
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<ApiResponse<'users', User[]>>
 ) {
   if (req.method !== 'GET') {
@@ -19,14 +17,6 @@ export default async function handler(
   }
 
   try {
-    const session = await getSession(req);
-    if (!session?.id) {
-      return res.status(401).json({
-        error: '로그인이 필요합니다',
-        status: 401,
-      });
-    }
-
     const { clubId } = req.query;
     if (!clubId) {
       return res.status(400).json({
@@ -40,7 +30,7 @@ export default async function handler(
     // 요청한 사용자가 해당 클럽의 ADMIN인지 확인
     const userClubRole = await prisma.clubMember.findFirst({
       where: {
-        userId: session.id,
+        userId: req.user.id,
         clubId: clubIdNumber,
         role: Role.ADMIN,
       },
@@ -115,7 +105,5 @@ export default async function handler(
       error: '클럽 멤버를 불러오는데 실패했습니다',
       status: 500,
     });
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

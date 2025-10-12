@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { serialize } from 'cookie';
 import { sign } from 'jsonwebtoken';
 
@@ -62,9 +62,6 @@ export default async function handler(
     // );
     // console.log('email', userData.kakao_account.email);
 
-    // Prisma client 초기화
-    const prisma = new PrismaClient();
-
     try {
       // 사용자 정보 저장 또는 업데이트
       const user = await prisma.user.upsert({
@@ -112,7 +109,7 @@ export default async function handler(
       console.error('데이터베이스 저장 오류:', dbError);
       throw dbError;
     } finally {
-      await prisma.$disconnect();
+      // no-op
     }
   } catch (error) {
     console.error('카카오 로그인 에러:', error);

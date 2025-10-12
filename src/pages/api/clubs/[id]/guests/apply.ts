@@ -1,15 +1,14 @@
-import { GuestStatus, PrismaClient } from '@prisma/client';
+import { GuestStatus } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendGuestApplicationEmail } from '@/lib/email';
-import { getSession } from '@/lib/session';
+import { withAuth } from '@/lib/session';
 import { sendSMS, createGuestApplicationSMSMessage } from '@/lib/sms';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 // 게스트 신청 처리(이메일 및 SMS 전송 기능 포함)
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
@@ -19,15 +18,6 @@ export default async function handler(
   }
 
   try {
-    const session = await getSession(req);
-
-    // 세션이 없거나 세션 ID가 없는 경우 처리
-    if (!session || !session.id) {
-      return res
-        .status(401)
-        .json({ success: false, message: '인증이 필요합니다' });
-    }
-
     const { id: clubId } = req.query;
 
     // clubId가 없는 경우 처리
@@ -63,7 +53,7 @@ export default async function handler(
 
     // 전화번호 인증 상태 확인
     const user = await prisma.user.findUnique({
-      where: { id: session.id },
+      where: { id: req.user.id },
     });
 
     if (!user?.phoneVerifiedAt || user.phoneNumber !== phoneNumber) {
@@ -85,7 +75,7 @@ export default async function handler(
       where: {
         clubId_userId: {
           clubId: parseInt(clubId as string),
-          userId: session.id,
+          userId: req.user.id,
         },
       },
       select: {
@@ -104,7 +94,7 @@ export default async function handler(
     const application = await prisma.guestPost.create({
       data: {
         clubId: parseInt(clubId as string),
-        userId: session.id,
+        userId: req.user.id,
         // 게스트 일반 정보
         name,
         birthDate,
@@ -207,4 +197,4 @@ export default async function handler(
       error: error instanceof Error ? error.message : String(error),
     });
   }
-}
+});

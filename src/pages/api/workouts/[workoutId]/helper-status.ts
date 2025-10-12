@@ -1,23 +1,22 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
+import { prisma } from '@/lib/prisma';
 
 interface HelperStatus {
   helperType: 'NET' | 'FLOOR' | 'SHUTTLE' | 'KEY' | 'MOP';
   helped: boolean;
 }
 
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<ApiResponse<'helperStatus', HelperStatus>>
 ) {
-  const session = await getSession(req);
   const workoutId = req.query.workoutId;
   const { iconType, isSelected, targetUserId, clubMemberId } = req.body;
 
-  if (!session || !workoutId || !iconType || !targetUserId || !clubMemberId) {
+  if (!workoutId || !iconType || !targetUserId || !clubMemberId) {
     return res.status(400).json({
       error: '필요한 파라미터가 누락되었습니다',
       status: 400,
@@ -26,10 +25,9 @@ export default async function handler(
 
   try {
     // 1. 현재 로그인한 사용자의 clubMember 찾기 (업데이트하는 사람)
-    const prisma = new PrismaClient();
     const updaterClubMember = await prisma.clubMember.findFirst({
       where: {
-        userId: session.id,
+        userId: req.user.id,
         club: {
           workouts: {
             some: {
@@ -104,4 +102,4 @@ export default async function handler(
       status: 500,
     });
   }
-}
+});
