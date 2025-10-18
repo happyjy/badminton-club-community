@@ -2,9 +2,9 @@ import { GuestStatus } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { sendGuestApplicationEmail } from '@/lib/email';
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { sendSMS, createGuestApplicationSMSMessage } from '@/lib/sms';
-import { prisma } from '@/lib/prisma';
 
 // 게스트 신청 처리(이메일 및 SMS 전송 기능 포함)
 export default withAuth(async function handler(

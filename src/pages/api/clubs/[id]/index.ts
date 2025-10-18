@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { ApiResponse } from '@/types';
 import { ClubWithMembers } from '@/types/club.types';
 

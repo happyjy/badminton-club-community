@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { sendStatusUpdateSms } from '@/lib/sms-notification';
 

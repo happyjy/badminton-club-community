@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 
 // ApiResponse 타입이 정의되어 있지 않으므로 일반 NextApiResponse 사용

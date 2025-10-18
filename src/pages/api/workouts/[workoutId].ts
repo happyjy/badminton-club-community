@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-
 import { Workout, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -18,7 +17,6 @@ export default async function handler(
 
   const { workoutId } = req.query;
   const workoutIdNum = Number(workoutId);
-  
 
   try {
     const workout = await prisma.workout.findUnique({

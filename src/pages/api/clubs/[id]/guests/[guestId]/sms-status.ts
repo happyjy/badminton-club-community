@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { getSmsNotificationStatus } from '@/lib/sms-notification';
 
 // 게스트 신청 게시글의 SMS 전송 상태 조회 API

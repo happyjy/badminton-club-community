@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse, User } from '@/types';
 import { Role } from '@/types/enums';

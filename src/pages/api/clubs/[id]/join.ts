@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { ClubMembershipResponse } from '@/types/club.types';
@@ -17,7 +17,6 @@ export default withAuth(async function handler(
       status: 405,
     });
   }
-  
 
   const { id: clubId } = req.query;
   const {

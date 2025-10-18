@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-
 import { User, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';

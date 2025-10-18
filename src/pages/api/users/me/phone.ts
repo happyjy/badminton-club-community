@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { validatePhoneNumber } from '@/lib/sms-verification';
-import { prisma } from '@/lib/prisma';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },

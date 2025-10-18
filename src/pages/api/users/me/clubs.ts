@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { ClubResponse } from '@/types/club.types';
-import { prisma } from '@/lib/prisma';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },

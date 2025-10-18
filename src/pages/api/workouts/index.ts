@@ -1,5 +1,5 @@
-import { getAuthUser } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/session';
 import { Workout, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';

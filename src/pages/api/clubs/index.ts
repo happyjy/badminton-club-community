@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-
 import { ClubWithDetails, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -15,8 +14,6 @@ export default async function handler(
       status: 405,
     });
   }
-
-  
 
   try {
     /**

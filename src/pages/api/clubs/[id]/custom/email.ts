@@ -1,5 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
+
+import { prisma } from '@/lib/prisma';
 
 // 클럽 이메일 설정 관리
 export default async function handler(

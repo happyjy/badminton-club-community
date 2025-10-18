@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { Role, Status } from '@/types/enums';
-import { prisma } from '@/lib/prisma';
 
 interface MemberInfoResponse {
   id: number;

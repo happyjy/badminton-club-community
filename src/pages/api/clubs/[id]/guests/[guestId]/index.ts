@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { sendCommentAddedSms } from '@/lib/sms-notification';
 
@@ -9,7 +9,6 @@ export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
-
   const { id: clubId, guestId } = req.query;
 
   if (

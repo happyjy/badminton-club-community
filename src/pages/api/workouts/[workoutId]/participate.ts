@@ -1,7 +1,7 @@
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types/common.types';
 import { Status } from '@/types/enums';
-import { prisma } from '@/lib/prisma';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 

@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma';
 import { serialize } from 'cookie';
 import { sign } from 'jsonwebtoken';
 
 import { getBaseUrl, getKakaoCallbackUrl } from '@/constants/urls';
+import { prisma } from '@/lib/prisma';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 

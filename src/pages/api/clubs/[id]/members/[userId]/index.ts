@@ -1,9 +1,8 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { ClubMember } from '@/types';
 import { ApiResponse } from '@/types/common.types';
-
 
 export default async function handler(
   req: NextApiRequest,

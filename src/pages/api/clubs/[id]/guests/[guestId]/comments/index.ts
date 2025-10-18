@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { sendCommentAddedSms } from '@/lib/sms-notification';
 
 // 게스트 신청 게시글의 댓글 목록을 조회하고 생성하는 API
@@ -15,7 +15,6 @@ export default async function handler(
   }
 
   try {
-
     switch (req.method) {
       case 'GET': {
         // 댓글 목록 조회
