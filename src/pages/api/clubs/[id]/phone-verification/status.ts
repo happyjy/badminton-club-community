@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { withAuth } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
@@ -67,4 +67,4 @@ export default withAuth(async function handler(
     );
     return res.status(500).json({ message: 'Internal server error' });
   }
-}
+});

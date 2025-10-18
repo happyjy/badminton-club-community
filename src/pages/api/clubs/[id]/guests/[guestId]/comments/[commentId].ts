@@ -1,13 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { withAuth } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
-
   const { id: clubId, guestId, commentId } = req.query;
 
   if (!clubId || !guestId || !commentId) {
@@ -106,5 +105,8 @@ export default withAuth(async function handler(
       default:
         return res.status(405).json({ message: '허용되지 않는 메소드입니다' });
     }
+  } catch (error) {
+    console.error('댓글 조회 중 오류 발생:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다' });
   }
 });

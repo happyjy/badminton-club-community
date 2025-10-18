@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { validatePhoneNumber, verifyCode } from '@/lib/sms-verification';
-import { prisma } from '@/lib/prisma';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
@@ -81,4 +81,4 @@ export default withAuth(async function handler(
     console.error('Verify code error:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
-}
+});
