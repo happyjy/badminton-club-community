@@ -129,7 +129,7 @@ export default withAuth(async function handler(
         const newComment = await prisma.guestComment.create({
           data: {
             postId: guestId,
-            userId: session.id,
+            userId: req.user.id,
             content,
             parentId: parentId || null,
           },
