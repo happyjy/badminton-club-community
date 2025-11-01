@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
-import { sendCommentAddedSms } from '@/lib/sms-notification';
 
 // 게스트 신청 게시글 조회, 생성, 수정, 삭제 API
 export default withAuth(async function handler(
@@ -33,7 +32,8 @@ export default withAuth(async function handler(
 
   // HTTP 메서드에 따라 처리
   switch (req.method) {
-    case 'GET': // 게스트 신청 게시글 조회
+    // 게스트 신청 게시글 조회
+    case 'GET':
       try {
         // 게스트 신청과 댓글 목록을 함께 조회
         const [guestPostWithDetails, comments] = await Promise.all([
@@ -111,71 +111,8 @@ export default withAuth(async function handler(
         return res.status(500).json({ message: '서버 오류가 발생했습니다' });
       }
 
-    case 'POST': // 댓글 생성
-      try {
-        // 댓글 생성
-        const { content, parentId } = req.body;
-
-        if (!content) {
-          return res.status(400).json({ message: '댓글 내용이 필요합니다' });
-        }
-
-        if (content.length > 1000) {
-          return res
-            .status(400)
-            .json({ message: '댓글은 1000자 이하여야 합니다' });
-        }
-
-        const newComment = await prisma.guestComment.create({
-          data: {
-            postId: guestId,
-            userId: req.user.id,
-            content,
-            parentId: parentId || null,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                nickname: true,
-              },
-            },
-          },
-        });
-
-        // 댓글 작성자가 게시글 작성자와 다른 경우 SMS 전송
-        if (req.user.id !== guestPost.userId) {
-          try {
-            await sendCommentAddedSms(guestId, guestPost.userId, req.user.id);
-          } catch (smsError) {
-            // SMS 전송 실패는 전체 요청을 실패시키지 않음
-            console.error('Failed to send SMS notification:', smsError);
-          }
-        }
-
-        const formattedComment = {
-          id: newComment.id,
-          content: newComment.content,
-          createdAt: newComment.createdAt.toISOString(),
-          author: newComment.user
-            ? {
-                id: newComment.user.id,
-                name: newComment.user.nickname,
-              }
-            : null,
-          isDeleted: newComment.isDeleted,
-        };
-
-        return res.status(201).json({
-          message: '댓글이 작성되었습니다',
-          data: { comment: formattedComment },
-        });
-      } catch (error) {
-        console.error('댓글 작성 실패:', error);
-        return res.status(500).json({ message: '서버 오류가 발생했습니다' });
-      }
-
-    case 'PUT': // 수정된 게스트 신청 정보 업데이트
+    // 수정된 게스트 신청 정보 업데이트
+    case 'PUT':
       try {
         // 해당 게시물의 작성자인지 확인
         if (guestPost.userId !== req.user.id) {
@@ -235,7 +172,8 @@ export default withAuth(async function handler(
         return res.status(500).json({ message: '서버 오류가 발생했습니다' });
       }
 
-    case 'DELETE': // 게스트 신청 삭제
+    // 게스트 신청 삭제
+    case 'DELETE':
       try {
         // 해당 게시물의 작성자인지 확인
         if (guestPost.userId !== req.user.id) {
