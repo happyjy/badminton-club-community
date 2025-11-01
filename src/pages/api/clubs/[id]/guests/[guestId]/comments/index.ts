@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { sendCommentAddedSms } from '@/lib/sms-notification';
 
-// 게스트 신청 게시글의 댓글 목록을 조회하고 생성하는 API
+// 게스트 신청 게시글의 댓글 목록을 조회하고 생성(SMS 전송)하는 API
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -16,8 +16,8 @@ export default async function handler(
 
   try {
     switch (req.method) {
+      // 댓글 목록 조회
       case 'GET': {
-        // 댓글 목록 조회
         const comments = await prisma.guestComment.findMany({
           where: {
             postId: guestId as string,
@@ -51,8 +51,10 @@ export default async function handler(
         return res.status(200).json({ comments: formattedComments });
       }
 
+      // 댓글 생성 & SMS 전송
       case 'POST': {
         const { content, userId, clubMemberId, parentId } = req.body;
+        console.log(`🌸 ~ handler ~ req.body:`, req.body);
 
         if (!content) {
           return res.status(400).json({ message: 'Content is required' });
