@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
+import { prisma } from '@/lib/prisma';
 import { Workout, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -18,7 +17,6 @@ export default async function handler(
 
   const { workoutId } = req.query;
   const workoutIdNum = Number(workoutId);
-  const prisma = new PrismaClient();
 
   try {
     const workout = await prisma.workout.findUnique({
@@ -113,6 +111,6 @@ export default async function handler(
       status: 500,
     });
   } finally {
-    await prisma.$disconnect();
+    // no-op
   }
 }

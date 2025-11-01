@@ -1,12 +1,12 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { sendStatusUpdateSms } from '@/lib/sms-notification';
 
 // 게스트 신청 상태 변경 API
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
   // PUT 메소드만 허용
@@ -17,14 +17,6 @@ export default async function handler(
   }
 
   try {
-    // 세션 검증
-    const session = await getSession(req);
-    if (!session || !session.id) {
-      return res
-        .status(401)
-        .json({ success: false, message: '인증이 필요합니다' });
-    }
-
     // 파라미터 확인
     const { id: clubId, guestId } = req.query;
     const { status } = req.body;
@@ -45,7 +37,6 @@ export default async function handler(
     const now = new Date();
 
     // 게스트 신청 상태 업데이트
-    const prisma = new PrismaClient();
     const updatedGuestPost = await prisma.guestPost.update({
       where: {
         id: guestId as string,
@@ -53,7 +44,7 @@ export default async function handler(
       },
       data: {
         status: status,
-        updatedBy: session.id,
+        updatedBy: req.user.id,
         updatedAt: now,
       },
       select: {
@@ -96,4 +87,4 @@ export default async function handler(
       error: error instanceof Error ? error.message : String(error),
     });
   }
-}
+});

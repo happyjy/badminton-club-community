@@ -1,12 +1,11 @@
-import { PrismaClient } from '@prisma/client';
-
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<ApiResponse<'user', { success: boolean }>>
 ) {
   if (req.method !== 'PUT') {
@@ -16,17 +15,7 @@ export default async function handler(
     });
   }
 
-  const prisma = new PrismaClient();
-
   try {
-    const session = await getSession(req);
-    if (!session?.id) {
-      return res.status(401).json({
-        error: '로그인이 필요합니다',
-        status: 401,
-      });
-    }
-
     const {
       nickname,
       name,
@@ -43,7 +32,7 @@ export default async function handler(
       // User 테이블 업데이트
       if (nickname) {
         await tx.user.update({
-          where: { id: session.id },
+          where: { id: req.user.id },
           data: { nickname },
         });
       }
@@ -51,7 +40,7 @@ export default async function handler(
       // ClubMember 테이블 업데이트
       // 사용자의 모든 클럽 멤버십 정보를 업데이트
       await tx.clubMember.updateMany({
-        where: { userId: session.id },
+        where: { userId: req.user.id },
         data: {
           name,
           birthDate,
@@ -75,7 +64,5 @@ export default async function handler(
       error: '프로필 업데이트에 실패했습니다',
       status: 500,
     });
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
+import { prisma } from '@/lib/prisma';
 import { User, ApiResponse } from '@/types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -9,7 +8,6 @@ export default async function handler(
   res: NextApiResponse<ApiResponse<'users', User[]>>
 ) {
   if (req.method === 'GET') {
-    const prisma = new PrismaClient();
     try {
       const users = await prisma.user.findMany({
         select: {
@@ -51,7 +49,7 @@ export default async function handler(
         .status(500)
         .json({ error: '서버 에러가 발생했습니다.', status: 500 });
     } finally {
-      await prisma.$disconnect();
+      // no-op for prisma singleton
     }
   }
 

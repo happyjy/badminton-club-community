@@ -1,12 +1,12 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { ClubResponse } from '@/types/club.types';
 
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<ApiResponse<'clubs', ClubResponse[]>>
 ) {
   if (req.method !== 'GET') {
@@ -17,19 +17,10 @@ export default async function handler(
   }
 
   try {
-    const session = await getSession(req);
-    if (!session?.id) {
-      return res.status(401).json({
-        error: '로그인이 필요합니다',
-        status: 401,
-      });
-    }
-
     // 사용자가 속한 클럽 멤버십 정보 조회
-    const prisma = new PrismaClient();
     const clubs = await prisma.clubMember.findMany({
       where: {
-        userId: session.id,
+        userId: req.user.id,
       },
       select: {
         clubId: true,
@@ -63,4 +54,4 @@ export default async function handler(
       status: 500,
     });
   }
-}
+});

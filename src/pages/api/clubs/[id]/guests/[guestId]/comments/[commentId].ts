@@ -1,25 +1,17 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
-  const session = await getSession(req);
-
-  if (!session) {
-    return res.status(401).json({ message: '로그인이 필요합니다' });
-  }
-
   const { id: clubId, guestId, commentId } = req.query;
 
   if (!clubId || !guestId || !commentId) {
     return res.status(400).json({ message: '필수 파라미터가 누락되었습니다' });
   }
-
-  const prisma = new PrismaClient();
 
   try {
     // 댓글 존재 여부 및 권한 확인
@@ -44,7 +36,7 @@ export default async function handler(
         .json({ message: '댓글 작성자 정보를 찾을 수 없습니다' });
     }
 
-    if (comment.user.id !== session.id) {
+    if (comment.user.id !== req.user.id) {
       return res.status(403).json({ message: '권한이 없습니다' });
     }
 
@@ -113,7 +105,8 @@ export default async function handler(
       default:
         return res.status(405).json({ message: '허용되지 않는 메소드입니다' });
     }
-  } finally {
-    await prisma.$disconnect();
+  } catch (error) {
+    console.error('댓글 조회 중 오류 발생:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다' });
   }
-}
+});

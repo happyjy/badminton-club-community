@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { sendSMS } from '@/lib/sms';
 import {
   generateVerificationCode,
@@ -11,10 +11,8 @@ import {
   checkPreviouslyVerifiedPhone,
 } from '@/lib/sms-verification';
 
-const prisma = new PrismaClient();
-
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
@@ -22,11 +20,6 @@ export default async function handler(
   }
 
   try {
-    const session = await getSession(req);
-    if (!session?.email) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
     const { id: clubId } = req.query;
     if (!clubId || typeof clubId !== 'string') {
       return res.status(400).json({ message: 'Invalid club ID' });
@@ -44,7 +37,7 @@ export default async function handler(
 
     // 사용자 정보 조회
     const user = await prisma.user.findUnique({
-      where: { email: session.email },
+      where: { id: req.user.id },
       select: { id: true },
     });
 
@@ -103,4 +96,4 @@ export default async function handler(
     console.error('Send verification code error:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
-}
+});

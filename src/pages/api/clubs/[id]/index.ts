@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { prisma } from '@/lib/prisma';
 import { ApiResponse } from '@/types';
 import { ClubWithMembers } from '@/types/club.types';
 
@@ -16,7 +16,6 @@ export default async function handler(
   }
 
   const { id } = req.query;
-  const prisma = new PrismaClient();
 
   try {
     const club = await prisma.club.findUnique({
@@ -58,6 +57,6 @@ export default async function handler(
       status: 500,
     });
   } finally {
-    await prisma.$disconnect();
+    // no-op
   }
 }

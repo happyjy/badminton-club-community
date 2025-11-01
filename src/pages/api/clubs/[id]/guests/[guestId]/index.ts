@@ -1,21 +1,13 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
-import { sendCommentAddedSms } from '@/lib/sms-notification';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 
 // 게스트 신청 게시글 조회, 생성, 수정, 삭제 API
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
-  const session = await getSession(req);
-  if (!session || !session.id) {
-    return res.status(401).json({ message: '로그인이 필요합니다' });
-  }
-
   const { id: clubId, guestId } = req.query;
 
   if (
@@ -40,7 +32,8 @@ export default async function handler(
 
   // HTTP 메서드에 따라 처리
   switch (req.method) {
-    case 'GET': // 게스트 신청 게시글 조회
+    // 게스트 신청 게시글 조회
+    case 'GET':
       try {
         // 게스트 신청과 댓글 목록을 함께 조회
         const [guestPostWithDetails, comments] = await Promise.all([
@@ -118,74 +111,11 @@ export default async function handler(
         return res.status(500).json({ message: '서버 오류가 발생했습니다' });
       }
 
-    case 'POST': // 댓글 생성
-      try {
-        // 댓글 생성
-        const { content, parentId } = req.body;
-
-        if (!content) {
-          return res.status(400).json({ message: '댓글 내용이 필요합니다' });
-        }
-
-        if (content.length > 1000) {
-          return res
-            .status(400)
-            .json({ message: '댓글은 1000자 이하여야 합니다' });
-        }
-
-        const newComment = await prisma.guestComment.create({
-          data: {
-            postId: guestId,
-            userId: session.id,
-            content,
-            parentId: parentId || null,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                nickname: true,
-              },
-            },
-          },
-        });
-
-        // 댓글 작성자가 게시글 작성자와 다른 경우 SMS 전송
-        if (session.id !== guestPost.userId) {
-          try {
-            await sendCommentAddedSms(guestId, guestPost.userId, session.id);
-          } catch (smsError) {
-            // SMS 전송 실패는 전체 요청을 실패시키지 않음
-            console.error('Failed to send SMS notification:', smsError);
-          }
-        }
-
-        const formattedComment = {
-          id: newComment.id,
-          content: newComment.content,
-          createdAt: newComment.createdAt.toISOString(),
-          author: newComment.user
-            ? {
-                id: newComment.user.id,
-                name: newComment.user.nickname,
-              }
-            : null,
-          isDeleted: newComment.isDeleted,
-        };
-
-        return res.status(201).json({
-          message: '댓글이 작성되었습니다',
-          data: { comment: formattedComment },
-        });
-      } catch (error) {
-        console.error('댓글 작성 실패:', error);
-        return res.status(500).json({ message: '서버 오류가 발생했습니다' });
-      }
-
-    case 'PUT': // 수정된 게스트 신청 정보 업데이트
+    // 수정된 게스트 신청 정보 업데이트
+    case 'PUT':
       try {
         // 해당 게시물의 작성자인지 확인
-        if (guestPost.userId !== session.id) {
+        if (guestPost.userId !== req.user.id) {
           return res
             .status(403)
             .json({ message: '본인의 게시물만 수정할 수 있습니다' });
@@ -228,7 +158,7 @@ export default async function handler(
             message: message || guestPost.message,
             visitDate: visitDate || guestPost.visitDate,
             postType: postType || guestPost.postType,
-            updatedBy: session.id,
+            updatedBy: req.user.id,
             updatedAt: new Date(),
           },
         });
@@ -242,10 +172,11 @@ export default async function handler(
         return res.status(500).json({ message: '서버 오류가 발생했습니다' });
       }
 
-    case 'DELETE': // 게스트 신청 삭제
+    // 게스트 신청 삭제
+    case 'DELETE':
       try {
         // 해당 게시물의 작성자인지 확인
-        if (guestPost.userId !== session.id) {
+        if (guestPost.userId !== req.user.id) {
           return res
             .status(403)
             .json({ message: '본인의 게시물만 삭제할 수 있습니다' });
@@ -270,4 +201,4 @@ export default async function handler(
         .status(405)
         .json({ message: '허용되지 않는 요청 메서드입니다' });
   }
-}
+});

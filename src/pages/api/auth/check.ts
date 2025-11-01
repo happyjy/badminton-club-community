@@ -1,4 +1,5 @@
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/session';
 import { ApiResponse } from '@/types/common.types';
 import { User } from '@/types/user.types';
 
@@ -13,20 +14,33 @@ export default async function handler(
   >
 ) {
   try {
-    const session = await getSession(req);
+    const auth = await getAuthUser(req);
+    let user: AuthUser | null = null;
+    if (auth) {
+      const detail = await prisma.user.findUnique({
+        where: { id: auth.id },
+        select: {
+          id: true,
+          email: true,
+          nickname: true,
+          thumbnailImageUrl: true,
+        },
+      });
+      if (detail) {
+        user = {
+          id: detail.id,
+          email: detail.email,
+          nickname: detail.nickname,
+          thumbnailImageUrl: detail.thumbnailImageUrl,
+        };
+      }
+    }
 
     return res.status(200).json({
       data: {
         auth: {
-          isAuthenticated: !!session,
-          user: session
-            ? {
-                id: session.id,
-                email: session.email,
-                nickname: session.nickname,
-                thumbnailImageUrl: session.thumbnailImageUrl,
-              }
-            : null,
+          isAuthenticated: !!user,
+          user: user,
         },
       },
       status: 200,

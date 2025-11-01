@@ -1,13 +1,12 @@
-import { PrismaClient } from '@prisma/client';
-
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types/common.types';
 import { Status } from '@/types/enums';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<
     ApiResponse<'participation', { status: 'joined' | 'left' }>
   >
@@ -16,14 +15,6 @@ export default async function handler(
     return res.status(405).json({
       error: '허용되지 않는 메소드입니다',
       status: 405,
-    });
-  }
-
-  const session = await getSession(req);
-  if (!session) {
-    return res.status(401).json({
-      error: '로그인이 필요합니다',
-      status: 401,
     });
   }
 
@@ -42,16 +33,13 @@ export default async function handler(
       status: 400,
     });
   }
-
-  const prisma = new PrismaClient();
-
   try {
     if (req.method === 'POST') {
       const clubMember = await prisma.clubMember.findUnique({
         where: {
           clubId_userId: {
             clubId: Number(clubId),
-            userId: Number(session.id),
+            userId: Number(req.user.id),
           },
         },
       });
@@ -66,7 +54,7 @@ export default async function handler(
       await prisma.workoutParticipant.create({
         data: {
           workoutId: Number(workoutId),
-          userId: Number(session.id),
+          userId: Number(req.user.id),
           clubMemberId: Number(clubMember.id),
           status: Status.PENDING,
         },
@@ -82,7 +70,7 @@ export default async function handler(
         where: {
           workoutId_userId: {
             workoutId: Number(workoutId),
-            userId: Number(session.id),
+            userId: Number(req.user.id),
           },
         },
       });
@@ -99,7 +87,5 @@ export default async function handler(
       error: '처리 중 오류가 발생했습니다',
       status: 500,
     });
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

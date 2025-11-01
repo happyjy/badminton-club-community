@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { getMonthRange } from '@/utils/date';
 import { sortRankingByCountAndId } from '@/utils/sort';
@@ -18,8 +17,8 @@ interface Rankings {
   helper: RankingMember[];
 }
 
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<ApiResponse<'rankings', Rankings>>
 ) {
   if (req.method !== 'GET') {
@@ -28,19 +27,8 @@ export default async function handler(
       status: 405,
     });
   }
-
-  // 인증 체크
-  const user = await getSession(req);
-  if (!user) {
-    return res.status(401).json({
-      error: '인증이 필요합니다',
-      status: 401,
-    });
-  }
-
   const { id } = req.query;
   const clubId = Number(id);
-  const prisma = new PrismaClient();
 
   try {
     // 현재 달의 시작과 끝 날짜 계산
@@ -168,7 +156,5 @@ export default async function handler(
       error: '랭킹 정보를 가져오는데 실패했습니다',
       status: 500,
     });
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});

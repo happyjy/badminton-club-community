@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getSession } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
 import { Role, Status } from '@/types/enums';
 
@@ -20,8 +20,8 @@ interface MemberInfoResponse {
   playingPeriod: string | null;
 }
 
-export default async function handler(
-  req: NextApiRequest,
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<ApiResponse<'memberInfo', MemberInfoResponse | null>>
 ) {
   if (req.method !== 'GET') {
@@ -31,20 +31,10 @@ export default async function handler(
     });
   }
 
-  const session = await getSession(req);
-  if (!session?.id) {
-    return res.status(401).json({
-      error: '로그인이 필요합니다',
-      status: 401,
-    });
-  }
-
-  const prisma = new PrismaClient();
-
   try {
     const memberInfo = await prisma.clubMember.findFirst({
       where: {
-        userId: session.id,
+        userId: req.user.id,
       },
       select: {
         id: true,
@@ -83,7 +73,5 @@ export default async function handler(
       error: '회원 정보를 가져오는데 실패했습니다',
       status: 500,
     });
-  } finally {
-    await prisma.$disconnect();
   }
-}
+});
