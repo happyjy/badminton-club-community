@@ -16,6 +16,7 @@ const schemaFiles = [
   'clubCustomSetting.prisma',
   'phoneVerification.prisma',
   'smsNotificationLog.prisma',
+  'award.prisma',
 ];
 
 let finalSchema = '';

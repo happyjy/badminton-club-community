@@ -16,4 +16,5 @@ model User {
   guestComments       GuestComment[]
   phoneVerifications  PhoneVerification[]  // 전화번호 인증 관계 추가
   smsNotificationLogs SmsNotificationLog[] // SMS 알림 로그 관계 추가
+  awardRecords        UserAwardRecord[]    // 대회 입상 기록 관계 추가
 } 

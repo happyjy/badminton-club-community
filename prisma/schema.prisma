@@ -56,6 +56,7 @@ model User {
   guestComments       GuestComment[]
   phoneVerifications  PhoneVerification[]  // 전화번호 인증 관계 추가
   smsNotificationLogs SmsNotificationLog[] // SMS 알림 로그 관계 추가
+  awardRecords        UserAwardRecord[]    // 대회 입상 기록 관계 추가
 } 
 
 model Club { 
@@ -77,6 +78,7 @@ model Club {
   // Relations
   clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
   phoneVerifications PhoneVerification[]
+  awardRecords       UserAwardRecord[]   // 클럽에서 달성한 입상 기록
 
 }
 
@@ -315,5 +317,50 @@ model SmsNotificationLog {
   @@index([guestPostId])
   @@index([userId])
 }
+
+
+// 대회 입상 기록 모델
+
+enum EventType {
+  SINGLES  // 단식
+  MD       // 남자복식
+  WD       // 여자복식
+  XD       // 혼합복식
+}
+
+enum Grade {
+  A  // A급
+  B  // B급
+  C  // C급
+  D  // D급
+  E  // E급 (초심)
+  F  // F급 (왕초심)
+}
+
+model UserAwardRecord {
+  id             Int       @id @default(autoincrement())
+  userId         Int
+  clubId         Int?      // 어느 클럽에서 달성했는지 (선택 사항)
+  tournamentName String    @db.VarChar(50)
+  eventType      EventType
+  grade          Grade
+  eventDate      DateTime  @db.Date
+  images         String[]  @default([])
+  note           String?   @db.VarChar(100)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club Club? @relation(fields: [clubId], references: [id], onDelete: SetNull)
+
+  // Indexes and constraints
+  @@unique([userId, eventDate, eventType, grade], name: "unique_award_record")
+  @@index([userId])
+  @@index([clubId])
+  @@index([eventDate])
+  @@map("user_award_records")
+}
+
 
 

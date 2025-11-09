@@ -17,6 +17,7 @@ model Club {
   // Relations
   clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
   phoneVerifications PhoneVerification[]
+  awardRecords       UserAwardRecord[]   // 클럽에서 달성한 입상 기록
 
 }
 

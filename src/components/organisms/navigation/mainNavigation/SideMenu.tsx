@@ -22,6 +22,7 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
 
   const isAuthenticated = !!user;
   const isAdmin = clubMember?.role === Role.ADMIN;
+  const clubId = clubMember?.clubId;
 
   const onClickLink = () => {
     setIsMenuOpen(false);
@@ -97,6 +98,15 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
                 >
                   프로필
                 </Link>
+                {clubId && (
+                  <Link
+                    href={`/clubs/${clubId}/awards`}
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
+                    onClick={onClickLink}
+                  >
+                    입상 기록
+                  </Link>
+                )}
                 {isAdmin && (
                   <>
                     <Link
