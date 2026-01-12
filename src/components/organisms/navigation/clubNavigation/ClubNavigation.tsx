@@ -46,6 +46,27 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
   // 사용자가 ADMIN 역할을 가졌는지 확인
   const isAdmin = clubMember?.role === 'ADMIN';
 
+  // 출석체크 항목 (멤버만 볼 수 있음)
+  const attendanceItem = {
+    name: '출석체크',
+    href: `/clubs/${clubId}/attendance`,
+    icon: (
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+        />
+      </svg>
+    ),
+  };
+
   // 기본 네비게이션 아이템 (모든 사용자에게 보이는 항목)
   const baseNavigationItems = [
     {
@@ -69,25 +90,6 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
       ),
     },
     {
-      name: '출석체크',
-      href: `/clubs/${clubId}/attendance`,
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-          />
-        </svg>
-      ),
-    },
-    {
       name: strategy.getNavMenuName(),
       href: `/clubs/${clubId}/guest`,
     },
@@ -100,10 +102,23 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     { name: '게스트 확인', href: `/clubs/${clubId}/guest/check` },
   ];
 
-  // 최종 네비게이션 아이템 (ADMIN인 경우 추가 메뉴 포함)
-  const navigationItems = isAdmin
-    ? [...baseNavigationItems, ...adminNavigationItems]
-    : baseNavigationItems;
+  // 최종 네비게이션 아이템 구성
+  // 멤버인 경우 출석체크 항목 추가, ADMIN인 경우 추가 메뉴 포함
+  const navigationItems = (() => {
+    const items = [...baseNavigationItems];
+
+    // 멤버인 경우 출석체크 항목 추가 (홈 다음에 삽입)
+    if (clubMember) {
+      items.splice(1, 0, attendanceItem);
+    }
+
+    // ADMIN인 경우 추가 메뉴 포함
+    if (isAdmin) {
+      items.push(...adminNavigationItems);
+    }
+
+    return items;
+  })();
 
   // 클럽 멤버 정보 가져오기 (clubId와 userId가 있을 때만)
   const { data: clubMemberData } = useClubMember(clubId, currentUser?.id);
