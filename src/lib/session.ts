@@ -32,7 +32,6 @@ export async function getAuthUser(
 export function getUserDetail<T extends object>(id: number, select?: T) {
   return prisma.user.findUnique({
     where: { id },
-    // @ts-expect-error - select 제네릭 간소화
     select: select ?? { id: true },
   });
 }
@@ -47,10 +46,9 @@ export function withAuth<T = any>(
   return async (req: NextApiRequest, res: NextApiResponse<T>) => {
     const user = await getAuthUser(req);
     if (!user) {
-      // @ts-expect-error - 공통 에러 포맷이 없는 라우트도 존재
       return res
         .status(401)
-        .json({ error: '로그인이 필요합니다', status: 401 });
+        .json({ error: '로그인이 필요합니다', status: 401 } as T);
     }
     // 사용자 최소 정보 주입
     (req as any).user = user;
