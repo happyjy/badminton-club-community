@@ -1,12 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
+import { ClubMember } from '@/types';
 import { UpdatePostCategoryRequest } from '@/types/board.types';
 import { canManageCategory } from '@/utils/boardPermissions';
-import { ClubMember } from '@/types';
-
-const prisma = new PrismaClient();
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
@@ -72,8 +70,13 @@ export default withAuth(async function handler(
 
     // PUT: 카테고리 수정
     if (req.method === 'PUT') {
-      const { name, description, allowedRoles, order, isActive }: UpdatePostCategoryRequest =
-        req.body;
+      const {
+        name,
+        description,
+        allowedRoles,
+        order,
+        isActive,
+      }: UpdatePostCategoryRequest = req.body;
 
       const updateData: any = {};
 
@@ -138,7 +141,8 @@ export default withAuth(async function handler(
       if (postCount > 0) {
         return res.status(400).json({
           status: 400,
-          message: '게시글이 있는 카테고리는 삭제할 수 없습니다. 먼저 게시글을 삭제하거나 다른 카테고리로 이동해주세요.',
+          message:
+            '게시글이 있는 카테고리는 삭제할 수 없습니다. 먼저 게시글을 삭제하거나 다른 카테고리로 이동해주세요.',
         });
       }
 

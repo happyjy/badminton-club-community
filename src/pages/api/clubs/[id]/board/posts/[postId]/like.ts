@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
-
-const prisma = new PrismaClient();
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },

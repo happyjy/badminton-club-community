@@ -1,12 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ReorderCategoriesRequest } from '@/types/board.types';
 import { canManageCategory } from '@/utils/boardPermissions';
 import { ClubMember } from '@/types';
-
-const prisma = new PrismaClient();
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
