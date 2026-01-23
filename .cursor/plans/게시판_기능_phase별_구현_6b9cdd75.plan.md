@@ -1,7 +1,10 @@
 ---
 name: 게시판 기능 Phase별 구현
 overview: 게시판 기능을 Phase별로 단계적으로 구현합니다. Phase 1부터 시작하여 각 Phase 완료 후 다음 단계로 진행하며, 문서의 체크리스트를 참고하여 구현 상태를 관리합니다.
-todos: []
+todos:
+  - id: todo-1769184418582-sddzug9jf
+    content: ""
+    status: pending
 ---
 
 # 게시판 기능 Phase별 구현 계획
