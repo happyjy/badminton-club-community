@@ -17,6 +17,8 @@ model Club {
   // Relations
   clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
   phoneVerifications PhoneVerification[]
+  postCategories     PostCategory[]      @relation("ClubToPostCategory")
+  posts              Post[]              @relation("ClubToPost")
 
 }
 
@@ -45,6 +47,8 @@ model ClubMember {
   helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
   updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
   createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
+  posts                    Post[]                @relation("PostAuthor")
+  postComments             PostComment[]         @relation("PostCommentAuthor")
 
   @@unique([clubId, userId])
 } 
