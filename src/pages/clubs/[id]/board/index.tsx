@@ -2,22 +2,27 @@ import { useState, useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { useSelector } from 'react-redux';
 import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import BoardCategoryTabs from '@/components/organisms/board/BoardCategoryTabs';
 import PostList from '@/components/organisms/board/PostList';
-import { Button } from '@/components/atoms/buttons/Button';
 
-import { useBoardPosts } from '@/hooks/useBoardPosts';
 import { useBoardCategories } from '@/hooks/useBoardCategories';
-import { canCreatePostInCategory } from '@/utils/boardPermissions';
+import { useBoardPosts } from '@/hooks/useBoardPosts';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
 import { PostSortOption } from '@/types/board.types';
+import {
+  canCreatePostInCategory,
+  canManageCategory,
+} from '@/utils/boardPermissions';
 
-function BoardPage({ user }: AuthProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function BoardPage(_props: AuthProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
@@ -37,7 +42,9 @@ function BoardPage({ user }: AuthProps) {
     sort,
   });
 
-  const { data: categories } = useBoardCategories(clubId as string | undefined);
+  const { data: categories, isLoading: categoriesLoading } = useBoardCategories(
+    clubId as string | undefined
+  );
 
   const onClickWrite = useCallback(() => {
     if (!clubMember) {
@@ -51,12 +58,27 @@ function BoardPage({ user }: AuthProps) {
     );
 
     if (!writableCategories || writableCategories.length === 0) {
-      toast.error('작성 가능한 카테고리가 없습니다');
+      // 관리자인 경우 카테고리 관리 페이지로 안내
+      if (canManageCategory(clubMember)) {
+        toast.error(
+          '작성 가능한 카테고리가 없습니다. 카테고리를 먼저 생성해주세요.',
+          {
+            duration: 4000,
+          }
+        );
+        router.push(`/clubs/${clubId}/board/categories`);
+      } else {
+        toast.error('작성 가능한 카테고리가 없습니다');
+      }
       return;
     }
 
     router.push(`/clubs/${clubId}/board/new`);
   }, [clubMember, categories, clubId, router]);
+
+  const onClickManageCategories = useCallback(() => {
+    router.push(`/clubs/${clubId}/board/categories`);
+  }, [clubId, router]);
 
   const onChangeCategory = useCallback((categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
@@ -70,6 +92,26 @@ function BoardPage({ user }: AuthProps) {
     },
     []
   );
+
+  // 카테고리가 없을 때 관리자에게 안내
+  if (!categoriesLoading && (!categories || categories.length === 0)) {
+    const isAdmin = clubMember && canManageCategory(clubMember);
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+          <p className="text-gray-700 mb-4">
+            {isAdmin
+              ? '게시판을 사용하려면 먼저 카테고리를 생성해주세요.'
+              : '카테고리가 없어 게시글을 작성할 수 없습니다. 관리자에게 문의해주세요.'}
+          </p>
+          {isAdmin && (
+            <Button onClick={onClickManageCategories}>카테고리 관리하기</Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -98,11 +140,22 @@ function BoardPage({ user }: AuthProps) {
           </select>
         </div>
 
-        {clubMember && (
-          <Button onClick={onClickWrite} className="w-full sm:w-auto">
-            작성하기
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {clubMember && canManageCategory(clubMember) && (
+            <Button
+              variant="ghost"
+              onClick={onClickManageCategories}
+              className="w-full sm:w-auto"
+            >
+              카테고리 관리
+            </Button>
+          )}
+          {clubMember && (
+            <Button onClick={onClickWrite} className="w-full sm:w-auto">
+              작성하기
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 게시글 목록 */}
