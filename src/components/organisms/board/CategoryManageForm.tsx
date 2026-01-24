@@ -14,7 +14,7 @@ const categorySchema = z.object({
   description: z.string().optional(),
   allowedRoles: z.array(z.string()).min(1, '최소 하나의 역할을 선택해주세요'),
   order: z.number().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean().optional(),
 });
 
 type CategoryFormData = z.infer<typeof categorySchema>;
