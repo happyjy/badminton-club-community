@@ -1,17 +1,17 @@
 import { useState } from 'react';
 
-import { useSelector } from 'react-redux';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Textarea } from '@/components/atoms/Textarea';
 
-import { PostCommentWithRelations } from '@/types/board.types';
-import { canEditPost } from '@/utils/boardPermissions';
 import { formatDate } from '@/lib/utils';
 import { RootState } from '@/store';
+import { PostCommentWithRelations } from '@/types/board.types';
+import { canEditPost } from '@/utils/boardPermissions';
 
 interface CommentItemProps {
   comment: PostCommentWithRelations;
@@ -52,7 +52,9 @@ function CommentItem({
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardComments', clubId, postId] });
+      queryClient.invalidateQueries({
+        queryKey: ['boardComments', clubId, postId],
+      });
       setIsEditing(false);
       toast.success('댓글이 수정되었습니다');
     },
@@ -70,7 +72,9 @@ function CommentItem({
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardComments', clubId, postId] });
+      queryClient.invalidateQueries({
+        queryKey: ['boardComments', clubId, postId],
+      });
       toast.success('댓글이 삭제되었습니다');
     },
     onError: () => {
@@ -88,7 +92,9 @@ function CommentItem({
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardComments', clubId, postId] });
+      queryClient.invalidateQueries({
+        queryKey: ['boardComments', clubId, postId],
+      });
     },
     onError: () => {
       toast.error('좋아요 처리 중 오류가 발생했습니다');
@@ -105,7 +111,9 @@ function CommentItem({
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardComments', clubId, postId] });
+      queryClient.invalidateQueries({
+        queryKey: ['boardComments', clubId, postId],
+      });
       setIsReplying(false);
       setReplyContent('');
       toast.success('댓글이 작성되었습니다');
