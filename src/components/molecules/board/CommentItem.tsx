@@ -232,7 +232,7 @@ function CommentItem({
               >
                 ❤️ {comment.likeCount}
               </button>
-              {depth < 2 && (
+              {depth < 1 && (
                 <button
                   onClick={onClickReply}
                   className="text-sm text-gray-500 hover:text-blue-500"
