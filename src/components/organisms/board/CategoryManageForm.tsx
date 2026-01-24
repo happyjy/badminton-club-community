@@ -15,8 +15,11 @@ const categorySchema = z.object({
   name: z.string().min(1, '카테고리 이름을 입력해주세요'),
   description: z.string().optional(),
   allowedRoles: z.array(z.string()).min(1, '최소 하나의 역할을 선택해주세요'),
-  order: z.number().optional(),
-  isActive: z.boolean().default(true),
+  order: z.preprocess(
+    (val) => (typeof val === 'number' && isNaN(val) ? undefined : val),
+    z.number().optional()
+  ),
+  isActive: z.boolean(),
 });
 
 type CategoryFormData = z.infer<typeof categorySchema>;
