@@ -44,13 +44,13 @@ export interface ClubMember extends BaseEntity {
   clubId: number;
   role: Role;
   status: Status;
-  name?: string;
-  birthDate?: string;
-  gender?: string;
-  localTournamentLevel?: string;
-  nationalTournamentLevel?: string;
-  lessonPeriod?: string;
-  playingPeriod?: string;
+  name?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
+  localTournamentLevel?: string | null;
+  nationalTournamentLevel?: string | null;
+  lessonPeriod?: string | null;
+  playingPeriod?: string | null;
   user?: UserProfile;
 }
 

@@ -77,6 +77,8 @@ model Club {
   // Relations
   clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
   phoneVerifications PhoneVerification[]
+  postCategories     PostCategory[]      @relation("ClubToPostCategory")
+  posts              Post[]              @relation("ClubToPost")
 
 }
 
@@ -105,9 +107,81 @@ model ClubMember {
   helperStatuses           WorkoutHelperStatus[] @relation("HelperClubMember")
   updatedHelperStatuses    WorkoutHelperStatus[] @relation("HelperUpdater")
   createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
+  posts                    Post[]                @relation("PostAuthor")
+  postComments             PostComment[]         @relation("PostCommentAuthor")
 
   @@unique([clubId, userId])
 } 
+
+
+// 게시판 카테고리
+model PostCategory {
+  id            Int      @id @default(autoincrement())
+  clubId        Int
+  name          String
+  description   String?
+  allowedRoles  String[] @default(["MEMBER", "ADMIN"])
+  order         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  club          Club     @relation("ClubToPostCategory", fields: [clubId], references: [id], onDelete: Cascade)
+  posts         Post[]
+  
+  @@index([clubId])
+  @@index([clubId, isActive])
+}
+
+// 게시글
+model Post {
+  id            String        @id @default(cuid())
+  clubId        Int
+  categoryId    Int
+  title         String
+  content       String
+  authorId      Int
+  isPinned      Boolean       @default(false)
+  viewCount     Int           @default(0)
+  likeCount     Int           @default(0)
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  club          Club          @relation("ClubToPost", fields: [clubId], references: [id], onDelete: Cascade)
+  category      PostCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  author        ClubMember    @relation("PostAuthor", fields: [authorId], references: [id])
+  comments      PostComment[]
+  
+  @@index([clubId])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([clubId, categoryId, isDeleted])
+  @@index([clubId, isPinned, isDeleted])
+}
+
+// 게시글 댓글
+model PostComment {
+  id            String        @id @default(cuid())
+  postId        String
+  authorId      Int?
+  content       String
+  parentId      String?
+  isDeleted     Boolean       @default(false)
+  likeCount     Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author        ClubMember?   @relation("PostCommentAuthor", fields: [authorId], references: [id])
+  parent        PostComment?  @relation("CommentToComment", fields: [parentId], references: [id])
+  children      PostComment[] @relation("CommentToComment")
+  
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([postId, isDeleted])
+}
 
 
 model Workout {

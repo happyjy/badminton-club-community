@@ -5,3 +5,4 @@ export * from './club.types';
 export * from './membership.types';
 export * from './kakao.types';
 export * from './guest.types';
+export * from './board.types';
