@@ -18,7 +18,9 @@ const categorySchema = z.object({
   order: z
     .union([z.number(), z.nan()])
     .optional()
-    .transform((val) => (typeof val === 'number' && isNaN(val) ? undefined : val)),
+    .transform((val) =>
+      typeof val === 'number' && isNaN(val) ? undefined : val
+    ),
   isActive: z.boolean(),
 });
 
