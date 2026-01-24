@@ -51,9 +51,7 @@ export function canEditPost(
  * @param clubMember 클럽 멤버 정보
  * @returns 고정 권한 여부 (boolean)
  */
-export function canPinPost(
-  clubMember: ClubMember | null | undefined
-): boolean {
+export function canPinPost(clubMember: ClubMember | null | undefined): boolean {
   if (!clubMember) {
     return false;
   }

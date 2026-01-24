@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 
-import { PostWithRelations } from '@/types/board.types';
 import { formatDateSimple } from '@/lib/utils';
+import { PostWithRelations } from '@/types/board.types';
 
 interface PostCardProps {
   post: PostWithRelations;

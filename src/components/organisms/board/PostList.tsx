@@ -1,4 +1,5 @@
 import { PostWithRelations } from '@/types/board.types';
+
 import PostCard from './PostCard';
 
 interface PostListProps {

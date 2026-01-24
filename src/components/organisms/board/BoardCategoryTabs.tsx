@@ -2,8 +2,9 @@ import { useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { cn } from '@/lib/utils';
 import { useBoardCategories } from '@/hooks/useBoardCategories';
+
+import { cn } from '@/lib/utils';
 
 interface BoardCategoryTabsProps {
   selectedCategoryId: number | null;

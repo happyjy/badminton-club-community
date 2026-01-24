@@ -1,16 +1,16 @@
 import { useRouter } from 'next/router';
 
-import { useSelector } from 'react-redux';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 
-import { PostWithRelations } from '@/types/board.types';
-import { canEditPost, canPinPost } from '@/utils/boardPermissions';
 import { formatDate } from '@/lib/utils';
 import { RootState } from '@/store';
+import { PostWithRelations } from '@/types/board.types';
+import { canEditPost, canPinPost } from '@/utils/boardPermissions';
 
 interface PostDetailProps {
   post: PostWithRelations;
@@ -37,7 +37,9 @@ function PostDetail({ post }: PostDetailProps) {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardPost', clubId, postId] });
+      queryClient.invalidateQueries({
+        queryKey: ['boardPost', clubId, postId],
+      });
       queryClient.invalidateQueries({ queryKey: ['boardPosts'] });
     },
     onError: () => {
@@ -55,7 +57,9 @@ function PostDetail({ post }: PostDetailProps) {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardPost', clubId, postId] });
+      queryClient.invalidateQueries({
+        queryKey: ['boardPost', clubId, postId],
+      });
       queryClient.invalidateQueries({ queryKey: ['boardPosts'] });
     },
     onError: () => {

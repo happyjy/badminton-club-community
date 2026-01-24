@@ -1,17 +1,19 @@
 import { useRouter } from 'next/router';
 
-import { useSelector } from 'react-redux';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
-import PostForm from '@/components/organisms/board/PostForm';
 import { Button } from '@/components/atoms/buttons/Button';
+import PostForm from '@/components/organisms/board/PostForm';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
-import { canCreatePostInCategory } from '@/utils/boardPermissions';
 
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
+import { canCreatePostInCategory } from '@/utils/boardPermissions';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function NewPostPage({ user }: AuthProps) {
   const router = useRouter();
   const { id: clubId } = router.query;

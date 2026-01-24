@@ -2,18 +2,22 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { ClubMember } from '@/types';
 import {
   PostListResponse,
   PostDetailResponse,
   CreatePostRequest,
   PostSortOption,
 } from '@/types/board.types';
+import { Role, Status } from '@/types/enums';
 import { canCreatePostInCategory } from '@/utils/boardPermissions';
-import { ClubMember } from '@/types';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
-  res: NextApiResponse<PostListResponse | PostDetailResponse | { status: number; message: string }>
+  res: NextApiResponse<
+    PostListResponse | PostDetailResponse | { status: number; message: string }
+  >
 ) {
   const { id: clubId } = req.query;
 
@@ -90,13 +94,7 @@ export default withAuth(async function handler(
           },
           include: {
             category: true,
-            author: {
-              select: {
-                id: true,
-                name: true,
-                role: true,
-              },
-            },
+            author: true,
             _count: {
               select: {
                 comments: true,
@@ -115,13 +113,7 @@ export default withAuth(async function handler(
           },
           include: {
             category: true,
-            author: {
-              select: {
-                id: true,
-                name: true,
-                role: true,
-              },
-            },
+            author: true,
             _count: {
               select: {
                 comments: true,
@@ -136,7 +128,14 @@ export default withAuth(async function handler(
       ]);
 
       // 고정 게시글 + 일반 게시글 합치기
-      const items = [...pinnedPosts, ...regularPosts];
+      const items = [...pinnedPosts, ...regularPosts].map((post) => ({
+        ...post,
+        author: {
+          ...post.author,
+          role: post.author.role as Role,
+          status: post.author.status as Status,
+        },
+      }));
 
       return res.status(200).json({
         data: {
@@ -195,13 +194,7 @@ export default withAuth(async function handler(
         },
         include: {
           category: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-              role: true,
-            },
-          },
+          author: true,
           _count: {
             select: {
               comments: true,
@@ -210,8 +203,17 @@ export default withAuth(async function handler(
         },
       });
 
+      const postResponse = {
+        ...post,
+        author: {
+          ...post.author,
+          role: post.author.role as Role,
+          status: post.author.status as Status,
+        },
+      };
+
       return res.status(201).json({
-        data: post,
+        data: postResponse,
         status: 201,
         message: '게시글이 성공적으로 작성되었습니다.',
       });

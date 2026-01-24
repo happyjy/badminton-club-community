@@ -17,17 +17,10 @@ interface CommentItemProps {
   comment: PostCommentWithRelations;
   clubId: string;
   postId: string;
-  onReply?: (parentId: string) => void;
   depth?: number;
 }
 
-function CommentItem({
-  comment,
-  clubId,
-  postId,
-  onReply,
-  depth = 0,
-}: CommentItemProps) {
+function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
   const queryClient = useQueryClient();
 

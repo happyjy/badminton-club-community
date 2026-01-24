@@ -2,13 +2,18 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
-import { PostCategoryListResponse, CreatePostCategoryRequest } from '@/types/board.types';
-import { canManageCategory } from '@/utils/boardPermissions';
 import { ClubMember } from '@/types';
+import {
+  PostCategoryListResponse,
+  CreatePostCategoryRequest,
+} from '@/types/board.types';
+import { canManageCategory } from '@/utils/boardPermissions';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
-  res: NextApiResponse<PostCategoryListResponse | { status: number; message: string }>
+  res: NextApiResponse<
+    PostCategoryListResponse | { status: number; message: string }
+  >
 ) {
   const { id: clubId } = req.query;
 
@@ -81,8 +86,13 @@ export default withAuth(async function handler(
         });
       }
 
-      const { name, description, allowedRoles, order, isActive }: CreatePostCategoryRequest =
-        req.body;
+      const {
+        name,
+        description,
+        allowedRoles,
+        order,
+        isActive,
+      }: CreatePostCategoryRequest = req.body;
 
       if (!name || !allowedRoles || !Array.isArray(allowedRoles)) {
         return res.status(400).json({

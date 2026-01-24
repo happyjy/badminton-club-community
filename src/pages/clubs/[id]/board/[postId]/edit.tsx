@@ -2,16 +2,17 @@ import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
-import PostForm from '@/components/organisms/board/PostForm';
 import { Button } from '@/components/atoms/buttons/Button';
+import PostForm from '@/components/organisms/board/PostForm';
 
-import { useBoardPost } from '@/hooks/useBoardPost';
 import { useBoardCategories } from '@/hooks/useBoardCategories';
-import { canCreatePostInCategory } from '@/utils/boardPermissions';
+import { useBoardPost } from '@/hooks/useBoardPost';
 
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
+import { canCreatePostInCategory } from '@/utils/boardPermissions';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function EditPostPage({ user }: AuthProps) {
   const router = useRouter();
   const { id: clubId, postId } = router.query;
@@ -42,7 +43,10 @@ function EditPostPage({ user }: AuthProps) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
         <p className="text-red-500">게시글을 불러올 수 없습니다.</p>
-        <Button onClick={() => router.push(`/clubs/${clubId}/board`)} className="mt-4">
+        <Button
+          onClick={() => router.push(`/clubs/${clubId}/board`)}
+          className="mt-4"
+        >
           목록으로
         </Button>
       </div>

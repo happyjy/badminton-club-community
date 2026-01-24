@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ClubMember } from '@/types';
 import {
   PostCommentListResponse,
@@ -46,6 +47,7 @@ export default withAuth(async function handler(
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const typedClubMember = clubMember as unknown as ClubMember;
 
     // 게시글 존재 확인

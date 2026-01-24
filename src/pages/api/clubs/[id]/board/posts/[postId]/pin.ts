@@ -2,8 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
-import { canPinPost } from '@/utils/boardPermissions';
 import { ClubMember } from '@/types';
+import { canPinPost } from '@/utils/boardPermissions';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
@@ -103,7 +103,9 @@ export default withAuth(async function handler(
 
       return res.status(200).json({
         status: 200,
-        message: isPinned ? '게시글이 고정되었습니다.' : '게시글 고정이 해제되었습니다.',
+        message: isPinned
+          ? '게시글이 고정되었습니다.'
+          : '게시글 고정이 해제되었습니다.',
         data: updatedPost,
       });
     }

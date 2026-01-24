@@ -1,13 +1,15 @@
 import { useState } from 'react';
 
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import axios from 'axios';
+import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import { z } from 'zod';
 
 import { Button } from '@/components/atoms/buttons/Button';
-import { CreatePostCategoryRequest, PostCategoryWithRelations } from '@/types/board.types';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { PostCategoryWithRelations } from '@/types/board.types';
 
 const categorySchema = z.object({
   name: z.string().min(1, '카테고리 이름을 입력해주세요'),
@@ -179,11 +181,7 @@ function CategoryManageForm({
 
       <div>
         <label className="flex items-center">
-          <input
-            type="checkbox"
-            {...register('isActive')}
-            className="mr-2"
-          />
+          <input type="checkbox" {...register('isActive')} className="mr-2" />
           <span className="text-sm text-gray-700">활성화</span>
         </label>
       </div>

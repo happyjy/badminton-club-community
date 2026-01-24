@@ -1,16 +1,17 @@
 import { useState } from 'react';
 
-import { useSelector } from 'react-redux';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Textarea } from '@/components/atoms/Textarea';
-import CommentItem from './CommentItem';
 
-import { PostCommentWithRelations } from '@/types/board.types';
 import { RootState } from '@/store';
+import { PostCommentWithRelations } from '@/types/board.types';
+
+import CommentItem from './CommentItem';
 
 interface CommentListProps {
   comments: PostCommentWithRelations[];
@@ -34,7 +35,9 @@ function CommentList({ comments, clubId, postId }: CommentListProps) {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardComments', clubId, postId] });
+      queryClient.invalidateQueries({
+        queryKey: ['boardComments', clubId, postId],
+      });
       setCommentContent('');
       toast.success('댓글이 작성되었습니다');
     },

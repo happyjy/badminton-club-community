@@ -2,8 +2,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ClubMember } from '@/types';
 import { PostDetailResponse, UpdatePostRequest } from '@/types/board.types';
+import { Role, Status } from '@/types/enums';
 import { canEditPost, canCreatePostInCategory } from '@/utils/boardPermissions';
 
 export default withAuth(async function handler(
@@ -42,6 +45,7 @@ export default withAuth(async function handler(
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const typedClubMember = clubMember as unknown as ClubMember;
 
     // 게시글 존재 확인
@@ -52,13 +56,7 @@ export default withAuth(async function handler(
       },
       include: {
         category: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-          },
-        },
+        author: true,
         _count: {
           select: {
             comments: true,
@@ -93,8 +91,17 @@ export default withAuth(async function handler(
         post.viewCount += 1;
       }
 
+      const postResponse = {
+        ...post,
+        author: {
+          ...post.author,
+          role: post.author.role as Role,
+          status: post.author.status as Status,
+        },
+      };
+
       return res.status(200).json({
-        data: post,
+        data: postResponse,
         status: 200,
         message: '게시글을 성공적으로 조회했습니다.',
       });
@@ -155,13 +162,7 @@ export default withAuth(async function handler(
         data: updateData,
         include: {
           category: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-              role: true,
-            },
-          },
+          author: true,
           _count: {
             select: {
               comments: true,
@@ -170,14 +171,23 @@ export default withAuth(async function handler(
         },
       });
 
+      const updatedPostResponse = {
+        ...updatedPost,
+        author: {
+          ...updatedPost.author,
+          role: updatedPost.author.role as Role,
+          status: updatedPost.author.status as Status,
+        },
+      };
+
       return res.status(200).json({
-        data: updatedPost,
+        data: updatedPostResponse,
         status: 200,
         message: '게시글이 성공적으로 수정되었습니다.',
       });
     }
 
-    // DELETE: 게시글 삭제 (soft delete)
+    // 게시글 삭제 (soft delete)
     if (req.method === 'DELETE') {
       // 삭제 권한 체크
       if (!canEditPost(post.authorId, clubMember.id, typedClubMember)) {
@@ -196,8 +206,17 @@ export default withAuth(async function handler(
         },
       });
 
+      const postResponse = {
+        ...post,
+        author: {
+          ...post.author,
+          role: post.author.role as Role,
+          status: post.author.status as Status,
+        },
+      };
+
       return res.status(200).json({
-        data: post,
+        data: postResponse,
         status: 200,
         message: '게시글이 성공적으로 삭제되었습니다.',
       });

@@ -2,22 +2,25 @@ import { useState, useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { useSelector } from 'react-redux';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
 
-import CategoryManageForm from '@/components/organisms/board/CategoryManageForm';
 import { Button } from '@/components/atoms/buttons/Button';
+import CategoryManageForm from '@/components/organisms/board/CategoryManageForm';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
-import { canManageCategory } from '@/utils/boardPermissions';
 
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
 import { PostCategoryWithRelations } from '@/types/board.types';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Role } from '@/types/enums';
+import { canManageCategory } from '@/utils/boardPermissions';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function CategoryManagePage({ user }: AuthProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
@@ -28,21 +31,10 @@ function CategoryManagePage({ user }: AuthProps) {
   const [editingCategory, setEditingCategory] =
     useState<PostCategoryWithRelations | null>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: categories, isLoading } = useBoardCategories(
     clubId as string | undefined
   );
-
-  // 권한 체크
-  if (clubMember && !canManageCategory(clubMember)) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-gray-500 mb-4">카테고리 관리 권한이 없습니다.</p>
-        <Button onClick={() => router.push(`/clubs/${clubId}/board`)}>
-          게시판으로 돌아가기
-        </Button>
-      </div>
-    );
-  }
 
   const onDeleteCategory = useCallback(
     async (categoryId: number) => {
@@ -81,7 +73,8 @@ function CategoryManagePage({ user }: AuthProps) {
     setEditingCategory(null);
   }, []);
 
-  if (isLoading) {
+  // 권한 체크
+  if (clubMember && !canManageCategory(clubMember)) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
         <p className="text-gray-500">로딩 중...</p>

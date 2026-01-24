@@ -1,4 +1,5 @@
 import { Post, PostCategory, PostComment } from '@prisma/client';
+
 import { ClubMember } from './club.types';
 
 // PostCategory with relations

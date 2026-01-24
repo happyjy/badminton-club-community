@@ -1,26 +1,32 @@
 import { useRouter } from 'next/router';
 
-import { withAuth } from '@/lib/withAuth';
-import { useBoardPost } from '@/hooks/useBoardPost';
-import { useBoardComments } from '@/hooks/useBoardComments';
-import PostDetail from '@/components/organisms/board/PostDetail';
 import CommentList from '@/components/molecules/board/CommentList';
-import { AuthProps } from '@/lib/withAuth';
+import PostDetail from '@/components/organisms/board/PostDetail';
 
+import { useBoardComments } from '@/hooks/useBoardComments';
+import { useBoardPost } from '@/hooks/useBoardPost';
+
+import { withAuth, AuthProps } from '@/lib/withAuth';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function PostDetailPage({ user }: AuthProps) {
   const router = useRouter();
   const { id: clubId, postId } = router.query;
 
-  const { data: post, isLoading: postLoading, error: postError } = useBoardPost(
-    clubId as string | undefined,
-    postId as string | undefined
-  );
+  const {
+    data: post,
+    isLoading: postLoading,
+    error: postError,
+  } = useBoardPost(clubId as string | undefined, postId as string | undefined);
 
   const {
     data: comments,
     isLoading: commentsLoading,
     error: commentsError,
-  } = useBoardComments(clubId as string | undefined, postId as string | undefined);
+  } = useBoardComments(
+    clubId as string | undefined,
+    postId as string | undefined
+  );
 
   if (postLoading) {
     return (
