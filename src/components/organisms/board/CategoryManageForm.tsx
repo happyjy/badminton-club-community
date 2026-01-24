@@ -15,10 +15,10 @@ const categorySchema = z.object({
   name: z.string().min(1, '카테고리 이름을 입력해주세요'),
   description: z.string().optional(),
   allowedRoles: z.array(z.string()).min(1, '최소 하나의 역할을 선택해주세요'),
-  order: z.preprocess(
-    (val) => (typeof val === 'number' && isNaN(val) ? undefined : val),
-    z.number().optional()
-  ),
+  order: z
+    .union([z.number(), z.nan()])
+    .optional()
+    .transform((val) => (typeof val === 'number' && isNaN(val) ? undefined : val)),
   isActive: z.boolean(),
 });
 
@@ -51,7 +51,7 @@ function CategoryManageForm({
       name: category?.name || '',
       description: category?.description || '',
       allowedRoles: category?.allowedRoles || ['MEMBER', 'ADMIN'],
-      order: category?.order,
+      order: category?.order ?? undefined,
       isActive: category?.isActive ?? true,
     },
   });
