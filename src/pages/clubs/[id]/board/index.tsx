@@ -122,7 +122,7 @@ function BoardPage(_props: AuthProps) {
       />
 
       {/* 정렬 및 작성 버튼 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white rounded-lg shadow p-4">
+      <div className="flex justify-between items-center gap-3 bg-white rounded-lg shadow p-4">
         <div className="flex items-center gap-2">
           <label htmlFor="sort" className="text-sm font-medium text-gray-700">
             정렬:
@@ -142,19 +142,11 @@ function BoardPage(_props: AuthProps) {
 
         <div className="flex gap-2">
           {clubMember && canManageCategory(clubMember) && (
-            <Button
-              variant="ghost"
-              onClick={onClickManageCategories}
-              className="w-full sm:w-auto"
-            >
+            <Button variant="ghost" onClick={onClickManageCategories}>
               카테고리 관리
             </Button>
           )}
-          {clubMember && (
-            <Button onClick={onClickWrite} className="w-full sm:w-auto">
-              작성하기
-            </Button>
-          )}
+          {clubMember && <Button onClick={onClickWrite}>작성하기</Button>}
         </div>
       </div>
 
