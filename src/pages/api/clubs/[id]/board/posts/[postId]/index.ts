@@ -2,9 +2,9 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
-import { PostDetailResponse, UpdatePostRequest } from '@/types/board.types';
-import { canEditPost } from '@/utils/boardPermissions';
 import { ClubMember } from '@/types';
+import { PostDetailResponse, UpdatePostRequest } from '@/types/board.types';
+import { canEditPost, canCreatePostInCategory } from '@/utils/boardPermissions';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
