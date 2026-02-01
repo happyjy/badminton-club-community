@@ -159,7 +159,11 @@ export async function sendSMS(to: string, content: string): Promise<any> {
 // 게스트 신청 SMS 메시지 생성
 export function createGuestApplicationSMSMessage(
   guestName: string,
-  clubName: string
+  clubName: string,
+  applicantName?: string | null
 ): string {
-  return `[${clubName}] ${guestName}님이 게스트 신청을 하셨습니다. 클럽 관리자 페이지에서 확인해주세요.`;
+  if (applicantName) {
+    return `[${clubName}] 게스트 신청: ${applicantName}→${guestName} (관리자 확인 필요)`;
+  }
+  return `[${clubName}] 게스트 신청: ${guestName} (관리자 확인 필요)`;
 }
