@@ -7,7 +7,10 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
-import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+import {
+  GuestApplicationModal,
+  GuestInquiryModal,
+} from '@/components/organisms/modal/join';
 import PhoneVerificationModal from '@/components/organisms/modal/PhoneVerificationModal';
 
 import { useGuestPageSettings } from '@/hooks/useCustomSettings';
@@ -314,23 +317,34 @@ function GuestPage({ user }: AuthProps) {
         </div>
       </div>
 
-      {/* 게스트 신규 신청 모달 */}
-      {user && (
-        <JoinClubModal
+      {/* 게스트 신규 신청 모달 - 클럽 멤버 여부에 따라 다른 모달 사용 */}
+      {user && clubMember && (
+        <GuestApplicationModal
           user={user}
           clubId={clubId as string}
           isOpen={isModalOpen}
           onClose={onCloseModal}
           onSubmit={onSubmitGuestApplication}
-          isGuestApplication={true}
           isSubmitting={isSubmitting}
-          // initialValues={initialValues}
-          // 전화번호 인증 관련 props 전달
-          // phone verification state
           phoneVerificationStatus={phoneVerificationStatus}
           phoneVerificationLoading={phoneVerificationLoading}
           phoneVerificationError={phoneVerificationError}
-          // phone verification functions
+          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+          sendPhoneVerificationCode={sendPhoneVerificationCode}
+          verifyPhoneCode={verifyPhoneCode}
+        />
+      )}
+      {user && !clubMember && (
+        <GuestInquiryModal
+          user={user}
+          clubId={clubId as string}
+          isOpen={isModalOpen}
+          onClose={onCloseModal}
+          onSubmit={onSubmitGuestApplication}
+          isSubmitting={isSubmitting}
+          phoneVerificationStatus={phoneVerificationStatus}
+          phoneVerificationLoading={phoneVerificationLoading}
+          phoneVerificationError={phoneVerificationError}
           checkPhoneVerificationStatus={checkPhoneVerificationStatus}
           sendPhoneVerificationCode={sendPhoneVerificationCode}
           verifyPhoneCode={verifyPhoneCode}
