@@ -375,6 +375,12 @@ function JoinClubModal({
                 onChange={onChangePhoneNumber}
                 required
               />
+              {/* 게스트 신청, 클럽 가입 문의 시 문자 발송 안내 */}
+              {isGuestApplication && (
+                <p className="mt-1 text-xs text-gray-500">
+                  수락 여부 및 댓글 알림이 문자로 발송됩니다 (최초 1회)
+                </p>
+              )}
               {/* 인증 상태 표시 */}
               {phoneVerificationStatus?.isVerified &&
                 phoneVerificationStatus.phoneNumber ===
@@ -446,6 +452,10 @@ function JoinClubModal({
                   onChange={onChangePhoneNumber}
                   required
                 />
+                {/* 문자 발송 안내 */}
+                <p className="mt-1 text-xs text-gray-500">
+                  수락 여부 및 댓글 알림이 문자로 발송됩니다 (최초 1회)
+                </p>
                 {/* 인증 상태 표시 */}
                 {phoneVerificationStatus?.isVerified &&
                   phoneVerificationStatus.phoneNumber ===
