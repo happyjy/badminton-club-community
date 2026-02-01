@@ -138,7 +138,11 @@ export default withAuth(async function handler(
         Array.isArray(clubCustomSettings?.smsRecipients) &&
         clubCustomSettings.smsRecipients.length > 0
       ) {
-        const smsMessage = createGuestApplicationSMSMessage(name, club.name, clubMember?.name);
+        const smsMessage = createGuestApplicationSMSMessage(
+          name,
+          club.name,
+          clubMember?.name
+        );
 
         // 모든 SMS 수신자에게 문자 전송
         const smsPromises = clubCustomSettings.smsRecipients.map(
