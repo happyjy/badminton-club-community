@@ -248,6 +248,18 @@ function JoinClubModal({
           </p>
         )}
         <form onSubmit={onSubmitJoinClubModal} className="space-y-4">
+          {/* 게스트 신청 시 게스트 정보 섹션 헤더 */}
+          {isGuestApplication && isClubMember && (
+            <div className="border-b border-gray-200 pb-2">
+              <h3 className="text-sm font-semibold text-gray-700">
+                게스트 정보
+              </h3>
+              <p className="text-xs text-gray-500">
+                게스트로 참여할 분의 정보를 입력해주세요
+              </p>
+            </div>
+          )}
+
           <FormField label="이름" required>
             <Input
               type="text"
@@ -355,20 +367,24 @@ function JoinClubModal({
             </div>
           </FormField>
 
-          <FormField label="전화번호" required>
-            <PhoneInputGroup
-              values={phoneNumbers}
-              onChange={onChangePhoneNumber}
-              required
-            />
-            {/* 인증 상태 표시 */}
-            {phoneVerificationStatus?.isVerified &&
-              phoneVerificationStatus.phoneNumber === getFullPhoneNumber() && (
-                <div className="mt-1 text-sm text-green-600">
-                  ✓ 인증된 전화번호입니다
-                </div>
-              )}
-          </FormField>
+          {/* 클럽 가입 신청 또는 클럽 가입 문의 시 전화번호 (본인 정보) */}
+          {!(isGuestApplication && isClubMember) && (
+            <FormField label="전화번호" required>
+              <PhoneInputGroup
+                values={phoneNumbers}
+                onChange={onChangePhoneNumber}
+                required
+              />
+              {/* 인증 상태 표시 */}
+              {phoneVerificationStatus?.isVerified &&
+                phoneVerificationStatus.phoneNumber ===
+                  getFullPhoneNumber() && (
+                  <div className="mt-1 text-sm text-green-600">
+                    ✓ 인증된 전화번호입니다
+                  </div>
+                )}
+            </FormField>
+          )}
 
           <FormField label="구대회 신청 가능 급수" required>
             <Select
@@ -411,6 +427,36 @@ function JoinClubModal({
               required
             />
           </FormField>
+
+          {/* 게스트 신청 시 신청자 연락처 섹션 */}
+          {isGuestApplication && isClubMember && (
+            <>
+              <div className="border-b border-gray-200 pb-2 pt-2">
+                <h3 className="text-sm font-semibold text-gray-700">
+                  신청자 연락처
+                </h3>
+                <p className="text-xs text-gray-500">
+                  게스트 관련 연락을 받을 번호입니다
+                </p>
+              </div>
+
+              <FormField label="전화번호" required>
+                <PhoneInputGroup
+                  values={phoneNumbers}
+                  onChange={onChangePhoneNumber}
+                  required
+                />
+                {/* 인증 상태 표시 */}
+                {phoneVerificationStatus?.isVerified &&
+                  phoneVerificationStatus.phoneNumber ===
+                    getFullPhoneNumber() && (
+                    <div className="mt-1 text-sm text-green-600">
+                      ✓ 인증된 전화번호입니다
+                    </div>
+                  )}
+              </FormField>
+            </>
+          )}
 
           {isGuestApplication && (
             <FormField label={strategy.getMessageFieldLabel()}>
