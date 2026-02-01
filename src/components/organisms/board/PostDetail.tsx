@@ -12,6 +12,31 @@ import { RootState } from '@/store';
 import { PostWithRelations } from '@/types/board.types';
 import { canEditPost, canPinPost } from '@/utils/boardPermissions';
 
+/**
+ * 텍스트에서 URL을 찾아 클릭 가능한 링크로 변환
+ */
+function renderContentWithLinks(content: string): React.ReactNode {
+  const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g;
+  const parts = content.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 hover:underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 interface PostDetailProps {
   post: PostWithRelations;
 }
@@ -141,7 +166,9 @@ function PostDetail({ post }: PostDetailProps) {
 
       {/* 내용 */}
       <div className="prose max-w-none mb-6">
-        <div className="whitespace-pre-wrap text-gray-700">{post.content}</div>
+        <div className="whitespace-pre-wrap text-gray-700">
+          {renderContentWithLinks(post.content)}
+        </div>
       </div>
 
       {/* 액션 버튼 */}
