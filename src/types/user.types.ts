@@ -8,8 +8,10 @@ export interface User extends BaseEntity {
   kakaoId?: string;
 }
 
-export interface UserProfile
-  extends Pick<User, 'id' | 'nickname' | 'thumbnailImageUrl'> {
+export interface UserProfile extends Pick<
+  User,
+  'id' | 'nickname' | 'thumbnailImageUrl'
+> {
   // 프로필에만 필요한 추가 필드
   bio?: string;
 }

@@ -1,4 +1,5 @@
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
+
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 
@@ -79,9 +80,7 @@ function GuestInquiryModal({
       <JoinModal.VisitDateField />
       <JoinModal.BirthDateField />
       <JoinModal.GenderField />
-      <JoinModal.PhoneField
-        helpText="수락 여부 및 댓글 알림이 문자로 발송됩니다 (최초 1회)"
-      />
+      <JoinModal.PhoneField helpText="수락 여부 및 댓글 알림이 문자로 발송됩니다 (최초 1회)" />
       <JoinModal.TournamentFields />
       <JoinModal.MessageField
         label="문의 내용"

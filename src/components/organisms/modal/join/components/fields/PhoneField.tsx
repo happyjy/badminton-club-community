@@ -29,9 +29,7 @@ function PhoneField({
         required
       />
       {/* 안내 문구 */}
-      {helpText && (
-        <p className="mt-1 text-xs text-gray-500">{helpText}</p>
-      )}
+      {helpText && <p className="mt-1 text-xs text-gray-500">{helpText}</p>}
       {/* 인증 상태 표시 */}
       {showVerificationStatus &&
         phoneVerificationStatus?.isVerified &&

@@ -1,6 +1,7 @@
 import { createContext, useContext, ChangeEvent } from 'react';
 
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
+
 import { ClubJoinFormData } from '@/types/club.types';
 
 // 전화번호 부분별 타입 정의

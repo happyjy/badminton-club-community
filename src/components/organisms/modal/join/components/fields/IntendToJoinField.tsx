@@ -25,9 +25,7 @@ function IntendToJoinField({
       />
       <span className="text-sm font-medium text-gray-700">
         클럽 가입 의사
-        {helpText && (
-          <span className="ml-1 text-blue-600">{helpText}</span>
-        )}
+        {helpText && <span className="ml-1 text-blue-600">{helpText}</span>}
       </span>
     </div>
   );

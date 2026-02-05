@@ -4,7 +4,10 @@ export type { JoinModalProps } from './JoinModal';
 
 // Context
 export { useJoinModalContext } from './JoinModalContext';
-export type { JoinModalContextType, PhoneNumberParts } from './JoinModalContext';
+export type {
+  JoinModalContextType,
+  PhoneNumberParts,
+} from './JoinModalContext';
 
 // Preset Modals
 export { default as ClubJoinModal } from './presets/ClubJoinModal';

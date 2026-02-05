@@ -2,6 +2,7 @@ import { FormEvent, useState, ReactNode } from 'react';
 
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
+
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { getVisitDate, TOURNAMENT_LEVELS } from '@/utils/clubForms';
@@ -9,11 +10,7 @@ import { getVisitDate, TOURNAMENT_LEVELS } from '@/utils/clubForms';
 import PhoneVerificationStep from '../../forms/PhoneVerificationStep';
 import PrivacyModal from '../PrivacyModal';
 
-import JoinModalContext from './JoinModalContext';
 // Sub-components
-import Footer from './components/Footer';
-import Header from './components/Header';
-import Section from './components/Section';
 import BirthDateField from './components/fields/BirthDateField';
 import GenderField from './components/fields/GenderField';
 import IntendToJoinField from './components/fields/IntendToJoinField';
@@ -23,6 +20,10 @@ import PhoneField from './components/fields/PhoneField';
 import PrivacyAgreementField from './components/fields/PrivacyAgreementField';
 import TournamentFields from './components/fields/TournamentFields';
 import VisitDateField from './components/fields/VisitDateField';
+import Footer from './components/Footer';
+import Header from './components/Header';
+import Section from './components/Section';
+import JoinModalContext from './JoinModalContext';
 
 export interface JoinModalProps {
   children: ReactNode;
@@ -50,9 +51,9 @@ function JoinModal({
   children,
   user,
   isOpen,
-  onClose,
+  // onClose,
   onSubmit,
-  isSubmitting = false,
+  // isSubmitting = false,
   initialValues,
   isClubMember = false,
   // 전화번호 인증 관련 props
@@ -64,8 +65,13 @@ function JoinModal({
   verifyPhoneCode,
 }: JoinModalProps) {
   // 폼 데이터 관리 훅
-  const { formData, phoneNumbers, onChangePhoneNumber, onChangeInput, initialFormData } =
-    useClubJoinForm(user, true, initialValues, isClubMember ? {} : undefined);
+  const {
+    formData,
+    phoneNumbers,
+    onChangePhoneNumber,
+    onChangeInput,
+    initialFormData,
+  } = useClubJoinForm(user, true, initialValues, isClubMember ? {} : undefined);
 
   // 개인정보 수집 및 이용 동의 모달
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
