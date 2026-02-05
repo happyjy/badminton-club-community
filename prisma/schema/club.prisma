@@ -15,10 +15,15 @@ model Club {
   guestPosts         GuestPost[]
   
   // Relations
-  clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
-  phoneVerifications PhoneVerification[]
-  postCategories     PostCategory[]      @relation("ClubToPostCategory")
-  posts              Post[]              @relation("ClubToPost")
+  clubCustomSettings   ClubCustomSettings?  @relation("ClubToSettings")
+  phoneVerifications  PhoneVerification[]
+  postCategories      PostCategory[]       @relation("ClubToPostCategory")
+  posts               Post[]               @relation("ClubToPost")
+  // 회비 정산
+  membershipFees      MembershipFee[]
+  coupleGroups        CoupleGroup[]
+  paymentUploadBatches PaymentUploadBatch[]
+  paymentRecords      PaymentRecord[]
 
 }
 
@@ -49,6 +54,14 @@ model ClubMember {
   createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
   posts                    Post[]                @relation("PostAuthor")
   postComments             PostComment[]         @relation("PostCommentAuthor")
+  // 회비 정산
+  coupleMembers            CoupleMember[]
+  feeExemptionsAsMember    FeeExemption[]        @relation("FeeExemptionMember")
+  feeExemptionsAsCreator   FeeExemption[]        @relation("FeeExemptionCreator")
+  paymentUploadBatches     PaymentUploadBatch[]
+  matchedPaymentRecords    PaymentRecord[]
+  membershipPaymentsAsMember   MembershipPayment[] @relation("MembershipPaymentMember")
+  membershipPaymentsAsConfirmer MembershipPayment[] @relation("MembershipPaymentConfirmer")
 
   @@unique([clubId, userId])
 } 
