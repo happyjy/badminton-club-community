@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 
 import { ko } from 'date-fns/locale/ko';
-import { DatePicker, registerLocale } from 'react-datepicker';
+import ReactDatePicker, { registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 // 한국어 로케일 등록
@@ -59,7 +59,7 @@ function CustomDatePicker({
 }: DatePickerProps) {
   const finalClassName = `mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${className}`;
   return (
-    <DatePicker
+    <ReactDatePicker
       selected={selected}
       onChange={onChange}
       placeholderText={placeholderText}
