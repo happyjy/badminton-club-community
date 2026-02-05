@@ -1,3 +1,4 @@
+import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { validateAmount } from '@/lib/membership-fee/amountValidator';
@@ -58,22 +59,42 @@ export default withAuth(async function handler(
 
     const { recordIds, year } = parseResult.data;
 
-    // 회비 설정 조회
-    const feeSettings = await prisma.membershipFee.findUnique({
+    // 회비 유형 및 금액 조회
+    const feeTypes = await prisma.feeType.findMany({
       where: {
-        clubId_year: {
-          clubId: clubIdNumber,
-          year,
+        clubId: clubIdNumber,
+        isActive: true,
+      },
+      include: {
+        rates: {
+          where: {
+            year,
+          },
         },
       },
     });
 
-    if (!feeSettings) {
+    const regularType = feeTypes.find((t) => t.name === '일반');
+    const coupleType = feeTypes.find((t) => t.name === '부부');
+
+    const regularMonthlyRate = regularType?.rates.find(
+      (r) => r.period === FeePeriod.MONTHLY
+    );
+    const coupleMonthlyRate = coupleType?.rates.find(
+      (r) => r.period === FeePeriod.MONTHLY
+    );
+
+    if (!regularMonthlyRate) {
       return res.status(400).json({
         error: `${year}년 회비 설정이 없습니다`,
         status: 400,
       });
     }
+
+    const feeSettings = {
+      regularAmount: regularMonthlyRate.amount,
+      coupleAmount: coupleMonthlyRate?.amount || regularMonthlyRate.amount,
+    };
 
     // 부부 그룹 조회
     const coupleGroups = await prisma.coupleGroup.findMany({
