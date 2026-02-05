@@ -12,7 +12,10 @@ import { InfoItem } from '@/components/molecules/InfoItem';
 import { CommentInput } from '@/components/organisms/comment/CommentInput';
 import { CommentItem } from '@/components/organisms/comment/CommentItem';
 import { InfoSection } from '@/components/organisms/InfoSection';
-import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+import {
+  GuestApplicationModal,
+  GuestInquiryModal,
+} from '@/components/organisms/modal/join';
 
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
@@ -513,15 +516,37 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         </div>
       </div>
 
-      {/* 수정 모달 */}
-      {user && isMyPost && (
-        <JoinClubModal
+      {/* 수정 모달 - 클럽 멤버 여부에 따라 다른 모달 사용 */}
+      {user && isMyPost && clubMember && (
+        <GuestApplicationModal
           user={user}
           clubId={clubId as string}
           isOpen={isEditModalOpen}
           onClose={onCloseEditModal}
           onSubmit={onSubmitEditGuestApplication}
-          isGuestApplication={true}
+          isSubmitting={isUpdating}
+          initialValues={{
+            name: guestPost.name,
+            birthDate: guestPost.birthDate,
+            phoneNumber: guestPost.phoneNumber,
+            gender: guestPost.gender,
+            localTournamentLevel: guestPost.localTournamentLevel,
+            nationalTournamentLevel: guestPost.nationalTournamentLevel,
+            lessonPeriod: guestPost.lessonPeriod,
+            playingPeriod: guestPost.playingPeriod,
+            intendToJoin: guestPost.intendToJoin,
+            visitDate: guestPost.visitDate,
+            message: guestPost.message,
+          }}
+        />
+      )}
+      {user && isMyPost && !clubMember && (
+        <GuestInquiryModal
+          user={user}
+          clubId={clubId as string}
+          isOpen={isEditModalOpen}
+          onClose={onCloseEditModal}
+          onSubmit={onSubmitEditGuestApplication}
           isSubmitting={isUpdating}
           initialValues={{
             name: guestPost.name,

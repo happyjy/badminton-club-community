@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 
 import { ko } from 'date-fns/locale/ko';
-import DatePicker, { registerLocale } from 'react-datepicker';
+import { DatePicker, registerLocale } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 // 한국어 로케일 등록

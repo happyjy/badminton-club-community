@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/router';
 
-import JoinClubModal from '@/components/organisms/modal/JoinClubModal';
+import { ClubJoinModal } from '@/components/organisms/modal/join';
 
 import { User, ClubJoinFormData, MembershipStatus } from '@/types';
 import { KakaoAuth } from '@/utils/auth';
@@ -82,7 +82,7 @@ export const JoinClubButton = ({
         >
           모임 가입하기
         </button>
-        <JoinClubModal
+        <ClubJoinModal
           user={user}
           clubId={clubId}
           isOpen={isModalOpen}
