@@ -6,3 +6,4 @@ export * from './membership.types';
 export * from './kakao.types';
 export * from './guest.types';
 export * from './board.types';
+export * from './membership-fee.types';
