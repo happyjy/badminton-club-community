@@ -1,6 +1,7 @@
+import { FeePeriod } from '@prisma/client';
 import formidable from 'formidable';
-import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 import {
   validateAmount,
@@ -96,23 +97,44 @@ export default withAuth(async function handler(
       });
     }
 
-    // 회비 설정 조회
+    // 회비 유형 및 금액 조회
     const currentYear = new Date().getFullYear();
-    const feeSettings = await prisma.membershipFee.findUnique({
+    const feeTypes = await prisma.feeType.findMany({
       where: {
-        clubId_year: {
-          clubId: clubIdNumber,
-          year: currentYear,
+        clubId: clubIdNumber,
+        isActive: true,
+      },
+      include: {
+        rates: {
+          where: {
+            year: currentYear,
+          },
         },
       },
     });
 
-    if (!feeSettings) {
+    // 일반/부부 월납 금액 추출
+    const regularType = feeTypes.find((t) => t.name === '일반');
+    const coupleType = feeTypes.find((t) => t.name === '부부');
+
+    const regularMonthlyRate = regularType?.rates.find(
+      (r) => r.period === FeePeriod.MONTHLY
+    );
+    const coupleMonthlyRate = coupleType?.rates.find(
+      (r) => r.period === FeePeriod.MONTHLY
+    );
+
+    if (!regularMonthlyRate) {
       return res.status(400).json({
         error: `${currentYear}년 회비 설정이 필요합니다`,
         status: 400,
       });
     }
+
+    const feeSettings = {
+      regularAmount: regularMonthlyRate.amount,
+      coupleAmount: coupleMonthlyRate?.amount || regularMonthlyRate.amount,
+    };
 
     // 회원 목록 조회
     const members = await prisma.clubMember.findMany({
