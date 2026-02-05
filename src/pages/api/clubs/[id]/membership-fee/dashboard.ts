@@ -1,3 +1,4 @@
+import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
@@ -44,15 +45,44 @@ export default withAuth(async function handler(
   }
 
   try {
-    // 회비 설정 조회
-    const feeSettings = await prisma.membershipFee.findUnique({
+    // 회비 유형 및 금액 조회
+    const feeTypes = await prisma.feeType.findMany({
       where: {
-        clubId_year: {
-          clubId: clubIdNumber,
-          year,
+        clubId: clubIdNumber,
+        isActive: true,
+      },
+      include: {
+        rates: {
+          where: {
+            year,
+          },
+          orderBy: {
+            period: 'asc',
+          },
         },
       },
+      orderBy: {
+        sortOrder: 'asc',
+      },
     });
+
+    // 하위 호환성을 위한 간단한 설정 추출
+    const regularType = feeTypes.find((t) => t.name === '일반');
+    const coupleType = feeTypes.find((t) => t.name === '부부');
+
+    const regularMonthlyRate = regularType?.rates.find(
+      (r) => r.period === FeePeriod.MONTHLY
+    );
+    const coupleMonthlyRate = coupleType?.rates.find(
+      (r) => r.period === FeePeriod.MONTHLY
+    );
+
+    const feeSettings = {
+      year,
+      regularAmount: regularMonthlyRate?.amount || 0,
+      coupleAmount: coupleMonthlyRate?.amount || 0,
+      feeTypes,
+    };
 
     // 클럽 회원 조회 (APPROVED 상태만)
     const clubMembers = await prisma.clubMember.findMany({
