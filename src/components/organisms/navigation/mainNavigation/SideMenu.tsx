@@ -113,6 +113,13 @@ export default function SideMenu({ isMenuOpen, setIsMenuOpen }: SideMenuProps) {
                     >
                       커스텀 설정
                     </Link>
+                    <Link
+                      href={`/clubs/${clubMember?.clubId || 1}/membership-fee`}
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100 rounded"
+                      onClick={onClickLink}
+                    >
+                      회비 관리
+                    </Link>
                   </>
                 )}
                 <button
