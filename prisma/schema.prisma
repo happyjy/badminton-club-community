@@ -58,7 +58,7 @@ model User {
   smsNotificationLogs SmsNotificationLog[] // SMS 알림 로그 관계 추가
 } 
 
-model Club {
+model Club { 
   id            Int          @id @default(autoincrement())
   name          String
   description   String?
@@ -73,18 +73,18 @@ model Club {
   members            ClubMember[]
   workouts           Workout[]
   guestPosts         GuestPost[]
-
+  
   // Relations
-  clubCustomSettings ClubCustomSettings? @relation("ClubToSettings")
-  phoneVerifications PhoneVerification[]
-  postCategories     PostCategory[]      @relation("ClubToPostCategory")
-  posts              Post[]              @relation("ClubToPost")
-
-  // 회비 정산 관계
-  membershipFees       MembershipFee[]
-  coupleGroups         CoupleGroup[]
+  clubCustomSettings   ClubCustomSettings?  @relation("ClubToSettings")
+  phoneVerifications  PhoneVerification[]
+  postCategories      PostCategory[]       @relation("ClubToPostCategory")
+  posts               Post[]               @relation("ClubToPost")
+  // 회비 정산
+  membershipFees      MembershipFee[]
+  coupleGroups        CoupleGroup[]
   paymentUploadBatches PaymentUploadBatch[]
-  paymentRecords       PaymentRecord[]
+  paymentRecords      PaymentRecord[]
+
 }
 
 model ClubMember {
@@ -114,15 +114,14 @@ model ClubMember {
   createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
   posts                    Post[]                @relation("PostAuthor")
   postComments             PostComment[]         @relation("PostCommentAuthor")
-
-  // 회비 정산 관계
+  // 회비 정산
   coupleMembers            CoupleMember[]
-  feeExemptions            FeeExemption[]        @relation("FeeExemptionMember")
-  createdFeeExemptions     FeeExemption[]        @relation("FeeExemptionCreator")
-  paymentRecords           PaymentRecord[]
-  membershipPayments       MembershipPayment[]   @relation("MembershipPaymentMember")
-  confirmedPayments        MembershipPayment[]   @relation("MembershipPaymentConfirmer")
-  uploadedBatches          PaymentUploadBatch[]
+  feeExemptionsAsMember    FeeExemption[]        @relation("FeeExemptionMember")
+  feeExemptionsAsCreator   FeeExemption[]        @relation("FeeExemptionCreator")
+  paymentUploadBatches     PaymentUploadBatch[]
+  matchedPaymentRecords    PaymentRecord[]
+  membershipPaymentsAsMember   MembershipPayment[] @relation("MembershipPaymentMember")
+  membershipPaymentsAsConfirmer MembershipPayment[] @relation("MembershipPaymentConfirmer")
 
   @@unique([clubId, userId])
 } 
@@ -404,16 +403,17 @@ model SmsNotificationLog {
   @@index([userId])
 }
 
+
 // ========================================
 // 회비 정산 관리 시스템
 // ========================================
 
 enum PaymentRecordStatus {
-  PENDING    // 대기
-  MATCHED    // 매칭됨
-  ERROR      // 에러
-  CONFIRMED  // 확정
-  SKIPPED    // 건너뜀
+  PENDING   // 대기
+  MATCHED   // 매칭됨
+  ERROR     // 에러
+  CONFIRMED // 확정
+  SKIPPED   // 건너뜀
 }
 
 // 연도별 회비 설정
@@ -427,7 +427,7 @@ model MembershipFee {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  club          Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, year])
   @@index([clubId])
@@ -435,43 +435,43 @@ model MembershipFee {
 
 // 부부 그룹
 model CoupleGroup {
-  id        Int            @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   clubId    Int
-  createdAt DateTime       @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  club      Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  members   CoupleMember[]
+  club    Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  members CoupleMember[]
 
   @@index([clubId])
 }
 
 // 부부 그룹 멤버
 model CoupleMember {
-  id            Int         @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   coupleGroupId Int
-  clubMemberId  Int         @unique  // 1인 1그룹만 허용
-  createdAt     DateTime    @default(now())
+  clubMemberId  Int      @unique // 1인 1그룹만 허용
+  createdAt     DateTime @default(now())
 
   // Relations
-  coupleGroup   CoupleGroup @relation(fields: [coupleGroupId], references: [id], onDelete: Cascade)
-  clubMember    ClubMember  @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+  coupleGroup CoupleGroup @relation(fields: [coupleGroupId], references: [id], onDelete: Cascade)
+  clubMember  ClubMember  @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
 
   @@index([coupleGroupId])
 }
 
 // 회비 면제
 model FeeExemption {
-  id           Int        @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   clubMemberId Int
   year         Int
-  reason       String     // 면제 사유 (예: "임원")
-  createdAt    DateTime   @default(now())
+  reason       String   // 면제 사유 (예: "임원")
+  createdAt    DateTime @default(now())
   createdById  Int
 
   // Relations
-  clubMember   ClubMember @relation("FeeExemptionMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
-  createdBy    ClubMember @relation("FeeExemptionCreator", fields: [createdById], references: [id])
+  clubMember ClubMember @relation("FeeExemptionMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
+  createdBy  ClubMember @relation("FeeExemptionCreator", fields: [createdById], references: [id])
 
   @@unique([clubMemberId, year])
   @@index([clubMemberId])
@@ -480,17 +480,17 @@ model FeeExemption {
 
 // 입금 내역 배치 (엑셀 업로드 단위)
 model PaymentUploadBatch {
-  id           String          @id @default(cuid())
+  id           String   @id @default(cuid())
   clubId       Int
-  uploadedAt   DateTime        @default(now())
+  uploadedAt   DateTime @default(now())
   uploadedById Int
   fileName     String
   recordCount  Int
 
   // Relations
-  club         Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  uploadedBy   ClubMember      @relation(fields: [uploadedById], references: [id])
-  records      PaymentRecord[]
+  club       Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  uploadedBy ClubMember     @relation(fields: [uploadedById], references: [id])
+  records    PaymentRecord[]
 
   @@index([clubId])
   @@index([uploadedById])
@@ -512,10 +512,10 @@ model PaymentRecord {
   updatedAt       DateTime            @updatedAt
 
   // Relations
-  batch           PaymentUploadBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  club            Club                @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  matchedMember   ClubMember?         @relation(fields: [matchedMemberId], references: [id])
-  payments        MembershipPayment[]
+  batch         PaymentUploadBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  club          Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  matchedMember ClubMember?        @relation(fields: [matchedMemberId], references: [id])
+  payments      MembershipPayment[]
 
   @@index([batchId])
   @@index([clubId])
@@ -525,19 +525,19 @@ model PaymentRecord {
 
 // 납부 내역 (확정된 회비 납부)
 model MembershipPayment {
-  id              String        @id @default(cuid())
-  clubMemberId    Int
-  paymentRecordId String
-  year            Int
-  month           Int
-  amount          Int
-  confirmedAt     DateTime      @default(now())
-  confirmedById   Int
+  id               String   @id @default(cuid())
+  clubMemberId     Int
+  paymentRecordId  String
+  year             Int
+  month            Int
+  amount           Int
+  confirmedAt      DateTime @default(now())
+  confirmedById    Int
 
   // Relations
-  clubMember      ClubMember    @relation("MembershipPaymentMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
-  paymentRecord   PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
-  confirmedBy     ClubMember    @relation("MembershipPaymentConfirmer", fields: [confirmedById], references: [id])
+  clubMember    ClubMember    @relation("MembershipPaymentMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
+  paymentRecord PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
+  confirmedBy   ClubMember    @relation("MembershipPaymentConfirmer", fields: [confirmedById], references: [id])
 
   @@unique([clubMemberId, year, month])
   @@index([clubMemberId])
