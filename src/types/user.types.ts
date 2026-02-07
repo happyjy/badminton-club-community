@@ -8,6 +8,7 @@ export interface User extends BaseEntity {
   kakaoId?: string;
 }
 
+// prettier-ignore
 export interface UserProfile extends Pick<
   User,
   'id' | 'nickname' | 'thumbnailImageUrl'
