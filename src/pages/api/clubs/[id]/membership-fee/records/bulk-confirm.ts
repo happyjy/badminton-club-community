@@ -1,7 +1,6 @@
 import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { validateAmount } from '@/lib/membership-fee/amountValidator';
 import { findCoupleGroup } from '@/lib/membership-fee/memberMatcher';
 import { suggestMonths } from '@/lib/membership-fee/monthSuggester';
 import { prisma } from '@/lib/prisma';
@@ -110,13 +109,23 @@ export default withAuth(async function handler(
       },
     });
 
-    // 레코드 조회
+    // 레코드 조회 (다중 매칭 회원 포함)
     const records = await prisma.paymentRecord.findMany({
       where: {
         id: { in: recordIds },
         clubId: clubIdNumber,
         status: 'MATCHED',
-        matchedMemberId: { not: null },
+        OR: [
+          { matchedMemberId: { not: null } },
+          { matchedMembers: { some: {} } },
+        ],
+      },
+      include: {
+        matchedMembers: {
+          include: {
+            clubMember: { select: { id: true } },
+          },
+        },
       },
     });
 
@@ -135,47 +144,58 @@ export default withAuth(async function handler(
     // 각 레코드 처리
     for (const record of records) {
       try {
-        // 부부 여부 확인
-        const coupleGroup = findCoupleGroup(
-          record.matchedMemberId!,
-          coupleGroups
-        );
-        const memberType = coupleGroup ? 'couple' : 'regular';
+        const memberIds =
+          record.matchedMembers?.length > 0
+            ? record.matchedMembers.map((m) => m.clubMemberId)
+            : record.matchedMemberId
+              ? [record.matchedMemberId]
+              : [];
 
-        // 금액 검증
-        const validation = validateAmount(
-          record.amount,
-          {
-            regularAmount: feeSettings.regularAmount,
-            coupleAmount: feeSettings.coupleAmount,
-          },
-          memberType
-        );
-
-        if (!validation.isValid) {
+        if (memberIds.length === 0) {
           results.failed.push({
             recordId: record.id,
-            reason: validation.error || '금액 검증 실패',
+            reason: '매칭된 회원이 없습니다',
           });
           continue;
         }
 
-        // 이미 납부된 월 조회
+        const amountPerMemberPerMonth = memberIds.map((mid) => {
+          const coupleGroup = findCoupleGroup(mid, coupleGroups);
+          return coupleGroup
+            ? feeSettings.coupleAmount
+            : feeSettings.regularAmount;
+        });
+
+        const totalPerMonth = amountPerMemberPerMonth.reduce(
+          (a, b) => a + b,
+          0
+        );
+        if (record.amount % totalPerMonth !== 0) {
+          results.failed.push({
+            recordId: record.id,
+            reason: `금액이 인원·월 단위와 맞지 않습니다 (${record.amount.toLocaleString()}원)`,
+          });
+          continue;
+        }
+        const monthCount = record.amount / totalPerMonth;
+
         const existingPayments = await prisma.membershipPayment.findMany({
           where: {
-            clubMemberId: record.matchedMemberId!,
+            clubMemberId: { in: memberIds },
             year,
           },
           select: { month: true },
         });
+        const paidMonthsForSuggestion = [
+          ...new Set(existingPayments.map((p) => p.month)),
+        ].map((month) => ({ month }));
 
-        // 납부할 월 제안
         const suggestedMonths = suggestMonths(
-          validation.monthCount,
-          existingPayments
+          monthCount,
+          paidMonthsForSuggestion
         );
 
-        if (suggestedMonths.length < validation.monthCount) {
+        if (suggestedMonths.length < monthCount) {
           results.failed.push({
             recordId: record.id,
             reason: '납부 가능한 월이 부족합니다',
@@ -183,30 +203,25 @@ export default withAuth(async function handler(
           continue;
         }
 
-        const amountPerMonth =
-          memberType === 'couple'
-            ? feeSettings.coupleAmount
-            : feeSettings.regularAmount;
-
-        // 트랜잭션으로 처리
         await prisma.$transaction(async (tx) => {
-          // 납부 내역 생성
-          await Promise.all(
-            suggestedMonths.map((month) =>
-              tx.membershipPayment.create({
-                data: {
-                  clubMemberId: record.matchedMemberId!,
-                  paymentRecordId: record.id,
-                  year,
-                  month,
-                  amount: amountPerMonth,
-                  confirmedById: adminMember.id,
-                },
-              })
-            )
-          );
-
-          // 레코드 상태 업데이트
+          for (let i = 0; i < memberIds.length; i++) {
+            const clubMemberId = memberIds[i];
+            const amountPerMonth = amountPerMemberPerMonth[i];
+            await Promise.all(
+              suggestedMonths.map((month) =>
+                tx.membershipPayment.create({
+                  data: {
+                    clubMemberId,
+                    paymentRecordId: record.id,
+                    year,
+                    month,
+                    amount: amountPerMonth,
+                    confirmedById: adminMember.id,
+                  },
+                })
+              )
+            );
+          }
           await tx.paymentRecord.update({
             where: { id: record.id },
             data: {

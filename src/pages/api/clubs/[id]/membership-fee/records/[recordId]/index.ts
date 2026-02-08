@@ -66,6 +66,11 @@ export default withAuth(async function handler(
           matchedMember: {
             select: { id: true, name: true },
           },
+          matchedMembers: {
+            include: {
+              clubMember: { select: { id: true, name: true } },
+            },
+          },
           batch: {
             select: { id: true, fileName: true, uploadedAt: true },
           },
@@ -100,12 +105,43 @@ export default withAuth(async function handler(
         });
       }
 
-      const { matchedMemberId, status } = parseResult.data;
+      const { matchedMemberId, matchedMemberIds, status } = parseResult.data;
 
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
 
-      if (matchedMemberId !== undefined) {
-        // 회원이 해당 클럽 소속인지 확인
+      // 다중 매칭 우선 처리
+      if (matchedMemberIds !== undefined) {
+        const ids = matchedMemberIds.length > 0 ? matchedMemberIds : [];
+
+        for (const mid of ids) {
+          const member = await prisma.clubMember.findFirst({
+            where: { id: mid, clubId: clubIdNumber },
+          });
+          if (!member) {
+            return res.status(400).json({
+              error: `해당 클럽에 속하지 않은 회원입니다 (id: ${mid})`,
+              status: 400,
+            });
+          }
+        }
+
+        await prisma.paymentRecordMatchedMember.deleteMany({
+          where: { paymentRecordId: recordId },
+        });
+
+        if (ids.length > 0) {
+          await prisma.paymentRecordMatchedMember.createMany({
+            data: ids.map((clubMemberId) => ({
+              paymentRecordId: recordId,
+              clubMemberId,
+            })),
+          });
+        }
+
+        updateData.matchedMemberId = ids[0] ?? null;
+        updateData.status = ids.length > 0 ? 'MATCHED' : 'PENDING';
+        updateData.errorReason = ids.length > 0 ? null : undefined;
+      } else if (matchedMemberId !== undefined) {
         if (matchedMemberId !== null) {
           const member = await prisma.clubMember.findFirst({
             where: {
@@ -123,8 +159,6 @@ export default withAuth(async function handler(
         }
 
         updateData.matchedMemberId = matchedMemberId;
-
-        // 회원이 매칭되면 상태를 MATCHED로 변경
         if (matchedMemberId !== null) {
           updateData.status = 'MATCHED';
           updateData.errorReason = null;
@@ -141,6 +175,11 @@ export default withAuth(async function handler(
         include: {
           matchedMember: {
             select: { id: true, name: true },
+          },
+          matchedMembers: {
+            include: {
+              clubMember: { select: { id: true, name: true } },
+            },
           },
         },
       });

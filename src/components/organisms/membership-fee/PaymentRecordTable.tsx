@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { Check, SkipForward, Edit2 } from 'lucide-react';
 
-import MemberSelectDropdown from '@/components/molecules/membership-fee/MemberSelectDropdown';
+import MemberMultiSelectDropdown from '@/components/molecules/membership-fee/MemberMultiSelectDropdown';
 import MonthSelector from '@/components/molecules/membership-fee/MonthSelector';
 import RecordStatusBadge from '@/components/molecules/membership-fee/RecordStatusBadge';
 
@@ -17,10 +17,29 @@ interface PaymentRecordTableProps {
   records: PaymentRecord[];
   members: Member[];
   year: number;
-  onUpdateMember: (recordId: string, memberId: number | null) => void;
+  onUpdateMember: (recordId: string, memberIds: number[]) => void;
   onConfirm: (recordId: string, months: number[]) => void;
   onSkip: (recordId: string) => void;
   isUpdating?: boolean;
+}
+
+function getRecordMemberIds(record: PaymentRecord): number[] {
+  if (record.matchedMembers && record.matchedMembers.length > 0) {
+    return record.matchedMembers.map((m) => m.clubMemberId);
+  }
+  if (record.matchedMemberId) {
+    return [record.matchedMemberId];
+  }
+  return [];
+}
+
+function formatMatchedMembers(record: PaymentRecord): string {
+  if (record.matchedMembers && record.matchedMembers.length > 0) {
+    return record.matchedMembers
+      .map((m) => m.clubMember?.name ?? '(이름 없음)')
+      .join(', ');
+  }
+  return record.matchedMember?.name ?? '';
 }
 
 function PaymentRecordTable({
@@ -96,12 +115,12 @@ function PaymentRecordTable({
               <td className="px-4 py-3">
                 {editingRecordId === record.id ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-40">
-                      <MemberSelectDropdown
+                    <div className="min-w-[12rem] max-w-[20rem]">
+                      <MemberMultiSelectDropdown
                         members={members}
-                        selectedMemberId={record.matchedMemberId}
-                        onSelect={(memberId) => {
-                          onUpdateMember(record.id, memberId);
+                        selectedMemberIds={getRecordMemberIds(record)}
+                        onSelect={(memberIds) => {
+                          onUpdateMember(record.id, memberIds);
                           setEditingRecordId(null);
                         }}
                         disabled={isUpdating}
@@ -118,7 +137,7 @@ function PaymentRecordTable({
                 ) : (
                   <div className="flex items-center gap-2">
                     <span>
-                      {record.matchedMember?.name || (
+                      {formatMatchedMembers(record) || (
                         <span className="text-red-500">미매칭</span>
                       )}
                     </span>
@@ -174,7 +193,7 @@ function PaymentRecordTable({
                     {record.status !== 'CONFIRMED' &&
                       record.status !== 'SKIPPED' && (
                         <>
-                          {record.matchedMemberId && (
+                          {getRecordMemberIds(record).length > 0 && (
                             <button
                               type="button"
                               onClick={() => handleStartConfirm(record)}

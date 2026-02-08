@@ -137,6 +137,22 @@ model PaymentUploadBatch {
   @@index([uploadedById])
 }
 
+// 입금 내역 - 매칭 회원 (다대다: 한 건 입금에 여러 회원 매칭 가능)
+model PaymentRecordMatchedMember {
+  id              String        @id @default(cuid())
+  paymentRecordId String
+  clubMemberId    Int
+  createdAt       DateTime      @default(now())
+
+  // Relations
+  paymentRecord PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
+  clubMember    ClubMember   @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentRecordId, clubMemberId])
+  @@index([paymentRecordId])
+  @@index([clubMemberId])
+}
+
 // 입금 내역 (엑셀 파싱 결과)
 model PaymentRecord {
   id              String              @id @default(cuid())
@@ -146,17 +162,18 @@ model PaymentRecord {
   depositorName   String
   amount          Int
   memo            String?
-  matchedMemberId Int?
+  matchedMemberId Int?                // 하위 호환: 첫 번째 매칭 회원 (matchedMembers 우선 사용)
   status          PaymentRecordStatus @default(PENDING)
   errorReason     String?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
   // Relations
-  batch         PaymentUploadBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  club          Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  matchedMember ClubMember?        @relation(fields: [matchedMemberId], references: [id])
-  payments      MembershipPayment[]
+  batch          PaymentUploadBatch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  club           Club                       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  matchedMember  ClubMember?                @relation(fields: [matchedMemberId], references: [id])
+  matchedMembers PaymentRecordMatchedMember[]
+  payments       MembershipPayment[]
 
   @@index([batchId])
   @@index([clubId])

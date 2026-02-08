@@ -87,6 +87,7 @@ export type FeeExemptionSchema = z.infer<typeof feeExemptionSchema>;
 // 입금 내역 수정 스키마
 export const paymentRecordUpdateSchema = z.object({
   matchedMemberId: z.number().int().positive().nullable().optional(),
+  matchedMemberIds: z.array(z.number().int().positive()).optional(),
   status: z
     .enum(['PENDING', 'MATCHED', 'ERROR', 'CONFIRMED', 'SKIPPED'])
     .optional(),
