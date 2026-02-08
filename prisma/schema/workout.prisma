@@ -10,7 +10,7 @@ model Workout {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime
   clubId              Int?
-  
+
   // Relations
   club                Club?                @relation(fields: [clubId], references: [id])
   WorkoutParticipant  WorkoutParticipant[]
@@ -25,7 +25,7 @@ model WorkoutParticipant {
   status          String      @default("PENDING")
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-  
+
   // Relations
   User            User        @relation(fields: [userId], references: [id])
   clubMember      ClubMember? @relation(fields: [clubMemberId], references: [id])
@@ -50,4 +50,4 @@ model WorkoutHelperStatus {
   updatedBy    ClubMember @relation("HelperUpdater", fields: [updatedById], references: [id])
 
   @@unique([workoutId, clubMemberId, helperType])
-} 
+}
