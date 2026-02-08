@@ -1,4 +1,4 @@
-model Club { 
+model Club {
   id            Int          @id @default(autoincrement())
   name          String
   description   String?
@@ -13,18 +13,18 @@ model Club {
   members            ClubMember[]
   workouts           Workout[]
   guestPosts         GuestPost[]
-  
+
   // Relations
   clubCustomSettings   ClubCustomSettings?  @relation("ClubToSettings")
-  phoneVerifications  PhoneVerification[]
-  postCategories      PostCategory[]       @relation("ClubToPostCategory")
-  posts               Post[]               @relation("ClubToPost")
-  // 회비 정산
-  membershipFees      MembershipFee[]
-  coupleGroups        CoupleGroup[]
-  paymentUploadBatches PaymentUploadBatch[]
-  paymentRecords      PaymentRecord[]
+  phoneVerifications   PhoneVerification[]
+  postCategories       PostCategory[]       @relation("ClubToPostCategory")
+  posts                Post[]               @relation("ClubToPost")
 
+  // 회비 정산
+  feeTypes             FeeType[]
+  coupleGroups         CoupleGroup[]
+  paymentUploadBatches PaymentUploadBatch[]
+  paymentRecords       PaymentRecord[]
 }
 
 model ClubMember {
@@ -55,13 +55,14 @@ model ClubMember {
   posts                    Post[]                @relation("PostAuthor")
   postComments             PostComment[]         @relation("PostCommentAuthor")
   // 회비 정산
-  coupleMembers            CoupleMember[]
-  feeExemptionsAsMember    FeeExemption[]        @relation("FeeExemptionMember")
-  feeExemptionsAsCreator   FeeExemption[]        @relation("FeeExemptionCreator")
-  paymentUploadBatches     PaymentUploadBatch[]
-  matchedPaymentRecords    PaymentRecord[]
-  membershipPaymentsAsMember   MembershipPayment[] @relation("MembershipPaymentMember")
-  membershipPaymentsAsConfirmer MembershipPayment[] @relation("MembershipPaymentConfirmer")
+  memberFeeType                 MemberFeeType?
+  coupleMembers                 CoupleMember[]
+  feeExemptionsAsMember         FeeExemption[]        @relation("FeeExemptionMember")
+  feeExemptionsAsCreator        FeeExemption[]        @relation("FeeExemptionCreator")
+  paymentUploadBatches          PaymentUploadBatch[]
+  matchedPaymentRecords         PaymentRecord[]
+  membershipPaymentsAsMember    MembershipPayment[]   @relation("MembershipPaymentMember")
+  membershipPaymentsAsConfirmer MembershipPayment[]   @relation("MembershipPaymentConfirmer")
 
   @@unique([clubId, userId])
-} 
+}

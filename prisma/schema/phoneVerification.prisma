@@ -17,4 +17,4 @@ model PhoneVerification {
   @@unique([userId, clubId, phoneNumber])
   @@index([userId, clubId])
   @@index([expiresAt])
-} 
+}

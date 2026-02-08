@@ -10,21 +10,68 @@ enum PaymentRecordStatus {
   SKIPPED   // 건너뜀
 }
 
-// 연도별 회비 설정
-model MembershipFee {
-  id            Int      @id @default(autoincrement())
-  clubId        Int
-  year          Int
-  regularAmount Int      // 일반 회비 (예: 25000)
-  coupleAmount  Int      // 부부 회비 (예: 45000)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// 납부 주기
+enum FeePeriod {
+  MONTHLY      // 월납 (1개월)
+  QUARTERLY    // 분기납 (3개월)
+  SEMI_ANNUAL  // 반기납 (6개월)
+  ANNUAL       // 연납 (12개월)
+}
+
+// 회비 유형 (일반, 부부, 학생 등)
+model FeeType {
+  id          Int      @id @default(autoincrement())
+  clubId      Int
+  name        String   // "일반", "부부", "학생", "주말회원" 등
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club    Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  rates   FeeRate[]
+  members MemberFeeType[]
 
-  @@unique([clubId, year])
+  @@unique([clubId, name])
   @@index([clubId])
+  @@index([clubId, isActive])
+}
+
+// 회비 금액 (유형 + 연도 + 납부주기별)
+model FeeRate {
+  id         Int       @id @default(autoincrement())
+  feeTypeId  Int
+  year       Int
+  period     FeePeriod // MONTHLY, QUARTERLY, SEMI_ANNUAL, ANNUAL
+  amount     Int       // 해당 주기의 총 금액
+  monthCount Int       // 적용 개월 수 (1, 3, 6, 12)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  feeType FeeType @relation(fields: [feeTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([feeTypeId, year, period])
+  @@index([feeTypeId])
+  @@index([year])
+}
+
+// 회원별 회비 유형 지정
+model MemberFeeType {
+  id           Int      @id @default(autoincrement())
+  clubMemberId Int      @unique // 1인 1유형만
+  feeTypeId    Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  clubMember ClubMember @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+  feeType    FeeType    @relation(fields: [feeTypeId], references: [id], onDelete: Cascade)
+
+  @@index([clubMemberId])
+  @@index([feeTypeId])
 }
 
 // 부부 그룹
@@ -42,10 +89,10 @@ model CoupleGroup {
 
 // 부부 그룹 멤버
 model CoupleMember {
-  id            Int      @id @default(autoincrement())
-  coupleGroupId Int
-  clubMemberId  Int      @unique // 1인 1그룹만 허용
-  createdAt     DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  coupleGroupId  Int
+  clubMemberId   Int      @unique // 1인 1그룹만 허용
+  createdAt      DateTime @default(now())
 
   // Relations
   coupleGroup CoupleGroup @relation(fields: [coupleGroupId], references: [id], onDelete: Cascade)
@@ -119,13 +166,14 @@ model PaymentRecord {
 
 // 납부 내역 (확정된 회비 납부)
 model MembershipPayment {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   clubMemberId     Int
   paymentRecordId  String
   year             Int
   month            Int
   amount           Int
-  confirmedAt      DateTime @default(now())
+  period           FeePeriod @default(MONTHLY) // 납부 주기
+  confirmedAt      DateTime  @default(now())
   confirmedById    Int
 
   // Relations

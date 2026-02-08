@@ -9,10 +9,10 @@ model PostCategory {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   club          Club     @relation("ClubToPostCategory", fields: [clubId], references: [id], onDelete: Cascade)
   posts         Post[]
-  
+
   @@index([clubId])
   @@index([clubId, isActive])
 }
@@ -31,12 +31,12 @@ model Post {
   isDeleted     Boolean       @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  
+
   club          Club          @relation("ClubToPost", fields: [clubId], references: [id], onDelete: Cascade)
   category      PostCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   author        ClubMember    @relation("PostAuthor", fields: [authorId], references: [id])
   comments      PostComment[]
-  
+
   @@index([clubId])
   @@index([categoryId])
   @@index([authorId])
@@ -55,12 +55,12 @@ model PostComment {
   likeCount     Int           @default(0)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  
+
   post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
   author        ClubMember?   @relation("PostCommentAuthor", fields: [authorId], references: [id])
   parent        PostComment?  @relation("CommentToComment", fields: [parentId], references: [id])
   children      PostComment[] @relation("CommentToComment")
-  
+
   @@index([postId])
   @@index([authorId])
   @@index([parentId])
