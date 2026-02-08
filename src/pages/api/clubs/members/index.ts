@@ -43,12 +43,14 @@ export default withAuth(async function handler(
       });
     }
 
-    // 클럽의 멤버를 가져오기
+    // 클럽의 승인된 멤버만 가져오기
     const clubMembers = await prisma.clubMember.findMany({
       where: {
         clubId: clubIdNumber,
+        status: 'APPROVED',
       },
       select: {
+        id: true,
         status: true,
         role: true,
         clubId: true,

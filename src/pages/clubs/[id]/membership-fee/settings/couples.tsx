@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { ArrowLeft, Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
+
+import { ArrowLeft, Plus } from 'lucide-react';
 
 import CoupleManageList from '@/components/organisms/membership-fee/CoupleManageList';
 import CoupleRegisterModal from '@/components/organisms/membership-fee/CoupleRegisterModal';
@@ -11,9 +12,8 @@ import {
   useCreateCouple,
   useDeleteCouple,
 } from '@/hooks/membership-fee/useCouples';
+
 import { withAuth } from '@/lib/withAuth';
-import { ClubResponse } from '@/types';
-import { Role } from '@/types/enums';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
 interface Member {
