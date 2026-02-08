@@ -6,7 +6,8 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-} 
+}
+
 
 enum HelperType {
   NET
@@ -20,7 +21,7 @@ enum GuestStatus {
   PENDING   // 대기중
   APPROVED  // 승인됨
   REJECTED  // 거절됨
-} 
+}
 
 enum MemberRole {
   ADMIN     // 임원
@@ -38,6 +39,7 @@ enum NotificationType {
   COMMENT_ADDED    // 댓글 추가
 }
 
+
 model User {
   id                  Int                  @id @default(autoincrement())
   kakaoId             String               @unique @default("")
@@ -48,7 +50,7 @@ model User {
   phoneVerifiedAt     DateTime?            // 전화번호 인증 완료 시간
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @default(now()) @updatedAt
-  
+
   // Relations
   clubMember          ClubMember[]
   WorkoutParticipant  WorkoutParticipant[]
@@ -56,9 +58,10 @@ model User {
   guestComments       GuestComment[]
   phoneVerifications  PhoneVerification[]  // 전화번호 인증 관계 추가
   smsNotificationLogs SmsNotificationLog[] // SMS 알림 로그 관계 추가
-} 
+}
 
-model Club { 
+
+model Club {
   id            Int          @id @default(autoincrement())
   name          String
   description   String?
@@ -73,7 +76,7 @@ model Club {
   members            ClubMember[]
   workouts           Workout[]
   guestPosts         GuestPost[]
-  
+
   // Relations
   clubCustomSettings   ClubCustomSettings?  @relation("ClubToSettings")
   phoneVerifications   PhoneVerification[]
@@ -125,7 +128,7 @@ model ClubMember {
   membershipPaymentsAsConfirmer MembershipPayment[]   @relation("MembershipPaymentConfirmer")
 
   @@unique([clubId, userId])
-} 
+}
 
 
 // 게시판 카테고리
@@ -139,10 +142,10 @@ model PostCategory {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   club          Club     @relation("ClubToPostCategory", fields: [clubId], references: [id], onDelete: Cascade)
   posts         Post[]
-  
+
   @@index([clubId])
   @@index([clubId, isActive])
 }
@@ -161,12 +164,12 @@ model Post {
   isDeleted     Boolean       @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  
+
   club          Club          @relation("ClubToPost", fields: [clubId], references: [id], onDelete: Cascade)
   category      PostCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   author        ClubMember    @relation("PostAuthor", fields: [authorId], references: [id])
   comments      PostComment[]
-  
+
   @@index([clubId])
   @@index([categoryId])
   @@index([authorId])
@@ -185,12 +188,12 @@ model PostComment {
   likeCount     Int           @default(0)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  
+
   post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
   author        ClubMember?   @relation("PostCommentAuthor", fields: [authorId], references: [id])
   parent        PostComment?  @relation("CommentToComment", fields: [parentId], references: [id])
   children      PostComment[] @relation("CommentToComment")
-  
+
   @@index([postId])
   @@index([authorId])
   @@index([parentId])
@@ -210,7 +213,7 @@ model Workout {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime
   clubId              Int?
-  
+
   // Relations
   club                Club?                @relation(fields: [clubId], references: [id])
   WorkoutParticipant  WorkoutParticipant[]
@@ -225,7 +228,7 @@ model WorkoutParticipant {
   status          String      @default("PENDING")
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-  
+
   // Relations
   User            User        @relation(fields: [userId], references: [id])
   clubMember      ClubMember? @relation(fields: [clubMemberId], references: [id])
@@ -250,17 +253,18 @@ model WorkoutHelperStatus {
   updatedBy    ClubMember @relation("HelperUpdater", fields: [updatedById], references: [id])
 
   @@unique([workoutId, clubMemberId, helperType])
-} 
+}
+
 
 // 게스트 신청 게시글
 model GuestPost {
-  id                       String                @id @default(cuid()) 
+  id                       String                @id @default(cuid())
   clubId                   Int                                           // 게스트 신청한 클럽 ID
   userId                   Int                                           // 게스트 신청한 유저 ID
   postType                 GuestPostType         @default(GUEST_REQUEST) // 게시글 타입 (게스트 요청 또는 문의하기 요청)
-  name                     String       
+  name                     String
   birthDate                String                @default("")
-  phoneNumber              String       
+  phoneNumber              String
   gender                   String                @default("")            // 성별 필드 추가
   localTournamentLevel     String                @default("")
   nationalTournamentLevel  String                @default("")
@@ -271,14 +275,14 @@ model GuestPost {
   intendToJoin             Boolean               @default(false)
   visitDate                String                @default("")
   message                  String                @default("")
-  // 게스트 신청 게시글 작성자       
-  createdBy                Int?       
+  // 게스트 신청 게시글 작성자
+  createdBy                Int?
   createdAt                DateTime              @default(now())
-  // 업데이트        
+  // 업데이트
   updatedBy                Int                   @default(0)
   updatedAt                DateTime              @default(now()) @updatedAt
-        
-  // Relations       
+
+  // Relations
   club                     Club                  @relation(fields: [clubId], references: [id]) // 게스트 신청 게시글 작성 클럽
   user                     User                  @relation(fields: [userId], references: [id]) // 게스트 신청 게시글 작성자
   clubMember               ClubMember?           @relation("CreatedByClubMember", fields: [createdBy], references: [id]) // 게스트 신청 게시글 작성자 클럽 멤버
@@ -293,7 +297,7 @@ model GuestPost {
 // 게스트 신청 댓글
 model GuestComment {
   id            String          @id @default(cuid())
-  postId        String      
+  postId        String
   userId        Int?            // 회원 ID(작성자-회원가입전)
   clubMemberId  Int?            // 클럽 멤버 ID(임원진)
   content       String
@@ -301,25 +305,25 @@ model GuestComment {
   isDeleted     Boolean         @default(false)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @default(now()) @updatedAt
-  
+
   // Relations
   user          User?           @relation(fields: [userId], references: [id])
   clubMember    ClubMember?     @relation(fields: [clubMemberId], references: [id])
   post          GuestPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
   parent        GuestComment?   @relation("CommentToComment", fields: [parentId], references: [id])
   children      GuestComment[]  @relation("CommentToComment")
-  
+
   @@index([postId])
   @@index([userId])
   @@index([clubMemberId])
   @@index([parentId])
-} 
+}
 
 // 마이그레이션 코드
 model GuestPost_copy {
-  id                       String         @id @default(cuid()) 
-  clubId                   Int            
-  userId                   Int            
+  id                       String         @id @default(cuid())
+  clubId                   Int
+  userId                   Int
   name                     String
   message                  String
   status                   GuestStatus    @default(PENDING)
@@ -327,17 +331,18 @@ model GuestPost_copy {
   updatedAt                DateTime       @updatedAt
   phoneNumber              String         @default("")
   gender                   String         @default("")          // 성별 필드 추가
-  
+
   // 신규 필드들은 기본값 설정으로 추가
   birthDate                String         @default("")
   localTournamentLevel     String         @default("")
   nationalTournamentLevel  String         @default("")
   lessonPeriod             String         @default("")
   playingPeriod            String         @default("")
-    
+
   @@index([clubId])
   @@index([userId])
 }
+
 
 // 클럽 커스텀 설정
 model ClubCustomSettings {
@@ -347,17 +352,17 @@ model ClubCustomSettings {
   clubOperatingTime    String?  // 운영 시간
   clubLocation         String?  // 장소
   clubDescription      String?  // 설명
-  
+
   // 문의하기/게스트 신청 설명글 설정
   inquiryDescription   String?  // 클럽 문의하기 설명
   guestDescription     String?  // 게스트 신청 설명
-  
+
   // 이메일 발송 설정
   emailRecipients      String[] // 이메일 수신자 목록 (JSON 배열로 저장)
-  
+
   // 문자 발송 설정
   smsRecipients        String[] // 문자 수신자 목록 (JSON 배열로 저장)
-  
+
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -365,6 +370,7 @@ model ClubCustomSettings {
   club                Club     @relation("ClubToSettings", fields: [clubId], references: [id], onDelete: Cascade)
   @@index([clubId])
 }
+
 
 // 전화번호 인증
 model PhoneVerification {
@@ -385,7 +391,8 @@ model PhoneVerification {
   @@unique([userId, clubId, phoneNumber])
   @@index([userId, clubId])
   @@index([expiresAt])
-} 
+}
+
 
 // SMS 알림 로그
 model SmsNotificationLog {
@@ -496,10 +503,10 @@ model CoupleGroup {
 
 // 부부 그룹 멤버
 model CoupleMember {
-  id            Int      @id @default(autoincrement())
-  coupleGroupId Int
-  clubMemberId  Int      @unique // 1인 1그룹만 허용
-  createdAt     DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  coupleGroupId  Int
+  clubMemberId   Int      @unique // 1인 1그룹만 허용
+  createdAt      DateTime @default(now())
 
   // Relations
   coupleGroup CoupleGroup @relation(fields: [coupleGroupId], references: [id], onDelete: Cascade)
@@ -573,15 +580,15 @@ model PaymentRecord {
 
 // 납부 내역 (확정된 회비 납부)
 model MembershipPayment {
-  id              String    @id @default(cuid())
-  clubMemberId    Int
-  paymentRecordId String
-  year            Int
-  month           Int
-  amount          Int
-  period          FeePeriod @default(MONTHLY) // 납부 주기
-  confirmedAt     DateTime  @default(now())
-  confirmedById   Int
+  id               String    @id @default(cuid())
+  clubMemberId     Int
+  paymentRecordId  String
+  year             Int
+  month            Int
+  amount           Int
+  period           FeePeriod @default(MONTHLY) // 납부 주기
+  confirmedAt      DateTime  @default(now())
+  confirmedById    Int
 
   // Relations
   clubMember    ClubMember    @relation("MembershipPaymentMember", fields: [clubMemberId], references: [id], onDelete: Cascade)

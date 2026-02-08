@@ -8,7 +8,7 @@ model User {
   phoneVerifiedAt     DateTime?            // 전화번호 인증 완료 시간
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @default(now()) @updatedAt
-  
+
   // Relations
   clubMember          ClubMember[]
   WorkoutParticipant  WorkoutParticipant[]
@@ -16,4 +16,4 @@ model User {
   guestComments       GuestComment[]
   phoneVerifications  PhoneVerification[]  // 전화번호 인증 관계 추가
   smsNotificationLogs SmsNotificationLog[] // SMS 알림 로그 관계 추가
-} 
+}
