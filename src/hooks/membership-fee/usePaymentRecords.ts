@@ -133,7 +133,10 @@ export function useUpdatePaymentRecord(clubId: string | undefined) {
       data,
     }: {
       recordId: string;
-      data: { matchedMemberId?: number | null };
+      data: {
+        matchedMemberId?: number | null;
+        matchedMemberIds?: number[];
+      };
     }) => {
       if (!clubId) {
         throw new Error('클럽 ID가 필요합니다');
