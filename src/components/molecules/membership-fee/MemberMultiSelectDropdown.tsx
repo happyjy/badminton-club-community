@@ -102,6 +102,28 @@ function MemberMultiSelectDropdown({
         </div>
       </button>
 
+      {selectedMembers.length > 0 && (
+        <div className="mt-2 p-2 border rounded-lg bg-gray-50 flex flex-wrap gap-1">
+          {selectedMembers.map((m) => (
+            <span
+              key={m.id}
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs"
+            >
+              {m.name || '(이름 없음)'}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={(e) => handleClearOne(e, m.id)}
+                  className="hover:bg-blue-200 rounded p-0.5"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+
       {isOpen && (
         <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-hidden">
           <div className="p-2 border-b">
@@ -152,27 +174,6 @@ function MemberMultiSelectDropdown({
               })
             )}
           </div>
-          {selectedMembers.length > 0 && (
-            <div className="p-2 border-t bg-gray-50 flex flex-wrap gap-1">
-              {selectedMembers.map((m) => (
-                <span
-                  key={m.id}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs"
-                >
-                  {m.name || '(이름 없음)'}
-                  {!disabled && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleClearOne(e, m.id)}
-                      className="hover:bg-blue-200 rounded p-0.5"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>
