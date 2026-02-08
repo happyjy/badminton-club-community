@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/router';
+
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 import FileUploadZone from '@/components/organisms/membership-fee/FileUploadZone';
 import PaymentRecordTable from '@/components/organisms/membership-fee/PaymentRecordTable';
@@ -13,6 +14,7 @@ import {
   useConfirmPayment,
   useSkipPayment,
 } from '@/hooks/membership-fee/usePaymentRecords';
+
 import { withAuth } from '@/lib/withAuth';
 import { PaymentRecord } from '@/types/membership-fee.types';
 import { checkClubAdminPermission } from '@/utils/permissions';
@@ -75,6 +77,7 @@ function UploadPage() {
       setUploadedRecords(result.records);
       setUploadSummary(result.summary);
     } catch (error: any) {
+      //
       alert(error.message || '파일 업로드에 실패했습니다.');
     }
   };
