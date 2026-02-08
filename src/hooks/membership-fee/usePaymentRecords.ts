@@ -93,21 +93,28 @@ export function useUploadPaymentExcel(clubId: string | undefined) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await axios.post<UploadResponse>(
-        `/api/clubs/${clubId}/membership-fee/upload`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+      try {
+        const response = await axios.post<UploadResponse>(
+          `/api/clubs/${clubId}/membership-fee/upload`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+
+        if (response.data.status !== 200) {
+          throw new Error(response.data.message);
         }
-      );
 
-      if (response.data.status !== 200) {
-        throw new Error(response.data.message);
+        return response.data.data;
+      } catch (err: unknown) {
+        const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
+        const message =
+          axiosError.response?.data?.error ?? axiosError.message ?? '파일 업로드에 실패했습니다.';
+        throw new Error(message);
       }
-
-      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
