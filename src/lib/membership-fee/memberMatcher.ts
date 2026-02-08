@@ -73,7 +73,26 @@ export function matchDepositor(
     };
   }
 
-  // 2. 성 생략 매칭 ("철수" → "김철수", "영희" → "박영희")
+  // 2. 입금자 명에 회원 이름이 포함된 경우 매칭 (가장 긴 이름 우선)
+  const nameIncludedMatches = members.filter(
+    (m) =>
+      m.name &&
+      m.name.trim().length > 0 &&
+      normalizedDepositor.includes(m.name.trim())
+  );
+  if (nameIncludedMatches.length > 0) {
+    const best = nameIncludedMatches.reduce((a, b) =>
+      (a.name?.length ?? 0) >= (b.name?.length ?? 0) ? a : b
+    );
+    return {
+      memberId: best.id,
+      memberName: best.name,
+      matchType: 'partial',
+      confidence: 0.85,
+    };
+  }
+
+  // 3. 성 생략 매칭 ("철수" → "김철수", "영희" → "박영희")
   // 2자 이름인 경우, 성 생략 가능성 체크
   if (normalizedDepositor.length === 2) {
     const partialMatches = members.filter(
@@ -90,7 +109,7 @@ export function matchDepositor(
     }
   }
 
-  // 3. 부부 배우자 이름 매칭
+  // 4. 부부 배우자 이름 매칭
   // 부부 그룹에서 매칭 가능한 회원 찾기
   for (const couple of coupleGroups) {
     const matchedMember = couple.members.find(
@@ -109,7 +128,7 @@ export function matchDepositor(
     }
   }
 
-  // 4. 유사도 매칭 (Levenshtein distance ≤ 1)
+  // 5. 유사도 매칭 (Levenshtein distance ≤ 1)
   let bestMatch: Member | null = null;
   let bestDistance = Infinity;
 
@@ -135,7 +154,7 @@ export function matchDepositor(
     };
   }
 
-  // 5. 매칭 실패
+  // 6. 매칭 실패
   return {
     memberId: null,
     memberName: null,
