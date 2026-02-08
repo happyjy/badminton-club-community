@@ -69,12 +69,12 @@ function ProcessPage() {
 
   const handleUpdateMember = async (
     recordId: string,
-    memberId: number | null
+    memberIds: number[]
   ) => {
     try {
       await updateMutation.mutateAsync({
         recordId,
-        data: { matchedMemberId: memberId },
+        data: { matchedMemberIds: memberIds },
       });
     } catch (error: any) {
       alert(error.message || '회원 수정에 실패했습니다.');
@@ -101,8 +101,11 @@ function ProcessPage() {
   };
 
   const handleBulkConfirm = async () => {
+    const hasMatchedMembers = (r: { matchedMemberId?: number | null; matchedMembers?: { clubMemberId: number }[] }) =>
+      r.matchedMemberId != null ||
+      (r.matchedMembers != null && r.matchedMembers.length > 0);
     const matchedRecords =
-      records?.filter((r) => r.status === 'MATCHED' && r.matchedMemberId) || [];
+      records?.filter((r) => r.status === 'MATCHED' && hasMatchedMembers(r)) || [];
 
     if (matchedRecords.length === 0) {
       alert('확정할 수 있는 레코드가 없습니다.');

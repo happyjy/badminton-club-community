@@ -100,6 +100,13 @@ export interface PaymentUploadBatch {
   recordCount: number;
 }
 
+// 입금 내역 - 매칭 회원 (다중 선택 시 사용)
+export interface PaymentRecordMatchedMemberItem {
+  id: string;
+  clubMemberId: number;
+  clubMember?: { id: number; name: string | null };
+}
+
 // 입금 내역
 export interface PaymentRecord {
   id: string;
@@ -118,6 +125,8 @@ export interface PaymentRecord {
     id: number;
     name: string | null;
   };
+  /** 다중 매칭 회원 (한 건 입금에 여러 명 납부 시) */
+  matchedMembers?: PaymentRecordMatchedMemberItem[];
   suggestedMonths?: number[];
 }
 
@@ -215,6 +224,8 @@ export interface FeeExemptionInput {
 
 export interface PaymentRecordUpdateInput {
   matchedMemberId?: number | null;
+  /** 다중 매칭 시 사용 (있으면 matchedMemberId 무시) */
+  matchedMemberIds?: number[];
   status?: PaymentRecordStatus;
 }
 

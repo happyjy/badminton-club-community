@@ -61,6 +61,11 @@ export default withAuth(async function handler(
         matchedMember: {
           select: { id: true, name: true },
         },
+        matchedMembers: {
+          include: {
+            clubMember: { select: { id: true, name: true } },
+          },
+        },
         batch: {
           select: { id: true, fileName: true, uploadedAt: true },
         },
