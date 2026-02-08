@@ -173,16 +173,25 @@ export function useConfirmPayment(clubId: string | undefined) {
         throw new Error('클럽 ID가 필요합니다');
       }
 
-      const response = await axios.post(
-        `/api/clubs/${clubId}/membership-fee/records/${recordId}/confirm`,
-        data
-      );
+      try {
+        const response = await axios.post(
+          `/api/clubs/${clubId}/membership-fee/records/${recordId}/confirm`,
+          data
+        );
 
-      if (response.data.status !== 200) {
-        throw new Error(response.data.message);
+        if (response.data.status !== 200) {
+          throw new Error(
+            response.data.error ?? response.data.message ?? '확정에 실패했습니다'
+          );
+        }
+
+        return response.data.data;
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          throw new Error(err.response.data.error);
+        }
+        throw err;
       }
-
-      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
