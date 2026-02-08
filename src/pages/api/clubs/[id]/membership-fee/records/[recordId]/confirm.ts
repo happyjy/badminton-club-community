@@ -52,11 +52,24 @@ export default withAuth(async function handler(
   }
 
   try {
-    const parseResult = paymentConfirmSchema.safeParse(req.body);
+    const body = req.body;
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({
+        error: '요청 본문(year, months)이 필요합니다',
+        status: 400,
+      });
+    }
+
+    const parseResult = paymentConfirmSchema.safeParse(body);
 
     if (!parseResult.success) {
+      const firstError = parseResult.error.errors[0];
+      const message =
+        firstError?.message === 'Required'
+          ? 'year(연도)와 months(월 배열)를 입력해주세요'
+          : firstError?.message ?? '입력값을 확인해주세요';
       return res.status(400).json({
-        error: parseResult.error.errors[0].message,
+        error: message,
         status: 400,
       });
     }
