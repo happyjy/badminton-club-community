@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Check, SkipForward, Edit2 } from 'lucide-react';
+import { Check, SkipForward, Edit2, RotateCcw } from 'lucide-react';
 
 import MemberMultiSelectDropdown from '@/components/molecules/membership-fee/MemberMultiSelectDropdown';
 import MonthSelector from '@/components/molecules/membership-fee/MonthSelector';
@@ -19,6 +19,7 @@ interface PaymentRecordTableProps {
   year: number;
   onUpdateMember: (recordId: string, memberIds: number[]) => void;
   onConfirm: (recordId: string, year: number, months: number[]) => void;
+  onUnconfirm: (recordId: string) => void;
   onSkip: (recordId: string) => void;
   isUpdating?: boolean;
 }
@@ -68,6 +69,7 @@ function PaymentRecordTable({
   year,
   onUpdateMember,
   onConfirm,
+  onUnconfirm,
   onSkip,
   isUpdating = false,
 }: PaymentRecordTableProps) {
@@ -263,9 +265,20 @@ function PaymentRecordTable({
                       (() => {
                         const monthsStr = formatConfirmedMonths(record);
                         return (
-                          <span className="text-sm text-green-600">
-                            확정됨{monthsStr ? ` (${monthsStr})` : ''}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-green-600">
+                              {monthsStr ? `확정됨 (${monthsStr})` : '확정됨'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => onUnconfirm(record.id)}
+                              disabled={isUpdating}
+                              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+                              title="확정 취소 후 수정"
+                            >
+                              <RotateCcw size={16} />
+                            </button>
+                          </div>
                         );
                       })()}
                     {record.status === 'SKIPPED' && (

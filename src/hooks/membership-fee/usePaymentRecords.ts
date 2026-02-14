@@ -207,6 +207,45 @@ export function useConfirmPayment(clubId: string | undefined) {
   });
 }
 
+export function useUnconfirmPayment(clubId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (recordId: string) => {
+      if (!clubId) {
+        throw new Error('클럽 ID가 필요합니다');
+      }
+
+      try {
+        const response = await axios.post<RecordResponse>(
+          `/api/clubs/${clubId}/membership-fee/records/${recordId}/unconfirm`
+        );
+
+        if (response.data.status !== 200) {
+          throw new Error(
+            (response.data as { error?: string }).error ?? '확정 취소에 실패했습니다'
+          );
+        }
+
+        return response.data.data.record;
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          throw new Error(err.response.data.error);
+        }
+        throw err;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['paymentRecords', clubId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
+      });
+    },
+  });
+}
+
 export function useSkipPayment(clubId: string | undefined) {
   const queryClient = useQueryClient();
 
