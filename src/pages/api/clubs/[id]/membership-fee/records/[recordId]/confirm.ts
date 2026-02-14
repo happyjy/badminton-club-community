@@ -172,14 +172,8 @@ export default withAuth(async function handler(
       0
     );
 
-    if (record.amount > expectedAmount) {
-      return res.status(400).json({
-        error: `입금액(${record.amount.toLocaleString()}원)이 선택한 월·인원(${memberIds.length}명×${months.length}개월, ${expectedAmount.toLocaleString()}원)을 초과합니다`,
-        status: 400,
-      });
-    }
-
-    // 옵션A: 입금 부족 시 부분 확정 - 실제 입금액을 회원·월에 균등 배분
+    // 입금액 >= 예상액: 선택한 월·인원만큼 확정 (초과분 예: 월회비+가입비 동시 입금은 미할당)
+    // 입금액 < 예상액: 부족 확정 - 실제 입금액을 회원·월에 균등 배분
     const totalSlots = memberIds.length * months.length;
     const baseAmount = Math.floor(record.amount / totalSlots);
     const remainder = record.amount - baseAmount * totalSlots;
