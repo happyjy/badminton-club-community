@@ -47,6 +47,13 @@ function MembershipFeeDashboard() {
       {/* 빠른 링크 */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <Link
+          href={`/clubs/${clubId}/membership-fee/settings/fee-types`}
+          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+        >
+          <Settings size={20} className="text-amber-500" />
+          <span>회비 유형 관리</span>
+        </Link>
+        <Link
           href={`/clubs/${clubId}/membership-fee/settings/couples`}
           className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
         >
@@ -74,42 +81,20 @@ function MembershipFeeDashboard() {
           <FileText size={20} className="text-purple-500" />
           <span>리포트</span>
         </Link>
-        <button
-          onClick={() => {
-            const regularAmount = prompt(
-              `${year}년 일반 회비 금액을 입력하세요 (현재: ${dashboard?.feeSettings?.regularAmount || '미설정'})`
-            );
-            const coupleAmount = prompt(
-              `${year}년 부부 회비 금액을 입력하세요 (현재: ${dashboard?.feeSettings?.coupleAmount || '미설정'})`
-            );
-            if (regularAmount && coupleAmount) {
-              fetch(`/api/clubs/${clubId}/membership-fee/settings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  year,
-                  regularAmount: Number(regularAmount),
-                  coupleAmount: Number(coupleAmount),
-                }),
-              }).then(() => {
-                alert('회비 설정이 저장되었습니다.');
-                router.reload();
-              });
-            }
-          }}
-          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
-        >
-          <Settings size={20} className="text-gray-500" />
-          <span>회비 설정</span>
-        </button>
       </div>
 
       {/* 회비 설정 안내 */}
       {!dashboard?.feeSettings && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-yellow-800">
-            {year}년 회비 설정이 필요합니다. 위의 회비 설정 버튼을 클릭하여
-            설정해주세요.
+            {year}년 회비 설정이 필요합니다.{' '}
+            <Link
+              href={`/clubs/${clubId}/membership-fee/settings/fee-types`}
+              className="text-blue-600 hover:underline font-medium"
+            >
+              회비 유형 관리
+            </Link>
+            에서 일반/부부 등 유형과 금액을 등록해주세요.
           </p>
         </div>
       )}

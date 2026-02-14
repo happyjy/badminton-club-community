@@ -137,6 +137,13 @@ export default withAuth(async function handler(
       coupleAmount: coupleMonthlyRate?.amount || regularMonthlyRate.amount,
     };
 
+    // 가입비 유형: FeeType "가입비"의 금액과 정확히 일치하면 월 회비 배수로 인식하지 않고 미 매칭 처리
+    const joiningFeeType = feeTypes.find((t) => t.name === '가입비');
+    const joiningFeeAmounts =
+      joiningFeeType?.rates
+        .filter((r) => r.year === currentYear)
+        .map((r) => r.amount) ?? [];
+
     // 회원 목록 조회
     const members = await prisma.clubMember.findMany({
       where: { clubId: clubIdNumber },
@@ -170,6 +177,31 @@ export default withAuth(async function handler(
     // 각 레코드 처리
     const records = [];
     for (const row of parsedRows) {
+      // 가입비: FeeType "가입비" 금액과 일치하면 월 회비 배수로 인식하지 않고 미 매칭 처리
+      if (joiningFeeAmounts.includes(row.amount)) {
+        const record = await prisma.paymentRecord.create({
+          data: {
+            batchId: batch.id,
+            clubId: clubIdNumber,
+            transactionDate: row.transactionDate,
+            depositorName: row.depositorName,
+            amount: row.amount,
+            memo: row.memo,
+            matchedMemberId: null,
+            status: 'PENDING',
+            errorReason: '가입비',
+          },
+          include: {
+            matchedMember: { select: { id: true, name: true } },
+            matchedMembers: {
+              include: { clubMember: { select: { id: true, name: true } } },
+            },
+          },
+        });
+        records.push(record);
+        continue;
+      }
+
       // 회원 매칭
       const matchResult = matchDepositor(
         row.depositorName,

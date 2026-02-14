@@ -94,22 +94,22 @@ function PaymentRecordTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-50 border-b">
-            <th className="px-4 py-3 text-left">거래일</th>
-            <th className="px-4 py-3 text-left">입금자명</th>
-            <th className="px-4 py-3 text-right">금액</th>
-            <th className="px-4 py-3 text-left">매칭 회원</th>
-            <th className="px-4 py-3 text-center">상태</th>
-            <th className="px-4 py-3 text-center">작업</th>
+            <th className="px-4 py-3 text-left whitespace-nowrap">거래일</th>
+            <th className="px-4 py-3 text-left whitespace-nowrap">입금자명</th>
+            <th className="px-4 py-3 text-right whitespace-nowrap">금액</th>
+            <th className="px-4 py-3 text-left whitespace-nowrap">매칭 회원</th>
+            <th className="px-4 py-3 text-center whitespace-nowrap">상태</th>
+            <th className="px-4 py-3 text-center whitespace-nowrap">작업</th>
           </tr>
         </thead>
         <tbody>
           {records.map((record) => (
             <tr key={record.id} className="border-b hover:bg-gray-50">
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 whitespace-nowrap">
                 {new Date(record.transactionDate).toLocaleDateString('ko-KR')}
               </td>
               <td className="px-4 py-3">{record.depositorName}</td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-4 py-3 text-right whitespace-nowrap">
                 {record.amount.toLocaleString()}원
               </td>
               <td className="px-4 py-3">
@@ -129,7 +129,7 @@ function PaymentRecordTable({
                     <button
                       type="button"
                       onClick={() => setEditingRecordId(null)}
-                      className="text-sm text-gray-500 hover:text-gray-700"
+                      className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap"
                     >
                       취소
                     </button>
@@ -138,7 +138,9 @@ function PaymentRecordTable({
                   <div className="flex items-center gap-2">
                     <span>
                       {formatMatchedMembers(record) || (
-                        <span className="text-red-500">미매칭</span>
+                        <span className="text-red-500 whitespace-nowrap">
+                          미매칭
+                        </span>
                       )}
                     </span>
                     {record.status !== 'CONFIRMED' &&
@@ -174,7 +176,7 @@ function PaymentRecordTable({
                       <button
                         type="button"
                         onClick={handleCancelConfirm}
-                        className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
+                        className="px-3 py-1 text-sm border rounded hover:bg-gray-50 whitespace-nowrap"
                       >
                         취소
                       </button>
@@ -182,7 +184,7 @@ function PaymentRecordTable({
                         type="button"
                         onClick={() => handleConfirm(record.id)}
                         disabled={selectedMonths.length === 0 || isUpdating}
-                        className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                        className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
                       >
                         확정
                       </button>
@@ -216,10 +218,14 @@ function PaymentRecordTable({
                         </>
                       )}
                     {record.status === 'CONFIRMED' && (
-                      <span className="text-sm text-green-600">확정됨</span>
+                      <span className="text-sm text-green-600 whitespace-nowrap">
+                        확정됨
+                      </span>
                     )}
                     {record.status === 'SKIPPED' && (
-                      <span className="text-sm text-yellow-600">건너뜀</span>
+                      <span className="text-sm text-yellow-600 whitespace-nowrap">
+                        건너뜀
+                      </span>
                     )}
                   </div>
                 )}
