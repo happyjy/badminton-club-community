@@ -10,6 +10,7 @@ import {
   usePaymentRecords,
   useUpdatePaymentRecord,
   useConfirmPayment,
+  useUnconfirmPayment,
   useSkipPayment,
   useBulkConfirmPayments,
 } from '@/hooks/membership-fee/usePaymentRecords';
@@ -40,6 +41,7 @@ function ProcessPage() {
   );
   const updateMutation = useUpdatePaymentRecord(clubIdStr);
   const confirmMutation = useConfirmPayment(clubIdStr);
+  const unconfirmMutation = useUnconfirmPayment(clubIdStr);
   const skipMutation = useSkipPayment(clubIdStr);
   const bulkConfirmMutation = useBulkConfirmPayments(clubIdStr);
 
@@ -93,6 +95,18 @@ function ProcessPage() {
       });
     } catch (error: any) {
       alert(error.message || '확정에 실패했습니다.');
+    }
+  };
+
+  const handleUnconfirm = async (recordId: string) => {
+    if (!confirm('확정을 취소하시겠습니까? 취소 후 회원·월을 수정하고 다시 확정할 수 있습니다.')) {
+      return;
+    }
+    try {
+      await unconfirmMutation.mutateAsync(recordId);
+      alert('확정이 취소되었습니다. 회원·월을 수정한 뒤 다시 확정해주세요.');
+    } catch (error: any) {
+      alert(error.message || '확정 취소에 실패했습니다.');
     }
   };
 
@@ -288,10 +302,12 @@ function ProcessPage() {
           year={year}
           onUpdateMember={handleUpdateMember}
           onConfirm={handleConfirm}
+          onUnconfirm={handleUnconfirm}
           onSkip={handleSkip}
           isUpdating={
             updateMutation.isPending ||
             confirmMutation.isPending ||
+            unconfirmMutation.isPending ||
             skipMutation.isPending ||
             bulkConfirmMutation.isPending
           }
