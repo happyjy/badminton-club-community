@@ -82,14 +82,11 @@ function UploadPage() {
     }
   };
 
-  const handleUpdateMember = async (
-    recordId: string,
-    memberId: number | null
-  ) => {
+  const handleUpdateMember = async (recordId: string, memberIds: number[]) => {
     try {
       const updatedRecord = await updateMutation.mutateAsync({
         recordId,
-        data: { matchedMemberId: memberId },
+        data: { matchedMemberIds: memberIds },
       });
       setUploadedRecords((prev) =>
         prev.map((r) => (r.id === recordId ? updatedRecord : r))
