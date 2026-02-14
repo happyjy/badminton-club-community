@@ -244,8 +244,23 @@ export default withAuth(async function handler(
         if (validation.isValid) {
           status = 'MATCHED';
         } else {
-          status = 'ERROR';
-          errorReason = validation.error || null;
+          // 옵션A: 입금 부족(부분 납부) 허용 - 회원 매칭됐고 금액이 1개월 예상액 미만이면 MATCHED
+          const expectedPerMember1Month =
+            memberType === 'couple'
+              ? feeSettings.coupleAmount
+              : feeSettings.regularAmount;
+          const expectedTotal1Month =
+            expectedPerMember1Month * resolvedMemberIds.length;
+          const isPartialPayment =
+            row.amount > 0 && row.amount < expectedTotal1Month;
+
+          if (isPartialPayment) {
+            status = 'MATCHED';
+            errorReason = null;
+          } else {
+            status = 'ERROR';
+            errorReason = validation.error || null;
+          }
         }
       } else if (matchResult.matchType === 'none') {
         // 매칭 실패 시 금액만 검증

@@ -171,9 +171,12 @@ export default withAuth(async function handler(
           0
         );
         if (record.amount % totalPerMonth !== 0) {
+          const isPartialPayment = record.amount > 0 && record.amount < totalPerMonth;
           results.failed.push({
             recordId: record.id,
-            reason: `금액이 인원·월 단위와 맞지 않습니다 (${record.amount.toLocaleString()}원)`,
+            reason: isPartialPayment
+              ? `입금 부족 (${record.amount.toLocaleString()}원) - 개별 확정에서 월 선택 후 부족 확정해주세요`
+              : `금액이 인원·월 단위와 맞지 않습니다 (${record.amount.toLocaleString()}원)`,
           });
           continue;
         }
