@@ -81,11 +81,15 @@ function ProcessPage() {
     }
   };
 
-  const handleConfirm = async (recordId: string, months: number[]) => {
+  const handleConfirm = async (
+    recordId: string,
+    confirmYear: number,
+    months: number[]
+  ) => {
     try {
       await confirmMutation.mutateAsync({
         recordId,
-        data: { year, months },
+        data: { year: confirmYear, months },
       });
     } catch (error: any) {
       alert(error.message || '확정에 실패했습니다.');

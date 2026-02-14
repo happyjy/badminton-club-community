@@ -18,7 +18,7 @@ interface PaymentRecordTableProps {
   members: Member[];
   year: number;
   onUpdateMember: (recordId: string, memberIds: number[]) => void;
-  onConfirm: (recordId: string, months: number[]) => void;
+  onConfirm: (recordId: string, year: number, months: number[]) => void;
   onSkip: (recordId: string) => void;
   isUpdating?: boolean;
 }
@@ -45,6 +45,7 @@ function formatMatchedMembers(record: PaymentRecord): string {
 function PaymentRecordTable({
   records,
   members,
+  year,
   onUpdateMember,
   onConfirm,
   onSkip,
@@ -54,6 +55,7 @@ function PaymentRecordTable({
   const [confirmingRecordId, setConfirmingRecordId] = useState<string | null>(
     null
   );
+  const [selectedYear, setSelectedYear] = useState(year);
   const [selectedMonths, setSelectedMonths] = useState<number[]>([]);
 
   const handleStartEdit = (recordId: string) => {
@@ -64,22 +66,26 @@ function PaymentRecordTable({
   const handleStartConfirm = (record: PaymentRecord) => {
     setConfirmingRecordId(record.id);
     setEditingRecordId(null);
-    // 금액에 따른 월 수 계산 (나중에 설정에서 가져오도록 수정 필요)
+    setSelectedYear(year);
     setSelectedMonths(record.suggestedMonths || []);
   };
 
   const handleConfirm = (recordId: string) => {
     if (selectedMonths.length > 0) {
-      onConfirm(recordId, selectedMonths);
+      onConfirm(recordId, selectedYear, selectedMonths);
       setConfirmingRecordId(null);
+      setSelectedYear(year);
       setSelectedMonths([]);
     }
   };
 
   const handleCancelConfirm = () => {
     setConfirmingRecordId(null);
+    setSelectedYear(year);
     setSelectedMonths([]);
   };
+
+  const yearOptions = [year - 1, year, year + 1];
 
   if (records.length === 0) {
     return (
@@ -168,6 +174,22 @@ function PaymentRecordTable({
               <td className="px-4 py-3">
                 {confirmingRecordId === record.id ? (
                   <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm text-gray-600">연도:</span>
+                      <select
+                        value={selectedYear}
+                        onChange={(e) =>
+                          setSelectedYear(Number(e.target.value))
+                        }
+                        className="px-2 py-1 text-sm border rounded"
+                      >
+                        {yearOptions.map((y) => (
+                          <option key={y} value={y}>
+                            {y}년
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <MonthSelector
                       selectedMonths={selectedMonths}
                       onMonthsChange={setSelectedMonths}
