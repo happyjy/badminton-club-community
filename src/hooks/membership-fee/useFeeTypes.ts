@@ -88,10 +88,45 @@ export function useCreateFeeType(clubId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feeTypes', clubId] });
+      queryClient.invalidateQueries({ queryKey: ['feeType', clubId] });
       queryClient.invalidateQueries({
         queryKey: ['membershipFeeSettings', clubId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
+      });
     },
+  });
+}
+
+// 회비 유형 상세 조회 (금액 포함)
+export function useFeeType(
+  clubId: string | undefined,
+  typeId: number | null,
+  options?: { year?: number }
+) {
+  return useQuery<FeeType>({
+    queryKey: ['feeType', clubId, typeId, options?.year],
+    queryFn: async () => {
+      if (!clubId || !typeId) {
+        throw new Error('클럽 ID와 회비 유형 ID가 필요합니다');
+      }
+
+      const params = new URLSearchParams();
+      if (options?.year) {
+        params.append('year', String(options.year));
+      }
+
+      const url = `/api/clubs/${clubId}/membership-fee/fee-types/${typeId}${params.toString() ? `?${params}` : ''}`;
+      const response = await axios.get<FeeTypeResponse>(url);
+
+      if (response.data.status !== 200) {
+        throw new Error(response.data.message);
+      }
+
+      return response.data.data.feeType;
+    },
+    enabled: !!clubId && !!typeId,
   });
 }
 
@@ -124,8 +159,12 @@ export function useUpdateFeeType(clubId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feeTypes', clubId] });
+      queryClient.invalidateQueries({ queryKey: ['feeType', clubId] });
       queryClient.invalidateQueries({
         queryKey: ['membershipFeeSettings', clubId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
       });
     },
   });
@@ -151,8 +190,12 @@ export function useDeleteFeeType(clubId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feeTypes', clubId] });
+      queryClient.invalidateQueries({ queryKey: ['feeType', clubId] });
       queryClient.invalidateQueries({
         queryKey: ['membershipFeeSettings', clubId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
       });
     },
   });
@@ -217,6 +260,9 @@ export function useUpsertFeeRate(clubId: string | undefined) {
       queryClient.invalidateQueries({
         queryKey: ['membershipFeeSettings', clubId, variables.year],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
+      });
     },
   });
 }
@@ -254,6 +300,9 @@ export function useBulkUpsertFeeRates(clubId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ['feeRates', clubId] });
       queryClient.invalidateQueries({
         queryKey: ['membershipFeeSettings', clubId, variables.year],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
       });
     },
   });
