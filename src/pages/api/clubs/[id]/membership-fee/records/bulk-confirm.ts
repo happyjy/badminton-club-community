@@ -193,9 +193,14 @@ export default withAuth(async function handler(
           ...new Set(existingPayments.map((p) => p.month)),
         ].map((month) => ({ month }));
 
+        // 거래일(transactionDate) 월을 기준으로 확정 월 추천 - 1월 입금은 1월로 확정되도록
+        const transactionMonth =
+          new Date(record.transactionDate).getMonth() + 1;
+
         const suggestedMonths = suggestMonths(
           monthCount,
-          paidMonthsForSuggestion
+          paidMonthsForSuggestion,
+          transactionMonth
         );
 
         if (suggestedMonths.length < monthCount) {
