@@ -42,6 +42,26 @@ function formatMatchedMembers(record: PaymentRecord): string {
   return record.matchedMember?.name ?? '';
 }
 
+function formatConfirmedMonths(record: PaymentRecord): string {
+  const payments = record.payments ?? [];
+  if (payments.length === 0) return '';
+
+  const byYear = new Map<number, number[]>();
+  for (const p of payments) {
+    const months = byYear.get(p.year) ?? [];
+    if (!months.includes(p.month)) months.push(p.month);
+    byYear.set(p.year, months);
+  }
+
+  return Array.from(byYear.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([y, months]) => {
+      months.sort((a, b) => a - b);
+      return `${y}년 ${months.map((m) => `${m}월`).join(', ')}`;
+    })
+    .join(' / ');
+}
+
 function PaymentRecordTable({
   records,
   members,
@@ -239,11 +259,15 @@ function PaymentRecordTable({
                           </button>
                         </>
                       )}
-                    {record.status === 'CONFIRMED' && (
-                      <span className="text-sm text-green-600 whitespace-nowrap">
-                        확정됨
-                      </span>
-                    )}
+                    {record.status === 'CONFIRMED' &&
+                      (() => {
+                        const monthsStr = formatConfirmedMonths(record);
+                        return (
+                          <span className="text-sm text-green-600">
+                            확정됨{monthsStr ? ` (${monthsStr})` : ''}
+                          </span>
+                        );
+                      })()}
                     {record.status === 'SKIPPED' && (
                       <span className="text-sm text-yellow-600 whitespace-nowrap">
                         건너뜀
