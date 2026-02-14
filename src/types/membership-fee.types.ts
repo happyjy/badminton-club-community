@@ -245,6 +245,8 @@ export interface MatchResult {
   memberName: string | null;
   matchType: 'exact' | 'partial' | 'couple' | 'similar' | 'none';
   confidence: number;
+  /** 부부 등 한 건 입금에 두 명 매칭 시 회원 ID 배열 (있으면 matchedMemberId는 첫 번째와 동일) */
+  memberIds?: number[];
 }
 
 // 금액 검증 결과

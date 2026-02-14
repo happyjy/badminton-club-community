@@ -106,11 +106,13 @@ export function matchDepositor(
 
     if (aMatched && bMatched) {
       const primaryMember = couple.members[0];
+      const memberIds = couple.members.map((m) => m.clubMemberId);
       return {
         memberId: primaryMember.clubMemberId,
         memberName: primaryMember.clubMember.name,
         matchType: 'couple',
         confidence: 0.95,
+        memberIds,
       };
     }
   }
