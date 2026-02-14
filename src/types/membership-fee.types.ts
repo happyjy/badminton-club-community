@@ -128,6 +128,8 @@ export interface PaymentRecord {
   /** 다중 매칭 회원 (한 건 입금에 여러 명 납부 시) */
   matchedMembers?: PaymentRecordMatchedMemberItem[];
   suggestedMonths?: number[];
+  /** 확정된 납부 내역 (CONFIRMED 시 연도·월 표시용) */
+  payments?: { id: string; year: number; month: number }[];
 }
 
 // 납부 내역
