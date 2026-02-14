@@ -172,12 +172,20 @@ export default withAuth(async function handler(
       0
     );
 
-    if (record.amount !== expectedAmount) {
+    if (record.amount > expectedAmount) {
       return res.status(400).json({
-        error: `입금액(${record.amount.toLocaleString()}원)과 선택한 월·인원(${memberIds.length}명×${months.length}개월, ${expectedAmount.toLocaleString()}원)이 일치하지 않습니다`,
+        error: `입금액(${record.amount.toLocaleString()}원)이 선택한 월·인원(${memberIds.length}명×${months.length}개월, ${expectedAmount.toLocaleString()}원)을 초과합니다`,
         status: 400,
       });
     }
+
+    // 옵션A: 입금 부족 시 부분 확정 - 실제 입금액을 회원·월에 균등 배분
+    const totalSlots = memberIds.length * months.length;
+    const baseAmount = Math.floor(record.amount / totalSlots);
+    const remainder = record.amount - baseAmount * totalSlots;
+
+    const getAmountForSlot = (slotIndex: number) =>
+      slotIndex < remainder ? baseAmount + 1 : baseAmount;
 
     for (let i = 0; i < memberIds.length; i++) {
       const existingPayments = await prisma.membershipPayment.findMany({
@@ -201,22 +209,28 @@ export default withAuth(async function handler(
       const payments: Awaited<
         ReturnType<typeof tx.membershipPayment.create>
       >[] = [];
+      let slotIndex = 0;
 
       for (let i = 0; i < memberIds.length; i++) {
         const clubMemberId = memberIds[i];
         const amountPerMonth = amountPerMemberPerMonth[i];
         for (const month of months) {
+          const amount =
+            record.amount >= expectedAmount
+              ? amountPerMonth
+              : getAmountForSlot(slotIndex);
           const p = await tx.membershipPayment.create({
             data: {
               clubMemberId,
               paymentRecordId: record.id,
               year,
               month,
-              amount: amountPerMonth,
+              amount,
               confirmedById: adminMember.id,
             },
           });
           payments.push(p);
+          slotIndex += 1;
         }
       }
 
