@@ -96,11 +96,15 @@ function UploadPage() {
     }
   };
 
-  const handleConfirm = async (recordId: string, months: number[]) => {
+  const handleConfirm = async (
+    recordId: string,
+    confirmYear: number,
+    months: number[]
+  ) => {
     try {
       await confirmMutation.mutateAsync({
         recordId,
-        data: { year: currentYear, months },
+        data: { year: confirmYear, months },
       });
       setUploadedRecords((prev) =>
         prev.map((r) =>
