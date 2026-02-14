@@ -298,6 +298,7 @@ export function useBulkUpsertFeeRates(clubId: string | undefined) {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['feeRates', clubId] });
+      queryClient.invalidateQueries({ queryKey: ['feeTypes', clubId] });
       queryClient.invalidateQueries({
         queryKey: ['membershipFeeSettings', clubId, variables.year],
       });
