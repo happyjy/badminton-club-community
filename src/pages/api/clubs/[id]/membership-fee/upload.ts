@@ -182,10 +182,23 @@ export default withAuth(async function handler(
       let errorReason = null;
       let status: 'PENDING' | 'MATCHED' | 'ERROR' = 'PENDING';
 
-      if (matchResult.memberId) {
-        // 부부 그룹 여부 확인
-        const coupleGroup = findCoupleGroup(matchResult.memberId, coupleGroups);
-        memberType = coupleGroup ? 'couple' : 'regular';
+      const resolvedMemberIds =
+        (matchResult.memberIds?.length ?? 0) > 0
+          ? matchResult.memberIds!
+          : matchResult.memberId
+            ? [matchResult.memberId]
+            : [];
+
+      if (resolvedMemberIds.length > 0) {
+        // 부부: 매칭 회원이 2명이면 부부 금액으로 검증
+        memberType = resolvedMemberIds.length === 2 ? 'couple' : 'regular';
+        if (resolvedMemberIds.length === 1) {
+          const coupleGroup = findCoupleGroup(
+            resolvedMemberIds[0],
+            coupleGroups
+          );
+          if (coupleGroup) memberType = 'couple';
+        }
 
         const validation = validateAmount(
           row.amount,
@@ -217,6 +230,9 @@ export default withAuth(async function handler(
         }
       }
 
+      const firstMemberId =
+        resolvedMemberIds.length > 0 ? resolvedMemberIds[0] : null;
+
       const record = await prisma.paymentRecord.create({
         data: {
           batchId: batch.id,
@@ -225,7 +241,7 @@ export default withAuth(async function handler(
           depositorName: row.depositorName,
           amount: row.amount,
           memo: row.memo,
-          matchedMemberId: matchResult.memberId,
+          matchedMemberId: firstMemberId,
           status,
           errorReason,
         },
@@ -236,7 +252,28 @@ export default withAuth(async function handler(
         },
       });
 
-      records.push(record);
+      if (resolvedMemberIds.length > 0) {
+        await prisma.paymentRecordMatchedMember.createMany({
+          data: resolvedMemberIds.map((clubMemberId) => ({
+            paymentRecordId: record.id,
+            clubMemberId,
+          })),
+          skipDuplicates: true,
+        });
+      }
+
+      const recordWithMembers = await prisma.paymentRecord.findUnique({
+        where: { id: record.id },
+        include: {
+          matchedMember: { select: { id: true, name: true } },
+          matchedMembers: {
+            include: {
+              clubMember: { select: { id: true, name: true } },
+            },
+          },
+        },
+      });
+      records.push(recordWithMembers!);
     }
 
     // 파일 정리
