@@ -97,16 +97,37 @@ export type PaymentRecordUpdateSchema = z.infer<
   typeof paymentRecordUpdateSchema
 >;
 
-// 입금 확정 스키마
-export const paymentConfirmSchema = z.object({
+// 연도·월 한 묶음 (다중 연도 확정용)
+const yearMonthSelectionSchema = z.object({
   year: z.number().int().min(2020).max(2100),
   months: z
     .array(z.number().int().min(1).max(12))
     .min(1, '최소 1개월을 선택해야 합니다'),
-  period: feePeriodSchema.optional().default('MONTHLY'),
 });
 
+// 입금 확정 스키마 (단일 year+months | 다중 selections 호환)
+export const paymentConfirmSchema = z.union([
+  z
+    .object({
+      year: z.number().int().min(2020).max(2100),
+      months: z
+        .array(z.number().int().min(1).max(12))
+        .min(1, '최소 1개월을 선택해야 합니다'),
+      period: feePeriodSchema.optional().default('MONTHLY'),
+    })
+    .strict(),
+  z
+    .object({
+      selections: z
+        .array(yearMonthSelectionSchema)
+        .min(1, '최소 1개의 연도·월을 선택해야 합니다'),
+      period: feePeriodSchema.optional().default('MONTHLY'),
+    })
+    .strict(),
+]);
+
 export type PaymentConfirmSchema = z.infer<typeof paymentConfirmSchema>;
+export type YearMonthSelection = z.infer<typeof yearMonthSelectionSchema>;
 
 // 일괄 확정 스키마
 export const bulkConfirmSchema = z.object({

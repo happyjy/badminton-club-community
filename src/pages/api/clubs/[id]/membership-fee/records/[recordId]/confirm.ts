@@ -66,7 +66,7 @@ export default withAuth(async function handler(
       const firstError = parseResult.error.errors[0];
       const message =
         firstError?.message === 'Required'
-          ? 'year(연도)와 months(월 배열)를 입력해주세요'
+          ? 'year(연도)와 months(월 배열) 또는 selections를 입력해주세요'
           : firstError?.message ?? '입력값을 확인해주세요';
       return res.status(400).json({
         error: message,
@@ -74,7 +74,18 @@ export default withAuth(async function handler(
       });
     }
 
-    const { year, months } = parseResult.data;
+    const data = parseResult.data;
+    const selections: { year: number; months: number[] }[] =
+      'selections' in data &&
+      Array.isArray(data.selections) &&
+      data.selections.length > 0
+        ? data.selections
+        : [
+            {
+              year: (data as { year: number; months: number[] }).year,
+              months: (data as { year: number; months: number[] }).months,
+            },
+          ];
 
     // 레코드 조회 (다중 매칭 회원 포함)
     const record = await prisma.paymentRecord.findFirst({
@@ -119,38 +130,6 @@ export default withAuth(async function handler(
       });
     }
 
-    // 회비 유형 및 금액 조회
-    const feeTypes = await prisma.feeType.findMany({
-      where: {
-        clubId: clubIdNumber,
-        isActive: true,
-      },
-      include: {
-        rates: {
-          where: {
-            year,
-          },
-        },
-      },
-    });
-
-    const regularType = feeTypes.find((t) => t.name === '일반');
-    const coupleType = feeTypes.find((t) => t.name === '부부');
-
-    const regularMonthlyRate = regularType?.rates.find(
-      (r) => r.period === FeePeriod.MONTHLY
-    );
-    const coupleMonthlyRate = coupleType?.rates.find(
-      (r) => r.period === FeePeriod.MONTHLY
-    );
-
-    if (!regularMonthlyRate) {
-      return res.status(400).json({
-        error: `${year}년 회비 설정이 없습니다`,
-        status: 400,
-      });
-    }
-
     const coupleGroups = await prisma.coupleGroup.findMany({
       where: { clubId: clubIdNumber },
       include: {
@@ -158,73 +137,117 @@ export default withAuth(async function handler(
       },
     });
 
-    const amountPerMemberPerMonth = memberIds.map((mid) => {
-      const isCouple = coupleGroups.some((cg) =>
-        cg.members.some((m) => m.clubMemberId === mid)
-      );
-      return isCouple
-        ? (coupleMonthlyRate?.amount ?? regularMonthlyRate.amount)
-        : regularMonthlyRate.amount;
-    });
-
-    const expectedAmount = amountPerMemberPerMonth.reduce(
-      (sum, amt) => sum + amt * months.length,
-      0
-    );
-
-    // 입금액 >= 예상액: 선택한 월·인원만큼 확정 (초과분 예: 월회비+가입비 동시 입금은 미할당)
-    // 입금액 < 예상액: 부족 확정 - 실제 입금액을 회원·월에 균등 배분
-    const totalSlots = memberIds.length * months.length;
-    const baseAmount = Math.floor(record.amount / totalSlots);
-    const remainder = record.amount - baseAmount * totalSlots;
-
-    const getAmountForSlot = (slotIndex: number) =>
-      slotIndex < remainder ? baseAmount + 1 : baseAmount;
-
-    for (let i = 0; i < memberIds.length; i++) {
-      const existingPayments = await prisma.membershipPayment.findMany({
+    // 연도별 회비 금액 (amountPerMemberPerMonth per year)
+    const amountPerYear = new Map<
+      number,
+      number[]
+    >();
+    const allYears = [...new Set(selections.map((s) => s.year))];
+    for (const y of allYears) {
+      const feeTypes = await prisma.feeType.findMany({
         where: {
-          clubMemberId: memberIds[i],
-          year,
-          month: { in: months },
+          clubId: clubIdNumber,
+          isActive: true,
+        },
+        include: {
+          rates: { where: { year: y } },
         },
       });
-      if (existingPayments.length > 0) {
-        const paidMonths = existingPayments.map((p) => `${p.month}월`).join(', ');
+      const regularType = feeTypes.find((t) => t.name === '일반');
+      const coupleType = feeTypes.find((t) => t.name === '부부');
+      const regularMonthlyRate = regularType?.rates.find(
+        (r) => r.period === FeePeriod.MONTHLY
+      );
+      const coupleMonthlyRate = coupleType?.rates.find(
+        (r) => r.period === FeePeriod.MONTHLY
+      );
+      if (!regularMonthlyRate) {
         return res.status(400).json({
-          error: `이미 납부된 월이 있습니다: ${paidMonths}`,
+          error: `${y}년 회비 설정이 없습니다`,
           status: 400,
         });
       }
+      const perMember = memberIds.map((mid) => {
+        const isCouple = coupleGroups.some((cg) =>
+          cg.members.some((m) => m.clubMemberId === mid)
+        );
+        return isCouple
+          ? (coupleMonthlyRate?.amount ?? regularMonthlyRate.amount)
+          : regularMonthlyRate.amount;
+      });
+      amountPerYear.set(y, perMember);
     }
 
-    // 트랜잭션으로 처리: 회원별·월별 납부 생성
+    let expectedAmount = 0;
+    for (const sel of selections) {
+      const perMember = amountPerYear.get(sel.year)!;
+      expectedAmount += perMember.reduce(
+        (sum, amt) => sum + amt * sel.months.length,
+        0
+      );
+    }
+
+    const totalSlots = selections.reduce(
+      (acc, sel) => acc + memberIds.length * sel.months.length,
+      0
+    );
+    const baseAmount = Math.floor(record.amount / totalSlots);
+    const remainder = record.amount - baseAmount * totalSlots;
+    const getAmountForSlot = (slotIndex: number) =>
+      slotIndex < remainder ? baseAmount + 1 : baseAmount;
+
+    // 이미 납부된 월 검사 (모든 selections에 대해)
+    for (let i = 0; i < memberIds.length; i++) {
+      for (const sel of selections) {
+        const existingPayments = await prisma.membershipPayment.findMany({
+          where: {
+            clubMemberId: memberIds[i],
+            year: sel.year,
+            month: { in: sel.months },
+          },
+        });
+        if (existingPayments.length > 0) {
+          const paidMonths = existingPayments
+            .map((p) => `${p.year}년 ${p.month}월`)
+            .join(', ');
+          return res.status(400).json({
+            error: `이미 납부된 월이 있습니다: ${paidMonths}`,
+            status: 400,
+          });
+        }
+      }
+    }
+
+    // 트랜잭션: 모든 selections에 대해 회원별·월별 납부 생성
     const result = await prisma.$transaction(async (tx) => {
       const payments: Awaited<
         ReturnType<typeof tx.membershipPayment.create>
       >[] = [];
       let slotIndex = 0;
 
-      for (let i = 0; i < memberIds.length; i++) {
-        const clubMemberId = memberIds[i];
-        const amountPerMonth = amountPerMemberPerMonth[i];
-        for (const month of months) {
-          const amount =
-            record.amount >= expectedAmount
-              ? amountPerMonth
-              : getAmountForSlot(slotIndex);
-          const p = await tx.membershipPayment.create({
-            data: {
-              clubMemberId,
-              paymentRecordId: record.id,
-              year,
-              month,
-              amount,
-              confirmedById: adminMember.id,
-            },
-          });
-          payments.push(p);
-          slotIndex += 1;
+      for (const sel of selections) {
+        const amountPerMemberPerMonth = amountPerYear.get(sel.year)!;
+        for (let i = 0; i < memberIds.length; i++) {
+          const clubMemberId = memberIds[i];
+          const amountPerMonth = amountPerMemberPerMonth[i];
+          for (const month of sel.months) {
+            const amount =
+              record.amount >= expectedAmount
+                ? amountPerMonth
+                : getAmountForSlot(slotIndex);
+            const p = await tx.membershipPayment.create({
+              data: {
+                clubMemberId,
+                paymentRecordId: record.id,
+                year: sel.year,
+                month,
+                amount,
+                confirmedById: adminMember.id,
+              },
+            });
+            payments.push(p);
+            slotIndex += 1;
+          }
         }
       }
 

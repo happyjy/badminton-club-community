@@ -1,12 +1,14 @@
 import { useState } from 'react';
 
-import { Check, SkipForward, Edit2, RotateCcw } from 'lucide-react';
+import { Check, SkipForward, Edit2, RotateCcw, Plus, X } from 'lucide-react';
 
 import MemberMultiSelectDropdown from '@/components/molecules/membership-fee/MemberMultiSelectDropdown';
 import MonthSelector from '@/components/molecules/membership-fee/MonthSelector';
 import RecordStatusBadge from '@/components/molecules/membership-fee/RecordStatusBadge';
 
 import { PaymentRecord } from '@/types/membership-fee.types';
+
+export type YearMonthSelection = { year: number; months: number[] };
 
 interface Member {
   id: number;
@@ -18,7 +20,7 @@ interface PaymentRecordTableProps {
   members: Member[];
   year: number;
   onUpdateMember: (recordId: string, memberIds: number[]) => void;
-  onConfirm: (recordId: string, year: number, months: number[]) => void;
+  onConfirm: (recordId: string, selections: YearMonthSelection[]) => void;
   onUnconfirm: (recordId: string) => void;
   onSkip: (recordId: string) => void;
   isUpdating?: boolean;
@@ -77,8 +79,9 @@ function PaymentRecordTable({
   const [confirmingRecordId, setConfirmingRecordId] = useState<string | null>(
     null
   );
-  const [selectedYear, setSelectedYear] = useState(year);
-  const [selectedMonths, setSelectedMonths] = useState<number[]>([]);
+  const [selections, setSelections] = useState<YearMonthSelection[]>([]);
+  const [addYear, setAddYear] = useState(year);
+  const [addMonths, setAddMonths] = useState<number[]>([]);
 
   const handleStartEdit = (recordId: string) => {
     setEditingRecordId(recordId);
@@ -88,26 +91,57 @@ function PaymentRecordTable({
   const handleStartConfirm = (record: PaymentRecord) => {
     setConfirmingRecordId(record.id);
     setEditingRecordId(null);
-    setSelectedYear(year);
-    setSelectedMonths(record.suggestedMonths || []);
+    const suggested = record.suggestedMonths ?? [];
+    setSelections(suggested.length > 0 ? [{ year, months: suggested }] : []);
+    setAddYear(year);
+    setAddMonths([]);
+  };
+
+  const handleAddSelection = () => {
+    if (addMonths.length === 0) return;
+    const merged = [...selections];
+    const existing = merged.find((s) => s.year === addYear);
+    if (existing) {
+      const combined = [...new Set([...existing.months, ...addMonths])].sort(
+        (a, b) => a - b
+      );
+      existing.months = combined;
+    } else {
+      merged.push({
+        year: addYear,
+        months: [...addMonths].sort((a, b) => a - b),
+      });
+    }
+    setSelections(merged);
+    setAddMonths([]);
+  };
+
+  const handleRemoveSelection = (index: number) => {
+    setSelections(selections.filter((_, i) => i !== index));
   };
 
   const handleConfirm = (recordId: string) => {
-    if (selectedMonths.length > 0) {
-      onConfirm(recordId, selectedYear, selectedMonths);
+    if (selections.length > 0 && selections.every((s) => s.months.length > 0)) {
+      onConfirm(recordId, selections);
       setConfirmingRecordId(null);
-      setSelectedYear(year);
-      setSelectedMonths([]);
+      setSelections([]);
+      setAddYear(year);
+      setAddMonths([]);
     }
   };
 
   const handleCancelConfirm = () => {
     setConfirmingRecordId(null);
-    setSelectedYear(year);
-    setSelectedMonths([]);
+    setSelections([]);
+    setAddYear(year);
+    setAddMonths([]);
   };
 
   const yearOptions = [year - 1, year, year + 1];
+  const totalMonthsCount = selections.reduce(
+    (acc, s) => acc + s.months.length,
+    0
+  );
 
   if (records.length === 0) {
     return (
@@ -195,14 +229,33 @@ function PaymentRecordTable({
               </td>
               <td className="px-4 py-3">
                 {confirmingRecordId === record.id ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="space-y-2 min-w-[16rem]">
+                    {selections.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {selections.map((sel, idx) => (
+                          <span
+                            key={`${sel.year}-${idx}`}
+                            className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded"
+                          >
+                            {sel.year}년 {sel.months.join(', ')}월
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSelection(idx)}
+                              className="p-0.5 rounded hover:bg-blue-200"
+                              title="제거"
+                              aria-label="제거"
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm text-gray-600">연도:</span>
                       <select
-                        value={selectedYear}
-                        onChange={(e) =>
-                          setSelectedYear(Number(e.target.value))
-                        }
+                        value={addYear}
+                        onChange={(e) => setAddYear(Number(e.target.value))}
                         className="px-2 py-1 text-sm border rounded"
                       >
                         {yearOptions.map((y) => (
@@ -211,12 +264,30 @@ function PaymentRecordTable({
                           </option>
                         ))}
                       </select>
+                      <button
+                        type="button"
+                        onClick={handleAddSelection}
+                        disabled={addMonths.length === 0}
+                        className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                        title="선택한 연도·월 추가"
+                      >
+                        <Plus size={16} />
+                      </button>
                     </div>
                     <MonthSelector
-                      selectedMonths={selectedMonths}
-                      onMonthsChange={setSelectedMonths}
+                      selectedMonths={addMonths}
+                      onMonthsChange={setAddMonths}
                     />
-                    <div className="flex justify-end gap-2">
+                    <p className="text-xs text-gray-400">
+                      연도·월 선택 후 + 버튼으로 추가 (여러 연도 가능)
+                    </p>
+                    {addMonths.length > 0 && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        선택한 {addYear}년 {addMonths.join(', ')}월을 위 [＋]
+                        버튼으로 추가한 뒤 확정해주세요.
+                      </p>
+                    )}
+                    <div className="flex justify-end gap-2 mt-2">
                       <button
                         type="button"
                         onClick={handleCancelConfirm}
@@ -227,8 +298,17 @@ function PaymentRecordTable({
                       <button
                         type="button"
                         onClick={() => handleConfirm(record.id)}
-                        disabled={selectedMonths.length === 0 || isUpdating}
+                        disabled={
+                          totalMonthsCount === 0 ||
+                          isUpdating ||
+                          addMonths.length > 0
+                        }
                         className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
+                        title={
+                          addMonths.length > 0
+                            ? '선택한 연도·월을 먼저 [추가]해주세요'
+                            : undefined
+                        }
                       >
                         확정
                       </button>
