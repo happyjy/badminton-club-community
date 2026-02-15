@@ -231,9 +231,12 @@ export interface PaymentRecordUpdateInput {
   status?: PaymentRecordStatus;
 }
 
+/** 단일 연도·월 또는 다중 연도·월(예: 2025년 12월 + 2026년 1월) */
 export interface PaymentConfirmInput {
-  year: number;
-  months: number[];
+  year?: number;
+  months?: number[];
+  /** 다중 연도·월 선택 시 사용 (있으면 year/months 무시) */
+  selections?: { year: number; months: number[] }[];
 }
 
 export interface BulkConfirmInput {

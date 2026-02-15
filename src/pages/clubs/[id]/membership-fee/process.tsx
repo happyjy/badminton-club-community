@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 
-import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/router';
 
-import PaymentRecordTable from '@/components/organisms/membership-fee/PaymentRecordTable';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
+
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
+import PaymentRecordTable, {
+  YearMonthSelection,
+} from '@/components/organisms/membership-fee/PaymentRecordTable';
 
 import {
   usePaymentRecords,
@@ -14,6 +17,7 @@ import {
   useSkipPayment,
   useBulkConfirmPayments,
 } from '@/hooks/membership-fee/usePaymentRecords';
+
 import { withAuth } from '@/lib/withAuth';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
@@ -69,10 +73,7 @@ function ProcessPage() {
     fetchMembers();
   }, [clubId]);
 
-  const handleUpdateMember = async (
-    recordId: string,
-    memberIds: number[]
-  ) => {
+  const handleUpdateMember = async (recordId: string, memberIds: number[]) => {
     try {
       await updateMutation.mutateAsync({
         recordId,
@@ -85,13 +86,19 @@ function ProcessPage() {
 
   const handleConfirm = async (
     recordId: string,
-    confirmYear: number,
-    months: number[]
+    selections: YearMonthSelection[]
   ) => {
     try {
+      const data =
+        selections.length === 1
+          ? {
+              year: selections[0].year,
+              months: selections[0].months,
+            }
+          : { selections };
       await confirmMutation.mutateAsync({
         recordId,
-        data: { year: confirmYear, months },
+        data,
       });
     } catch (error: any) {
       alert(error.message || '확정에 실패했습니다.');
@@ -99,7 +106,11 @@ function ProcessPage() {
   };
 
   const handleUnconfirm = async (recordId: string) => {
-    if (!confirm('확정을 취소하시겠습니까? 취소 후 회원·월을 수정하고 다시 확정할 수 있습니다.')) {
+    if (
+      !confirm(
+        '확정을 취소하시겠습니까? 취소 후 회원·월을 수정하고 다시 확정할 수 있습니다.'
+      )
+    ) {
       return;
     }
     try {
@@ -119,11 +130,15 @@ function ProcessPage() {
   };
 
   const handleBulkConfirm = async () => {
-    const hasMatchedMembers = (r: { matchedMemberId?: number | null; matchedMembers?: { clubMemberId: number }[] }) =>
+    const hasMatchedMembers = (r: {
+      matchedMemberId?: number | null;
+      matchedMembers?: { clubMemberId: number }[];
+    }) =>
       r.matchedMemberId != null ||
       (r.matchedMembers != null && r.matchedMembers.length > 0);
     const matchedRecords =
-      records?.filter((r) => r.status === 'MATCHED' && hasMatchedMembers(r)) || [];
+      records?.filter((r) => r.status === 'MATCHED' && hasMatchedMembers(r)) ||
+      [];
 
     if (matchedRecords.length === 0) {
       alert('확정할 수 있는 레코드가 없습니다.');
