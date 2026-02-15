@@ -38,11 +38,16 @@ function ProcessPage() {
   const statusFilter =
     typeof filterStatus === 'string' ? filterStatus : undefined;
 
-  const { data: records, isLoading } = usePaymentRecords(
+  /** 테이블용: 필터 적용 시 해당 상태만, 미적용 시 전체 */
+  const { data: records, isLoading: isRecordsLoading } = usePaymentRecords(
     clubIdStr,
     undefined,
     statusFilter
   );
+  /** 버튼 카운트용: 항상 전체 목록(필터 없음) → "전체" 숫자가 필터와 무관하게 유지됨 */
+  const { data: allRecords, isLoading: isAllRecordsLoading } =
+    usePaymentRecords(clubIdStr, undefined, undefined);
+  const isLoading = isRecordsLoading || isAllRecordsLoading;
   const updateMutation = useUpdatePaymentRecord(clubIdStr);
   const confirmMutation = useConfirmPayment(clubIdStr);
   const unconfirmMutation = useUnconfirmPayment(clubIdStr);
@@ -167,13 +172,26 @@ function ProcessPage() {
   };
 
   const statusCounts = {
-    total: records?.length || 0,
-    pending: records?.filter((r) => r.status === 'PENDING').length || 0,
-    matched: records?.filter((r) => r.status === 'MATCHED').length || 0,
-    confirmed: records?.filter((r) => r.status === 'CONFIRMED').length || 0,
-    error: records?.filter((r) => r.status === 'ERROR').length || 0,
-    skipped: records?.filter((r) => r.status === 'SKIPPED').length || 0,
+    total: allRecords?.length || 0,
+    pending: allRecords?.filter((r) => r.status === 'PENDING').length || 0,
+    matched: allRecords?.filter((r) => r.status === 'MATCHED').length || 0,
+    confirmed: allRecords?.filter((r) => r.status === 'CONFIRMED').length || 0,
+    error: allRecords?.filter((r) => r.status === 'ERROR').length || 0,
+    skipped: allRecords?.filter((r) => r.status === 'SKIPPED').length || 0,
   };
+
+  const STATUS_LABELS: Record<string, string> = {
+    PENDING: '대기',
+    MATCHED: '매칭됨',
+    CONFIRMED: '확정',
+    ERROR: '에러',
+    SKIPPED: '건너뜀',
+  };
+  const filteredCount = records?.length ?? 0;
+  const statusLabel =
+    filterStatus && STATUS_LABELS[filterStatus]
+      ? STATUS_LABELS[filterStatus]
+      : null;
 
   if (isLoading) {
     return (
@@ -310,6 +328,13 @@ function ProcessPage() {
             <p className="text-xs text-gray-600">건너뜀</p>
           </button>
         </div>
+
+        {statusLabel != null && (
+          <p className="mb-4 text-sm text-gray-600">
+            <span className="font-medium">{statusLabel}</span>{' '}
+            <span>{filteredCount}건 표시 중</span>
+          </p>
+        )}
 
         <PaymentRecordTable
           records={records || []}
