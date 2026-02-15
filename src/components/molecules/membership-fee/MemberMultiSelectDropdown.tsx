@@ -26,7 +26,9 @@ function MemberMultiSelectDropdown({
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedMembers = members.filter((m) => selectedMemberIds.includes(m.id));
+  const selectedMembers = members.filter((m) =>
+    selectedMemberIds.includes(m.id)
+  );
 
   const filteredMembers = members.filter((m) =>
     m.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -82,7 +84,9 @@ function MemberMultiSelectDropdown({
       >
         <span
           className={
-            selectedMembers.length > 0 ? 'text-gray-900 truncate' : 'text-gray-500'
+            selectedMembers.length > 0
+              ? 'text-gray-900 truncate'
+              : 'text-gray-500'
           }
         >
           {displayText || placeholder}
@@ -161,7 +165,9 @@ function MemberMultiSelectDropdown({
                   >
                     <span
                       className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${
-                        isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                        isSelected
+                          ? 'bg-blue-500 border-blue-500'
+                          : 'border-gray-300'
                       }`}
                     >
                       {isSelected && (
