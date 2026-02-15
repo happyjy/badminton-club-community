@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 
+import PaymentRecordFilters, {
+  INITIAL_FILTERS,
+  PaymentRecordFilterValues,
+} from '@/components/molecules/membership-fee/PaymentRecordFilters';
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 import PaymentRecordTable, {
+  PaymentRecordSortBy,
   YearMonthSelection,
 } from '@/components/organisms/membership-fee/PaymentRecordTable';
 
@@ -19,11 +24,120 @@ import {
 } from '@/hooks/membership-fee/usePaymentRecords';
 
 import { withAuth } from '@/lib/withAuth';
+import { PaymentRecord } from '@/types/membership-fee.types';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
 interface Member {
   id: number;
   name: string | null;
+}
+
+type PaymentRecordSortOrder = 'asc' | 'desc';
+
+function getRecordMemberIds(record: PaymentRecord): number[] {
+  if (record.matchedMembers && record.matchedMembers.length > 0) {
+    return record.matchedMembers.map((m) => m.clubMemberId);
+  }
+  if (record.matchedMemberId) {
+    return [record.matchedMemberId];
+  }
+  return [];
+}
+
+function formatMatchedMembersForSort(record: PaymentRecord): string {
+  if (record.matchedMembers && record.matchedMembers.length > 0) {
+    return record.matchedMembers
+      .map((m) => m.clubMember?.name ?? '')
+      .join(', ');
+  }
+  return record.matchedMember?.name ?? '';
+}
+
+function applyFilters(
+  records: PaymentRecord[],
+  filters: PaymentRecordFilterValues
+): PaymentRecord[] {
+  return records.filter((record) => {
+    if (filters.transactionDateFrom) {
+      const from = new Date(filters.transactionDateFrom);
+      from.setHours(0, 0, 0, 0);
+      const d = new Date(record.transactionDate);
+      d.setHours(0, 0, 0, 0);
+      if (d < from) return false;
+    }
+    if (filters.transactionDateTo) {
+      const to = new Date(filters.transactionDateTo);
+      to.setHours(23, 59, 59, 999);
+      const d = new Date(record.transactionDate);
+      if (d > to) return false;
+    }
+    const keyword = filters.depositorNameKeyword.trim();
+    if (keyword) {
+      if (!record.depositorName.toLowerCase().includes(keyword.toLowerCase())) {
+        return false;
+      }
+    }
+    const amountMin =
+      filters.amountMin !== '' ? Number(filters.amountMin) : null;
+    const amountMax =
+      filters.amountMax !== '' ? Number(filters.amountMax) : null;
+    if (
+      amountMin != null &&
+      !Number.isNaN(amountMin) &&
+      record.amount < amountMin
+    ) {
+      return false;
+    }
+    if (
+      amountMax != null &&
+      !Number.isNaN(amountMax) &&
+      record.amount > amountMax
+    ) {
+      return false;
+    }
+    if (
+      filters.matchedMemberIds.length > 0 &&
+      getRecordMemberIds(record).every(
+        (id) => !filters.matchedMemberIds.includes(id)
+      )
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function applySort(
+  records: PaymentRecord[],
+  sortBy: PaymentRecordSortBy,
+  sortOrder: PaymentRecordSortOrder
+): PaymentRecord[] {
+  const dir = sortOrder === 'asc' ? 1 : -1;
+  return [...records].sort((a, b) => {
+    let cmp = 0;
+    switch (sortBy) {
+      case 'transactionDate': {
+        const ta = new Date(a.transactionDate).getTime();
+        const tb = new Date(b.transactionDate).getTime();
+        cmp = ta - tb;
+        break;
+      }
+      case 'depositorName':
+        cmp = (a.depositorName ?? '').localeCompare(b.depositorName ?? '');
+        break;
+      case 'amount':
+        cmp = a.amount - b.amount;
+        break;
+      case 'matchedMember':
+        cmp = formatMatchedMembersForSort(a).localeCompare(
+          formatMatchedMembersForSort(b)
+        );
+        break;
+      default:
+        break;
+    }
+    return cmp * dir;
+  });
 }
 
 function ProcessPage() {
@@ -33,12 +147,15 @@ function ProcessPage() {
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [members, setMembers] = useState<Member[]>([]);
-  const [selectedRecordIds, setSelectedRecordIds] = useState<string[]>([]);
+  const [filters, setFilters] =
+    useState<PaymentRecordFilterValues>(INITIAL_FILTERS);
+  const [sortBy, setSortBy] = useState<PaymentRecordSortBy>('transactionDate');
+  const [sortOrder, setSortOrder] = useState<PaymentRecordSortOrder>('desc');
 
   const statusFilter =
     typeof filterStatus === 'string' ? filterStatus : undefined;
 
-  /** 테이블용: 필터 적용 시 해당 상태만, 미적용 시 전체 */
+  /** API에서 받은 목록 (상태 필터만 적용) */
   const { data: records, isLoading: isRecordsLoading } = usePaymentRecords(
     clubIdStr,
     undefined,
@@ -48,6 +165,16 @@ function ProcessPage() {
   const { data: allRecords, isLoading: isAllRecordsLoading } =
     usePaymentRecords(clubIdStr, undefined, undefined);
   const isLoading = isRecordsLoading || isAllRecordsLoading;
+
+  const filteredRecords = useMemo(
+    () => applyFilters(records ?? [], filters),
+    [records, filters]
+  );
+  const sortedRecords = useMemo(
+    () => applySort(filteredRecords, sortBy, sortOrder),
+    [filteredRecords, sortBy, sortOrder]
+  );
+
   const updateMutation = useUpdatePaymentRecord(clubIdStr);
   const confirmMutation = useConfirmPayment(clubIdStr);
   const unconfirmMutation = useUnconfirmPayment(clubIdStr);
@@ -141,9 +268,9 @@ function ProcessPage() {
     }) =>
       r.matchedMemberId != null ||
       (r.matchedMembers != null && r.matchedMembers.length > 0);
-    const matchedRecords =
-      records?.filter((r) => r.status === 'MATCHED' && hasMatchedMembers(r)) ||
-      [];
+    const matchedRecords = filteredRecords.filter(
+      (r) => r.status === 'MATCHED' && hasMatchedMembers(r)
+    );
 
     if (matchedRecords.length === 0) {
       alert('확정할 수 있는 레코드가 없습니다.');
@@ -187,11 +314,28 @@ function ProcessPage() {
     ERROR: '에러',
     SKIPPED: '건너뜀',
   };
-  const filteredCount = records?.length ?? 0;
+  const totalFromApi = records?.length ?? 0;
+  const displayCount = sortedRecords.length;
+  const hasActiveFilters =
+    filters.transactionDateFrom !== '' ||
+    filters.transactionDateTo !== '' ||
+    filters.depositorNameKeyword.trim() !== '' ||
+    filters.amountMin !== '' ||
+    filters.amountMax !== '' ||
+    filters.matchedMemberIds.length > 0;
   const statusLabel =
     filterStatus && STATUS_LABELS[filterStatus]
       ? STATUS_LABELS[filterStatus]
       : null;
+
+  const onSortChange = (column: PaymentRecordSortBy) => {
+    if (sortBy === column) {
+      setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(column);
+      setSortOrder(column === 'transactionDate' ? 'desc' : 'asc');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -329,17 +473,29 @@ function ProcessPage() {
           </button>
         </div>
 
-        {statusLabel != null && (
-          <p className="mb-4 text-sm text-gray-600">
-            <span className="font-medium">{statusLabel}</span>{' '}
-            <span>{filteredCount}건 표시 중</span>
-          </p>
-        )}
+        <PaymentRecordFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          members={members}
+        />
+
+        <p className="mb-4 text-sm text-gray-600">
+          {statusLabel != null && (
+            <span className="font-medium">{statusLabel}</span>
+          )}
+          {statusLabel != null && ' · '}
+          {hasActiveFilters
+            ? `전체 ${totalFromApi}건 중 필터 결과 ${displayCount}건`
+            : `${displayCount}건 표시 중`}
+        </p>
 
         <PaymentRecordTable
-          records={records || []}
+          records={sortedRecords}
           members={members}
           year={year}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={onSortChange}
           onUpdateMember={handleUpdateMember}
           onConfirm={handleConfirm}
           onUnconfirm={handleUnconfirm}

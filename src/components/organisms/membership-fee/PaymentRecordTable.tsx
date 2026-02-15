@@ -1,6 +1,16 @@
 import { useState } from 'react';
 
-import { Check, SkipForward, Edit2, RotateCcw, Plus, X } from 'lucide-react';
+import {
+  Check,
+  SkipForward,
+  Edit2,
+  RotateCcw,
+  Plus,
+  X,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from 'lucide-react';
 
 import MemberMultiSelectDropdown from '@/components/molecules/membership-fee/MemberMultiSelectDropdown';
 import MonthSelector from '@/components/molecules/membership-fee/MonthSelector';
@@ -15,10 +25,20 @@ interface Member {
   name: string | null;
 }
 
+export type PaymentRecordSortBy =
+  | 'transactionDate'
+  | 'depositorName'
+  | 'amount'
+  | 'matchedMember';
+export type PaymentRecordSortOrder = 'asc' | 'desc';
+
 interface PaymentRecordTableProps {
   records: PaymentRecord[];
   members: Member[];
   year: number;
+  sortBy?: PaymentRecordSortBy;
+  sortOrder?: PaymentRecordSortOrder;
+  onSortChange?: (column: PaymentRecordSortBy) => void;
   onUpdateMember: (recordId: string, memberIds: number[]) => void;
   onConfirm: (recordId: string, selections: YearMonthSelection[]) => void;
   onUnconfirm: (recordId: string) => void;
@@ -65,10 +85,59 @@ function formatConfirmedMonths(record: PaymentRecord): string {
     .join(' / ');
 }
 
+function SortableTh({
+  label,
+  column,
+  currentSortBy,
+  currentSortOrder,
+  onSortChange,
+  align = 'left',
+}: {
+  label: string;
+  column: PaymentRecordSortBy;
+  currentSortBy?: PaymentRecordSortBy;
+  currentSortOrder?: PaymentRecordSortOrder;
+  onSortChange?: (column: PaymentRecordSortBy) => void;
+  align?: 'left' | 'right' | 'center';
+}) {
+  const isActive = currentSortBy === column;
+  const onClick = () => onSortChange?.(column);
+
+  return (
+    <th
+      className={`px-4 py-3 whitespace-nowrap ${
+        align === 'right'
+          ? 'text-right'
+          : align === 'center'
+            ? 'text-center'
+            : 'text-left'
+      } ${onSortChange ? 'cursor-pointer hover:bg-gray-100 select-none' : ''}`}
+      onClick={onSortChange ? onClick : undefined}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {onSortChange &&
+          (isActive ? (
+            currentSortOrder === 'asc' ? (
+              <ArrowUp size={14} />
+            ) : (
+              <ArrowDown size={14} />
+            )
+          ) : (
+            <ArrowUpDown size={14} className="text-gray-400" />
+          ))}
+      </span>
+    </th>
+  );
+}
+
 function PaymentRecordTable({
   records,
   members,
   year,
+  sortBy,
+  sortOrder,
+  onSortChange,
   onUpdateMember,
   onConfirm,
   onUnconfirm,
@@ -156,10 +225,35 @@ function PaymentRecordTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-50 border-b">
-            <th className="px-4 py-3 text-left whitespace-nowrap">거래일</th>
-            <th className="px-4 py-3 text-left whitespace-nowrap">입금자명</th>
-            <th className="px-4 py-3 text-right whitespace-nowrap">금액</th>
-            <th className="px-4 py-3 text-left whitespace-nowrap">매칭 회원</th>
+            <SortableTh
+              label="거래일"
+              column="transactionDate"
+              currentSortBy={sortBy}
+              currentSortOrder={sortOrder}
+              onSortChange={onSortChange}
+            />
+            <SortableTh
+              label="입금자명"
+              column="depositorName"
+              currentSortBy={sortBy}
+              currentSortOrder={sortOrder}
+              onSortChange={onSortChange}
+            />
+            <SortableTh
+              label="금액"
+              column="amount"
+              currentSortBy={sortBy}
+              currentSortOrder={sortOrder}
+              onSortChange={onSortChange}
+              align="right"
+            />
+            <SortableTh
+              label="매칭 회원"
+              column="matchedMember"
+              currentSortBy={sortBy}
+              currentSortOrder={sortOrder}
+              onSortChange={onSortChange}
+            />
             <th className="px-4 py-3 text-center whitespace-nowrap">상태</th>
             <th className="px-4 py-3 text-center whitespace-nowrap">작업</th>
           </tr>
@@ -219,7 +313,7 @@ function PaymentRecordTable({
                   </div>
                 )}
               </td>
-              <td className="px-4 py-3 text-center">
+              <td className="px-4 py-3 text-center whitespace-nowrap">
                 <RecordStatusBadge status={record.status} />
                 {record.errorReason && (
                   <p className="text-xs text-red-500 mt-1">
