@@ -5,7 +5,9 @@ import { useRouter } from 'next/router';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 import FileUploadZone from '@/components/organisms/membership-fee/FileUploadZone';
-import PaymentRecordTable from '@/components/organisms/membership-fee/PaymentRecordTable';
+import PaymentRecordTable, {
+  YearMonthSelection,
+} from '@/components/organisms/membership-fee/PaymentRecordTable';
 
 import { useMembershipFeeSettings } from '@/hooks/membership-fee/useMembershipFeeSettings';
 import {
@@ -100,13 +102,19 @@ function UploadPage() {
 
   const handleConfirm = async (
     recordId: string,
-    confirmYear: number,
-    months: number[]
+    selections: YearMonthSelection[]
   ) => {
     try {
+      const data =
+        selections.length === 1
+          ? {
+              year: selections[0].year,
+              months: selections[0].months,
+            }
+          : { selections };
       await confirmMutation.mutateAsync({
         recordId,
-        data: { year: confirmYear, months },
+        data,
       });
       setUploadedRecords((prev) =>
         prev.map((r) =>
