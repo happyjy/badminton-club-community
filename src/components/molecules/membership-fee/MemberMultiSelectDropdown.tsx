@@ -71,7 +71,7 @@ function MemberMultiSelectDropdown({
       : '';
 
   return (
-    <div ref={dropdownRef} className="relative min-w-0">
+    <div ref={dropdownRef} className="relative min-w-0 w-[calc(100%-20px)]">
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}

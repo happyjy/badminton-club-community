@@ -34,15 +34,15 @@ function PaymentDashboardTable({ members }: PaymentDashboardTableProps) {
                 {month}월
               </th>
             ))}
-            <th className="px-4 py-3 text-center text-xs">납부율</th>
+            <th className="px-4 py-3 text-center text-xs">납부</th>
           </tr>
         </thead>
         <tbody>
           {members.map((member) => {
-            const paymentRate =
+            const paymentLabel =
               member.type === 'exempt'
                 ? '-'
-                : `${Math.round((member.paidCount / 12) * 100)}%`;
+                : `${member.paidCount}/${member.totalMonths ?? 12}`;
 
             return (
               <tr key={member.id} className="border-b hover:bg-gray-50">
@@ -51,17 +51,17 @@ function PaymentDashboardTable({ members }: PaymentDashboardTableProps) {
                 </td>
                 <td className="px-2 py-2 text-center">
                   {member.type === 'couple' && (
-                    <span className="px-1.5 py-0.5 text-xs bg-pink-100 text-pink-700 rounded">
+                    <span className="px-1.5 py-0.5 text-xs bg-pink-100 text-pink-700 rounded whitespace-nowrap">
                       부부
                     </span>
                   )}
                   {member.type === 'exempt' && (
-                    <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                    <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded whitespace-nowrap">
                       면제
                     </span>
                   )}
                   {member.type === 'regular' && (
-                    <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
+                    <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-700 rounded whitespace-nowrap">
                       일반
                     </span>
                   )}
@@ -86,7 +86,7 @@ function PaymentDashboardTable({ members }: PaymentDashboardTableProps) {
                             : 'text-red-600'
                     }
                   >
-                    {paymentRate}
+                    {paymentLabel}
                   </span>
                 </td>
               </tr>
