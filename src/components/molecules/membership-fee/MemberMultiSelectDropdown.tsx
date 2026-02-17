@@ -71,7 +71,7 @@ function MemberMultiSelectDropdown({
       : '';
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative min-w-0">
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -85,8 +85,8 @@ function MemberMultiSelectDropdown({
         <span
           className={
             selectedMembers.length > 0
-              ? 'text-gray-900 truncate'
-              : 'text-gray-500'
+              ? 'min-w-0 flex-1 text-gray-900 truncate'
+              : 'min-w-0 flex-1 text-gray-500 truncate'
           }
         >
           {displayText || placeholder}
@@ -111,9 +111,9 @@ function MemberMultiSelectDropdown({
           {selectedMembers.map((m) => (
             <span
               key={m.id}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs"
+              className="inline-flex max-w-full items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs"
             >
-              {m.name || '(이름 없음)'}
+              <span className="truncate">{m.name || '(이름 없음)'}</span>
               {!disabled && (
                 <button
                   type="button"

@@ -89,19 +89,21 @@ function PaymentRecordFilters({
       </button>
 
       {isOpen && (
-        <div className="p-4 pt-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 border-t border-gray-200 rounded-b-lg">
-          <div>
+        <div className="p-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-200 rounded-b-lg">
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               거래일 (부터)
             </label>
             <input
               type="date"
               value={filters.transactionDateFrom}
-              onChange={(e) => onUpdate({ transactionDateFrom: e.target.value })}
+              onChange={(e) =>
+                onUpdate({ transactionDateFrom: e.target.value })
+              }
               className="w-full px-3 py-2 text-sm border rounded-lg"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               거래일 (까지)
             </label>
@@ -112,7 +114,7 @@ function PaymentRecordFilters({
               className="w-full px-3 py-2 text-sm border rounded-lg"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               입금자명 (포함)
             </label>
@@ -126,7 +128,7 @@ function PaymentRecordFilters({
               className="w-full px-3 py-2 text-sm border rounded-lg"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               금액 (최소 ~ 최대 원)
             </label>
@@ -137,7 +139,7 @@ function PaymentRecordFilters({
                 value={filters.amountMin}
                 onChange={(e) => onUpdate({ amountMin: e.target.value })}
                 placeholder="최소"
-                className="flex-1 px-3 py-2 text-sm border rounded-lg"
+                className="min-w-0 flex-1 px-3 py-2 text-sm border rounded-lg"
               />
               <input
                 type="number"
@@ -145,15 +147,15 @@ function PaymentRecordFilters({
                 value={filters.amountMax}
                 onChange={(e) => onUpdate({ amountMax: e.target.value })}
                 placeholder="최대"
-                className="flex-1 px-3 py-2 text-sm border rounded-lg"
+                className="min-w-0 flex-1 px-3 py-2 text-sm border rounded-lg"
               />
             </div>
           </div>
-          <div className="md:col-span-2 lg:col-span-4">
+          <div className="min-w-0 md:col-span-2">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               매칭 회원 (선택한 회원이 포함된 건만)
             </label>
-            <div className="max-w-md">
+            <div className="w-full max-w-md min-w-0">
               <MemberMultiSelectDropdown
                 members={members}
                 selectedMemberIds={filters.matchedMemberIds}
@@ -163,7 +165,7 @@ function PaymentRecordFilters({
             </div>
           </div>
           {hasActiveFilters && (
-            <div className="flex items-end">
+            <div className="min-w-0 flex items-end">
               <button
                 type="button"
                 onClick={onReset}
