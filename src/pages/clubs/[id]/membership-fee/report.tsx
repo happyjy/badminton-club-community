@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
-import { ArrowLeft, Download } from 'lucide-react';
 import { useRouter } from 'next/router';
+
+import { ArrowLeft } from 'lucide-react';
 
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 
@@ -9,6 +10,7 @@ import {
   usePaymentDashboard,
   useUnpaidMembers,
 } from '@/hooks/membership-fee/usePaymentDashboard';
+
 import { withAuth } from '@/lib/withAuth';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
@@ -39,6 +41,8 @@ function ReportPage() {
   }
 
   const monthlyStats = dashboard?.summary.monthlyStats || [];
+  const membersWithPayment =
+    dashboard?.members.filter((m) => m.type !== 'exempt') || [];
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -97,7 +101,6 @@ function ReportPage() {
                 <th className="px-4 py-2 text-left">월</th>
                 <th className="px-4 py-2 text-center">납부</th>
                 <th className="px-4 py-2 text-center">미납</th>
-                <th className="px-4 py-2 text-center">납부율</th>
                 <th className="px-4 py-2 text-right">수입</th>
               </tr>
             </thead>
@@ -111,12 +114,6 @@ function ReportPage() {
                   <td className="px-4 py-2 text-center text-red-600">
                     {stat.totalCount - stat.paidCount}명
                   </td>
-                  <td className="px-4 py-2 text-center">
-                    {stat.totalCount > 0
-                      ? Math.round((stat.paidCount / stat.totalCount) * 100)
-                      : 0}
-                    %
-                  </td>
                   <td className="px-4 py-2 text-right">
                     {stat.amount.toLocaleString()}원
                   </td>
@@ -126,11 +123,38 @@ function ReportPage() {
                 <td className="px-4 py-2">합계</td>
                 <td className="px-4 py-2 text-center">-</td>
                 <td className="px-4 py-2 text-center">-</td>
-                <td className="px-4 py-2 text-center">-</td>
                 <td className="px-4 py-2 text-right">
                   {dashboard?.summary.yearTotal.toLocaleString() || 0}원
                 </td>
               </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* 회원별 12개월 중 납부 횟수 (n/12) */}
+        <h3 className="font-medium mb-2 mt-6">회원별 연간 납부 (12개월 중)</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b">
+                <th className="px-4 py-2 text-left">회원</th>
+                <th className="px-4 py-2 text-center">납부</th>
+              </tr>
+            </thead>
+            <tbody>
+              {membersWithPayment.map((member) => (
+                <tr key={member.id} className="border-b">
+                  <td className="px-4 py-2">
+                    <span className="font-medium">{member.name}</span>
+                    {member.type === 'couple' && (
+                      <span className="ml-1 text-xs text-pink-600">(부부)</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    {member.paidCount}/{member.totalMonths}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
