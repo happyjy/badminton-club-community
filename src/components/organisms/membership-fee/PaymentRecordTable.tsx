@@ -280,7 +280,6 @@ function PaymentRecordTable({
                           selectedMemberIds={getRecordMemberIds(record)}
                           onSelect={(memberIds) => {
                             onUpdateMember(record.id, memberIds);
-                            setEditingRecordId(null);
                           }}
                           disabled={isUpdating}
                         />
