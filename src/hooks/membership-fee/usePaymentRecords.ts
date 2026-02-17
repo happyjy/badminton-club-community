@@ -273,6 +273,36 @@ export function useSkipPayment(clubId: string | undefined) {
   });
 }
 
+export function useUnskipPayment(clubId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (recordId: string) => {
+      if (!clubId) {
+        throw new Error('클럽 ID가 필요합니다');
+      }
+
+      const response = await axios.post<RecordResponse>(
+        `/api/clubs/${clubId}/membership-fee/records/${recordId}/unskip`
+      );
+
+      if (response.data.status !== 200) {
+        throw new Error(response.data.message);
+      }
+
+      return response.data.data.record;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['paymentRecords', clubId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
+      });
+    },
+  });
+}
+
 export function useBulkConfirmPayments(clubId: string | undefined) {
   const queryClient = useQueryClient();
 

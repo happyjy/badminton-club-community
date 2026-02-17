@@ -43,6 +43,7 @@ interface PaymentRecordTableProps {
   onConfirm: (recordId: string, selections: YearMonthSelection[]) => void;
   onUnconfirm: (recordId: string) => void;
   onSkip: (recordId: string) => void;
+  onUnskip: (recordId: string) => void;
   isUpdating?: boolean;
 }
 
@@ -142,6 +143,7 @@ function PaymentRecordTable({
   onConfirm,
   onUnconfirm,
   onSkip,
+  onUnskip,
   isUpdating = false,
 }: PaymentRecordTableProps) {
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
@@ -456,9 +458,20 @@ function PaymentRecordTable({
                         );
                       })()}
                     {record.status === 'SKIPPED' && (
-                      <span className="text-sm text-yellow-600 whitespace-nowrap">
-                        건너뜀
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-yellow-600 whitespace-nowrap">
+                          건너뜀
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onUnskip(record.id)}
+                          disabled={isUpdating}
+                          className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+                          title="건너뛰기 해제 후 수정"
+                        >
+                          <RotateCcw size={16} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
