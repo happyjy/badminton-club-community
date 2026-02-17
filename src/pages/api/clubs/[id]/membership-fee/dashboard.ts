@@ -94,6 +94,9 @@ export default withAuth(async function handler(
         id: true,
         name: true,
       },
+      orderBy: {
+        name: 'asc',
+      },
     });
 
     // 부부 그룹 조회
