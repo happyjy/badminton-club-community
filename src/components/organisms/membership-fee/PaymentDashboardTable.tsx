@@ -27,7 +27,10 @@ function PaymentDashboardTable({ members }: PaymentDashboardTableProps) {
             </th>
             <th className="px-2 py-3 text-center text-xs">유형</th>
             {MONTHS.map((month) => (
-              <th key={month} className="px-2 py-3 text-center text-xs w-10">
+              <th
+                key={month}
+                className="px-2 py-3 text-center text-xs w-10 whitespace-nowrap"
+              >
                 {month}월
               </th>
             ))}
