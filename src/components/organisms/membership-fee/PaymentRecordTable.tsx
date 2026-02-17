@@ -316,7 +316,6 @@ function PaymentRecordTable({
                     </div>
                   )}
                 </td>
-                {/* <td className="px-4 py-3 text-center whitespace-nowrap"> */}
                 <td className="px-4 py-3 text-center min-w-24">
                   <RecordStatusBadge status={record.status} />
                   {record.errorReason && (
