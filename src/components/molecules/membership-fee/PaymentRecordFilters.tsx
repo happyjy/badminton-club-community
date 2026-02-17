@@ -57,7 +57,7 @@ function PaymentRecordFilters({
     filters.amountMax !== '' ||
     filters.matchedMemberIds.length > 0;
 
-  const onReset = () => {
+  const onResetAll = () => {
     onFiltersChange({ ...INITIAL_FILTERS });
   };
 
@@ -164,18 +164,16 @@ function PaymentRecordFilters({
               />
             </div>
           </div>
-          {hasActiveFilters && (
-            <div className="min-w-0 flex items-end">
-              <button
-                type="button"
-                onClick={onReset}
-                className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg"
-              >
-                <RotateCcw size={14} />
-                필터 초기화
-              </button>
-            </div>
-          )}
+          <div className="min-w-0 flex items-end">
+            <button
+              type="button"
+              onClick={onResetAll}
+              className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg"
+            >
+              <RotateCcw size={14} />
+              필터 초기화
+            </button>
+          </div>
         </div>
       )}
     </div>
