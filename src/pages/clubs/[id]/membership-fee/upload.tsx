@@ -17,6 +17,7 @@ import {
   useConfirmPayment,
   useUnconfirmPayment,
   useSkipPayment,
+  useUnskipPayment,
 } from '@/hooks/membership-fee/usePaymentRecords';
 
 import { withAuth } from '@/lib/withAuth';
@@ -51,6 +52,7 @@ function UploadPage() {
   const confirmMutation = useConfirmPayment(clubIdStr);
   const unconfirmMutation = useUnconfirmPayment(clubIdStr);
   const skipMutation = useSkipPayment(clubIdStr);
+  const unskipMutation = useUnskipPayment(clubIdStr);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -151,6 +153,22 @@ function UploadPage() {
       );
     } catch (error: any) {
       alert(error.message || '건너뛰기에 실패했습니다.');
+    }
+  };
+
+  const handleUnskip = async (recordId: string) => {
+    try {
+      await unskipMutation.mutateAsync(recordId);
+      setUploadedRecords((prev) =>
+        prev.map((r) =>
+          r.id === recordId ? { ...r, status: 'MATCHED' as const } : r
+        )
+      );
+      toast.success(
+        '건너뛰기가 해제되었습니다. 확정 또는 다시 건너뛸 수 있습니다.'
+      );
+    } catch (error: any) {
+      toast.error(error.message || '건너뛰기 해제에 실패했습니다.');
     }
   };
 
@@ -275,11 +293,13 @@ function UploadPage() {
             onConfirm={handleConfirm}
             onUnconfirm={handleUnconfirm}
             onSkip={handleSkip}
+            onUnskip={handleUnskip}
             isUpdating={
               updateMutation.isPending ||
               confirmMutation.isPending ||
               unconfirmMutation.isPending ||
-              skipMutation.isPending
+              skipMutation.isPending ||
+              unskipMutation.isPending
             }
           />
         </div>
