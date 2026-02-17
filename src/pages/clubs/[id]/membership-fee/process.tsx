@@ -3,6 +3,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 import PaymentRecordFilters, {
   INITIAL_FILTERS,
@@ -238,18 +239,13 @@ function ProcessPage() {
   };
 
   const handleUnconfirm = async (recordId: string) => {
-    if (
-      !confirm(
-        '확정을 취소하시겠습니까? 취소 후 회원·월을 수정하고 다시 확정할 수 있습니다.'
-      )
-    ) {
-      return;
-    }
     try {
       await unconfirmMutation.mutateAsync(recordId);
-      alert('확정이 취소되었습니다. 회원·월을 수정한 뒤 다시 확정해주세요.');
+      toast.success(
+        '확정이 취소되었습니다. 회원·월을 수정한 뒤 다시 확정해주세요.'
+      );
     } catch (error: any) {
-      alert(error.message || '확정 취소에 실패했습니다.');
+      toast.error(error.message || '확정 취소에 실패했습니다.');
     }
   };
 
