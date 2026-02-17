@@ -158,10 +158,10 @@ function UploadPage() {
 
   const handleUnskip = async (recordId: string) => {
     try {
-      await unskipMutation.mutateAsync(recordId);
+      const updatedRecord = await unskipMutation.mutateAsync(recordId);
       setUploadedRecords((prev) =>
         prev.map((r) =>
-          r.id === recordId ? { ...r, status: 'MATCHED' as const } : r
+          r.id === recordId ? { ...r, status: updatedRecord.status } : r
         )
       );
       toast.success(

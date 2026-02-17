@@ -54,6 +54,9 @@ export default withAuth(async function handler(
         id: recordId,
         clubId: clubIdNumber,
       },
+      include: {
+        _count: { select: { matchedMembers: true } },
+      },
     });
 
     if (!record) {
@@ -70,10 +73,16 @@ export default withAuth(async function handler(
       });
     }
 
+    // 미매칭(회원 없음)이면 PENDING, 매칭 있으면 MATCHED로 복원
+    const hasMatchedMember =
+      record.matchedMemberId != null ||
+      (record._count?.matchedMembers ?? 0) > 0;
+    const restoreStatus = hasMatchedMember ? 'MATCHED' : 'PENDING';
+
     const updatedRecord = await prisma.paymentRecord.update({
       where: { id: recordId },
       data: {
-        status: 'MATCHED',
+        status: restoreStatus,
       },
       include: {
         matchedMember: {
