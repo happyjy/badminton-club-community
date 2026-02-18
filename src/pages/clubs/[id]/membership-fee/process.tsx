@@ -175,6 +175,11 @@ function ProcessPage() {
     () => applyFilters(records ?? [], filters),
     [records, filters]
   );
+  /** 필터 적용된 전체 목록 → 상태별 탭 숫자가 필터와 연동되도록 */
+  const filteredAllRecords = useMemo(
+    () => applyFilters(allRecords ?? [], filters),
+    [allRecords, filters]
+  );
   const sortedRecords = useMemo(
     () => applySort(filteredRecords, sortBy, sortOrder),
     [filteredRecords, sortBy, sortOrder]
@@ -311,12 +316,13 @@ function ProcessPage() {
   };
 
   const statusCounts = {
-    total: allRecords?.length || 0,
-    pending: allRecords?.filter((r) => r.status === 'PENDING').length || 0,
-    matched: allRecords?.filter((r) => r.status === 'MATCHED').length || 0,
-    confirmed: allRecords?.filter((r) => r.status === 'CONFIRMED').length || 0,
-    error: allRecords?.filter((r) => r.status === 'ERROR').length || 0,
-    skipped: allRecords?.filter((r) => r.status === 'SKIPPED').length || 0,
+    total: filteredAllRecords.length,
+    pending: filteredAllRecords.filter((r) => r.status === 'PENDING').length,
+    matched: filteredAllRecords.filter((r) => r.status === 'MATCHED').length,
+    confirmed: filteredAllRecords.filter((r) => r.status === 'CONFIRMED')
+      .length,
+    error: filteredAllRecords.filter((r) => r.status === 'ERROR').length,
+    skipped: filteredAllRecords.filter((r) => r.status === 'SKIPPED').length,
   };
 
   const STATUS_LABELS: Record<string, string> = {
