@@ -29,7 +29,8 @@ export type PaymentRecordSortBy =
   | 'transactionDate'
   | 'depositorName'
   | 'amount'
-  | 'matchedMember';
+  | 'matchedMember'
+  | 'status';
 export type PaymentRecordSortOrder = 'asc' | 'desc';
 
 interface PaymentRecordTableProps {
@@ -256,7 +257,14 @@ function PaymentRecordTable({
               currentSortOrder={sortOrder}
               onSortChange={onSortChange}
             />
-            <th className="px-4 py-3 text-center whitespace-nowrap">상태</th>
+            <SortableTh
+              label="상태"
+              column="status"
+              currentSortBy={sortBy}
+              currentSortOrder={sortOrder}
+              onSortChange={onSortChange}
+              align="center"
+            />
             <th className="px-4 py-3 text-center whitespace-nowrap">작업</th>
           </tr>
         </thead>
