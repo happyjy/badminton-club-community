@@ -135,6 +135,9 @@ function applySort(
           formatMatchedMembersForSort(b)
         );
         break;
+      case 'status':
+        cmp = (a.status ?? '').localeCompare(b.status ?? '');
+        break;
       default:
         break;
     }
