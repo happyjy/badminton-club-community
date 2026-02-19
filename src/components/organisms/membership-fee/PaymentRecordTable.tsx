@@ -338,6 +338,12 @@ function PaymentRecordTable({
                         확정 설정 중
                       </span>
                     )}
+                    {/* 
+                      확정 설정 중이 아니고, 
+                      건너뛰기 설정 중이 아니고, 
+                      확정 설정 중이 아니면 
+                      확정 설정 버튼을 표시 
+                      */}
                     {record.status !== 'CONFIRMED' &&
                       record.status !== 'SKIPPED' &&
                       confirmingRecordId !== record.id && (
@@ -364,6 +370,11 @@ function PaymentRecordTable({
                           </button>
                         </>
                       )}
+                    {/* 
+                      확정된 경우 
+                      확정된 월을 표시하고, 
+                      확정 취소 버튼을 표시 
+                      */}
                     {record.status === 'CONFIRMED' &&
                       (() => {
                         const monthsStr = formatConfirmedMonths(record);
@@ -384,6 +395,11 @@ function PaymentRecordTable({
                           </div>
                         );
                       })()}
+                    {/* 
+                      건너뜀 경우 
+                      건너뜀 월을 표시하고, 
+                      건너뜀 해제 버튼을 표시 
+                      */}
                     {record.status === 'SKIPPED' && (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-yellow-600 whitespace-nowrap">
@@ -403,6 +419,11 @@ function PaymentRecordTable({
                   </div>
                 </td>
               </tr>
+              {/* 
+                확정 설정 중인 경우 
+                확정 설정 월을 표시하고, 
+                확정 버튼과 설정 취소 버튼을 표시 
+                */}
               {confirmingRecordId === record.id && (
                 <tr className="border-b bg-green-50/40">
                   <td colSpan={6} className="px-4 py-3">
