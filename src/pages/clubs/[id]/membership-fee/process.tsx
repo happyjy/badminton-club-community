@@ -9,6 +9,7 @@ import PaymentRecordFilters, {
   INITIAL_FILTERS,
   PaymentRecordFilterValues,
 } from '@/components/molecules/membership-fee/PaymentRecordFilters';
+import ProcessStatusFilterTabs from '@/components/molecules/membership-fee/ProcessStatusFilterTabs';
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 import PaymentRecordTable, {
   PaymentRecordSortBy,
@@ -392,104 +393,14 @@ function ProcessPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-6 gap-4 mb-6">
-          <button
-            onClick={() =>
-              router.push(`/clubs/${clubId}/membership-fee/process`)
-            }
-            className={`p-3 rounded-lg text-center ${
-              !filterStatus
-                ? 'bg-blue-100 border-2 border-blue-500'
-                : 'bg-gray-50'
-            }`}
-          >
-            <p className="text-lg font-bold">{statusCounts.total}</p>
-            <p className="text-xs text-gray-600">전체</p>
-          </button>
-          <button
-            onClick={() =>
-              router.push(
-                `/clubs/${clubId}/membership-fee/process?status=PENDING`
-              )
-            }
-            className={`p-3 rounded-lg text-center ${
-              filterStatus === 'PENDING'
-                ? 'bg-gray-200 border-2 border-gray-500'
-                : 'bg-gray-50'
-            }`}
-          >
-            <p className="text-lg font-bold">{statusCounts.pending}</p>
-            <p className="text-xs text-gray-600">대기</p>
-          </button>
-          <button
-            onClick={() =>
-              router.push(
-                `/clubs/${clubId}/membership-fee/process?status=MATCHED`
-              )
-            }
-            className={`p-3 rounded-lg text-center ${
-              filterStatus === 'MATCHED'
-                ? 'bg-blue-200 border-2 border-blue-500'
-                : 'bg-blue-50'
-            }`}
-          >
-            <p className="text-lg font-bold text-blue-600">
-              {statusCounts.matched}
-            </p>
-            <p className="text-xs text-gray-600">매칭됨</p>
-          </button>
-          <button
-            onClick={() =>
-              router.push(
-                `/clubs/${clubId}/membership-fee/process?status=CONFIRMED`
-              )
-            }
-            className={`p-3 rounded-lg text-center ${
-              filterStatus === 'CONFIRMED'
-                ? 'bg-green-200 border-2 border-green-500'
-                : 'bg-green-50'
-            }`}
-          >
-            <p className="text-lg font-bold text-green-600">
-              {statusCounts.confirmed}
-            </p>
-            <p className="text-xs text-gray-600">확정</p>
-          </button>
-          <button
-            onClick={() =>
-              router.push(
-                `/clubs/${clubId}/membership-fee/process?status=ERROR`
-              )
-            }
-            className={`p-3 rounded-lg text-center ${
-              filterStatus === 'ERROR'
-                ? 'bg-red-200 border-2 border-red-500'
-                : 'bg-red-50'
-            }`}
-          >
-            <p className="text-lg font-bold text-red-600">
-              {statusCounts.error}
-            </p>
-            <p className="text-xs text-gray-600">에러</p>
-          </button>
-          <button
-            onClick={() =>
-              router.push(
-                `/clubs/${clubId}/membership-fee/process?status=SKIPPED`
-              )
-            }
-            className={`p-3 rounded-lg text-center ${
-              filterStatus === 'SKIPPED'
-                ? 'bg-yellow-200 border-2 border-yellow-500'
-                : 'bg-yellow-50'
-            }`}
-          >
-            <p className="text-lg font-bold text-yellow-600">
-              {statusCounts.skipped}
-            </p>
-            <p className="text-xs text-gray-600">건너뜀</p>
-          </button>
-        </div>
+        <ProcessStatusFilterTabs
+          filterStatus={filterStatus}
+          statusCounts={statusCounts}
+          onStatusSelect={(status) => {
+            const path = `/clubs/${clubId}/membership-fee/process`;
+            router.push(status ? `${path}?status=${status}` : path);
+          }}
+        />
 
         <PaymentRecordFilters
           filters={filters}
