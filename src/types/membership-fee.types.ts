@@ -130,6 +130,8 @@ export interface PaymentRecord {
   suggestedMonths?: number[];
   /** 확정된 납부 내역 (CONFIRMED 시 연도·월 표시용) */
   payments?: { id: string; year: number; month: number }[];
+  /** 매칭 회원 기준 최종 납부월 (차기월 자동 추천용) */
+  lastPaidYearMonth?: { year: number; month: number } | null;
 }
 
 // 납부 내역

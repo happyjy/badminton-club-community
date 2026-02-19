@@ -87,6 +87,15 @@ function formatConfirmedMonths(record: PaymentRecord): string {
     .join(' / ');
 }
 
+/** 최종 납부월 + 1개월 (차기월) 계산 */
+function getNextMonth(ym: { year: number; month: number }): {
+  year: number;
+  month: number;
+} {
+  if (ym.month === 12) return { year: ym.year + 1, month: 1 };
+  return { year: ym.year, month: ym.month + 1 };
+}
+
 function SortableTh({
   label,
   column,
@@ -163,9 +172,16 @@ function PaymentRecordTable({
   const handleStartConfirm = (record: PaymentRecord) => {
     setConfirmingRecordId(record.id);
     setEditingRecordId(null);
-    const suggested = record.suggestedMonths ?? [];
-    setSelections(suggested.length > 0 ? [{ year, months: suggested }] : []);
-    setAddYear(year);
+    const lastPaid = record.lastPaidYearMonth ?? null;
+    const nextDefault = lastPaid ? getNextMonth(lastPaid) : null;
+    if (nextDefault) {
+      setSelections([{ year: nextDefault.year, months: [nextDefault.month] }]);
+      setAddYear(nextDefault.year);
+    } else {
+      const suggested = record.suggestedMonths ?? [];
+      setSelections(suggested.length > 0 ? [{ year, months: suggested }] : []);
+      setAddYear(year);
+    }
     setAddMonths([]);
   };
 
@@ -301,25 +317,38 @@ function PaymentRecordTable({
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <span>
-                        {formatMatchedMembers(record) || (
-                          <span className="text-red-500 whitespace-nowrap">
-                            미매칭
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {formatMatchedMembers(record) || (
+                            <span className="text-red-500 whitespace-nowrap">
+                              미매칭
+                            </span>
+                          )}
+                        </span>
+                        {record.status !== 'CONFIRMED' &&
+                          record.status !== 'SKIPPED' && (
+                            <button
+                              type="button"
+                              onClick={() => handleStartEdit(record.id)}
+                              className="p-1 text-gray-400 hover:text-gray-600"
+                              title="회원 수정"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                          )}
+                      </div>
+                      {getRecordMemberIds(record).length > 0 &&
+                        (record.lastPaidYearMonth ? (
+                          <span className="text-xs text-gray-500">
+                            최종 납부: {record.lastPaidYearMonth.year}년{' '}
+                            {record.lastPaidYearMonth.month}월
                           </span>
-                        )}
-                      </span>
-                      {record.status !== 'CONFIRMED' &&
-                        record.status !== 'SKIPPED' && (
-                          <button
-                            type="button"
-                            onClick={() => handleStartEdit(record.id)}
-                            className="p-1 text-gray-400 hover:text-gray-600"
-                            title="회원 수정"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                        )}
+                        ) : (
+                          <span className="text-xs text-gray-400">
+                            최종 납부: 없음
+                          </span>
+                        ))}
                     </div>
                   )}
                 </td>
@@ -428,6 +457,26 @@ function PaymentRecordTable({
                 <tr className="border-b bg-green-50/40">
                   <td colSpan={6} className="px-4 py-3">
                     <div className="space-y-2 w-full max-w-4xl">
+                      {record.lastPaidYearMonth &&
+                        (() => {
+                          const last = record.lastPaidYearMonth;
+                          const next = getNextMonth(last);
+                          return (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">최종 납부월:</span>{' '}
+                              {last.year}년 {last.month}월{' · '}
+                              <span className="text-green-700 font-medium">
+                                차기월(권장): {next.year}년 {next.month}월
+                              </span>
+                            </p>
+                          );
+                        })()}
+                      {!record.lastPaidYearMonth &&
+                        getRecordMemberIds(record).length > 0 && (
+                          <p className="text-sm text-gray-500">
+                            최종 납부월: 없음 (첫 납부 또는 이전 확정 이력 없음)
+                          </p>
+                        )}
                       {selections.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
                           {selections.map((sel, idx) => (
