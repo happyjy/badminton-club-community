@@ -4,11 +4,22 @@ import { MemberPaymentStatus } from '@/types/membership-fee.types';
 
 interface PaymentDashboardTableProps {
   members: MemberPaymentStatus[];
+  year: number;
 }
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-function PaymentDashboardTable({ members }: PaymentDashboardTableProps) {
+/** 해당 연도·월이 이미 지난 달이거나 현재 달인지 */
+function isPastOrCurrentMonth(year: number, month: number): boolean {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  if (year < currentYear) return true;
+  if (year === currentYear && month <= currentMonth) return true;
+  return false;
+}
+
+function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
   if (members.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -66,14 +77,30 @@ function PaymentDashboardTable({ members }: PaymentDashboardTableProps) {
                     </span>
                   )}
                 </td>
-                {MONTHS.map((month) => (
-                  <td key={month} className="px-2 py-2 text-center">
-                    <PaymentStatusCell
-                      isPaid={member.payments[month]}
-                      isExempt={member.type === 'exempt'}
-                    />
-                  </td>
-                ))}
+                {MONTHS.map((month) => {
+                  const isPaid = member.payments[month];
+                  const isExempt = member.type === 'exempt';
+                  const showRedX =
+                    isPastOrCurrentMonth(year, month) && !isPaid && !isExempt;
+
+                  return (
+                    <td key={month} className="px-2 py-2 text-center">
+                      {showRedX ? (
+                        <div
+                          className="flex items-center justify-center text-red-500 font-semibold"
+                          title="미납"
+                        >
+                          X
+                        </div>
+                      ) : (
+                        <PaymentStatusCell
+                          isPaid={isPaid}
+                          isExempt={isExempt}
+                        />
+                      )}
+                    </td>
+                  );
+                })}
                 <td className="px-4 py-2 text-center">
                   <span
                     className={
