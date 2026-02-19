@@ -8,6 +8,7 @@ import {
   validateAmount,
   detectMemberType,
 } from '@/lib/membership-fee/amountValidator';
+import { attachLastPaidYearMonth } from '@/lib/membership-fee/attachLastPaidYearMonth';
 import {
   parseKakaoBankExcel,
   validateExcelFile,
@@ -326,10 +327,12 @@ export default withAuth(async function handler(
     // 파일 정리
     fs.unlinkSync(file.filepath);
 
+    const recordsWithLastPaid = await attachLastPaidYearMonth(prisma, records);
+
     return res.status(200).json({
       data: {
         batch,
-        records,
+        records: recordsWithLastPaid,
         summary: {
           total: records.length,
           matched: records.filter((r) => r.status === 'MATCHED').length,

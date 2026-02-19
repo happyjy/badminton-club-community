@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { attachLastPaidYearMonth } from '@/lib/membership-fee/attachLastPaidYearMonth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { Role } from '@/types/enums';
@@ -76,61 +77,7 @@ export default withAuth(async function handler(
       orderBy: { transactionDate: 'desc' },
     });
 
-    // 매칭된 회원 ID 수집 (최종 납부월 조회용)
-    const memberIds = [
-      ...new Set(
-        records.flatMap((r) => {
-          const fromMembers = (r.matchedMembers ?? []).map(
-            (m) => m.clubMemberId
-          );
-          const fromLegacy = r.matchedMemberId ? [r.matchedMemberId] : [];
-          return [...fromMembers, ...fromLegacy];
-        })
-      ),
-    ].filter((id): id is number => id != null);
-
-    // 회원별 최종 납부월 (year, month) 계산
-    const lastPaidByMember = new Map<number, { year: number; month: number }>();
-    if (memberIds.length > 0) {
-      const payments = await prisma.membershipPayment.findMany({
-        where: { clubMemberId: { in: memberIds } },
-        select: { clubMemberId: true, year: true, month: true },
-      });
-      for (const p of payments) {
-        const key = p.year * 12 + p.month;
-        const existing = lastPaidByMember.get(p.clubMemberId);
-        const existingKey = existing ? existing.year * 12 + existing.month : 0;
-        if (key > existingKey) {
-          lastPaidByMember.set(p.clubMemberId, {
-            year: p.year,
-            month: p.month,
-          });
-        }
-      }
-    }
-
-    // 레코드별 최종 납부월: 매칭 회원들 중 가장 최근 납부월
-    const recordsWithLastPaid = records.map((r) => {
-      const ids = [
-        ...(r.matchedMembers ?? []).map((m) => m.clubMemberId),
-        ...(r.matchedMemberId ? [r.matchedMemberId] : []),
-      ];
-      let lastPaidYearMonth: { year: number; month: number } | null = null;
-      for (const mid of ids) {
-        const lm = lastPaidByMember.get(mid);
-        if (lm) {
-          const key = lm.year * 12 + lm.month;
-          const curKey = lastPaidYearMonth
-            ? lastPaidYearMonth.year * 12 + lastPaidYearMonth.month
-            : 0;
-          if (key > curKey) lastPaidYearMonth = lm;
-        }
-      }
-      return {
-        ...r,
-        lastPaidYearMonth,
-      };
-    });
+    const recordsWithLastPaid = await attachLastPaidYearMonth(prisma, records);
 
     return res.status(200).json({
       data: { records: recordsWithLastPaid },
