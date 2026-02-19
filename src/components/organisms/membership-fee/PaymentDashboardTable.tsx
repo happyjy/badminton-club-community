@@ -33,7 +33,7 @@ function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-50 border-b">
-            <th className="px-4 py-3 text-left sticky left-0 bg-gray-50 min-w-[120px]">
+            <th className="w-px px-4 py-3 text-left sticky left-0 bg-gray-50 whitespace-nowrap">
               회원
             </th>
             <th className="px-2 py-3 text-center text-xs">유형</th>
@@ -57,7 +57,7 @@ function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
 
             return (
               <tr key={member.id} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-2 sticky left-0 bg-white font-medium">
+                <td className="w-px px-4 py-2 sticky left-0 bg-white font-medium whitespace-nowrap">
                   {member.name}
                 </td>
                 <td className="px-2 py-2 text-center">
