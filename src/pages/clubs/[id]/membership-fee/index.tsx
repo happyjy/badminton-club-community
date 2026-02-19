@@ -1,14 +1,16 @@
 import { useState } from 'react';
 
-import { Settings, Upload, Users, FileText, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+import { Settings, Upload, Users, FileText, UserX } from 'lucide-react';
+
+import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 import DashboardSummaryCard from '@/components/organisms/membership-fee/DashboardSummaryCard';
 import PaymentDashboardTable from '@/components/organisms/membership-fee/PaymentDashboardTable';
-import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 
 import { usePaymentDashboard } from '@/hooks/membership-fee/usePaymentDashboard';
+
 import { withAuth } from '@/lib/withAuth';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
@@ -120,7 +122,7 @@ function MembershipFeeDashboard() {
           {/* 월별 납부 현황 테이블 */}
           <div className="bg-white rounded-lg border p-6">
             <h2 className="text-lg font-semibold mb-4">회원별 납부 현황</h2>
-            <PaymentDashboardTable members={dashboard.members} />
+            <PaymentDashboardTable members={dashboard.members} year={year} />
           </div>
         </>
       )}
