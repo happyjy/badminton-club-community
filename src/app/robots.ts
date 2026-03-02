@@ -8,6 +8,8 @@ import { MetadataRoute } from 'next';
   기존 public/robots.txt는 제거하셔도 됩니다. 
   Next.js가 자동으로 robots.ts를 기반으로 적절한 robots.txt를 생성합니다.
  */
+export const dynamic = 'force-static';
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
