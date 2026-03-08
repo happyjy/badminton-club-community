@@ -110,9 +110,14 @@ export function useUploadPaymentExcel(clubId: string | undefined) {
 
         return response.data.data;
       } catch (err: unknown) {
-        const axiosError = err as { response?: { data?: { error?: string } }; message?: string };
+        const axiosError = err as {
+          response?: { data?: { error?: string } };
+          message?: string;
+        };
         const message =
-          axiosError.response?.data?.error ?? axiosError.message ?? '파일 업로드에 실패했습니다.';
+          axiosError.response?.data?.error ??
+          axiosError.message ??
+          '파일 업로드에 실패했습니다.';
         throw new Error(message);
       }
     },
@@ -184,7 +189,9 @@ export function useConfirmPayment(clubId: string | undefined) {
 
         if (response.data.status !== 200) {
           throw new Error(
-            response.data.error ?? response.data.message ?? '확정에 실패했습니다'
+            response.data.error ??
+              response.data.message ??
+              '확정에 실패했습니다'
           );
         }
 
@@ -223,7 +230,8 @@ export function useUnconfirmPayment(clubId: string | undefined) {
 
         if (response.data.status !== 200) {
           throw new Error(
-            (response.data as { error?: string }).error ?? '확정 취소에 실패했습니다'
+            (response.data as { error?: string }).error ??
+              '확정 취소에 실패했습니다'
           );
         }
 

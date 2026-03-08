@@ -67,7 +67,7 @@ export default withAuth(async function handler(
       const message =
         firstError?.message === 'Required'
           ? 'year(연도)와 months(월 배열) 또는 selections를 입력해주세요'
-          : firstError?.message ?? '입력값을 확인해주세요';
+          : (firstError?.message ?? '입력값을 확인해주세요');
       return res.status(400).json({
         error: message,
         status: 400,
@@ -138,10 +138,7 @@ export default withAuth(async function handler(
     });
 
     // 연도별 회비 금액 (amountPerMemberPerMonth per year)
-    const amountPerYear = new Map<
-      number,
-      number[]
-    >();
+    const amountPerYear = new Map<number, number[]>();
     const allYears = [...new Set(selections.map((s) => s.year))];
     for (const y of allYears) {
       const feeTypes = await prisma.feeType.findMany({

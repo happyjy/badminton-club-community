@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { FeePeriod } from '@prisma/client';
 import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
 
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
@@ -15,9 +16,8 @@ import {
 } from '@/hooks/membership-fee/useFeeTypes';
 
 import { withAuth } from '@/lib/withAuth';
-import { checkClubAdminPermission } from '@/utils/permissions';
 import { FeeType } from '@/types/membership-fee.types';
-import { FeePeriod } from '@prisma/client';
+import { checkClubAdminPermission } from '@/utils/permissions';
 
 const PERIOD_LABELS: Record<string, string> = {
   MONTHLY: '월납',
@@ -42,9 +42,7 @@ function FeeTypeFormModal({
   onSuccess,
 }: FeeTypeFormModalProps) {
   const [name, setName] = useState(feeType?.name ?? '');
-  const [description, setDescription] = useState(
-    feeType?.description ?? ''
-  );
+  const [description, setDescription] = useState(feeType?.description ?? '');
   const [rates, setRates] = useState(() => {
     const defaults = {
       MONTHLY: { amount: 0, monthCount: 1 },
@@ -78,13 +76,16 @@ function FeeTypeFormModal({
       if (isEditing) {
         await updateMutation.mutateAsync({
           typeId: feeType.id,
-          data: { name: name.trim(), description: description.trim() || undefined },
+          data: {
+            name: name.trim(),
+            description: description.trim() || undefined,
+          },
         });
         const ratesToSave = [
-          { period: FeePeriod.MONTHLY as const, ...rates.MONTHLY },
+          { period: FeePeriod.MONTHLY, ...rates.MONTHLY },
           // { period: FeePeriod.QUARTERLY as const, ...rates.QUARTERLY },
           // { period: FeePeriod.SEMI_ANNUAL as const, ...rates.SEMI_ANNUAL },
-          { period: FeePeriod.ANNUAL as const, ...rates.ANNUAL },
+          { period: FeePeriod.ANNUAL, ...rates.ANNUAL },
         ].filter((r) => r.amount > 0);
         if (ratesToSave.length > 0) {
           await bulkRatesMutation.mutateAsync({
@@ -99,10 +100,10 @@ function FeeTypeFormModal({
           description: description.trim() || undefined,
         });
         const ratesToSave = [
-          { period: FeePeriod.MONTHLY as const, ...rates.MONTHLY },
+          { period: FeePeriod.MONTHLY, ...rates.MONTHLY },
           // { period: FeePeriod.QUARTERLY as const, ...rates.QUARTERLY },
           // { period: FeePeriod.SEMI_ANNUAL as const, ...rates.SEMI_ANNUAL },
-          { period: FeePeriod.ANNUAL as const, ...rates.ANNUAL },
+          { period: FeePeriod.ANNUAL, ...rates.ANNUAL },
         ].filter((r) => r.amount > 0);
         if (ratesToSave.length > 0) {
           await bulkRatesMutation.mutateAsync({
@@ -166,32 +167,33 @@ function FeeTypeFormModal({
               </label>
               <div className="space-y-2">
                 {(
-                  ['MONTHLY', /* 'QUARTERLY', 'SEMI_ANNUAL', */ 'ANNUAL'] as const
-                ).map(
-                  (period) => (
-                    <div key={period} className="flex items-center gap-2">
-                      <span className="w-16 text-sm text-gray-600">
-                        {PERIOD_LABELS[period]}
-                      </span>
-                      <input
-                        type="number"
-                        min={0}
-                        value={rates[period].amount || ''}
-                        onChange={(e) =>
-                          setRates((prev) => ({
-                            ...prev,
-                            [period]: {
-                              ...prev[period],
-                              amount: parseInt(e.target.value, 10) || 0,
-                            },
-                          }))
-                        }
-                        className="flex-1 px-3 py-2 border rounded-lg"
-                        placeholder="0"
-                      />
-                    </div>
-                  )
-                )}
+                  [
+                    'MONTHLY',
+                    /* 'QUARTERLY', 'SEMI_ANNUAL', */ 'ANNUAL',
+                  ] as const
+                ).map((period) => (
+                  <div key={period} className="flex items-center gap-2">
+                    <span className="w-16 text-sm text-gray-600">
+                      {PERIOD_LABELS[period]}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={rates[period].amount || ''}
+                      onChange={(e) =>
+                        setRates((prev) => ({
+                          ...prev,
+                          [period]: {
+                            ...prev[period],
+                            amount: parseInt(e.target.value, 10) || 0,
+                          },
+                        }))
+                      }
+                      className="flex-1 px-3 py-2 border rounded-lg"
+                      placeholder="0"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
             <div className="flex gap-2 pt-4">
@@ -244,7 +246,9 @@ function FeeTypesSettingsPage() {
 
   const handleDelete = async (feeType: FeeType) => {
     if (
-      !confirm(`"${feeType.name}" 유형을 삭제하시겠습니까?\n(사용 중인 회원이 있으면 삭제할 수 없습니다)`)
+      !confirm(
+        `"${feeType.name}" 유형을 삭제하시겠습니까?\n(사용 중인 회원이 있으면 삭제할 수 없습니다)`
+      )
     )
       return;
 

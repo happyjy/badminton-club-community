@@ -171,7 +171,8 @@ export default withAuth(async function handler(
           0
         );
         if (record.amount % totalPerMonth !== 0) {
-          const isPartialPayment = record.amount > 0 && record.amount < totalPerMonth;
+          const isPartialPayment =
+            record.amount > 0 && record.amount < totalPerMonth;
           results.failed.push({
             recordId: record.id,
             reason: isPartialPayment

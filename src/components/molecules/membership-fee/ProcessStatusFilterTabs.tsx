@@ -91,9 +91,7 @@ function ProcessStatusFilterTabs({
               isActive ? tab.activeClass : tab.inactiveClass
             }`}
           >
-            <p
-              className={`text-lg font-bold ${tab.textClass ?? ''}`.trim()}
-            >
+            <p className={`text-lg font-bold ${tab.textClass ?? ''}`.trim()}>
               {count}
             </p>
             <p className="text-xs text-gray-600">{tab.label}</p>
