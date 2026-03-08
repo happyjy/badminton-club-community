@@ -89,7 +89,7 @@ function PaymentRecordFilters({
       </button>
 
       {isOpen && (
-        <div className="p-4 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-200 rounded-b-lg">
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-200 rounded-b-lg">
           <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               거래일 (부터)
