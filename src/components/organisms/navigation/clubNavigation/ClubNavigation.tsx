@@ -72,6 +72,12 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     ),
   };
 
+  // 게시판 항목 (멤버만 볼 수 있음)
+  const boardItem = {
+    name: '게시판',
+    href: `/clubs/${clubId}/board`,
+  };
+
   // 기본 네비게이션 아이템 (모든 사용자에게 보이는 항목)
   const baseNavigationItems = [
     {
@@ -98,7 +104,6 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
       name: strategy.getNavMenuName(),
       href: `/clubs/${clubId}/guest`,
     },
-    { name: '게시판', href: `/clubs/${clubId}/board` },
     // { name: '사진첩', href: `/clubs/${clubId}/photos` },
   ];
 
@@ -108,13 +113,14 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
   ];
 
   // 최종 네비게이션 아이템 구성
-  // 멤버인 경우 출석체크 항목 추가, ADMIN인 경우 추가 메뉴 포함
+  // 멤버인 경우 출석체크·게시판 항목 추가, ADMIN인 경우 추가 메뉴 포함
   const navigationItems = (() => {
     const items = [...baseNavigationItems];
 
-    // 멤버인 경우 출석체크 항목 추가 (홈 다음에 삽입)
+    // 멤버인 경우 출석체크(홈 다음에 삽입), 게시판 항목 추가
     if (clubMember) {
       items.splice(1, 0, attendanceItem);
+      items.push(boardItem);
     }
 
     // ADMIN인 경우 추가 메뉴 포함

@@ -220,9 +220,12 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
         </div>
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 w-full md:w-auto">
           <div className="text-gray-600 text-sm md:text-base">
-            총 회원 수:{' '}
+            {statusFilters.included.length > 0 ||
+            statusFilters.excluded.length > 0
+              ? '표시 중: '
+              : '총 회원 수: '}
             <span className="font-semibold text-gray-900">
-              {participants.length}명
+              {filteredParticipants.length}명
             </span>
           </div>
           <div className="relative w-full md:w-auto">
