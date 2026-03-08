@@ -343,8 +343,8 @@ function ProcessPage() {
     filters.amountMax !== '' ||
     filters.matchedMemberIds.length > 0;
   const statusLabel =
-    filterStatus && STATUS_LABELS[filterStatus]
-      ? STATUS_LABELS[filterStatus]
+    statusFilter && STATUS_LABELS[statusFilter]
+      ? STATUS_LABELS[statusFilter]
       : null;
 
   const onSortChange = (column: PaymentRecordSortBy) => {
@@ -394,7 +394,7 @@ function ProcessPage() {
         </div>
 
         <ProcessStatusFilterTabs
-          filterStatus={filterStatus}
+          filterStatus={statusFilter}
           statusCounts={statusCounts}
           onStatusSelect={(status) => {
             const path = `/clubs/${clubId}/membership-fee/process`;
