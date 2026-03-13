@@ -159,17 +159,37 @@ export default withAuth(async function handler(
           continue;
         }
 
-        const amountPerMemberPerMonth = memberIds.map((mid) => {
-          const coupleGroup = findCoupleGroup(mid, coupleGroups);
-          return coupleGroup
-            ? feeSettings.coupleAmount
-            : feeSettings.regularAmount;
-        });
+        /**
+         * 부부 회비(coupleAmount)는 세대당 월 금액(예: 45,000원 한 번 입금).
+         * 매칭이 부부 그룹 전원(보통 2명)이면 totalPerMonth는 coupleAmount 한 번만 더함.
+         * 그렇지 않으면 기존처럼 인원별 일반/부부 단가 합산.
+         */
+        const firstGroup = findCoupleGroup(memberIds[0], coupleGroups);
+        const memberIdSet = new Set(memberIds);
+        const isFullCoupleMatch =
+          firstGroup != null &&
+          firstGroup.members.length === memberIds.length &&
+          firstGroup.members.every((m) => memberIdSet.has(m.clubMemberId));
 
-        const totalPerMonth = amountPerMemberPerMonth.reduce(
-          (a, b) => a + b,
-          0
-        );
+        let amountPerMemberPerMonth: number[];
+        let totalPerMonth: number;
+        if (isFullCoupleMatch && firstGroup.members.length > 0) {
+          totalPerMonth = feeSettings.coupleAmount;
+          const n = firstGroup.members.length;
+          const base = Math.floor(feeSettings.coupleAmount / n);
+          const remainder = feeSettings.coupleAmount - base * n;
+          amountPerMemberPerMonth = memberIds.map((_, i) =>
+            i < remainder ? base + 1 : base
+          );
+        } else {
+          amountPerMemberPerMonth = memberIds.map((mid) => {
+            const coupleGroup = findCoupleGroup(mid, coupleGroups);
+            return coupleGroup
+              ? feeSettings.coupleAmount
+              : feeSettings.regularAmount;
+          });
+          totalPerMonth = amountPerMemberPerMonth.reduce((a, b) => a + b, 0);
+        }
         if (record.amount % totalPerMonth !== 0) {
           const isPartialPayment =
             record.amount > 0 && record.amount < totalPerMonth;
