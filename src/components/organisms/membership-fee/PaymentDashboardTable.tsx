@@ -10,13 +10,40 @@ interface PaymentDashboardTableProps {
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 /** 해당 연도·월이 이미 지난 달이거나 현재 달인지 */
-function isPastOrCurrentMonth(year: number, month: number): boolean {
+export function isPastOrCurrentMonth(year: number, month: number): boolean {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
   if (year < currentYear) return true;
   if (year === currentYear && month <= currentMonth) return true;
   return false;
+}
+
+const YEAR_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+
+/**
+ * 면제가 아니고, 해당 연도 1~12월 중 납부 안 된 달이 하나라도 있으면 true (전체 월 기준)
+ */
+export function memberHasAnyUnpaidMonthInYear(
+  member: MemberPaymentStatus
+): boolean {
+  if (member.type === 'exempt') return false;
+  return YEAR_MONTHS.some((month) => !member.payments[month]);
+}
+
+/**
+ * 일반/부부이면서 1월 ~ throughMonth까지 모두 납부한 경우 true
+ */
+export function memberFullyPaidThroughMonth(
+  member: MemberPaymentStatus,
+  throughMonth: number
+): boolean {
+  if (member.type === 'exempt') return false;
+  const last = Math.min(12, Math.max(1, throughMonth));
+  for (let month = 1; month <= last; month++) {
+    if (!member.payments[month]) return false;
+  }
+  return true;
 }
 
 function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
