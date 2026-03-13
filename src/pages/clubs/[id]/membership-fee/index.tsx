@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -7,12 +7,23 @@ import { Settings, Upload, Users, FileText, UserX } from 'lucide-react';
 
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 import DashboardSummaryCard from '@/components/organisms/membership-fee/DashboardSummaryCard';
-import PaymentDashboardTable from '@/components/organisms/membership-fee/PaymentDashboardTable';
+import PaymentDashboardTable, {
+  memberFullyPaidThroughMonth,
+  memberHasAnyUnpaidMonthInYear,
+} from '@/components/organisms/membership-fee/PaymentDashboardTable';
 
 import { usePaymentDashboard } from '@/hooks/membership-fee/usePaymentDashboard';
 
 import { withAuth } from '@/lib/withAuth';
 import { checkClubAdminPermission } from '@/utils/permissions';
+
+type DashboardMemberFilter = 'all' | 'unpaid' | 'paid';
+
+function defaultPaidThroughMonthForYear(y: number): number {
+  const now = new Date();
+  if (y === now.getFullYear()) return now.getMonth() + 1;
+  return 12;
+}
 
 function MembershipFeeDashboard() {
   const router = useRouter();
@@ -20,6 +31,15 @@ function MembershipFeeDashboard() {
   const clubIdStr = typeof clubId === 'string' ? clubId : undefined;
 
   const [year, setYear] = useState(new Date().getFullYear());
+  const [memberFilter, setMemberFilter] =
+    useState<DashboardMemberFilter>('all');
+  const [paidThroughMonth, setPaidThroughMonth] = useState(() =>
+    defaultPaidThroughMonthForYear(new Date().getFullYear())
+  );
+
+  useEffect(() => {
+    setPaidThroughMonth(defaultPaidThroughMonthForYear(year));
+  }, [year]);
 
   const { data: dashboard, isLoading } = usePaymentDashboard(clubIdStr, year);
 
@@ -121,8 +141,106 @@ function MembershipFeeDashboard() {
 
           {/* 월별 납부 현황 테이블 */}
           <div className="bg-white rounded-lg border p-6">
-            <h2 className="text-lg font-semibold mb-4">회원별 납부 현황</h2>
-            <PaymentDashboardTable members={dashboard.members} year={year} />
+            <div className="flex flex-col gap-4 mb-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-semibold">회원별 납부 현황</h2>
+                <div
+                  className="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-1 text-sm"
+                  role="group"
+                  aria-label="목록 보기 방식"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setMemberFilter('all')}
+                    className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
+                      memberFilter === 'all'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    전체
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMemberFilter('unpaid')}
+                    className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
+                      memberFilter === 'unpaid'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    미납 있음
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMemberFilter('paid')}
+                    className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
+                      memberFilter === 'paid'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    납부 완료
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                미납: {year}년 1~12월 전체를 기준으로, 한 달이라도 미납이 있으면
+                표시 (일반·부부).
+              </p>
+              {memberFilter === 'paid' && (
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
+                  <span className="shrink-0">
+                    1월 ~ 선택한 달까지 모두 납부한 회원만
+                  </span>
+                  <select
+                    value={paidThroughMonth}
+                    onChange={(e) =>
+                      setPaidThroughMonth(Number(e.target.value))
+                    }
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2"
+                    aria-label="납부 완료 기준 마지막 달"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <option key={m} value={m}>
+                        {m}월까지
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            {(() => {
+              let tableMembers = dashboard.members;
+              if (memberFilter === 'unpaid') {
+                tableMembers = dashboard.members.filter((m) =>
+                  memberHasAnyUnpaidMonthInYear(m)
+                );
+              } else if (memberFilter === 'paid') {
+                tableMembers = dashboard.members.filter((m) =>
+                  memberFullyPaidThroughMonth(m, paidThroughMonth)
+                );
+              }
+              if (memberFilter === 'unpaid' && tableMembers.length === 0) {
+                return (
+                  <p className="text-center text-sm text-gray-500 py-8">
+                    {year}년 기준 1~12월 중 미납이 있는 일반·부부 회원이
+                    없습니다.
+                  </p>
+                );
+              }
+              if (memberFilter === 'paid' && tableMembers.length === 0) {
+                return (
+                  <p className="text-center text-sm text-gray-500 py-8">
+                    {year}년 1~{paidThroughMonth}월까지 모두 납부한 일반·부부
+                    회원이 없습니다.
+                  </p>
+                );
+              }
+              return (
+                <PaymentDashboardTable members={tableMembers} year={year} />
+              );
+            })()}
           </div>
         </>
       )}
