@@ -47,7 +47,6 @@ export default withAuth(async function handler(
     const clubMembers = await prisma.clubMember.findMany({
       where: {
         clubId: clubIdNumber,
-        status: 'APPROVED',
       },
       select: {
         id: true,
