@@ -271,6 +271,7 @@ export default withAuth(async function handler(
             paidCount: paidCountCouple,
             totalMonths: totalMonthsCouple,
             firstObligationMonth: effectiveFirst,
+            obligationMonths: obligationMonthsCouple,
           };
         }
 
@@ -301,17 +302,13 @@ export default withAuth(async function handler(
           );
           paymentsObj[m] = obligated ? paidMonths.has(m) : false;
         }
-        const paidCountMember = Array.from(
-          { length: 12 },
-          (_, i) => i + 1
-        ).filter(
-          (m) =>
-            isMonthObligated(
-              year,
-              m,
-              member.feeObligationStartAt,
-              leavePeriodsMember
-            ) && paidMonths.has(m)
+        const obligationMonthsMember = getObligationMonths(
+          year,
+          member.feeObligationStartAt,
+          leavePeriodsMember
+        );
+        const paidCountMember = obligationMonthsMember.filter((m) =>
+          paidMonths.has(m)
         ).length;
 
         return {
@@ -324,11 +321,12 @@ export default withAuth(async function handler(
           paidCount: paidCountMember,
           totalMonths: totalMonthsMember,
           firstObligationMonth: firstObligation ?? 1,
+          obligationMonths: obligationMonthsMember,
         };
       })
       .filter(Boolean);
 
-    // 월별 통계: 해당 월에 의무 있는 회원 수 기준
+    // 월별 통계: 해당 월에 의무 있는 회원 수 기준 (휴회 월 제외)
     const monthlyStats = Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
       let paidCount = 0;
@@ -336,8 +334,10 @@ export default withAuth(async function handler(
 
       members.forEach((m) => {
         if (!m || m.type === 'exempt') return;
-        const first = m.firstObligationMonth ?? 1;
-        if (month >= first) {
+        const isObligated = m.obligationMonths
+          ? m.obligationMonths.includes(month)
+          : (m.firstObligationMonth ?? 1) <= month;
+        if (isObligated) {
           totalCount++;
           if (m.payments[month]) paidCount++;
         }
