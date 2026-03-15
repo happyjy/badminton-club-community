@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
+
+import { prisma } from '@/lib/prisma';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
@@ -573,16 +574,27 @@ export const getServerSideProps = async (context: any) => {
   const { guestId } = context.params;
 
   try {
-    const prisma = new PrismaClient();
     const guestPost = await prisma.guestPost.findUnique({
-      where: {
-        id: guestId,
-      },
-      include: {
+      where: { id: guestId },
+      select: {
+        id: true,
+        name: true,
+        birthDate: true,
+        phoneNumber: true,
+        gender: true,
+        localTournamentLevel: true,
+        nationalTournamentLevel: true,
+        lessonPeriod: true,
+        playingPeriod: true,
+        status: true,
+        intendToJoin: true,
+        visitDate: true,
+        message: true,
+        createdAt: true,
+        userId: true,
+        createdBy: true,
         clubMember: {
-          select: {
-            name: true,
-          },
+          select: { name: true },
         },
       },
     });
