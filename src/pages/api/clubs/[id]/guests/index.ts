@@ -4,6 +4,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { GuestListResponse } from '@/types/guest.types';
 
+// 게스트 신청 목록 조회 API
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GuestListResponse>
@@ -73,8 +74,30 @@ export default async function handler(
         orderBy: {
           createdAt: 'desc',
         },
-        include: {
-          clubMember: true, // createdBy 관계를 통해 작성자 정보 포함
+        select: {
+          id: true,
+          name: true,
+          birthDate: true,
+          phoneNumber: true,
+          gender: true,
+          postType: true,
+          status: true,
+          intendToJoin: true,
+          visitDate: true,
+          message: true,
+          createdAt: true,
+          updatedAt: true,
+          userId: true,
+          clubId: true,
+          createdBy: true,
+          updatedBy: true,
+          localTournamentLevel: true,
+          nationalTournamentLevel: true,
+          lessonPeriod: true,
+          playingPeriod: true,
+          clubMember: {
+            select: { name: true },
+          },
         },
         skip,
         take: limit,
