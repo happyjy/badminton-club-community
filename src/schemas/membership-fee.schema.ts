@@ -84,6 +84,29 @@ export const feeExemptionSchema = z.object({
 
 export type FeeExemptionSchema = z.infer<typeof feeExemptionSchema>;
 
+// 휴회/병가 기간 등록·수정 스키마
+export const memberLeaveSchema = z
+  .object({
+    startYear: z.number().int().min(2020).max(2100),
+    startMonth: z.number().int().min(1).max(12),
+    endYear: z.number().int().min(2020).max(2100).nullable().optional(),
+    endMonth: z.number().int().min(1).max(12).nullable().optional(),
+    reason: z.string().max(200).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.endYear == null && data.endMonth == null) return true;
+      if (data.endYear == null || data.endMonth == null) return false;
+      if (data.endYear > data.startYear) return true;
+      if (data.endYear === data.startYear)
+        return (data.endMonth ?? 0) >= data.startMonth;
+      return false;
+    },
+    { message: '종료 연월은 시작 연월 이후여야 합니다' }
+  );
+
+export type MemberLeaveSchema = z.infer<typeof memberLeaveSchema>;
+
 // 입금 내역 수정 스키마
 export const paymentRecordUpdateSchema = z.object({
   matchedMemberId: z.number().int().positive().nullable().optional(),

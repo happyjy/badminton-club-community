@@ -1,7 +1,11 @@
 import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { getFirstObligationMonth } from '@/lib/membership-fee/feeObligation';
+import {
+  getFirstObligationMonth,
+  getObligationMonths,
+  type LeavePeriod,
+} from '@/lib/membership-fee/feeObligation';
 import { findCoupleGroup } from '@/lib/membership-fee/memberMatcher';
 import { suggestMonths } from '@/lib/membership-fee/monthSuggester';
 import { prisma } from '@/lib/prisma';
@@ -149,6 +153,7 @@ export default withAuth(async function handler(
       ),
     ];
     const memberStartAtMap = new Map<number, Date | null>();
+    const leaveMap = new Map<number, LeavePeriod[]>();
     if (allMemberIds.length > 0) {
       const members = await prisma.clubMember.findMany({
         where: { id: { in: allMemberIds } },
@@ -157,6 +162,24 @@ export default withAuth(async function handler(
       members.forEach((m) =>
         memberStartAtMap.set(m.id, m.feeObligationStartAt)
       );
+
+      const leavesRaw = await prisma.memberLeave.findMany({
+        where: {
+          clubMemberId: { in: allMemberIds },
+          startYear: { lte: year },
+          OR: [{ endYear: null }, { endYear: { gte: year } }],
+        },
+      });
+      leavesRaw.forEach((row) => {
+        const list = leaveMap.get(row.clubMemberId) ?? [];
+        list.push({
+          startYear: row.startYear,
+          startMonth: row.startMonth,
+          endYear: row.endYear ?? undefined,
+          endMonth: row.endMonth ?? undefined,
+        });
+        leaveMap.set(row.clubMemberId, list);
+      });
     }
 
     const results = {
@@ -237,17 +260,21 @@ export default withAuth(async function handler(
           ...new Set(existingPayments.map((p) => p.month)),
         ].map((month) => ({ month }));
 
-        // 회원별 의무 시작월 중 가장 늦은 달(부부 시 둘 다 의무인 구간)만 후보로 사용
+        // 회원별 의무 월(휴회 제외) → 부부 시 둘 다 의무인 구간만 후보
         const firstMonths = memberIds
           .map((mid) =>
-            getFirstObligationMonth(year, memberStartAtMap.get(mid) ?? null)
+            getFirstObligationMonth(year, memberStartAtMap.get(mid) ?? null, [])
           )
           .filter((m): m is number => m != null);
-        const effectiveFirst =
+        const effectiveFirstRaw =
           firstMonths.length > 0 ? Math.max(...firstMonths) : 1;
-        const eligibleMonths = Array.from(
-          { length: 13 - effectiveFirst },
-          (_, i) => effectiveFirst + i
+        const combinedLeavePeriods: LeavePeriod[] = memberIds.flatMap(
+          (mid) => leaveMap.get(mid) ?? []
+        );
+        const eligibleMonths = getObligationMonths(
+          year,
+          new Date(year, effectiveFirstRaw - 1, 1),
+          combinedLeavePeriods
         );
 
         const transactionMonth =

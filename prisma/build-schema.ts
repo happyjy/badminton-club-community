@@ -11,6 +11,7 @@ const schemaFiles = [
   //
   'user.prisma',
   'club.prisma',
+  'memberLeave.prisma',
   'board.prisma',
   'workout.prisma',
   'guest.prisma',

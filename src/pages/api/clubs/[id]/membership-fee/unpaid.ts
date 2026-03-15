@@ -1,6 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { isMonthObligated } from '@/lib/membership-fee/feeObligation';
+import {
+  isMonthObligated,
+  type LeavePeriod,
+} from '@/lib/membership-fee/feeObligation';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { Role } from '@/types/enums';
@@ -73,6 +76,27 @@ export default withAuth(async function handler(
 
     const exemptedMemberIds = new Set(exemptions.map((e) => e.clubMemberId));
 
+    // 해당 연도와 겹치는 휴회 기간 조회 (회원별)
+    const memberIds = clubMembers.map((m) => m.id);
+    const leavesRaw = await prisma.memberLeave.findMany({
+      where: {
+        clubMemberId: { in: memberIds },
+        startYear: { lte: year },
+        OR: [{ endYear: null }, { endYear: { gte: year } }],
+      },
+    });
+    const leaveMap = new Map<number, LeavePeriod[]>();
+    leavesRaw.forEach((row) => {
+      const list = leaveMap.get(row.clubMemberId) ?? [];
+      list.push({
+        startYear: row.startYear,
+        startMonth: row.startMonth,
+        endYear: row.endYear ?? undefined,
+        endMonth: row.endMonth ?? undefined,
+      });
+      leaveMap.set(row.clubMemberId, list);
+    });
+
     // 부부 그룹 조회
     const coupleGroups = await prisma.coupleGroup.findMany({
       where: { clubId: clubIdNumber },
@@ -126,8 +150,17 @@ export default withAuth(async function handler(
       // 면제 회원 제외
       if (exemptedMemberIds.has(member.id)) return;
 
-      // 해당 연·월에 회비 의무 없으면 미납 목록에서 제외 (가입 시기 반영)
-      if (!isMonthObligated(year, month, member.feeObligationStartAt)) return;
+      // 해당 연·월에 회비 의무 없으면 미납 목록에서 제외 (가입 시기·휴회 반영)
+      const leavePeriodsMember = leaveMap.get(member.id) ?? [];
+      if (
+        !isMonthObligated(
+          year,
+          month,
+          member.feeObligationStartAt,
+          leavePeriodsMember
+        )
+      )
+        return;
 
       // 이미 납부한 회원 제외
       if (paidMemberIds.has(member.id)) return;
@@ -145,10 +178,14 @@ export default withAuth(async function handler(
           (m) => m.clubMemberId !== member.id
         );
         const partnerStartAt = partnerMember
-          ? clubMembers.find((c) => c.id === partnerMember.clubMemberId)
-              ?.feeObligationStartAt ?? null
+          ? (clubMembers.find((c) => c.id === partnerMember.clubMemberId)
+              ?.feeObligationStartAt ?? null)
           : null;
-        if (!isMonthObligated(year, month, partnerStartAt)) return;
+        const partnerLeave = partnerMember
+          ? (leaveMap.get(partnerMember.clubMemberId) ?? [])
+          : [];
+        if (!isMonthObligated(year, month, partnerStartAt, partnerLeave))
+          return;
 
         unpaidMembers.push({
           id: member.id,
