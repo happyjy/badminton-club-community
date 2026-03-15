@@ -56,44 +56,59 @@ export default async function handler(
       },
     });
 
-    // 각 운동에 대한 게스트 정보 가져오기
-    const workoutsWithGuests = await Promise.all(
-      workouts.map(async (workout) => {
-        // 운동 날짜 형식 변환 (YYYY-MM-DD 형식으로)
-        const workoutDate = new Date(workout.date).toISOString().split('T')[0];
-
-        // 방문 희망일이 운동 날짜와 일치하는 승인된 게스트 목록 가져오기
-        const guests = await prisma.guestPost.findMany({
-          where: {
-            clubId: Number(id),
-            status: 'APPROVED', // review: jyoon: 하드코딩 처리 되어 있음
-            visitDate: workoutDate,
-          },
-          select: {
-            id: true,
-            name: true,
-            userId: true,
-            gender: true,
-            birthDate: true,
-            localTournamentLevel: true,
-            nationalTournamentLevel: true,
-            user: {
-              select: {
-                id: true,
-                nickname: true,
-                thumbnailImageUrl: true,
+    // 운동 날짜 목록(YYYY-MM-DD) 수집 후, 해당 일자 승인 게스트를 1회 쿼리로 조회 (N+1 방지)
+    const visitDates = [
+      ...new Set(
+        workouts.map((w) => new Date(w.date).toISOString().split('T')[0])
+      ),
+    ];
+    const clubIdNum = Number(id);
+    const allGuests =
+      visitDates.length === 0
+        ? []
+        : await prisma.guestPost.findMany({
+            where: {
+              clubId: clubIdNum,
+              status: 'APPROVED', // review: jyoon: 하드코딩 처리 되어 있음
+              visitDate: { in: visitDates },
+            },
+            select: {
+              id: true,
+              name: true,
+              userId: true,
+              gender: true,
+              birthDate: true,
+              localTournamentLevel: true,
+              nationalTournamentLevel: true,
+              visitDate: true,
+              user: {
+                select: {
+                  id: true,
+                  nickname: true,
+                  thumbnailImageUrl: true,
+                },
               },
             },
-          },
-        });
+          });
 
-        return {
-          ...workout,
-          guests,
-          guestCount: guests.length,
-        };
-      })
-    );
+    const guestsByVisitDate = allGuests.reduce<
+      Record<string, typeof allGuests>
+    >((acc, guest) => {
+      const d = guest.visitDate;
+      if (!acc[d]) acc[d] = [];
+      acc[d].push(guest);
+      return acc;
+    }, {});
+
+    const workoutsWithGuests = workouts.map((workout) => {
+      const workoutDate = new Date(workout.date).toISOString().split('T')[0];
+      const guests = guestsByVisitDate[workoutDate] ?? [];
+      return {
+        ...workout,
+        guests,
+        guestCount: guests.length,
+      };
+    });
 
     return res.status(200).json({
       data: { workouts: workoutsWithGuests },
