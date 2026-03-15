@@ -1,6 +1,7 @@
 import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { getFirstObligationMonth } from '@/lib/membership-fee/feeObligation';
 import { findCoupleGroup } from '@/lib/membership-fee/memberMatcher';
 import { suggestMonths } from '@/lib/membership-fee/monthSuggester';
 import { prisma } from '@/lib/prisma';
@@ -136,6 +137,28 @@ export default withAuth(async function handler(
       });
     }
 
+    const allMemberIds = [
+      ...new Set(
+        records.flatMap((r) =>
+          r.matchedMembers?.length > 0
+            ? r.matchedMembers.map((m) => m.clubMemberId)
+            : r.matchedMemberId
+              ? [r.matchedMemberId]
+              : []
+        )
+      ),
+    ];
+    const memberStartAtMap = new Map<number, Date | null>();
+    if (allMemberIds.length > 0) {
+      const members = await prisma.clubMember.findMany({
+        where: { id: { in: allMemberIds } },
+        select: { id: true, feeObligationStartAt: true },
+      });
+      members.forEach((m) =>
+        memberStartAtMap.set(m.id, m.feeObligationStartAt)
+      );
+    }
+
     const results = {
       success: [] as string[],
       failed: [] as { recordId: string; reason: string }[],
@@ -214,14 +237,27 @@ export default withAuth(async function handler(
           ...new Set(existingPayments.map((p) => p.month)),
         ].map((month) => ({ month }));
 
-        // 거래일(transactionDate) 월을 기준으로 확정 월 추천 - 1월 입금은 1월로 확정되도록
+        // 회원별 의무 시작월 중 가장 늦은 달(부부 시 둘 다 의무인 구간)만 후보로 사용
+        const firstMonths = memberIds
+          .map((mid) =>
+            getFirstObligationMonth(year, memberStartAtMap.get(mid) ?? null)
+          )
+          .filter((m): m is number => m != null);
+        const effectiveFirst =
+          firstMonths.length > 0 ? Math.max(...firstMonths) : 1;
+        const eligibleMonths = Array.from(
+          { length: 13 - effectiveFirst },
+          (_, i) => effectiveFirst + i
+        );
+
         const transactionMonth =
           new Date(record.transactionDate).getMonth() + 1;
 
         const suggestedMonths = suggestMonths(
           monthCount,
           paidMonthsForSuggestion,
-          transactionMonth
+          transactionMonth,
+          eligibleMonths
         );
 
         if (suggestedMonths.length < monthCount) {

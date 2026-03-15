@@ -1,6 +1,7 @@
 import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { isMonthObligated } from '@/lib/membership-fee/feeObligation';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { paymentConfirmSchema } from '@/schemas/membership-fee.schema';
@@ -128,6 +129,28 @@ export default withAuth(async function handler(
         error: '이미 확정된 입금 내역입니다',
         status: 400,
       });
+    }
+
+    const membersWithStart = await prisma.clubMember.findMany({
+      where: { id: { in: memberIds } },
+      select: { id: true, feeObligationStartAt: true },
+    });
+    const startAtByMember = new Map(
+      membersWithStart.map((m) => [m.id, m.feeObligationStartAt])
+    );
+
+    for (const sel of selections) {
+      for (const month of sel.months) {
+        for (const mid of memberIds) {
+          const startAt = startAtByMember.get(mid) ?? null;
+          if (!isMonthObligated(sel.year, month, startAt)) {
+            return res.status(400).json({
+              error: `${sel.year}년 ${month}월은 해당 회원의 회비 의무 기간이 아닙니다 (가입 시기 확인)`,
+              status: 400,
+            });
+          }
+        }
+      }
     }
 
     const coupleGroups = await prisma.coupleGroup.findMany({

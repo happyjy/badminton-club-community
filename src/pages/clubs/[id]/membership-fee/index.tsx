@@ -238,7 +238,11 @@ function MembershipFeeDashboard() {
                 );
               }
               return (
-                <PaymentDashboardTable members={tableMembers} year={year} />
+                <PaymentDashboardTable
+                  members={tableMembers}
+                  year={year}
+                  clubId={clubIdStr}
+                />
               );
             })()}
           </div>

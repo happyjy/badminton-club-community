@@ -37,7 +37,14 @@ export default withAuth(async function handler(
       });
     }
 
-    // 멤버 상태 업데이트
+    // 멤버 상태 업데이트 (최초 승인 시에만 feeObligationStartAt 설정)
+    const existing = await prisma.clubMember.findUnique({
+      where: {
+        clubId_userId: { clubId, userId },
+      },
+      select: { feeObligationStartAt: true },
+    });
+
     const updatedMember = await prisma.clubMember.update({
       where: {
         clubId_userId: {
@@ -47,6 +54,9 @@ export default withAuth(async function handler(
       },
       data: {
         status: Status.APPROVED,
+        ...(existing?.feeObligationStartAt == null && {
+          feeObligationStartAt: new Date(),
+        }),
       },
     });
 

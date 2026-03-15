@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { StatusFilter } from '@/components/molecules/StatusFilter';
@@ -158,6 +159,7 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
   };
 
   const renderUserCard = (idx: number, user: ClubMemberWithUser) => {
+    const clubId = typeof router.query.id === 'string' ? router.query.id : '';
     return (
       <div
         key={user.id}
@@ -174,7 +176,13 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
             />
           )}
           <h2 className="font-semibold text-lg">
-            {idx + 1}. {user.clubMember.name || '이름 없음'}
+            {idx + 1}.{' '}
+            <Link
+              href={`/clubs/${clubId}/members/${user.id}`}
+              className="hover:underline text-blue-600"
+            >
+              {user.clubMember.name || '이름 없음'}
+            </Link>
           </h2>
         </div>
         <p className="text-gray-600 text-sm mb-2">{user.email}</p>
