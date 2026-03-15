@@ -23,10 +23,19 @@ function MemberDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feeStartInput, setFeeStartInput] = useState('');
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (!clubId || !userId || typeof clubId !== 'string' || typeof userId !== 'string') return;
+    if (
+      !clubId ||
+      !userId ||
+      typeof clubId !== 'string' ||
+      typeof userId !== 'string'
+    )
+      return;
 
     const fetchMember = async () => {
       try {
@@ -36,7 +45,7 @@ function MemberDetailPage() {
           setMember(data);
           setFeeStartInput(
             data.feeObligationStartAt
-              ? new Date(data.feeObligationStartAt).toISOString().slice(0, 10)
+              ? new Date(data.feeObligationStartAt).toISOString().slice(0, 7)
               : ''
           );
         }
@@ -51,18 +60,34 @@ function MemberDetailPage() {
   }, [clubId, userId]);
 
   const onSaveFeeStart = async () => {
-    if (!clubId || !userId || typeof clubId !== 'string' || typeof userId !== 'string') return;
+    if (
+      !clubId ||
+      !userId ||
+      typeof clubId !== 'string' ||
+      typeof userId !== 'string'
+    )
+      return;
     setSaving(true);
     setMessage(null);
     try {
-      await axios.patch(`/api/clubs/${clubId}/members/${userId}/fee-obligation`, {
-        feeObligationStartAt: feeStartInput ? new Date(feeStartInput).toISOString() : null,
+      await axios.patch(
+        `/api/clubs/${clubId}/members/${userId}/fee-obligation`,
+        {
+          feeObligationStartAt: feeStartInput
+            ? new Date(`${feeStartInput}-01`).toISOString()
+            : null,
+        }
+      );
+      setMessage({
+        type: 'success',
+        text: '회비 입금 시작월이 저장되었습니다.',
       });
-      setMessage({ type: 'success', text: '회비 입금 시작일이 저장되었습니다.' });
       if (member) {
         setMember({
           ...member,
-          feeObligationStartAt: feeStartInput ? new Date(feeStartInput).toISOString() : null,
+          feeObligationStartAt: feeStartInput
+            ? new Date(`${feeStartInput}-01`).toISOString()
+            : null,
         });
       }
     } catch {
@@ -84,7 +109,10 @@ function MemberDetailPage() {
     return (
       <div className="max-w-2xl mx-auto p-6">
         <p className="text-red-500">회원 정보를 불러올 수 없습니다.</p>
-        <Link href={`/clubs/${clubId}/members`} className="text-blue-600 underline mt-2 inline-block">
+        <Link
+          href={`/clubs/${clubId}/members`}
+          className="text-blue-600 underline mt-2 inline-block"
+        >
           목록으로
         </Link>
       </div>
@@ -100,7 +128,9 @@ function MemberDetailPage() {
         ← 클럽 멤버 관리
       </Link>
 
-      <h1 className="text-2xl font-bold mb-6">{member.name || '이름 없음'} 회원 상세</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {member.name || '이름 없음'} 회원 상세
+      </h1>
 
       <div className="space-y-4 mb-6">
         <div>
@@ -117,15 +147,18 @@ function MemberDetailPage() {
         </div>
 
         <div>
-          <label htmlFor="feeStart" className="block text-gray-500 text-sm mb-1">
-            회비 입금 시작일
+          <label
+            htmlFor="feeStart"
+            className="block text-gray-500 text-sm mb-1"
+          >
+            회비 입금 시작월
           </label>
           <p className="text-xs text-gray-400 mb-1">
-            15일 이전이면 해당 월부터, 16일~말일이면 다음 달부터 회비 의무입니다.
+            기본은 가입한 달. 필요 시 다음 달부터로 설정할 수 있습니다.
           </p>
           <input
             id="feeStart"
-            type="date"
+            type="month"
             value={feeStartInput}
             onChange={(e) => setFeeStartInput(e.target.value)}
             className="border rounded px-3 py-2 w-full max-w-xs"
@@ -143,7 +176,9 @@ function MemberDetailPage() {
         {message && (
           <p
             className={
-              message.type === 'success' ? 'text-green-600 text-sm' : 'text-red-600 text-sm'
+              message.type === 'success'
+                ? 'text-green-600 text-sm'
+                : 'text-red-600 text-sm'
             }
           >
             {message.text}
