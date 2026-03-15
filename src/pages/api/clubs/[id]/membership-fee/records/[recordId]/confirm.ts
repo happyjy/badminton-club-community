@@ -1,7 +1,10 @@
 import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-import { isMonthObligated } from '@/lib/membership-fee/feeObligation';
+import {
+  isMonthObligated,
+  type LeavePeriod,
+} from '@/lib/membership-fee/feeObligation';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { paymentConfirmSchema } from '@/schemas/membership-fee.schema';
@@ -139,13 +142,31 @@ export default withAuth(async function handler(
       membersWithStart.map((m) => [m.id, m.feeObligationStartAt])
     );
 
+    const leavesRaw = await prisma.memberLeave.findMany({
+      where: { clubMemberId: { in: memberIds } },
+    });
+    const leaveMap = new Map<number, LeavePeriod[]>();
+    leavesRaw.forEach((row) => {
+      const list = leaveMap.get(row.clubMemberId) ?? [];
+      list.push({
+        startYear: row.startYear,
+        startMonth: row.startMonth,
+        endYear: row.endYear ?? undefined,
+        endMonth: row.endMonth ?? undefined,
+      });
+      leaveMap.set(row.clubMemberId, list);
+    });
+
     for (const sel of selections) {
       for (const month of sel.months) {
         for (const mid of memberIds) {
           const startAt = startAtByMember.get(mid) ?? null;
-          if (!isMonthObligated(sel.year, month, startAt)) {
+          const leavePeriods = leaveMap.get(mid) ?? [];
+          if (
+            !isMonthObligated(sel.year, month, startAt, leavePeriods)
+          ) {
             return res.status(400).json({
-              error: `${sel.year}년 ${month}월은 해당 회원의 회비 의무 기간이 아닙니다 (가입 시기 확인)`,
+              error: `${sel.year}년 ${month}월은 해당 회원의 회비 의무 기간이 아닙니다 (가입 시기·휴회 확인)`,
               status: 400,
             });
           }

@@ -1,0 +1,17 @@
+// 회원별 휴회/병가 기간 (회비 의무 제외용, 기간 제한 없음)
+model MemberLeave {
+  id           Int      @id @default(autoincrement())
+  clubMemberId Int
+  startYear    Int
+  startMonth   Int      // 1~12
+  endYear      Int?
+  endMonth     Int?     // 1~12, null = 미정/장기
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  clubMember ClubMember @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+
+  @@index([clubMemberId])
+  @@index([clubMemberId, startYear, startMonth])
+}

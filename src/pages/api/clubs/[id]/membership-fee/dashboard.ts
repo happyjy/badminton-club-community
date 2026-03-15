@@ -3,8 +3,10 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import {
   getFirstObligationMonth,
+  getObligationMonths,
   isMonthObligated,
   obligationMonthCount,
+  type LeavePeriod,
 } from '@/lib/membership-fee/feeObligation';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
@@ -133,6 +135,27 @@ export default withAuth(async function handler(
 
     const exemptedMemberIds = new Set(exemptions.map((e) => e.clubMemberId));
 
+    // 해당 연도와 겹치는 휴회 기간 조회 (회원별)
+    const memberIds = clubMembers.map((m) => m.id);
+    const leavesRaw = await prisma.memberLeave.findMany({
+      where: {
+        clubMemberId: { in: memberIds },
+        startYear: { lte: year },
+        OR: [{ endYear: null }, { endYear: { gte: year } }],
+      },
+    });
+    const leaveMap = new Map<number, LeavePeriod[]>();
+    leavesRaw.forEach((row) => {
+      const list = leaveMap.get(row.clubMemberId) ?? [];
+      list.push({
+        startYear: row.startYear,
+        startMonth: row.startMonth,
+        endYear: row.endYear ?? undefined,
+        endMonth: row.endMonth ?? undefined,
+      });
+      leaveMap.set(row.clubMemberId, list);
+    });
+
     // 납부 내역 조회
     const payments = await prisma.membershipPayment.findMany({
       where: {
@@ -199,31 +222,44 @@ export default withAuth(async function handler(
             ? `${member.name || ''}·${couplePartnerName}`
             : member.name || '(이름 없음)';
 
-          // 부부: 둘 중 늦은 의무 시작월 기준
+          // 부부: 둘 중 늦은 의무 시작월 기준, 휴회 월 제외
           const partnerStartAt = partnerMember
             ? (clubMembers.find((c) => c.id === partnerMember.clubMemberId)
                 ?.feeObligationStartAt ?? null)
             : null;
           const firstA = getFirstObligationMonth(
             year,
-            member.feeObligationStartAt
+            member.feeObligationStartAt,
+            []
           );
-          const firstB = getFirstObligationMonth(year, partnerStartAt);
-          const effectiveFirst =
+          const firstB = getFirstObligationMonth(year, partnerStartAt, []);
+          const effectiveFirstRaw =
             firstA != null && firstB != null
               ? Math.max(firstA, firstB)
               : (firstA ?? firstB ?? 1);
-          const totalMonthsCouple = 13 - effectiveFirst;
+          const coupleLeavePeriods: LeavePeriod[] = [
+            ...(leaveMap.get(member.id) ?? []),
+            ...(partnerMember
+              ? (leaveMap.get(partnerMember.clubMemberId) ?? [])
+              : []),
+          ];
+          const obligationMonthsCouple = getObligationMonths(
+            year,
+            new Date(year, effectiveFirstRaw - 1, 1),
+            coupleLeavePeriods
+          );
+          const effectiveFirst = obligationMonthsCouple[0] ?? effectiveFirstRaw;
+          const totalMonthsCouple = obligationMonthsCouple.length;
           const paidMonths = paymentsByMember.get(member.id) || new Set();
+          const obligationSet = new Set(obligationMonthsCouple);
 
           const paymentsObj: Record<number, boolean> = {};
           for (let m = 1; m <= 12; m++) {
-            paymentsObj[m] = m >= effectiveFirst ? paidMonths.has(m) : false;
+            paymentsObj[m] = obligationSet.has(m) ? paidMonths.has(m) : false;
           }
-          const paidCountCouple = Array.from(
-            { length: 12 },
-            (_, i) => i + 1
-          ).filter((m) => m >= effectiveFirst && paidMonths.has(m)).length;
+          const paidCountCouple = obligationMonthsCouple.filter((m) =>
+            paidMonths.has(m)
+          ).length;
 
           return {
             id: member.id,
@@ -238,20 +274,31 @@ export default withAuth(async function handler(
           };
         }
 
-        // 일반 회원
+        // 일반 회원 (휴회 월 제외)
+        const leavePeriodsMember = leaveMap.get(member.id) ?? [];
         const firstObligation = getFirstObligationMonth(
           year,
-          member.feeObligationStartAt
+          member.feeObligationStartAt,
+          leavePeriodsMember
         );
         const totalMonthsMember =
           firstObligation != null
-            ? obligationMonthCount(year, member.feeObligationStartAt)
+            ? obligationMonthCount(
+                year,
+                member.feeObligationStartAt,
+                leavePeriodsMember
+              )
             : 12;
         const paidMonths = paymentsByMember.get(member.id) || new Set();
 
         const paymentsObj: Record<number, boolean> = {};
         for (let m = 1; m <= 12; m++) {
-          const obligated = firstObligation == null || m >= firstObligation;
+          const obligated = isMonthObligated(
+            year,
+            m,
+            member.feeObligationStartAt,
+            leavePeriodsMember
+          );
           paymentsObj[m] = obligated ? paidMonths.has(m) : false;
         }
         const paidCountMember = Array.from(
@@ -259,8 +306,12 @@ export default withAuth(async function handler(
           (_, i) => i + 1
         ).filter(
           (m) =>
-            (firstObligation == null || m >= firstObligation) &&
-            paidMonths.has(m)
+            isMonthObligated(
+              year,
+              m,
+              member.feeObligationStartAt,
+              leavePeriodsMember
+            ) && paidMonths.has(m)
         ).length;
 
         return {

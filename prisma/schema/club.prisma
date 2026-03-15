@@ -67,6 +67,7 @@ model ClubMember {
   paymentRecordMatchedMembers   PaymentRecordMatchedMember[]
   membershipPaymentsAsMember    MembershipPayment[]   @relation("MembershipPaymentMember")
   membershipPaymentsAsConfirmer MembershipPayment[]   @relation("MembershipPaymentConfirmer")
+  memberLeaves                  MemberLeave[]
 
   @@unique([clubId, userId])
 }
