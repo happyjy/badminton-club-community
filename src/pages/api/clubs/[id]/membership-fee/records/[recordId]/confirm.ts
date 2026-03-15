@@ -162,9 +162,7 @@ export default withAuth(async function handler(
         for (const mid of memberIds) {
           const startAt = startAtByMember.get(mid) ?? null;
           const leavePeriods = leaveMap.get(mid) ?? [];
-          if (
-            !isMonthObligated(sel.year, month, startAt, leavePeriods)
-          ) {
+          if (!isMonthObligated(sel.year, month, startAt, leavePeriods)) {
             return res.status(400).json({
               error: `${sel.year}년 ${month}월은 해당 회원의 회비 의무 기간이 아닙니다 (가입 시기·휴회 확인)`,
               status: 400,

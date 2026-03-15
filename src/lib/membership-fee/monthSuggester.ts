@@ -28,11 +28,7 @@ export function suggestMonths(
   // 앞쪽 미납 월도 포함
   if (suggestions.length < monthCount) {
     for (let i = 1; i < baseMonth && suggestions.length < monthCount; i++) {
-      if (
-        allowed.has(i) &&
-        !paid.has(i) &&
-        !suggestions.includes(i)
-      ) {
+      if (allowed.has(i) && !paid.has(i) && !suggestions.includes(i)) {
         suggestions.push(i);
       }
     }
@@ -49,15 +45,12 @@ export function getUnpaidMonths(
   eligibleMonths?: number[]
 ): number[] {
   const paid = new Set(paidMonths.map((p) => p.month));
-  const allowed =
-    eligibleMonths ?? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const allowed = eligibleMonths ?? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   // 현재 연도인 경우 현재 월까지만
   if (year === currentYear) {
     const currentMonth = new Date().getMonth() + 1;
-    return allowed.filter(
-      (m) => m <= currentMonth && !paid.has(m)
-    );
+    return allowed.filter((m) => m <= currentMonth && !paid.has(m));
   }
 
   return allowed.filter((m) => !paid.has(m));

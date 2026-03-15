@@ -43,7 +43,10 @@ export default withAuth(async function handler(
         ? null
         : new Date(raw as string);
 
-  if (feeObligationStartAt !== null && Number.isNaN(feeObligationStartAt.getTime())) {
+  if (
+    feeObligationStartAt !== null &&
+    Number.isNaN(feeObligationStartAt.getTime())
+  ) {
     return res.status(400).json({
       error: '유효한 날짜를 입력해주세요',
       status: 400,
