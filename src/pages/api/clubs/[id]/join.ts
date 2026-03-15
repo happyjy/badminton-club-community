@@ -55,6 +55,11 @@ export default withAuth(async function handler(
       });
     }
 
+    const now = new Date();
+    const feeObligationStartAt = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0)
+    );
+
     const membership = await prisma.clubMember.create({
       data: {
         clubId: Number(clubId),
@@ -69,6 +74,7 @@ export default withAuth(async function handler(
         nationalTournamentLevel,
         lessonPeriod,
         playingPeriod,
+        feeObligationStartAt,
       },
     });
 
