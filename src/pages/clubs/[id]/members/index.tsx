@@ -45,6 +45,7 @@ interface UsersPageContentProps {
 }
 
 function UsersPageContent({ userClubs }: UsersPageContentProps) {
+  const router = useRouter();
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
   const { statusFilters } = useStatusFilter();
