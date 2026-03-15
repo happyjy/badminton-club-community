@@ -14,6 +14,11 @@ export type GuestPostWithClubMember = GuestPost & {
   clubMember: ClubMember | null;
 };
 
+// 목록 API 응답용 — clubMember는 작성자명(name)만 반환
+export type GuestPostForList = GuestPost & {
+  clubMember: { name: string | null } | null;
+};
+
 // Prisma ClubMember 모델의 일부 필드만 사용하는 타입
 export type GuestClubMember = {
   id: number;
@@ -56,10 +61,10 @@ export type GuestFilterOptions = {
   postType?: GuestPostTypeType;
 };
 
-// API 응답 타입
+// API 응답 타입 (목록 API는 GuestPostForList 사용 — clubMember는 name만)
 export type GuestListResponse = {
   data: {
-    items: GuestPostWithClubMember[];
+    items: GuestPostForList[];
     total: number;
     page: number;
     limit: number;

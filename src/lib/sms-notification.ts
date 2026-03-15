@@ -1,10 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-
+import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@/types/sms.types';
 
 import { sendSMS } from './sms';
-
-const prisma = new PrismaClient();
 
 /**
  * SMS 알림 전송 여부 확인
