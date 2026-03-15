@@ -162,6 +162,8 @@ export interface MemberPaymentStatus {
   totalMonths: number;
   /** 해당 연도 회비 의무 시작월 (1~12). 미전달 시 1 (전 구간 의무) */
   firstObligationMonth?: number;
+  /** 해당 연도 의무 월 목록 (휴회 제외). 있으면 이 목록으로 의무 여부 판단 */
+  obligationMonths?: number[];
 }
 
 // 월별 통계

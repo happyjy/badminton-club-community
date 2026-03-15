@@ -25,32 +25,35 @@ export function isPastOrCurrentMonth(year: number, month: number): boolean {
 const YEAR_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 /**
- * 면제가 아니고, 의무 월 중 납부 안 된 달이 하나라도 있으면 true
+ * 면제가 아니고, 의무 월 중 납부 안 된 달이 하나라도 있으면 true (휴회 월 제외)
  */
 export function memberHasAnyUnpaidMonthInYear(
   member: MemberPaymentStatus
 ): boolean {
   if (member.type === 'exempt') return false;
-  const first = member.firstObligationMonth ?? 1;
-  return YEAR_MONTHS.some(
-    (month) => month >= first && !member.payments[month]
-  );
+  const months =
+    member.obligationMonths ??
+    YEAR_MONTHS.filter((m) => m >= (member.firstObligationMonth ?? 1));
+  return months.some((month) => !member.payments[month]);
 }
 
 /**
- * 일반/부부이면서 의무 월 1~throughMonth까지 모두 납부한 경우 true
+ * 일반/부부이면서 의무 월 1~throughMonth까지 모두 납부한 경우 true (휴회 월 제외)
  */
 export function memberFullyPaidThroughMonth(
   member: MemberPaymentStatus,
   throughMonth: number
 ): boolean {
   if (member.type === 'exempt') return false;
-  const first = member.firstObligationMonth ?? 1;
-  const last = Math.min(12, Math.max(first, throughMonth));
-  for (let month = first; month <= last; month++) {
-    if (!member.payments[month]) return false;
-  }
-  return true;
+  const months =
+    member.obligationMonths ??
+    YEAR_MONTHS.filter(
+      (m) => m >= (member.firstObligationMonth ?? 1) && m <= throughMonth
+    );
+  const toCheck = member.obligationMonths
+    ? member.obligationMonths.filter((m) => m <= throughMonth)
+    : months;
+  return toCheck.every((month) => member.payments[month]);
 }
 
 function PaymentDashboardTable({
@@ -126,8 +129,9 @@ function PaymentDashboardTable({
                   )}
                 </td>
                 {MONTHS.map((month) => {
-                  const firstObligation = member.firstObligationMonth ?? 1;
-                  const isObligated = month >= firstObligation;
+                  const isObligated = member.obligationMonths
+                    ? member.obligationMonths.includes(month)
+                    : month >= (member.firstObligationMonth ?? 1);
                   const isPaid = member.payments[month];
                   const isExempt = member.type === 'exempt';
                   const showRedX =
