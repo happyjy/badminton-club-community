@@ -1,4 +1,11 @@
-import { useEffect, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -44,58 +51,153 @@ interface UsersPageContentProps {
   userClubs: ClubResponse[];
 }
 
+interface MemberCardRowProps {
+  idx: number;
+  user: ClubMemberWithUser;
+  clubId: string;
+  userClubs: ClubResponse[];
+  onApprove: (userId: number, clubId: number) => Promise<void>;
+  onStatusChange: (
+    userId: number,
+    clubId: number,
+    newStatus: Status
+  ) => Promise<void>;
+}
+
+function MemberCardRow({
+  idx,
+  user,
+  clubId,
+  userClubs,
+  onApprove,
+  onStatusChange,
+}: MemberCardRowProps) {
+  return (
+    <div className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center gap-3 mb-2">
+        {user.thumbnailImageUrl && (
+          <Image
+            src={user.thumbnailImageUrl}
+            alt={user.nickname}
+            className="w-10 h-10 rounded-full"
+            width={40}
+            height={40}
+          />
+        )}
+        <h2 className="font-semibold text-lg">
+          {idx + 1}.{' '}
+          <Link
+            href={`/clubs/${clubId}/members/${user.id}`}
+            className="hover:underline text-blue-600"
+          >
+            {user.clubMember.name || '이름 없음'}
+          </Link>
+        </h2>
+      </div>
+      <p className="text-gray-600 text-sm mb-2">{user.email}</p>
+      <ClubMemberCard
+        member={user.clubMember}
+        userId={user.id}
+        userClubs={userClubs}
+        onApprove={onApprove}
+        onStatusChange={onStatusChange}
+      />
+      <p className="text-gray-500 text-xs mt-2">
+        가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+      </p>
+    </div>
+  );
+}
+
+const MemoizedMemberCardRow = memo(MemberCardRow);
+
 function UsersPageContent({ userClubs }: UsersPageContentProps) {
   const router = useRouter();
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
   const { statusFilters } = useStatusFilter();
+  const clubId = typeof router.query.id === 'string' ? router.query.id : '';
 
-  // 필터링된 참가자 목록 계산
-  const filteredParticipants = participants.filter((user) => {
-    const userStatus = (user as ClubMemberWithUser).clubMember.status as Status;
+  // 지연된 필터 값: 버튼은 즉시 반응하고, 리스트 갱신은 메인 스레드 블로킹 없이 지연
+  const deferredStatusFilters = useDeferredValue(statusFilters);
 
-    // 포함 필터가 있고 해당 상태가 포함되지 않은 경우 제외
-    if (
-      statusFilters.included.length > 0 &&
-      !statusFilters.included.includes(userStatus)
-    ) {
-      return false;
-    }
+  // 필터링된 참가자 목록 계산 (지연된 필터 기준)
+  const filteredParticipants = useMemo(
+    () =>
+      participants.filter((user) => {
+        const userStatus = (user as ClubMemberWithUser).clubMember
+          .status as Status;
 
-    // 제외 필터에 해당 상태가 있는 경우 제외
-    if (statusFilters.excluded.includes(userStatus)) {
-      return false;
-    }
-
-    return true;
-  });
-
-  const handleApprove = async (userId: number, clubId: number) => {
-    try {
-      const response = await fetch(
-        `/api/clubs/${clubId}/members/${userId}/approve`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        if (
+          deferredStatusFilters.included.length > 0 &&
+          !deferredStatusFilters.included.includes(userStatus)
+        ) {
+          return false;
         }
-      );
+        if (deferredStatusFilters.excluded.includes(userStatus)) {
+          return false;
+        }
+        return true;
+      }),
+    [participants, deferredStatusFilters]
+  );
 
-      if (!response.ok) {
-        throw new Error('승인 처리에 실패했습니다');
+  const handleApprove = useCallback(
+    async (userId: number, clubId: number) => {
+      try {
+        const response = await fetch(
+          `/api/clubs/${clubId}/members/${userId}/approve`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('승인 처리에 실패했습니다');
+        }
+
+        // 승인된 사용자의 상태를 업데이트
+        const updatedParticipants = participants.map((user) => {
+          if (user.id === userId) {
+            const updatedClubMember = {
+              ...user.clubMember,
+              status: Status.APPROVED,
+            };
+            return {
+              ...user,
+              clubMember: updatedClubMember,
+            };
+          }
+          return user;
+        });
+
+        // 정렬 옵션을 다시 적용하여 목록 업데이트
+        onChangeSort(sortOption, updatedParticipants as SortableItem[]);
+      } catch (err) {
+        console.error('승인 처리 중 오류가 발생했습니다', err);
+        throw err;
       }
+    },
+    [participants, sortOption, onChangeSort]
+  );
 
-      // 승인된 사용자의 상태를 업데이트
+  const handleStatusChange = useCallback(
+    async (userId: number, clubId: number, newStatus: Status) => {
+      // 이전 상태 저장
+      const previousParticipants = [...participants];
+
+      // 낙관적 업데이트: UI 먼저 업데이트
       const updatedParticipants = participants.map((user) => {
         if (user.id === userId) {
-          const updatedClubMember = {
-            ...user.clubMember,
-            status: Status.APPROVED,
-          };
           return {
             ...user,
-            clubMember: updatedClubMember,
+            clubMember: {
+              ...user.clubMember,
+              status: newStatus,
+            },
           };
         }
         return user;
@@ -103,104 +205,33 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
 
       // 정렬 옵션을 다시 적용하여 목록 업데이트
       onChangeSort(sortOption, updatedParticipants as SortableItem[]);
-    } catch (err) {
-      console.error('승인 처리 중 오류가 발생했습니다', err);
-      throw err;
-    }
-  };
 
-  const handleStatusChange = async (
-    userId: number,
-    clubId: number,
-    newStatus: Status
-  ) => {
-    // 이전 상태 저장
-    const previousParticipants = [...participants];
+      try {
+        const response = await fetch(
+          `/api/clubs/${clubId}/members/${userId}/status`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus }),
+          }
+        );
 
-    // 낙관적 업데이트: UI 먼저 업데이트
-    const updatedParticipants = participants.map((user) => {
-      if (user.id === userId) {
-        return {
-          ...user,
-          clubMember: {
-            ...user.clubMember,
-            status: newStatus,
-          },
-        };
-      }
-      return user;
-    });
-
-    // 정렬 옵션을 다시 적용하여 목록 업데이트
-    onChangeSort(sortOption, updatedParticipants as SortableItem[]);
-
-    try {
-      const response = await fetch(
-        `/api/clubs/${clubId}/members/${userId}/status`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: newStatus }),
+        if (!response.ok) {
+          throw new Error('상태 변경에 실패했습니다');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('상태 변경에 실패했습니다');
+        // 성공 시 추가 작업이 필요한 경우 여기에 구현
+      } catch (error) {
+        console.error('상태 변경 중 오류가 발생했습니다:', error);
+        // 실패 시 이전 상태로 복원
+        onChangeSort(sortOption, previousParticipants as SortableItem[]);
+        // TODO: 에러 처리 (예: 토스트 메시지 표시)
       }
-
-      // 성공 시 추가 작업이 필요한 경우 여기에 구현
-    } catch (error) {
-      console.error('상태 변경 중 오류가 발생했습니다:', error);
-      // 실패 시 이전 상태로 복원
-      onChangeSort(sortOption, previousParticipants as SortableItem[]);
-      // TODO: 에러 처리 (예: 토스트 메시지 표시)
-    }
-  };
-
-  const renderUserCard = (idx: number, user: ClubMemberWithUser) => {
-    const clubId = typeof router.query.id === 'string' ? router.query.id : '';
-    return (
-      <div
-        key={user.id}
-        className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
-      >
-        <div className="flex items-center gap-3 mb-2">
-          {user.thumbnailImageUrl && (
-            <Image
-              src={user.thumbnailImageUrl}
-              alt={user.nickname}
-              className="w-10 h-10 rounded-full"
-              width={40}
-              height={40}
-            />
-          )}
-          <h2 className="font-semibold text-lg">
-            {idx + 1}.{' '}
-            <Link
-              href={`/clubs/${clubId}/members/${user.id}`}
-              className="hover:underline text-blue-600"
-            >
-              {user.clubMember.name || '이름 없음'}
-            </Link>
-          </h2>
-        </div>
-        <p className="text-gray-600 text-sm mb-2">{user.email}</p>
-        <ClubMemberCard
-          key={user.id}
-          member={user.clubMember}
-          userId={user.id}
-          userClubs={userClubs}
-          onApprove={handleApprove}
-          onStatusChange={handleStatusChange}
-        />
-        <p className="text-gray-500 text-xs mt-2">
-          가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
-        </p>
-      </div>
-    );
-  };
+    },
+    [participants, sortOption, onChangeSort]
+  );
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -268,9 +299,17 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {filteredParticipants.length > 0 ? (
-          filteredParticipants.map((user, idx) =>
-            renderUserCard(idx, user as ClubMemberWithUser)
-          )
+          filteredParticipants.map((user, idx) => (
+            <MemoizedMemberCardRow
+              key={user.id}
+              idx={idx}
+              user={user as ClubMemberWithUser}
+              clubId={clubId}
+              userClubs={userClubs}
+              onApprove={handleApprove}
+              onStatusChange={handleStatusChange}
+            />
+          ))
         ) : (
           <p className="col-span-full text-center text-gray-500">
             {participants.length > 0

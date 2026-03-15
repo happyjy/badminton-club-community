@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { SortOption } from '@/types/participantSort';
 import { SortableItem } from '@/types/sortable';
@@ -169,10 +169,13 @@ export function useParticipantSort({
     [sortParticipants]
   );
 
-  return {
-    sortOption,
-    participants,
-    onChangeSort,
-    setSortOption,
-  };
+  return useMemo(
+    () => ({
+      sortOption,
+      participants,
+      onChangeSort,
+      setSortOption,
+    }),
+    [sortOption, participants, onChangeSort, setSortOption]
+  );
 }
