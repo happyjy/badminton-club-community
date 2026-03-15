@@ -152,12 +152,16 @@ export type MemberType = 'regular' | 'couple' | 'exempt';
 
 export interface MemberPaymentStatus {
   id: number;
+  /** 회원 상세(회비 시작일 수정) 링크용 */
+  userId?: number;
   name: string;
   type: MemberType;
   couplePartnerName: string | null;
   payments: Record<number, boolean>; // month -> paid
   paidCount: number;
   totalMonths: number;
+  /** 해당 연도 회비 의무 시작월 (1~12). 미전달 시 1 (전 구간 의무) */
+  firstObligationMonth?: number;
 }
 
 // 월별 통계

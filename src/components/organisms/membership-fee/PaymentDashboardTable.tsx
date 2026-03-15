@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import PaymentStatusCell from '@/components/molecules/membership-fee/PaymentStatusCell';
 
 import { MemberPaymentStatus } from '@/types/membership-fee.types';
@@ -5,6 +7,7 @@ import { MemberPaymentStatus } from '@/types/membership-fee.types';
 interface PaymentDashboardTableProps {
   members: MemberPaymentStatus[];
   year: number;
+  clubId?: string;
 }
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -22,31 +25,39 @@ export function isPastOrCurrentMonth(year: number, month: number): boolean {
 const YEAR_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 /**
- * 면제가 아니고, 해당 연도 1~12월 중 납부 안 된 달이 하나라도 있으면 true (전체 월 기준)
+ * 면제가 아니고, 의무 월 중 납부 안 된 달이 하나라도 있으면 true
  */
 export function memberHasAnyUnpaidMonthInYear(
   member: MemberPaymentStatus
 ): boolean {
   if (member.type === 'exempt') return false;
-  return YEAR_MONTHS.some((month) => !member.payments[month]);
+  const first = member.firstObligationMonth ?? 1;
+  return YEAR_MONTHS.some(
+    (month) => month >= first && !member.payments[month]
+  );
 }
 
 /**
- * 일반/부부이면서 1월 ~ throughMonth까지 모두 납부한 경우 true
+ * 일반/부부이면서 의무 월 1~throughMonth까지 모두 납부한 경우 true
  */
 export function memberFullyPaidThroughMonth(
   member: MemberPaymentStatus,
   throughMonth: number
 ): boolean {
   if (member.type === 'exempt') return false;
-  const last = Math.min(12, Math.max(1, throughMonth));
-  for (let month = 1; month <= last; month++) {
+  const first = member.firstObligationMonth ?? 1;
+  const last = Math.min(12, Math.max(first, throughMonth));
+  for (let month = first; month <= last; month++) {
     if (!member.payments[month]) return false;
   }
   return true;
 }
 
-function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
+function PaymentDashboardTable({
+  members,
+  year,
+  clubId,
+}: PaymentDashboardTableProps) {
   if (members.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -85,7 +96,17 @@ function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
             return (
               <tr key={member.id} className="border-b hover:bg-gray-50">
                 <td className="w-px px-4 py-2 sticky left-0 bg-white font-medium whitespace-nowrap">
-                  {member.name}
+                  {clubId && member.userId != null ? (
+                    <Link
+                      href={`/clubs/${clubId}/members/${member.userId}`}
+                      className="hover:underline text-blue-600"
+                      title="회원 정보에서 입금 시작일 수정"
+                    >
+                      {member.name}
+                    </Link>
+                  ) : (
+                    member.name
+                  )}
                 </td>
                 <td className="px-2 py-2 text-center">
                   {member.type === 'couple' && (
@@ -105,14 +126,23 @@ function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
                   )}
                 </td>
                 {MONTHS.map((month) => {
+                  const firstObligation = member.firstObligationMonth ?? 1;
+                  const isObligated = month >= firstObligation;
                   const isPaid = member.payments[month];
                   const isExempt = member.type === 'exempt';
                   const showRedX =
-                    isPastOrCurrentMonth(year, month) && !isPaid && !isExempt;
+                    isObligated &&
+                    isPastOrCurrentMonth(year, month) &&
+                    !isPaid &&
+                    !isExempt;
 
                   return (
                     <td key={month} className="px-2 py-2 text-center">
-                      {showRedX ? (
+                      {!isObligated ? (
+                        <span className="text-gray-300" title="의무 없음">
+                          -
+                        </span>
+                      ) : showRedX ? (
                         <div
                           className="flex items-center justify-center text-red-500 font-semibold"
                           title="미납"
@@ -133,9 +163,9 @@ function PaymentDashboardTable({ members, year }: PaymentDashboardTableProps) {
                     className={
                       member.type === 'exempt'
                         ? 'text-gray-400'
-                        : member.paidCount === 12
+                        : member.paidCount === (member.totalMonths ?? 12)
                           ? 'text-green-600 font-semibold'
-                          : member.paidCount >= 6
+                          : member.paidCount >= (member.totalMonths ?? 12) / 2
                             ? 'text-blue-600'
                             : 'text-red-600'
                     }

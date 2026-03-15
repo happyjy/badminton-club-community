@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { isMonthObligated } from '@/lib/membership-fee/feeObligation';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { Role } from '@/types/enums';
@@ -45,7 +46,7 @@ export default withAuth(async function handler(
   }
 
   try {
-    // 클럽 회원 조회 (APPROVED 상태만)
+    // 클럽 회원 조회 (APPROVED 상태만, 회비 의무 시작일 포함)
     const clubMembers = await prisma.clubMember.findMany({
       where: {
         clubId: clubIdNumber,
@@ -55,6 +56,7 @@ export default withAuth(async function handler(
         id: true,
         name: true,
         phoneNumber: true,
+        feeObligationStartAt: true,
       },
     });
 
@@ -124,6 +126,9 @@ export default withAuth(async function handler(
       // 면제 회원 제외
       if (exemptedMemberIds.has(member.id)) return;
 
+      // 해당 연·월에 회비 의무 없으면 미납 목록에서 제외 (가입 시기 반영)
+      if (!isMonthObligated(year, month, member.feeObligationStartAt)) return;
+
       // 이미 납부한 회원 제외
       if (paidMemberIds.has(member.id)) return;
 
@@ -139,6 +144,11 @@ export default withAuth(async function handler(
         const partnerMember = coupleGroup?.members.find(
           (m) => m.clubMemberId !== member.id
         );
+        const partnerStartAt = partnerMember
+          ? clubMembers.find((c) => c.id === partnerMember.clubMemberId)
+              ?.feeObligationStartAt ?? null
+          : null;
+        if (!isMonthObligated(year, month, partnerStartAt)) return;
 
         unpaidMembers.push({
           id: member.id,
@@ -148,7 +158,6 @@ export default withAuth(async function handler(
           partnerName: partnerMember?.clubMember.name,
         });
       } else {
-        // 일반 회원
         unpaidMembers.push({
           id: member.id,
           name: member.name,

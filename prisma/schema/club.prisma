@@ -43,6 +43,8 @@ model ClubMember {
   playingPeriod            String?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+  /// 회비 의무 시작일 (15일 규칙 적용 기준). 미설정 시 승인 시점 또는 createdAt 기반 계산.
+  feeObligationStartAt     DateTime?
 
   // Relations
   guestComments            GuestComment[]

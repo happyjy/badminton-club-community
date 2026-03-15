@@ -1,6 +1,11 @@
 import { FeePeriod } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import {
+  getFirstObligationMonth,
+  isMonthObligated,
+  obligationMonthCount,
+} from '@/lib/membership-fee/feeObligation';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { Role } from '@/types/enums';
@@ -84,7 +89,7 @@ export default withAuth(async function handler(
       feeTypes,
     };
 
-    // 클럽 회원 조회 (APPROVED 상태만)
+    // 클럽 회원 조회 (APPROVED 상태만, 회비 의무 시작일 포함)
     const clubMembers = await prisma.clubMember.findMany({
       where: {
         clubId: clubIdNumber,
@@ -92,7 +97,9 @@ export default withAuth(async function handler(
       },
       select: {
         id: true,
+        userId: true,
         name: true,
+        feeObligationStartAt: true,
       },
       orderBy: {
         name: 'asc',
@@ -192,63 +199,103 @@ export default withAuth(async function handler(
             ? `${member.name || ''}·${couplePartnerName}`
             : member.name || '(이름 없음)';
 
-          // 부부는 대표 회원의 납부 내역만 확인
+          // 부부: 둘 중 늦은 의무 시작월 기준
+          const partnerStartAt = partnerMember
+            ? (clubMembers.find((c) => c.id === partnerMember.clubMemberId)
+                ?.feeObligationStartAt ?? null)
+            : null;
+          const firstA = getFirstObligationMonth(
+            year,
+            member.feeObligationStartAt
+          );
+          const firstB = getFirstObligationMonth(year, partnerStartAt);
+          const effectiveFirst =
+            firstA != null && firstB != null
+              ? Math.max(firstA, firstB)
+              : (firstA ?? firstB ?? 1);
+          const totalMonthsCouple = 13 - effectiveFirst;
           const paidMonths = paymentsByMember.get(member.id) || new Set();
 
           const paymentsObj: Record<number, boolean> = {};
           for (let m = 1; m <= 12; m++) {
-            paymentsObj[m] = paidMonths.has(m);
+            paymentsObj[m] = m >= effectiveFirst ? paidMonths.has(m) : false;
           }
+          const paidCountCouple = Array.from(
+            { length: 12 },
+            (_, i) => i + 1
+          ).filter((m) => m >= effectiveFirst && paidMonths.has(m)).length;
 
           return {
             id: member.id,
+            userId: member.userId,
             name: displayName,
             type: 'couple' as const,
             couplePartnerName,
             payments: paymentsObj,
-            paidCount: paidMonths.size,
-            totalMonths: 12,
+            paidCount: paidCountCouple,
+            totalMonths: totalMonthsCouple,
+            firstObligationMonth: effectiveFirst,
           };
         }
 
         // 일반 회원
+        const firstObligation = getFirstObligationMonth(
+          year,
+          member.feeObligationStartAt
+        );
+        const totalMonthsMember =
+          firstObligation != null
+            ? obligationMonthCount(year, member.feeObligationStartAt)
+            : 12;
         const paidMonths = paymentsByMember.get(member.id) || new Set();
 
         const paymentsObj: Record<number, boolean> = {};
         for (let m = 1; m <= 12; m++) {
-          paymentsObj[m] = paidMonths.has(m);
+          const obligated = firstObligation == null || m >= firstObligation;
+          paymentsObj[m] = obligated ? paidMonths.has(m) : false;
         }
+        const paidCountMember = Array.from(
+          { length: 12 },
+          (_, i) => i + 1
+        ).filter(
+          (m) =>
+            (firstObligation == null || m >= firstObligation) &&
+            paidMonths.has(m)
+        ).length;
 
         return {
           id: member.id,
+          userId: member.userId,
           name: member.name || '(이름 없음)',
           type: isExempt ? ('exempt' as const) : ('regular' as const),
           couplePartnerName: null,
           payments: paymentsObj,
-          paidCount: paidMonths.size,
-          totalMonths: 12,
+          paidCount: paidCountMember,
+          totalMonths: totalMonthsMember,
+          firstObligationMonth: firstObligation ?? 1,
         };
       })
       .filter(Boolean);
 
-    // 월별 통계 계산
-    const totalPayingMembers =
-      clubMembers.length - exemptedMemberIds.size - coupleGroups.length * 1; // 부부는 1팀으로
-
+    // 월별 통계: 해당 월에 의무 있는 회원 수 기준
     const monthlyStats = Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
       let paidCount = 0;
+      let totalCount = 0;
 
       members.forEach((m) => {
-        if (m && m.type !== 'exempt' && m.payments[month]) {
-          paidCount++;
+        if (!m || m.type === 'exempt') return;
+        const first = m.firstObligationMonth ?? 1;
+        if (month >= first) {
+          totalCount++;
+          if (m.payments[month]) paidCount++;
         }
       });
 
       return {
         month,
         paidCount,
-        totalCount: totalPayingMembers,
+        totalCount,
         amount: amountsByMonth.get(month) || 0,
       };
     });
