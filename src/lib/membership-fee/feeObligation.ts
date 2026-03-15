@@ -1,28 +1,8 @@
 /**
- * 회비 의무 시작 규칙 (15일 규칙, 연도 경계)
- * - 15일 이전 가입 → 해당 월부터 의무
- * - 16일~말일 가입 → 다음 달부터 의무
+ * 회비 의무 시작 규칙 (가입 시기 반영)
+ * - feeObligationStartAt이 속한 연·월부터 의무 (일자 무관).
+ * - 기본은 가입한 달; 관리자가 회원 상세에서 다음 달부터로 조정 가능.
  */
-
-const OBLIGATION_DAY_CUTOFF = 15;
-
-/**
- * 주어진 날짜에 대해 "첫 회비 의무 월"을 연·월로 반환 (15일 규칙 적용)
- */
-function getFirstObligationYearMonth(d: Date): { year: number; month: number } {
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1; // 1-based
-  const day = d.getDate();
-
-  if (day <= OBLIGATION_DAY_CUTOFF) {
-    return { year, month };
-  }
-  // 다음 달 (12월이면 다음 해 1월)
-  if (month === 12) {
-    return { year: year + 1, month: 1 };
-  }
-  return { year, month: month + 1 };
-}
 
 /**
  * 해당 연도에 회원의 첫 의무월 (1~12). 해당 연도에 의무 없으면 null.
@@ -36,8 +16,8 @@ export function getFirstObligationMonth(
     return 1;
   }
 
-  const { year: startYear, month: startMonth } =
-    getFirstObligationYearMonth(feeObligationStartAt);
+  const startYear = feeObligationStartAt.getFullYear();
+  const startMonth = feeObligationStartAt.getMonth() + 1; // 1-based
 
   if (year < startYear) return null;
   if (year > startYear) return 1;
