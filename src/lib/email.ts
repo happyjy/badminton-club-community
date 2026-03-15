@@ -1,12 +1,11 @@
-import { GuestPost, PrismaClient } from '@prisma/client';
+import { GuestPost } from '@prisma/client';
 import { NextApiRequest } from 'next';
 import { createTransport } from 'nodemailer';
 
 import { getBaseUrl } from '@/constants/urls';
+import { prisma } from '@/lib/prisma';
 
 import { generateGuestApplicationEmailTemplate } from './email/templates/guestApplication';
-
-const prisma = new PrismaClient();
 
 const transporter = createTransport({
   service: 'gmail',

@@ -3,8 +3,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 
 import axios from 'axios';
-
-import { prisma } from '@/lib/prisma';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
@@ -18,6 +16,7 @@ import {
   GuestInquiryModal,
 } from '@/components/organisms/modal/join';
 
+import { prisma } from '@/lib/prisma';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
