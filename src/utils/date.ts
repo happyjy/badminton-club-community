@@ -1,19 +1,16 @@
 /**
- * UTC 시간을 한국 시간 형식(오후 19:30)으로 변환하는 함수
- * @param dateStr - UTC 시간 문자열 (예: "2025-02-05T19:30:00.000Z")
- * @returns 포맷팅된 시간 문자열 (예: "오후 19:30")
+ * Date를 사용자 로컬 시간 기준 한국어 12시간제(오전/오후 HH:mm)로 포맷
+ * - 서버가 UTC로 저장해도, 브라우저 로컬 타임존으로 변환된 시간을 표시
+ * @param dateInput - Date 객체 또는 파싱 가능한 날짜 값
+ * @returns 포맷 문자열 (예: "오전 01:56", "오후 07:30")
  */
-export const formatToKoreanTime = (dateStr: Date) => {
-  // UTC 시간을 파싱
-  const date = new Date(dateStr);
-  const hours = date.getUTCHours();
-  const minutes = date.getUTCMinutes();
+export const formatToKoreanTime = (dateInput: Date | string) => {
+  const date = new Date(dateInput);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
 
-  // 12시간제로 변환
   const period = hours >= 12 ? '오후' : '오전';
   const hour12 = hours % 12 || 12;
-
-  // 시간과 분을 2자리 숫자로 포맷팅
   const formattedHours = hour12.toString().padStart(2, '0');
   const formattedMinutes = minutes.toString().padStart(2, '0');
 

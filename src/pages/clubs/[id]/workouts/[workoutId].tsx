@@ -264,7 +264,7 @@ function WorkoutDetailContent({
           <div className="mb-2 pt-2 sm:mb-6 sm:pt-6 border-t ">
             <h2 className="mb-2 sm:mb-4 text-xl font-semibold ">방문 게스트</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {workout.guests.map((guest: Guest) => {
+              {workout.guests.map((guest: Guest, index) => {
                 const guestRequestName = guest.clubMember?.name || '본인작성';
 
                 return (
@@ -273,6 +273,7 @@ function WorkoutDetailContent({
                     className="p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
                   >
                     <PersonInfo
+                      number={index + 1}
                       name={guest.name}
                       gender={guest.gender}
                       birthDate={guest.birthDate}
@@ -321,7 +322,7 @@ function WorkoutDetailContent({
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-4">
-            {participants.map((participant) => {
+            {participants.map((participant, index) => {
               if (
                 !isWorkoutParticipant(participant) ||
                 !participant.clubMember
@@ -378,6 +379,7 @@ function WorkoutDetailContent({
                 >
                   <div className="flex-1 relatives">
                     <PersonInfo
+                      number={index + 1}
                       name={
                         participant?.clubMember?.name ||
                         participant.User.nickname
@@ -392,6 +394,7 @@ function WorkoutDetailContent({
                       localTournamentLevel={
                         participant.clubMember?.localTournamentLevel
                       }
+                      participatedAt={participant.createdAt}
                       extraIcons={helperIcons}
                     />
 

@@ -4,6 +4,7 @@ import Image from 'next/image';
 
 import GuestAvatar from '@/components/atoms/GuestAvatar';
 
+import { formatToKoreanTime } from '@/utils';
 import { calculateAgeGroup } from '@/utils/age';
 
 type Gender = 'MALE' | 'FEMALE' | string;
@@ -17,6 +18,8 @@ const GENDER_DISPLAY: Record<string, string> = {
 interface PersonInfoProps {
   // 기본 인적 정보
   name: string;
+  /** 이름 앞에 표시할 순번 (예: 1, 2, 3) */
+  number?: number;
   initial?: string;
   gender?: Gender | null;
   birthDate?: string | null;
@@ -28,6 +31,8 @@ interface PersonInfoProps {
   // 급수 정보
   nationalTournamentLevel?: string | null;
   localTournamentLevel?: string | null;
+  /** 참여하기를 눌렀을 때 시각 (참여 시각 표시용) */
+  participatedAt?: string | Date | null;
   // 추가 콘텐츠
   extraIcons?: ReactNode;
   // 레이아웃/스타일 관련
@@ -43,6 +48,7 @@ interface PersonInfoProps {
 function PersonInfo({
   // 기본 인적 정보
   name,
+  number: numberProp,
   initial,
   gender,
   birthDate,
@@ -54,6 +60,7 @@ function PersonInfo({
   // 급수 정보
   nationalTournamentLevel,
   localTournamentLevel,
+  participatedAt,
   // 추가 콘텐츠
   extraIcons,
   // 레이아웃/스타일 관련
@@ -135,7 +142,12 @@ function PersonInfo({
 
       {/* 사용자 정보 */}
       <div className={`${contentClassName}`}>
-        <span className="font-medium block truncate">{name}</span>
+        <span className="font-medium block truncate">
+          {numberProp != null && (
+            <span className="text-gray-500 font-medium">{numberProp}. </span>
+          )}
+          {name}
+        </span>
 
         <div className={badgeContainerClassName}>
           {intendToJoin && (
@@ -159,6 +171,16 @@ function PersonInfo({
               title={getTournamentLevelTitle()}
             >
               {renderTournamentLevelBadge()}
+            </span>
+          )}
+          {participatedAt && (
+            <span className="text-[10px] text-gray-400 font-normal">
+              참여{' '}
+              {new Date(participatedAt).toLocaleDateString('ko-KR', {
+                month: 'numeric',
+                day: 'numeric',
+              })}{' '}
+              {formatToKoreanTime(new Date(participatedAt))}
             </span>
           )}
         </div>
