@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
+// import { useSelector } from 'react-redux';
+
 import CircleMenu, { SelectedIcon } from '@/components/molecules/CircleMenu';
 import PersonInfo from '@/components/molecules/PersonInfo';
 
@@ -18,6 +20,7 @@ import broomStickIcon from '@/icon/broomStick.svg';
 import keyIcon from '@/icon/key.svg';
 import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
+// import { RootState } from '@/store';
 import { Workout, WorkoutParticipant, Guest } from '@/types';
 import { SortOption } from '@/types/participantSort';
 import { SortableItem } from '@/types/sortable';
@@ -207,6 +210,9 @@ function WorkoutDetailContent({
   setSelectedParticipant,
   handleIconSelect,
 }: WorkoutDetailContentProps) {
+  // const { clubMember } = useSelector((state: RootState) => state.auth);
+  // const isAdmin = clubMember?.role === 'ADMIN';
+
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
   const { data: rankings = { attendance: [], helper: [] } } = useClubRankings(
@@ -394,8 +400,24 @@ function WorkoutDetailContent({
                       localTournamentLevel={
                         participant.clubMember?.localTournamentLevel
                       }
-                      participatedAt={participant.createdAt}
                       extraIcons={helperIcons}
+                      // rightMeta={
+                      //   isAdmin && participant.createdAt ? (
+                      //     <span className="text-[10px] text-gray-400 font-normal">
+                      //       참여{' '}
+                      //       {new Date(participant.createdAt).toLocaleDateString(
+                      //         'ko-KR',
+                      //         {
+                      //           month: 'numeric',
+                      //           day: 'numeric',
+                      //         }
+                      //       )}{' '}
+                      //       {formatToKoreanTime(
+                      //         new Date(participant.createdAt)
+                      //       )}
+                      //     </span>
+                      //   ) : null
+                      // }
                     />
 
                     {/* 출석 횟수와 헬퍼 활동 횟수 표시 */}
