@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
+// import { useSelector } from 'react-redux';
+
 import CircleMenu, { SelectedIcon } from '@/components/molecules/CircleMenu';
 import PersonInfo from '@/components/molecules/PersonInfo';
 
@@ -18,6 +20,7 @@ import broomStickIcon from '@/icon/broomStick.svg';
 import keyIcon from '@/icon/key.svg';
 import mopIcon from '@/icon/mop.svg';
 import { withAuth } from '@/lib/withAuth';
+// import { RootState } from '@/store';
 import { Workout, WorkoutParticipant, Guest } from '@/types';
 import { SortOption } from '@/types/participantSort';
 import { SortableItem } from '@/types/sortable';
@@ -207,6 +210,9 @@ function WorkoutDetailContent({
   setSelectedParticipant,
   handleIconSelect,
 }: WorkoutDetailContentProps) {
+  // const { clubMember } = useSelector((state: RootState) => state.auth);
+  // const isAdmin = clubMember?.role === 'ADMIN';
+
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
   const { data: rankings = { attendance: [], helper: [] } } = useClubRankings(
@@ -264,7 +270,7 @@ function WorkoutDetailContent({
           <div className="mb-2 pt-2 sm:mb-6 sm:pt-6 border-t ">
             <h2 className="mb-2 sm:mb-4 text-xl font-semibold ">방문 게스트</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {workout.guests.map((guest: Guest) => {
+              {workout.guests.map((guest: Guest, index) => {
                 const guestRequestName = guest.clubMember?.name || '본인작성';
 
                 return (
@@ -273,6 +279,7 @@ function WorkoutDetailContent({
                     className="p-3 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
                   >
                     <PersonInfo
+                      number={index + 1}
                       name={guest.name}
                       gender={guest.gender}
                       birthDate={guest.birthDate}
@@ -321,7 +328,7 @@ function WorkoutDetailContent({
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-4">
-            {participants.map((participant) => {
+            {participants.map((participant, index) => {
               if (
                 !isWorkoutParticipant(participant) ||
                 !participant.clubMember
@@ -378,6 +385,7 @@ function WorkoutDetailContent({
                 >
                   <div className="flex-1 relatives">
                     <PersonInfo
+                      number={index + 1}
                       name={
                         participant?.clubMember?.name ||
                         participant.User.nickname
@@ -393,6 +401,23 @@ function WorkoutDetailContent({
                         participant.clubMember?.localTournamentLevel
                       }
                       extraIcons={helperIcons}
+                      // rightMeta={
+                      //   isAdmin && participant.createdAt ? (
+                      //     <span className="text-[10px] text-gray-400 font-normal">
+                      //       참여{' '}
+                      //       {new Date(participant.createdAt).toLocaleDateString(
+                      //         'ko-KR',
+                      //         {
+                      //           month: 'numeric',
+                      //           day: 'numeric',
+                      //         }
+                      //       )}{' '}
+                      //       {formatToKoreanTime(
+                      //         new Date(participant.createdAt)
+                      //       )}
+                      //     </span>
+                      //   ) : null
+                      // }
                     />
 
                     {/* 출석 횟수와 헬퍼 활동 횟수 표시 */}

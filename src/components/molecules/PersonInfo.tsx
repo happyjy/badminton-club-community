@@ -17,6 +17,8 @@ const GENDER_DISPLAY: Record<string, string> = {
 interface PersonInfoProps {
   // 기본 인적 정보
   name: string;
+  /** 이름 앞에 표시할 순번 (예: 1, 2, 3) */
+  number?: number;
   initial?: string;
   gender?: Gender | null;
   birthDate?: string | null;
@@ -30,6 +32,8 @@ interface PersonInfoProps {
   localTournamentLevel?: string | null;
   // 추가 콘텐츠
   extraIcons?: ReactNode;
+  /** 배지 오른쪽에 추가로 표시할 메타 정보 (예: 참여 시간) */
+  rightMeta?: ReactNode;
   // 레이아웃/스타일 관련
   className?: string;
   avatarClassName?: string;
@@ -43,6 +47,7 @@ interface PersonInfoProps {
 function PersonInfo({
   // 기본 인적 정보
   name,
+  number: numberProp,
   initial,
   gender,
   birthDate,
@@ -56,11 +61,12 @@ function PersonInfo({
   localTournamentLevel,
   // 추가 콘텐츠
   extraIcons,
+  rightMeta,
   // 레이아웃/스타일 관련
   className = '',
   avatarClassName = '',
   contentClassName = '',
-  badgeContainerClassName = 'flex flex-wrap gap-1 mt-1',
+  badgeContainerClassName = 'flex items-center gap-1 mt-1',
 }: PersonInfoProps) {
   // 실제 사용할 이니셜 계산
   const displayInitial = initial || name.charAt(0);
@@ -135,32 +141,41 @@ function PersonInfo({
 
       {/* 사용자 정보 */}
       <div className={`${contentClassName}`}>
-        <span className="font-medium block truncate">{name}</span>
+        <span className="font-medium block truncate">
+          {numberProp != null && (
+            <span className="text-gray-500 font-medium">{numberProp}. </span>
+          )}
+          {name}
+        </span>
 
         <div className={badgeContainerClassName}>
-          {intendToJoin && (
-            <span className="inline-block bg-green-100 rounded-full px-2 py-0.5 text-xs text-green-800 font-semibold">
-              가입희망
-            </span>
-          )}
-          {gender && (
-            <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-              {displayGender}
-            </span>
-          )}
-          {birthDate && (
-            <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-              {calculateAgeGroup(birthDate)}
-            </span>
-          )}
-          {(nationalTournamentLevel || localTournamentLevel) && (
-            <span
-              className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600 cursor-help"
-              title={getTournamentLevelTitle()}
-            >
-              {renderTournamentLevelBadge()}
-            </span>
-          )}
+          <div className="flex flex-wrap gap-1">
+            {intendToJoin && (
+              <span className="inline-block bg-green-100 rounded-full px-2 py-0.5 text-xs text-green-800 font-semibold">
+                가입희망
+              </span>
+            )}
+            {gender && (
+              <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+                {displayGender}
+              </span>
+            )}
+            {birthDate && (
+              <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+                {calculateAgeGroup(birthDate)}
+              </span>
+            )}
+            {(nationalTournamentLevel || localTournamentLevel) && (
+              <span
+                className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600 cursor-help"
+                title={getTournamentLevelTitle()}
+              >
+                {renderTournamentLevelBadge()}
+              </span>
+            )}
+          </div>
+
+          {rightMeta && <div className="ml-auto">{rightMeta}</div>}
         </div>
         {guestRequestName && (
           <p className="text-sm text-gray-500 mt-1 text-right">
