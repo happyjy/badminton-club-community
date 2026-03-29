@@ -1,8 +1,10 @@
 import { NextConfig } from 'next';
 import withPWA from 'next-pwa';
+import path from 'path';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  outputFileTracingRoot: path.resolve(process.cwd()),
   // Vercel에서 자동으로 이미지 최적화를 지원합니다
   images: {
     domains: ['k.kakaocdn.net', 'img1.kakaocdn.net', 't1.kakaocdn.net'],
