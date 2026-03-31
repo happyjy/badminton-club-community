@@ -29,7 +29,13 @@ interface MemberLeaveItem {
 
 function MemberDetailPage() {
   const router = useRouter();
-  const { id: clubId, userId } = router.query;
+  const { id: clubId, userId, from, fromLabel } = router.query;
+
+  const defaultPath = `/clubs/${clubId}/members`;
+  const backHref = typeof from === 'string' ? from : defaultPath;
+  const backLabel =
+    typeof fromLabel === 'string' ? `← ${fromLabel}` : '← 클럽 멤버 관리';
+
   const [member, setMember] = useState<ClubMemberDetail | null>(null);
   const [leaves, setLeaves] = useState<MemberLeaveItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,7 +280,7 @@ function MemberDetailPage() {
       <div className="max-w-2xl mx-auto p-6">
         <p className="text-red-500">회원 정보를 불러올 수 없습니다.</p>
         <Link
-          href={`/clubs/${clubId}/members`}
+          href={backHref}
           className="text-blue-600 underline mt-2 inline-block"
         >
           목록으로
@@ -286,10 +292,10 @@ function MemberDetailPage() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <Link
-        href={`/clubs/${clubId}/members`}
+        href={backHref}
         className="text-blue-600 hover:underline mb-4 inline-block"
       >
-        ← 클럽 멤버 관리
+        {backLabel}
       </Link>
 
       <h1 className="text-2xl font-bold mb-6">

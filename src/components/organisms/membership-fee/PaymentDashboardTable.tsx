@@ -101,7 +101,7 @@ function PaymentDashboardTable({
                 <td className="w-px px-4 py-2 sticky left-0 bg-white font-medium whitespace-nowrap">
                   {clubId && member.userId != null ? (
                     <Link
-                      href={`/clubs/${clubId}/members/${member.userId}`}
+                      href={`/clubs/${clubId}/members/${member.userId}?from=/clubs/${clubId}/membership-fee&fromLabel=회비 정산`}
                       className="hover:underline text-blue-600"
                       title="회원 정보에서 입금 시작일 수정"
                     >
