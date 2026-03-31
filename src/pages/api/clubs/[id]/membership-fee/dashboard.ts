@@ -261,6 +261,22 @@ export default withAuth(async function handler(
             paidMonths.has(m)
           ).length;
 
+          // 부부: 둘 중 늦은 feeObligationStartAt 기준
+          const coupleStartDates = [
+            member.feeObligationStartAt,
+            partnerMember
+              ? (clubMembers.find(
+                  (c) => c.id === partnerMember.clubMemberId
+                )?.feeObligationStartAt ?? null)
+              : null,
+          ].filter(Boolean) as Date[];
+          const coupleEffectiveStart =
+            coupleStartDates.length > 0
+              ? new Date(
+                  Math.max(...coupleStartDates.map((d) => d.getTime()))
+                )
+              : null;
+
           return {
             id: member.id,
             userId: member.userId,
@@ -272,6 +288,9 @@ export default withAuth(async function handler(
             totalMonths: totalMonthsCouple,
             firstObligationMonth: effectiveFirst,
             obligationMonths: obligationMonthsCouple,
+            feeObligationStartMonth: coupleEffectiveStart
+              ? `${coupleEffectiveStart.getFullYear()}.${String(coupleEffectiveStart.getMonth() + 1).padStart(2, '0')}`
+              : null,
           };
         }
 
@@ -322,6 +341,9 @@ export default withAuth(async function handler(
           totalMonths: totalMonthsMember,
           firstObligationMonth: firstObligation ?? 1,
           obligationMonths: obligationMonthsMember,
+          feeObligationStartMonth: member.feeObligationStartAt
+            ? `${member.feeObligationStartAt.getFullYear()}.${String(member.feeObligationStartAt.getMonth() + 1).padStart(2, '0')}`
+            : null,
         };
       })
       .filter(Boolean);

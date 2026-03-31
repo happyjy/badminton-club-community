@@ -134,6 +134,11 @@ function PaymentDashboardTable({
                     : month >= (member.firstObligationMonth ?? 1);
                   const isPaid = member.payments[month];
                   const isExempt = member.type === 'exempt';
+                  const isStartMonth =
+                    !isExempt &&
+                    member.firstObligationMonth != null &&
+                    member.firstObligationMonth > 1 &&
+                    month === member.firstObligationMonth;
                   const showRedX =
                     isObligated &&
                     isPastOrCurrentMonth(year, month) &&
@@ -141,16 +146,23 @@ function PaymentDashboardTable({
                     !isExempt;
 
                   return (
-                    <td key={month} className="px-2 py-2 text-center">
+                    <td
+                      key={month}
+                      className={`px-2 py-2 text-center${isStartMonth ? ' border-l-2 border-l-blue-400' : ''}`}
+                      title={
+                        isStartMonth
+                          ? `입금 시작월 (${member.feeObligationStartMonth ?? ''})`
+                          : !isObligated
+                            ? '의무 없음'
+                            : showRedX
+                              ? '미납'
+                              : undefined
+                      }
+                    >
                       {!isObligated ? (
-                        <span className="text-gray-300" title="의무 없음">
-                          -
-                        </span>
+                        <span className="text-gray-300">-</span>
                       ) : showRedX ? (
-                        <div
-                          className="flex items-center justify-center text-red-500 font-semibold"
-                          title="미납"
-                        >
+                        <div className="flex items-center justify-center text-red-500 font-semibold">
                           X
                         </div>
                       ) : (
