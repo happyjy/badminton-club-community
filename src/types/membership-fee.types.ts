@@ -164,6 +164,8 @@ export interface MemberPaymentStatus {
   firstObligationMonth?: number;
   /** 해당 연도 의무 월 목록 (휴회 제외). 있으면 이 목록으로 의무 여부 판단 */
   obligationMonths?: number[];
+  /** 해당 연도 휴회/병가 월 목록 */
+  leaveMonths?: number[];
   /** 회비 입금 시작월 (YYYY.MM 형식, 예: "2025.04") */
   feeObligationStartMonth?: string | null;
 }

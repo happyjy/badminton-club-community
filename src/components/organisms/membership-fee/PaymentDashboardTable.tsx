@@ -134,6 +134,7 @@ function PaymentDashboardTable({
                     : month >= (member.firstObligationMonth ?? 1);
                   const isPaid = member.payments[month];
                   const isExempt = member.type === 'exempt';
+                  const isLeave = member.leaveMonths?.includes(month) ?? false;
                   const isStartMonth =
                     !isExempt &&
                     member.firstObligationMonth != null &&
@@ -152,14 +153,18 @@ function PaymentDashboardTable({
                       title={
                         isStartMonth
                           ? `입금 시작월 (${member.feeObligationStartMonth ?? ''})`
-                          : !isObligated
-                            ? '의무 없음'
-                            : showRedX
-                              ? '미납'
-                              : undefined
+                          : isLeave
+                            ? '휴회/병가'
+                            : !isObligated
+                              ? '의무 없음'
+                              : showRedX
+                                ? '미납'
+                                : undefined
                       }
                     >
-                      {!isObligated ? (
+                      {isLeave ? (
+                        <span title="휴회/병가">🏥</span>
+                      ) : !isObligated ? (
                         <span className="text-gray-300">-</span>
                       ) : showRedX ? (
                         <div className="flex items-center justify-center text-red-500 font-semibold">

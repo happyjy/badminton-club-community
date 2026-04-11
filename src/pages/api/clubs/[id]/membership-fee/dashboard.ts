@@ -261,20 +261,23 @@ export default withAuth(async function handler(
             paidMonths.has(m)
           ).length;
 
+          // 부부 휴회/병가 월 계산
+          const leaveMonthsCouple: number[] = [];
+          for (let m = effectiveFirstRaw; m <= 12; m++) {
+            if (!obligationSet.has(m)) leaveMonthsCouple.push(m);
+          }
+
           // 부부: 둘 중 늦은 feeObligationStartAt 기준
           const coupleStartDates = [
             member.feeObligationStartAt,
             partnerMember
-              ? (clubMembers.find(
-                  (c) => c.id === partnerMember.clubMemberId
-                )?.feeObligationStartAt ?? null)
+              ? (clubMembers.find((c) => c.id === partnerMember.clubMemberId)
+                  ?.feeObligationStartAt ?? null)
               : null,
           ].filter(Boolean) as Date[];
           const coupleEffectiveStart =
             coupleStartDates.length > 0
-              ? new Date(
-                  Math.max(...coupleStartDates.map((d) => d.getTime()))
-                )
+              ? new Date(Math.max(...coupleStartDates.map((d) => d.getTime())))
               : null;
 
           return {
@@ -288,6 +291,7 @@ export default withAuth(async function handler(
             totalMonths: totalMonthsCouple,
             firstObligationMonth: effectiveFirst,
             obligationMonths: obligationMonthsCouple,
+            leaveMonths: leaveMonthsCouple,
             feeObligationStartMonth: coupleEffectiveStart
               ? `${coupleEffectiveStart.getFullYear()}.${String(coupleEffectiveStart.getMonth() + 1).padStart(2, '0')}`
               : null,
@@ -330,6 +334,20 @@ export default withAuth(async function handler(
           paidMonths.has(m)
         ).length;
 
+        // 휴회/병가 월 계산: 의무 시작월 이후이면서 의무 목록에 없는 달
+        const rawFirst = getFirstObligationMonth(
+          year,
+          member.feeObligationStartAt,
+          []
+        );
+        const obligationSet = new Set(obligationMonthsMember);
+        const leaveMonthsMember: number[] = [];
+        if (rawFirst != null) {
+          for (let m = rawFirst; m <= 12; m++) {
+            if (!obligationSet.has(m)) leaveMonthsMember.push(m);
+          }
+        }
+
         return {
           id: member.id,
           userId: member.userId,
@@ -341,6 +359,7 @@ export default withAuth(async function handler(
           totalMonths: totalMonthsMember,
           firstObligationMonth: firstObligation ?? 1,
           obligationMonths: obligationMonthsMember,
+          leaveMonths: leaveMonthsMember,
           feeObligationStartMonth: member.feeObligationStartAt
             ? `${member.feeObligationStartAt.getFullYear()}.${String(member.feeObligationStartAt.getMonth() + 1).padStart(2, '0')}`
             : null,
