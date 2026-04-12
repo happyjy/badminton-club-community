@@ -355,117 +355,144 @@ function MemberDetailPage() {
         {backLabel}
       </Link>
 
-      <h1 className="text-2xl font-bold mb-6">
-        {member.name || '이름 없음'} 회원 상세
-      </h1>
-
-      <div className="space-y-4 mb-6">
-        <div>
-          <span className="text-gray-500 text-sm">가입일 (클럽)</span>
-          <p className="font-medium">
-            {member.createdAt
-              ? new Date(member.createdAt).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })
-              : '-'}
-          </p>
-        </div>
-
-        <div>
-          <label
-            htmlFor="feeStart"
-            className="block text-gray-500 text-sm mb-1"
-          >
-            회비 입금 시작월
-          </label>
-          <p className="text-xs text-gray-400 mb-1">
-            기본은 가입한 달. 필요 시 다음 달부터로 설정할 수 있습니다.
-          </p>
-          <input
-            id="feeStart"
-            type="month"
-            value={feeStartInput}
-            onChange={(e) => setFeeStartInput(e.target.value)}
-            className="border rounded px-3 py-2 w-full max-w-xs"
-          />
-          <button
-            type="button"
-            onClick={onSaveFeeStart}
-            disabled={saving}
-            className="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-          >
-            {saving ? '저장 중…' : '저장'}
-          </button>
-        </div>
-
+      <div className="flex items-center gap-3 mb-6">
+        <h1 className="text-2xl font-bold">
+          {member.name || '이름 없음'} 회원 상세
+        </h1>
         {member.status === 'LEFT' && (
-          <div className="border rounded-lg p-4 bg-red-50 space-y-3">
-            <h3 className="text-sm font-semibold text-red-700">탈퇴 정보</h3>
+          <span className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded font-medium">
+            탈퇴
+          </span>
+        )}
+      </div>
+
+      {message && (
+        <p
+          className={`mb-4 text-sm ${
+            message.type === 'success' ? 'text-green-600' : 'text-red-600'
+          }`}
+        >
+          {message.text}
+        </p>
+      )}
+
+      <div className="space-y-6 mb-6">
+        {/* 기본 정보 */}
+        <div className="border rounded-lg p-4 bg-white">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">
+            기본 정보
+          </h2>
+          <div>
+            <span className="text-gray-500 text-sm">가입일 (클럽)</span>
+            <p className="font-medium">
+              {member.createdAt
+                ? new Date(member.createdAt).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : '-'}
+            </p>
+          </div>
+        </div>
+
+        {/* 회비 설정 */}
+        <div className="border rounded-lg bg-white">
+          <h2 className="text-sm font-semibold text-gray-700 px-4 pt-4">
+            회비 설정
+          </h2>
+
+          {/* 입금 시작 */}
+          <div className="px-4 py-4">
+            <h3 className="text-xs font-medium text-gray-500 mb-2">
+              입금 시작
+            </h3>
             <div>
               <label
-                htmlFor="leftAt"
+                htmlFor="feeStart"
                 className="block text-gray-500 text-sm mb-1"
               >
-                탈퇴일
+                시작월
               </label>
               <p className="text-xs text-gray-400 mb-1">
-                상태를 탈퇴로 변경한 날짜가 자동 설정됩니다. 필요 시 수정할 수
-                있습니다.
+                기본은 가입한 달. 필요 시 다음 달부터로 설정할 수 있습니다.
               </p>
               <input
-                id="leftAt"
-                type="date"
-                value={leftAtInput}
-                onChange={(e) => setLeftAtInput(e.target.value)}
-                className="border rounded px-3 py-2 w-full max-w-xs"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="feeEnd"
-                className="block text-gray-500 text-sm mb-1"
-              >
-                회비 마지막 월
-              </label>
-              <p className="text-xs text-gray-400 mb-1">
-                탈퇴 회원의 마지막 회비 의무 월입니다. 기본은 탈퇴일의 해당
-                월입니다.
-              </p>
-              <input
-                id="feeEnd"
+                id="feeStart"
                 type="month"
-                value={feeEndInput}
-                onChange={(e) => setFeeEndInput(e.target.value)}
+                value={feeStartInput}
+                onChange={(e) => setFeeStartInput(e.target.value)}
                 className="border rounded px-3 py-2 w-full max-w-xs"
               />
             </div>
+          </div>
+
+          {/* 탈퇴 종료 */}
+          {member.status === 'LEFT' && (
+            <div className="border-t px-4 py-4">
+              <h3 className="text-xs font-medium text-gray-500 mb-2">
+                탈퇴 종료
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="leftAt"
+                    className="block text-gray-500 text-sm mb-1"
+                  >
+                    탈퇴일
+                  </label>
+                  <p className="text-xs text-gray-400 mb-1">
+                    상태 변경 시 자동 설정. 필요 시 수정 가능.
+                  </p>
+                  <input
+                    id="leftAt"
+                    type="date"
+                    value={leftAtInput}
+                    onChange={(e) => setLeftAtInput(e.target.value)}
+                    className="border rounded px-3 py-2 w-full max-w-xs"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="feeEnd"
+                    className="block text-gray-500 text-sm mb-1"
+                  >
+                    마지막 월
+                  </label>
+                  <p className="text-xs text-gray-400 mb-1">
+                    마지막 회비 의무 월. 기본은 탈퇴일의 해당 월.
+                  </p>
+                  <input
+                    id="feeEnd"
+                    type="month"
+                    value={feeEndInput}
+                    onChange={(e) => setFeeEndInput(e.target.value)}
+                    className="border rounded px-3 py-2 w-full max-w-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="border-t px-4 py-3">
             <button
               type="button"
-              onClick={onSaveLeftInfo}
+              onClick={
+                member.status === 'LEFT' ? onSaveLeftInfo : onSaveFeeStart
+              }
               disabled={saving}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
             >
-              {saving ? '저장 중…' : '탈퇴 정보 저장'}
+              {saving ? '저장 중…' : '저장'}
             </button>
           </div>
-        )}
+        </div>
 
-        {message && (
-          <p
-            className={
-              message.type === 'success'
-                ? 'text-green-600 text-sm'
-                : 'text-red-600 text-sm'
-            }
-          >
-            {message.text}
-          </p>
-        )}
-
-        <div>
-          <h2 className="text-lg font-semibold mb-2">휴회/병가 기간</h2>
+        {/* 휴회/병가 기간 */}
+        <div className="border rounded-lg p-4 bg-white">
+          <h2 className="text-sm font-semibold text-gray-700 mb-2">
+            휴회/병가 기간
+          </h2>
           <p className="text-xs text-gray-400 mb-2">
             휴회 기간은 회비 의무에서 제외됩니다. 기간 제한 없이 등록할 수
             있습니다.
