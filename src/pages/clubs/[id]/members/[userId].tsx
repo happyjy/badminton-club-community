@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 import { withAuth } from '@/lib/withAuth';
@@ -31,6 +32,8 @@ interface MemberLeaveItem {
 function MemberDetailPage() {
   const router = useRouter();
   const { id: clubId, userId, from, fromLabel } = router.query;
+
+  const queryClient = useQueryClient();
 
   const defaultPath = `/clubs/${clubId}/members`;
   const backHref = typeof from === 'string' ? from : defaultPath;
@@ -136,6 +139,7 @@ function MemberDetailPage() {
             : null,
         }
       );
+      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
       setMessage({
         type: 'success',
         text: '회비 입금 시작월이 저장되었습니다.',
@@ -181,6 +185,7 @@ function MemberDetailPage() {
           leftAt: effectiveLeftAt,
         }
       );
+      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
       setMessage({
         type: 'success',
         text: '탈퇴 정보가 저장되었습니다.',
