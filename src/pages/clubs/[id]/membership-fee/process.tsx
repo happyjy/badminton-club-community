@@ -2,7 +2,8 @@ import { useMemo, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import axios from 'axios';
+import { ArrowLeft, CheckCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 import PaymentRecordFilters, {
@@ -148,13 +149,20 @@ function applySort(
 
 function ProcessPage() {
   const router = useRouter();
-  const { id: clubId, status: filterStatus } = router.query;
+  const {
+    id: clubId,
+    status: filterStatus,
+    batchId: batchIdQuery,
+  } = router.query;
   const clubIdStr = typeof clubId === 'string' ? clubId : undefined;
+  const batchId = typeof batchIdQuery === 'string' ? batchIdQuery : undefined;
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [members, setMembers] = useState<Member[]>([]);
   const [filters, setFilters] =
     useState<PaymentRecordFilterValues>(INITIAL_FILTERS);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [sortBy, setSortBy] = useState<PaymentRecordSortBy>('transactionDate');
   const [sortOrder, setSortOrder] = useState<PaymentRecordSortOrder>('desc');
 
@@ -164,12 +172,12 @@ function ProcessPage() {
   /** API에서 받은 목록 (상태 필터만 적용) */
   const { data: records, isLoading: isRecordsLoading } = usePaymentRecords(
     clubIdStr,
-    undefined,
+    batchId,
     statusFilter
   );
   /** 버튼 카운트용: 항상 전체 목록(필터 없음) → "전체" 숫자가 필터와 무관하게 유지됨 */
   const { data: allRecords, isLoading: isAllRecordsLoading } =
-    usePaymentRecords(clubIdStr, undefined, undefined);
+    usePaymentRecords(clubIdStr, batchId, undefined);
   const isLoading = isRecordsLoading || isAllRecordsLoading;
 
   const filteredRecords = useMemo(
@@ -316,6 +324,27 @@ function ProcessPage() {
     }
   };
 
+  const confirmedInBatch = batchId
+    ? (allRecords ?? []).filter((r) => r.status === 'CONFIRMED').length
+    : 0;
+
+  const handleDeleteBatch = async () => {
+    if (!clubIdStr || !batchId) return;
+    setIsDeleting(true);
+    try {
+      await axios.delete(
+        `/api/clubs/${clubIdStr}/membership-fee/batches/${batchId}`
+      );
+      toast.success('배치가 삭제되었습니다.');
+      router.push(`/clubs/${clubId}/membership-fee/batches`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || '배치 삭제에 실패했습니다.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   const statusCounts = {
     total: filteredAllRecords.length,
     pending: filteredAllRecords.filter((r) => r.status === 'PENDING').length,
@@ -368,13 +397,76 @@ function ProcessPage() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => router.push(`/clubs/${clubId}/membership-fee`)}
+          onClick={() =>
+            router.push(
+              batchId
+                ? `/clubs/${clubId}/membership-fee/batches`
+                : `/clubs/${clubId}/membership-fee`
+            )
+          }
           className="p-2 hover:bg-gray-100 rounded-lg"
         >
           <ArrowLeft size={20} />
         </button>
         <h1 className="text-2xl font-bold">입금 내역 처리</h1>
       </div>
+
+      {/* 배치 필터 중일 때 배치 정보 헤더 */}
+      {batchId && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6">
+          <div className="text-sm text-blue-800">
+            <span className="font-medium">배치 필터 적용 중</span>
+            {' · '}
+            {allRecords?.length ?? 0}건
+          </div>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50"
+          >
+            <Trash2 size={14} />
+            배치 삭제
+          </button>
+        </div>
+      )}
+
+      {/* 배치 삭제 확인 모달 */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-2">배치 삭제</h3>
+            {confirmedInBatch > 0 ? (
+              <p className="text-sm text-red-600 mb-4">
+                이 배치에{' '}
+                <span className="font-bold">
+                  확정된 납부 {confirmedInBatch}건
+                </span>
+                이 포함되어 있습니다. 삭제하면 해당 납부 내역도 함께 삭제됩니다.
+                정말 삭제하시겠습니까?
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600 mb-4">
+                이 배치({allRecords?.length ?? 0}건)를 삭제하시겠습니까?
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteBatch}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50"
+              >
+                {isDeleting ? '삭제 중...' : '삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg border p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -398,7 +490,11 @@ function ProcessPage() {
           statusCounts={statusCounts}
           onStatusSelect={(status) => {
             const path = `/clubs/${clubId}/membership-fee/process`;
-            router.push(status ? `${path}?status=${status}` : path);
+            const params = new URLSearchParams();
+            if (batchId) params.set('batchId', batchId);
+            if (status) params.set('status', status);
+            const qs = params.toString();
+            router.push(qs ? `${path}?${qs}` : path);
           }}
         />
 
