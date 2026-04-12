@@ -187,11 +187,24 @@ export interface DashboardSummary {
   yearTotal: number;
 }
 
+// 최근 업로드 정보
+export interface LatestUploadInfo {
+  lastBatch: {
+    id: string;
+    uploadedAt: string;
+    fileName: string;
+    recordCount: number;
+    uploadedByName: string | null;
+  } | null;
+  latestTransactionDate: string | null;
+}
+
 // 대시보드 응답
 export interface PaymentDashboardData {
   year: number;
   members: MemberPaymentStatus[];
   summary: DashboardSummary;
+  latestUpload: LatestUploadInfo;
 }
 
 // API 요청/응답 타입

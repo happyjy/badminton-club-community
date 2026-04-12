@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-import { Settings, Upload, Users, FileText, UserX } from 'lucide-react';
+import { Settings, Users, FileText, UserX } from 'lucide-react';
 
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 import DashboardSummaryCard from '@/components/organisms/membership-fee/DashboardSummaryCard';
+import LatestUploadCard from '@/components/organisms/membership-fee/LatestUploadCard';
 import PaymentDashboardTable, {
   memberFullyPaidThroughMonth,
   memberHasAnyUnpaidMonthInYear,
@@ -55,16 +56,15 @@ function MembershipFeeDashboard() {
     <div className="max-w-7xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">회비 관리</h1>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/clubs/${clubId}/membership-fee/upload`}
-            className="flex items-center gap-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            <Upload size={18} />
-            입금 내역 업로드
-          </Link>
-        </div>
       </div>
+
+      {/* 최근 업로드 카드 */}
+      {dashboard?.latestUpload && clubIdStr && (
+        <LatestUploadCard
+          latestUpload={dashboard.latestUpload}
+          clubId={clubIdStr}
+        />
+      )}
 
       {/* 빠른 링크 */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">

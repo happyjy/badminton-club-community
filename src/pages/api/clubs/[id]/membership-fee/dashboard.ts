@@ -397,6 +397,33 @@ export default withAuth(async function handler(
       0
     );
 
+    // 최근 업로드 배치 + 최신 거래일 조회 (연도 무관, 클럽 전체)
+    const [lastBatchRaw, latestTx] = await Promise.all([
+      prisma.paymentUploadBatch.findFirst({
+        where: { clubId: clubIdNumber },
+        orderBy: { uploadedAt: 'desc' },
+        include: { uploadedBy: { select: { name: true } } },
+      }),
+      prisma.paymentRecord.aggregate({
+        where: { clubId: clubIdNumber },
+        _max: { transactionDate: true },
+      }),
+    ]);
+
+    const latestUpload = {
+      lastBatch: lastBatchRaw
+        ? {
+            id: lastBatchRaw.id,
+            uploadedAt: lastBatchRaw.uploadedAt.toISOString(),
+            fileName: lastBatchRaw.fileName,
+            recordCount: lastBatchRaw.recordCount,
+            uploadedByName: lastBatchRaw.uploadedBy.name,
+          }
+        : null,
+      latestTransactionDate:
+        latestTx._max.transactionDate?.toISOString() ?? null,
+    };
+
     return res.status(200).json({
       data: {
         year,
@@ -409,6 +436,7 @@ export default withAuth(async function handler(
           monthlyStats,
           yearTotal,
         },
+        latestUpload,
       },
       status: 200,
       message: '대시보드 데이터를 불러왔습니다',
