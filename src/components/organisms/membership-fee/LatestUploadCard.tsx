@@ -19,6 +19,16 @@ function formatDate(isoString: string): string {
   return `${y}-${m}-${d}`;
 }
 
+function formatDateTime(isoString: string): string {
+  const date = new Date(isoString);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${d} ${h}:${min}`;
+}
+
 function getDaysAgo(isoString: string): number {
   const date = new Date(isoString);
   const now = new Date();
@@ -72,7 +82,7 @@ function LatestUploadCard({ latestUpload, clubId }: LatestUploadCardProps) {
             <div className="mb-3">
               <p className="text-xs text-gray-500 mb-0.5">반영된 최신 거래일</p>
               <p className="text-2xl font-bold">
-                {formatDate(latestTransactionDate)}
+                {formatDateTime(latestTransactionDate)}
                 <span className="text-sm font-normal text-gray-500 ml-2">
                   ({daysAgo}일 전)
                 </span>

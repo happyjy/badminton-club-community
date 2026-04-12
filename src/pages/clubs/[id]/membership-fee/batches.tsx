@@ -19,10 +19,20 @@ function formatDate(iso: string): string {
   return `${y}-${m}-${day}`;
 }
 
-function formatDateRange(min: string | null, max: string | null): string {
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${day} ${h}:${min}`;
+}
+
+function formatDateTimeRange(min: string | null, max: string | null): string {
   if (!min || !max) return '-';
-  const minStr = formatDate(min);
-  const maxStr = formatDate(max);
+  const minStr = formatDateTime(min);
+  const maxStr = formatDateTime(max);
   if (minStr === maxStr) return minStr;
   return `${minStr} ~ ${maxStr}`;
 }
@@ -74,7 +84,7 @@ function BatchRow({
               <span>{batch.recordCount}건</span>
               <span>
                 거래일:{' '}
-                {formatDateRange(
+                {formatDateTimeRange(
                   batch.minTransactionDate,
                   batch.maxTransactionDate
                 )}
