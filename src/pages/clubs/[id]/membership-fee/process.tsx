@@ -2,6 +2,7 @@ import { useMemo, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { ArrowLeft, CheckCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -149,6 +150,7 @@ function applySort(
 
 function ProcessPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const {
     id: clubId,
     status: filterStatus,
@@ -330,11 +332,14 @@ function ProcessPage() {
 
   const handleDeleteBatch = async () => {
     if (!clubIdStr || !batchId) return;
+
     setIsDeleting(true);
     try {
       await axios.delete(
         `/api/clubs/${clubIdStr}/membership-fee/batches/${batchId}`
       );
+      await queryClient.invalidateQueries({ queryKey: ['uploadBatches'] });
+      await queryClient.invalidateQueries({ queryKey: ['paymentDashboard'] });
       toast.success('배치가 삭제되었습니다.');
       router.push(`/clubs/${clubId}/membership-fee/batches`);
     } catch (error: any) {
