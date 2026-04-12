@@ -4,18 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-배드민턴 클럽 커뮤니케이션 플랫폼 - 클럽 관리, 운동 일정, 게스트 신청, 게시판, SMS 알림 기능을 제공하는 Next.js 풀스택 웹앱
+배드민턴 클럽 커뮤니케이션 플랫폼 - 클럽 관리, 운동 일정, 게스트 신청, 게시판, SMS 알림, 회비 정산 기능을 제공하는 Next.js 풀스택 웹앱
 
 ## 주요 명령어
 
 ```bash
 pnpm dev                    # 개발 서버 (localhost:3000)
 pnpm build                  # 프로덕션 빌드
-pnpm test                   # Jest 테스트
-pnpm test:watch             # Watch 모드 테스트
 pnpm lint                   # ESLint 검사
-npx prisma migrate dev      # DB 마이그레이션
+pnpm lint:fix               # ESLint 자동 수정
+pnpm test                   # Jest 테스트 전체 실행
+pnpm test -- --testPathPattern="파일명"  # 특정 테스트 파일 실행
+pnpm test:watch             # Watch 모드 테스트
+
+# Prisma (스키마 변경 시 반드시 build:schema 먼저)
+pnpm run build:schema       # schema/ 폴더 → schema.prisma 생성
 npx prisma generate         # Prisma 클라이언트 생성
+npx prisma migrate dev      # DB 마이그레이션
 ```
 
 ## 기술 스택
@@ -60,17 +65,36 @@ src/pages/api/clubs/
 ├── [id]/
 │   ├── phone-verification/           # 휴대폰 인증
 │   ├── board/posts/, categories/     # 게시판
-│   └── guests/[guestId]/             # 게스트 관리
+│   ├── guests/[guestId]/             # 게스트 관리
+│   └── membership-fee/              # 회비 정산 (dashboard, payments 등)
 ```
+
+### 비즈니스 로직 분리
+
+순수 로직은 `src/lib/` 아래에 분리. 특히 회비 정산 관련 로직은 `src/lib/membership-fee/`에 모듈별로 분리 (feeObligation, memberMatcher, monthSuggester, excelParser 등).
+
+## Prisma 스키마 규칙
+
+- **`prisma/schema.prisma`는 생성 파일** — 직접 수정 금지
+- 모델 추가/수정은 `prisma/schema/` 폴더의 개별 `.prisma` 파일에서 수행
+- 변경 후 반드시 `pnpm run build:schema` 실행
+- 새 파일 추가 시 `prisma/build-schema.ts`의 `schemaFiles` 배열에 등록 (의존성 순서 고려)
+- 관계 추가 시 양쪽 모델 모두에 relation 필드 추가
 
 ## 코딩 컨벤션
 
 - 함수형 컴포넌트 + Hooks 사용
 - 이벤트 핸들러: `on` 접두사 (onClick, onChange, onSubmit)
-- export는 파일 하단에 분리
+- export는 파일 하단에 분리 (`export default` 사용, 선언부에서 직접 export 금지)
 - early return 패턴 권장
 - TypeScript strict 모드
 - 들여쓰기 2칸, 최대 줄 길이 100자
+
+## 커밋 메시지 / PR 규칙
+
+- Conventional Commits 형식: `feat(scope):`, `fix(scope):`, `docs(scope):` 등
+- 본문에 **배경(Why)** → **작업(What)** 순서로 작성 (버그 시 **원인** 추가)
+- 한글로 작성
 
 ## 데이터베이스 주요 엔티티
 
@@ -79,8 +103,10 @@ src/pages/api/clubs/
 - **GuestPost**: 게스트 신청 (GUEST_REQUEST, INQUIRY_REQUEST, JOIN_INQUIRY_REQUEST)
 - **Post/PostCategory**: 게시판
 - **Workout/WorkoutParticipant**: 운동 일정
+- **MemberLeave**: 휴회/병가 기간
+- **FeeType/FeeRate/MembershipPayment/FeeExemption**: 회비 정산
 - **SmsNotificationLog**: SMS 발송 이력
 
 ## 참고 문서
 
-`docs/` 폴더에 기능별 상세 문서 있음 (게스트 신청, SMS, 휴대폰 인증 등)
+`docs/` 폴더에 기능별 상세 문서 있음 (게스트 신청, SMS, 휴대폰 인증, 회비 정산 등)
