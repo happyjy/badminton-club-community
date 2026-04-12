@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-import { Settings, Users, FileText, UserX } from 'lucide-react';
+import { Settings, Users, FileText, UserX, Clock } from 'lucide-react';
 
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
 import DashboardSummaryCard from '@/components/organisms/membership-fee/DashboardSummaryCard';
@@ -67,7 +67,7 @@ function MembershipFeeDashboard() {
       )}
 
       {/* 빠른 링크 */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
         <Link
           href={`/clubs/${clubId}/membership-fee/settings/fee-types`}
           className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
@@ -102,6 +102,13 @@ function MembershipFeeDashboard() {
         >
           <FileText size={20} className="text-purple-500" />
           <span>리포트</span>
+        </Link>
+        <Link
+          href={`/clubs/${clubId}/membership-fee/batches`}
+          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+        >
+          <Clock size={20} className="text-teal-500" />
+          <span>업로드 이력</span>
         </Link>
       </div>
 
