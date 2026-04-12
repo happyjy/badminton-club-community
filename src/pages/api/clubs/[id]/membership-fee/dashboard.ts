@@ -91,17 +91,31 @@ export default withAuth(async function handler(
       feeTypes,
     };
 
-    // 클럽 회원 조회 (APPROVED 상태만, 회비 의무 시작일 포함)
+    // 클럽 회원 조회 (APPROVED + 해당 연도에 활동한 LEFT 회원 포함)
     const clubMembers = await prisma.clubMember.findMany({
       where: {
         clubId: clubIdNumber,
-        status: 'APPROVED',
+        OR: [
+          { status: 'APPROVED' },
+          {
+            status: 'LEFT',
+            leftAt: { gte: new Date(year, 0, 1) },
+            feeObligationStartAt: { lt: new Date(year + 1, 0, 1) },
+          },
+          {
+            status: 'LEFT',
+            leftAt: null,
+            feeObligationStartAt: { lt: new Date(year + 1, 0, 1) },
+          },
+        ],
       },
       select: {
         id: true,
         userId: true,
         name: true,
+        status: true,
         feeObligationStartAt: true,
+        leftAt: true,
       },
       orderBy: {
         name: 'asc',
@@ -222,11 +236,27 @@ export default withAuth(async function handler(
             ? `${member.name || ''}·${couplePartnerName}`
             : member.name || '(이름 없음)';
 
-          // 부부: 둘 중 늦은 의무 시작월 기준, 휴회 월 제외
-          const partnerStartAt = partnerMember
-            ? (clubMembers.find((c) => c.id === partnerMember.clubMemberId)
-                ?.feeObligationStartAt ?? null)
+          // 부부: 둘 중 늦은 의무 시작월 기준, 휴회 월 제외, 탈퇴월 이후 제외
+          const partnerData = partnerMember
+            ? clubMembers.find((c) => c.id === partnerMember.clubMemberId)
             : null;
+          const partnerStartAt = partnerData?.feeObligationStartAt ?? null;
+
+          // 부부 탈퇴: 둘 다 탈퇴 시 늦은 탈퇴월 기준
+          const memberIsLeft = member.status === 'LEFT';
+          const partnerIsLeft = partnerData?.status === 'LEFT';
+          const coupleIsLeft = memberIsLeft || partnerIsLeft;
+          const coupleLeftDates = [
+            memberIsLeft ? member.leftAt : null,
+            partnerIsLeft ? (partnerData?.leftAt ?? null) : null,
+          ].filter(Boolean) as Date[];
+          // 둘 다 탈퇴: 늦은 탈퇴일, 한 명만 탈퇴: 그 회원의 탈퇴일 (의무 종료하지 않음)
+          const bothLeft = memberIsLeft && partnerIsLeft;
+          const coupleLeftAt =
+            bothLeft && coupleLeftDates.length > 0
+              ? new Date(Math.max(...coupleLeftDates.map((d) => d.getTime())))
+              : null;
+
           const firstA = getFirstObligationMonth(
             year,
             member.feeObligationStartAt,
@@ -246,7 +276,8 @@ export default withAuth(async function handler(
           const obligationMonthsCouple = getObligationMonths(
             year,
             new Date(year, effectiveFirstRaw - 1, 1),
-            coupleLeavePeriods
+            coupleLeavePeriods,
+            coupleLeftAt
           );
           const effectiveFirst = obligationMonthsCouple[0] ?? effectiveFirstRaw;
           const totalMonthsCouple = obligationMonthsCouple.length;
@@ -262,22 +293,38 @@ export default withAuth(async function handler(
           ).length;
 
           // 부부 휴회/병가 월 계산
+          const coupleLastMonth =
+            coupleLeftAt && coupleLeftAt.getFullYear() === year
+              ? coupleLeftAt.getMonth() + 1
+              : 12;
           const leaveMonthsCouple: number[] = [];
-          for (let m = effectiveFirstRaw; m <= 12; m++) {
+          for (let m = effectiveFirstRaw; m <= coupleLastMonth; m++) {
             if (!obligationSet.has(m)) leaveMonthsCouple.push(m);
           }
 
           // 부부: 둘 중 늦은 feeObligationStartAt 기준
           const coupleStartDates = [
             member.feeObligationStartAt,
-            partnerMember
-              ? (clubMembers.find((c) => c.id === partnerMember.clubMemberId)
-                  ?.feeObligationStartAt ?? null)
-              : null,
+            partnerData?.feeObligationStartAt ?? null,
           ].filter(Boolean) as Date[];
           const coupleEffectiveStart =
             coupleStartDates.length > 0
               ? new Date(Math.max(...coupleStartDates.map((d) => d.getTime())))
+              : null;
+
+          // 부부 탈퇴 정보
+          const coupleLeftMonth =
+            coupleIsLeft && coupleLeftAt && coupleLeftAt.getFullYear() === year
+              ? coupleLeftAt.getMonth() + 1
+              : undefined;
+          const coupleLeftAtFormatted =
+            coupleIsLeft && coupleLeftDates.length > 0
+              ? (() => {
+                  const d = new Date(
+                    Math.max(...coupleLeftDates.map((dt) => dt.getTime()))
+                  );
+                  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+                })()
               : null;
 
           return {
@@ -295,22 +342,29 @@ export default withAuth(async function handler(
             feeObligationStartMonth: coupleEffectiveStart
               ? `${coupleEffectiveStart.getFullYear()}.${String(coupleEffectiveStart.getMonth() + 1).padStart(2, '0')}`
               : null,
+            isLeft: coupleIsLeft,
+            leftMonth: coupleLeftMonth,
+            leftAtFormatted: coupleLeftAtFormatted,
           };
         }
 
-        // 일반 회원 (휴회 월 제외)
+        // 일반 회원 (휴회 월 제외, 탈퇴월 이후 제외)
+        const isLeft = member.status === 'LEFT';
+        const memberLeftAt = isLeft ? member.leftAt : null;
         const leavePeriodsMember = leaveMap.get(member.id) ?? [];
         const firstObligation = getFirstObligationMonth(
           year,
           member.feeObligationStartAt,
-          leavePeriodsMember
+          leavePeriodsMember,
+          memberLeftAt
         );
         const totalMonthsMember =
           firstObligation != null
             ? obligationMonthCount(
                 year,
                 member.feeObligationStartAt,
-                leavePeriodsMember
+                leavePeriodsMember,
+                memberLeftAt
               )
             : 12;
         const paidMonths = paymentsByMember.get(member.id) || new Set();
@@ -321,20 +375,22 @@ export default withAuth(async function handler(
             year,
             m,
             member.feeObligationStartAt,
-            leavePeriodsMember
+            leavePeriodsMember,
+            memberLeftAt
           );
           paymentsObj[m] = obligated ? paidMonths.has(m) : false;
         }
         const obligationMonthsMember = getObligationMonths(
           year,
           member.feeObligationStartAt,
-          leavePeriodsMember
+          leavePeriodsMember,
+          memberLeftAt
         );
         const paidCountMember = obligationMonthsMember.filter((m) =>
           paidMonths.has(m)
         ).length;
 
-        // 휴회/병가 월 계산: 의무 시작월 이후이면서 의무 목록에 없는 달
+        // 휴회/병가 월 계산: 의무 시작월~탈퇴월 사이에서 의무 목록에 없는 달
         const rawFirst = getFirstObligationMonth(
           year,
           member.feeObligationStartAt,
@@ -343,10 +399,24 @@ export default withAuth(async function handler(
         const obligationSet = new Set(obligationMonthsMember);
         const leaveMonthsMember: number[] = [];
         if (rawFirst != null) {
-          for (let m = rawFirst; m <= 12; m++) {
+          const lastMonth =
+            memberLeftAt && memberLeftAt.getFullYear() === year
+              ? memberLeftAt.getMonth() + 1
+              : 12;
+          for (let m = rawFirst; m <= lastMonth; m++) {
             if (!obligationSet.has(m)) leaveMonthsMember.push(m);
           }
         }
+
+        // 탈퇴 정보
+        const leftMonth =
+          isLeft && memberLeftAt && memberLeftAt.getFullYear() === year
+            ? memberLeftAt.getMonth() + 1
+            : undefined;
+        const leftAtFormatted =
+          isLeft && memberLeftAt
+            ? `${memberLeftAt.getFullYear()}.${String(memberLeftAt.getMonth() + 1).padStart(2, '0')}`
+            : null;
 
         return {
           id: member.id,
@@ -363,6 +433,9 @@ export default withAuth(async function handler(
           feeObligationStartMonth: member.feeObligationStartAt
             ? `${member.feeObligationStartAt.getFullYear()}.${String(member.feeObligationStartAt.getMonth() + 1).padStart(2, '0')}`
             : null,
+          isLeft,
+          leftMonth,
+          leftAtFormatted,
         };
       })
       .filter(Boolean);

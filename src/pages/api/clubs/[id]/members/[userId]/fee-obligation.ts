@@ -53,11 +53,31 @@ export default withAuth(async function handler(
     });
   }
 
+  // leftAt (탈퇴일) 수정 지원
+  const data: { feeObligationStartAt: Date | null; leftAt?: Date | null } = {
+    feeObligationStartAt,
+  };
+
+  if ('leftAt' in req.body) {
+    const rawLeft = req.body.leftAt;
+    const leftAt =
+      rawLeft === null || rawLeft === undefined || rawLeft === ''
+        ? null
+        : new Date(rawLeft as string);
+    if (leftAt !== null && Number.isNaN(leftAt.getTime())) {
+      return res.status(400).json({
+        error: '유효한 탈퇴일을 입력해주세요',
+        status: 400,
+      });
+    }
+    data.leftAt = leftAt;
+  }
+
   const updated = await prisma.clubMember.update({
     where: {
       clubId_userId: { clubId, userId },
     },
-    data: { feeObligationStartAt },
+    data,
   });
 
   const typedMember: ClubMember = {

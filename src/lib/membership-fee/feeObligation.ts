@@ -52,6 +52,19 @@ function getRawFirstObligationMonth(
   return startMonth;
 }
 
+/** leftAt이 속한 연·월을 기준으로 해당 연도의 마지막 의무월을 반환 (내부용) */
+function getLastObligationMonth(
+  year: number,
+  leftAt: Date | null | undefined
+): number {
+  if (leftAt == null) return 12;
+  const leftYear = leftAt.getFullYear();
+  const leftMonth = leftAt.getMonth() + 1;
+  if (year < leftYear) return 12;
+  if (year > leftYear) return 0;
+  return leftMonth;
+}
+
 /**
  * 해당 연도에 회원의 첫 의무월 (1~12). 해당 연도에 의무 없으면 null.
  * feeObligationStartAt이 null이면 당해 연도 1월부터 의무로 간주 (하위 호환).
@@ -60,51 +73,64 @@ function getRawFirstObligationMonth(
 export function getFirstObligationMonth(
   year: number,
   feeObligationStartAt: Date | null,
-  leavePeriods: LeavePeriod[] = []
+  leavePeriods: LeavePeriod[] = [],
+  leftAt?: Date | null
 ): number | null {
-  const months = getObligationMonths(year, feeObligationStartAt, leavePeriods);
+  const months = getObligationMonths(
+    year,
+    feeObligationStartAt,
+    leavePeriods,
+    leftAt
+  );
   return months.length > 0 ? months[0] : null;
 }
 
 /**
- * 해당 연·월이 회원의 회비 의무 구간 안인지 (휴회 월 제외).
+ * 해당 연·월이 회원의 회비 의무 구간 안인지 (휴회 월 제외, 탈퇴월 이후 제외).
  */
 export function isMonthObligated(
   year: number,
   month: number,
   feeObligationStartAt: Date | null,
-  leavePeriods: LeavePeriod[] = []
+  leavePeriods: LeavePeriod[] = [],
+  leftAt?: Date | null
 ): boolean {
   const first = getFirstObligationMonth(year, feeObligationStartAt, []);
   if (first == null) return false;
   if (month < first) return false;
+  const last = getLastObligationMonth(year, leftAt);
+  if (month > last) return false;
   if (isMonthInAnyLeave(year, month, leavePeriods)) return false;
   return true;
 }
 
 /**
- * 해당 연도 회원의 의무 개월 수 (대시보드 totalMonths 등). 휴회 월 제외.
+ * 해당 연도 회원의 의무 개월 수 (대시보드 totalMonths 등). 휴회 월 제외, 탈퇴월 이후 제외.
  */
 export function obligationMonthCount(
   year: number,
   feeObligationStartAt: Date | null,
-  leavePeriods: LeavePeriod[] = []
+  leavePeriods: LeavePeriod[] = [],
+  leftAt?: Date | null
 ): number {
-  return getObligationMonths(year, feeObligationStartAt, leavePeriods).length;
+  return getObligationMonths(year, feeObligationStartAt, leavePeriods, leftAt)
+    .length;
 }
 
 /**
- * 해당 연도 의무 월 목록 (1~12 중 해당 구간만, 휴회 월 제외).
+ * 해당 연도 의무 월 목록 (1~12 중 해당 구간만, 휴회 월 제외, 탈퇴월 이후 제외).
  */
 export function getObligationMonths(
   year: number,
   feeObligationStartAt: Date | null,
-  leavePeriods: LeavePeriod[] = []
+  leavePeriods: LeavePeriod[] = [],
+  leftAt?: Date | null
 ): number[] {
   const first = getRawFirstObligationMonth(year, feeObligationStartAt);
   if (first == null) return [];
+  const last = getLastObligationMonth(year, leftAt);
   const months: number[] = [];
-  for (let m = first; m <= 12; m++) {
+  for (let m = first; m <= last; m++) {
     if (!isMonthInAnyLeave(year, m, leavePeriods)) months.push(m);
   }
   return months;

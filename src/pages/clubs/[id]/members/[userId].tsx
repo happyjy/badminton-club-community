@@ -14,6 +14,7 @@ interface ClubMemberDetail {
   status: string;
   createdAt: string;
   feeObligationStartAt: string | null;
+  leftAt: string | null;
 }
 
 interface MemberLeaveItem {
@@ -41,6 +42,8 @@ function MemberDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feeStartInput, setFeeStartInput] = useState('');
+  const [leftAtInput, setLeftAtInput] = useState('');
+  const [feeEndInput, setFeeEndInput] = useState('');
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -92,6 +95,12 @@ function MemberDetailPage() {
               ? new Date(data.feeObligationStartAt).toISOString().slice(0, 7)
               : ''
           );
+          setLeftAtInput(
+            data.leftAt ? new Date(data.leftAt).toISOString().slice(0, 10) : ''
+          );
+          setFeeEndInput(
+            data.leftAt ? new Date(data.leftAt).toISOString().slice(0, 7) : ''
+          );
         }
       } catch {
         setMember(null);
@@ -137,6 +146,49 @@ function MemberDetailPage() {
           feeObligationStartAt: feeStartInput
             ? new Date(`${feeStartInput}-01`).toISOString()
             : null,
+        });
+      }
+    } catch {
+      setMessage({ type: 'error', text: '저장에 실패했습니다.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onSaveLeftInfo = async () => {
+    if (
+      !clubId ||
+      !userId ||
+      typeof clubId !== 'string' ||
+      typeof userId !== 'string'
+    )
+      return;
+    setSaving(true);
+    setMessage(null);
+    try {
+      const leftAt = leftAtInput ? new Date(leftAtInput).toISOString() : null;
+      // feeEndInput(회비 마지막 월)이 있으면 leftAt의 년·월을 덮어씀
+      const effectiveLeftAt = feeEndInput
+        ? new Date(`${feeEndInput}-01`).toISOString()
+        : leftAt;
+
+      await axios.patch(
+        `/api/clubs/${clubId}/members/${userId}/fee-obligation`,
+        {
+          feeObligationStartAt: feeStartInput
+            ? new Date(`${feeStartInput}-01`).toISOString()
+            : null,
+          leftAt: effectiveLeftAt,
+        }
+      );
+      setMessage({
+        type: 'success',
+        text: '탈퇴 정보가 저장되었습니다.',
+      });
+      if (member) {
+        setMember({
+          ...member,
+          leftAt: effectiveLeftAt,
         });
       }
     } catch {
@@ -342,6 +394,58 @@ function MemberDetailPage() {
             {saving ? '저장 중…' : '저장'}
           </button>
         </div>
+
+        {member.status === 'LEFT' && (
+          <div className="border rounded-lg p-4 bg-red-50 space-y-3">
+            <h3 className="text-sm font-semibold text-red-700">탈퇴 정보</h3>
+            <div>
+              <label
+                htmlFor="leftAt"
+                className="block text-gray-500 text-sm mb-1"
+              >
+                탈퇴일
+              </label>
+              <p className="text-xs text-gray-400 mb-1">
+                상태를 탈퇴로 변경한 날짜가 자동 설정됩니다. 필요 시 수정할 수
+                있습니다.
+              </p>
+              <input
+                id="leftAt"
+                type="date"
+                value={leftAtInput}
+                onChange={(e) => setLeftAtInput(e.target.value)}
+                className="border rounded px-3 py-2 w-full max-w-xs"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="feeEnd"
+                className="block text-gray-500 text-sm mb-1"
+              >
+                회비 마지막 월
+              </label>
+              <p className="text-xs text-gray-400 mb-1">
+                탈퇴 회원의 마지막 회비 의무 월입니다. 기본은 탈퇴일의 해당
+                월입니다.
+              </p>
+              <input
+                id="feeEnd"
+                type="month"
+                value={feeEndInput}
+                onChange={(e) => setFeeEndInput(e.target.value)}
+                className="border rounded px-3 py-2 w-full max-w-xs"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={onSaveLeftInfo}
+              disabled={saving}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+            >
+              {saving ? '저장 중…' : '탈퇴 정보 저장'}
+            </button>
+          </div>
+        )}
 
         {message && (
           <p

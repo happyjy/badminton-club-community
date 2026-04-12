@@ -69,6 +69,11 @@ function PaymentDashboardTable({
     );
   }
 
+  // 정렬: 활동 회원 → 탈퇴 회원
+  const activeMembers = members.filter((m) => !m.isLeft);
+  const leftMembers = members.filter((m) => m.isLeft);
+  const sortedMembers = [...activeMembers, ...leftMembers];
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -90,111 +95,158 @@ function PaymentDashboardTable({
           </tr>
         </thead>
         <tbody>
-          {members.map((member) => {
+          {sortedMembers.map((member, idx) => {
             const paymentLabel =
               member.type === 'exempt'
                 ? '-'
                 : `${member.paidCount}/${member.totalMonths ?? 12}`;
 
-            return (
-              <tr key={member.id} className="border-b hover:bg-gray-50">
-                <td className="w-px px-4 py-2 sticky left-0 bg-white font-medium whitespace-nowrap">
-                  {clubId && member.userId != null ? (
-                    <Link
-                      href={`/clubs/${clubId}/members/${member.userId}?from=/clubs/${clubId}/membership-fee&fromLabel=회비 정산`}
-                      className="hover:underline text-blue-600"
-                      title="회원 정보에서 입금 시작일 수정"
-                    >
-                      {member.name}
-                    </Link>
-                  ) : (
-                    member.name
-                  )}
-                </td>
-                <td className="px-2 py-2 text-center">
-                  {member.type === 'couple' && (
-                    <span className="px-1.5 py-0.5 text-xs bg-pink-100 text-pink-700 rounded whitespace-nowrap">
-                      부부
-                    </span>
-                  )}
-                  {member.type === 'exempt' && (
-                    <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded whitespace-nowrap">
-                      면제
-                    </span>
-                  )}
-                  {member.type === 'regular' && (
-                    <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-700 rounded whitespace-nowrap">
-                      일반
-                    </span>
-                  )}
-                </td>
-                {MONTHS.map((month) => {
-                  const isObligated = member.obligationMonths
-                    ? member.obligationMonths.includes(month)
-                    : month >= (member.firstObligationMonth ?? 1);
-                  const isPaid = member.payments[month];
-                  const isExempt = member.type === 'exempt';
-                  const isLeave = member.leaveMonths?.includes(month) ?? false;
-                  const isStartMonth =
-                    !isExempt &&
-                    member.firstObligationMonth != null &&
-                    member.firstObligationMonth > 1 &&
-                    month === member.firstObligationMonth;
-                  const showRedX =
-                    isObligated &&
-                    isPastOrCurrentMonth(year, month) &&
-                    !isPaid &&
-                    !isExempt;
+            const rowBg = member.isLeft ? 'bg-gray-50' : '';
+            const stickyBg = member.isLeft ? 'bg-gray-50' : 'bg-white';
 
-                  return (
+            // 탈퇴 회원 섹션 구분 행
+            const isFirstLeft =
+              member.isLeft && (idx === 0 || !sortedMembers[idx - 1]?.isLeft);
+            const showDivider =
+              isFirstLeft && leftMembers.length > 0 && activeMembers.length > 0;
+
+            return (
+              <>
+                {showDivider && (
+                  <tr key={`divider-${member.id}`}>
                     <td
-                      key={month}
-                      className={`px-2 py-2 text-center${isStartMonth ? ' border-l-2 border-l-blue-400' : ''}`}
-                      title={
-                        isStartMonth
-                          ? `입금 시작월 (${member.feeObligationStartMonth ?? ''})`
-                          : isLeave
-                            ? '휴회/병가'
-                            : !isObligated
-                              ? '의무 없음'
-                              : showRedX
-                                ? '미납'
-                                : undefined
+                      colSpan={MONTHS.length + 3}
+                      className="px-4 py-2 text-xs text-gray-500 bg-gray-100 font-medium"
+                    >
+                      탈퇴 회원
+                    </td>
+                  </tr>
+                )}
+                <tr
+                  key={member.id}
+                  className={`border-b hover:bg-gray-50 ${rowBg}`}
+                >
+                  <td
+                    className={`w-px px-4 py-2 sticky left-0 ${stickyBg} font-medium whitespace-nowrap`}
+                  >
+                    {clubId && member.userId != null ? (
+                      <Link
+                        href={`/clubs/${clubId}/members/${member.userId}?from=/clubs/${clubId}/membership-fee&fromLabel=회비 정산`}
+                        className="hover:underline text-blue-600"
+                        title="회원 정보에서 입금 시작일 수정"
+                      >
+                        {member.name}
+                      </Link>
+                    ) : (
+                      member.name
+                    )}
+                  </td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1">
+                      {member.type === 'couple' && (
+                        <span className="px-1.5 py-0.5 text-xs bg-pink-100 text-pink-700 rounded">
+                          부부
+                        </span>
+                      )}
+                      {member.type === 'exempt' && (
+                        <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                          면제
+                        </span>
+                      )}
+                      {member.type === 'regular' && (
+                        <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
+                          일반
+                        </span>
+                      )}
+                      {member.isLeft && (
+                        <span className="px-1.5 py-0.5 text-xs bg-red-100 text-red-700 rounded">
+                          탈퇴
+                        </span>
+                      )}
+                    </span>
+                  </td>
+                  {MONTHS.map((month) => {
+                    const isObligated = member.obligationMonths
+                      ? member.obligationMonths.includes(month)
+                      : month >= (member.firstObligationMonth ?? 1);
+                    const isPaid = member.payments[month];
+                    const isExempt = member.type === 'exempt';
+                    const isLeave =
+                      member.leaveMonths?.includes(month) ?? false;
+                    const isStartMonth =
+                      !isExempt &&
+                      member.firstObligationMonth != null &&
+                      member.firstObligationMonth > 1 &&
+                      month === member.firstObligationMonth;
+                    const isLeftMonth =
+                      member.isLeft &&
+                      member.leftMonth != null &&
+                      month === member.leftMonth;
+                    const showRedX =
+                      isObligated &&
+                      isPastOrCurrentMonth(year, month) &&
+                      !isPaid &&
+                      !isExempt;
+
+                    const borderClasses = [
+                      isStartMonth ? 'border-l-2 border-l-blue-400' : '',
+                      isLeftMonth ? 'border-r-2 border-r-red-400' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ');
+
+                    return (
+                      <td
+                        key={month}
+                        className={`px-2 py-2 text-center${borderClasses ? ` ${borderClasses}` : ''}`}
+                        title={
+                          isLeftMonth
+                            ? `탈퇴 (${member.leftAtFormatted ?? ''})`
+                            : isStartMonth
+                              ? `입금 시작월 (${member.feeObligationStartMonth ?? ''})`
+                              : isLeave
+                                ? '휴회/병가'
+                                : !isObligated
+                                  ? '의무 없음'
+                                  : showRedX
+                                    ? '미납'
+                                    : undefined
+                        }
+                      >
+                        {isLeave ? (
+                          <span title="휴회/병가">🏥</span>
+                        ) : !isObligated ? (
+                          <span className="text-gray-300">-</span>
+                        ) : showRedX ? (
+                          <div className="flex items-center justify-center text-red-500 font-semibold">
+                            X
+                          </div>
+                        ) : (
+                          <PaymentStatusCell
+                            isPaid={isPaid}
+                            isExempt={isExempt}
+                          />
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td className="px-4 py-2 text-center">
+                    <span
+                      className={
+                        member.type === 'exempt'
+                          ? 'text-gray-400'
+                          : member.paidCount === (member.totalMonths ?? 12)
+                            ? 'text-green-600 font-semibold'
+                            : member.paidCount >= (member.totalMonths ?? 12) / 2
+                              ? 'text-blue-600'
+                              : 'text-red-600'
                       }
                     >
-                      {isLeave ? (
-                        <span title="휴회/병가">🏥</span>
-                      ) : !isObligated ? (
-                        <span className="text-gray-300">-</span>
-                      ) : showRedX ? (
-                        <div className="flex items-center justify-center text-red-500 font-semibold">
-                          X
-                        </div>
-                      ) : (
-                        <PaymentStatusCell
-                          isPaid={isPaid}
-                          isExempt={isExempt}
-                        />
-                      )}
-                    </td>
-                  );
-                })}
-                <td className="px-4 py-2 text-center">
-                  <span
-                    className={
-                      member.type === 'exempt'
-                        ? 'text-gray-400'
-                        : member.paidCount === (member.totalMonths ?? 12)
-                          ? 'text-green-600 font-semibold'
-                          : member.paidCount >= (member.totalMonths ?? 12) / 2
-                            ? 'text-blue-600'
-                            : 'text-red-600'
-                    }
-                  >
-                    {paymentLabel}
-                  </span>
-                </td>
-              </tr>
+                      {paymentLabel}
+                    </span>
+                  </td>
+                </tr>
+              </>
             );
           })}
         </tbody>

@@ -168,6 +168,12 @@ export interface MemberPaymentStatus {
   leaveMonths?: number[];
   /** 회비 입금 시작월 (YYYY.MM 형식, 예: "2025.04") */
   feeObligationStartMonth?: string | null;
+  /** 탈퇴 여부 */
+  isLeft?: boolean;
+  /** 탈퇴월 (해당 연도 내 탈퇴 시 1~12) */
+  leftMonth?: number;
+  /** 탈퇴일 (YYYY.MM 형식) */
+  leftAtFormatted?: string | null;
 }
 
 // 월별 통계
