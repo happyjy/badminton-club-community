@@ -67,48 +67,48 @@ function MembershipFeeDashboard() {
       )}
 
       {/* 빠른 링크 */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6">
         <Link
           href={`/clubs/${clubId}/membership-fee/settings/fee-types`}
-          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50 text-center"
         >
-          <Settings size={20} className="text-amber-500" />
-          <span>회비 유형 관리</span>
+          <Settings size={24} className="text-amber-500" />
+          <span className="text-sm">회비 유형 관리</span>
         </Link>
         <Link
           href={`/clubs/${clubId}/membership-fee/settings/couples`}
-          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50 text-center"
         >
-          <Users size={20} className="text-pink-500" />
-          <span>부부 관리</span>
+          <Users size={24} className="text-pink-500" />
+          <span className="text-sm">부부 관리</span>
         </Link>
         <Link
           href={`/clubs/${clubId}/membership-fee/settings/exemptions`}
-          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50 text-center"
         >
-          <UserX size={20} className="text-blue-500" />
-          <span>면제 관리</span>
+          <UserX size={24} className="text-blue-500" />
+          <span className="text-sm">면제 관리</span>
         </Link>
         <Link
           href={`/clubs/${clubId}/membership-fee/process`}
-          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50 text-center"
         >
-          <FileText size={20} className="text-green-500" />
-          <span>입금 내역 처리</span>
+          <FileText size={24} className="text-green-500" />
+          <span className="text-sm">입금 내역 처리</span>
         </Link>
         <Link
           href={`/clubs/${clubId}/membership-fee/report`}
-          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50 text-center"
         >
-          <FileText size={20} className="text-purple-500" />
-          <span>리포트</span>
+          <FileText size={24} className="text-purple-500" />
+          <span className="text-sm">리포트</span>
         </Link>
         <Link
           href={`/clubs/${clubId}/membership-fee/batches`}
-          className="flex items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50"
+          className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg border hover:bg-gray-50 text-center"
         >
-          <Clock size={20} className="text-teal-500" />
-          <span>업로드 이력</span>
+          <Clock size={24} className="text-teal-500" />
+          <span className="text-sm">업로드 이력</span>
         </Link>
       </div>
 
