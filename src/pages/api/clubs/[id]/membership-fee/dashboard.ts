@@ -352,12 +352,14 @@ export default withAuth(async function handler(
         const isLeft = member.status === 'LEFT';
         const memberLeftAt = isLeft ? member.leftAt : null;
         const leavePeriodsMember = leaveMap.get(member.id) ?? [];
+        // 첫번째 의무 월 계산
         const firstObligation = getFirstObligationMonth(
           year,
           member.feeObligationStartAt,
           leavePeriodsMember,
           memberLeftAt
         );
+        // 회비 납부 의무 월 개수 계산 (휴회 월 제외, 탈퇴월 이후 제외)
         const totalMonthsMember =
           firstObligation != null
             ? obligationMonthCount(
@@ -366,7 +368,7 @@ export default withAuth(async function handler(
                 leavePeriodsMember,
                 memberLeftAt
               )
-            : 12;
+            : 0;
         const paidMonths = paymentsByMember.get(member.id) || new Set();
 
         const paymentsObj: Record<number, boolean> = {};

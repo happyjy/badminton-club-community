@@ -233,7 +233,8 @@ function PaymentDashboardTable({
                   <td className="px-4 py-2 text-center">
                     <span
                       className={
-                        member.type === 'exempt'
+                        member.type === 'exempt' ||
+                        (member.totalMonths ?? 12) === 0
                           ? 'text-gray-400'
                           : member.paidCount === (member.totalMonths ?? 12)
                             ? 'text-green-600 font-semibold'
