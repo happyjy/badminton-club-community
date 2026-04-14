@@ -231,20 +231,32 @@ function PaymentDashboardTable({
                     );
                   })}
                   <td className="px-4 py-2 text-center">
-                    <span
-                      className={
-                        member.type === 'exempt' ||
-                        (member.totalMonths ?? 12) === 0
-                          ? 'text-gray-400'
-                          : member.paidCount === (member.totalMonths ?? 12)
-                            ? 'text-green-600 font-semibold'
-                            : member.paidCount >= (member.totalMonths ?? 12) / 2
-                              ? 'text-blue-600'
-                              : 'text-red-600'
-                      }
-                    >
-                      {paymentLabel}
-                    </span>
+                    {(() => {
+                      // 해당 회원의 총 납부 대상 개월 수
+                      const totalMonths = member.totalMonths ?? 12;
+                      // 면제 회원이거나 납부 의무 개월이 0인 경우
+                      const isExemptOrNoObligation =
+                        member.type === 'exempt' || totalMonths === 0;
+                      // 납부 대상 개월 전액 완납
+                      const isFullyPaid = member.paidCount === totalMonths;
+                      // 납부 대상 개월의 절반 이상 납부
+                      const isHalfOrMorePaid =
+                        member.paidCount >= totalMonths / 2;
+
+                      const paymentStatusClass = isExemptOrNoObligation
+                        ? 'text-gray-400'
+                        : isFullyPaid
+                          ? 'text-green-600 font-semibold'
+                          : isHalfOrMorePaid
+                            ? 'text-blue-600'
+                            : 'text-red-600';
+
+                      return (
+                        <span className={paymentStatusClass}>
+                          {paymentLabel}
+                        </span>
+                      );
+                    })()}
                   </td>
                 </tr>
               </>
