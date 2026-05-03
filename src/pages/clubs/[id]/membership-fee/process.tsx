@@ -171,25 +171,24 @@ function ProcessPage() {
   const statusFilter =
     typeof filterStatus === 'string' ? filterStatus : undefined;
 
-  /** API에서 받은 목록 (상태 필터만 적용) */
-  const { data: records, isLoading: isRecordsLoading } = usePaymentRecords(
-    clubIdStr,
-    batchId,
-    statusFilter
-  );
-  /** 버튼 카운트용: 항상 전체 목록(필터 없음) → "전체" 숫자가 필터와 무관하게 유지됨 */
-  const { data: allRecords, isLoading: isAllRecordsLoading } =
-    usePaymentRecords(clubIdStr, batchId, undefined);
-  const isLoading = isRecordsLoading || isAllRecordsLoading;
+  /**
+   * batch 단위 전체 목록을 한 번만 받아 클라이언트에서 필드/상태 필터를 모두 적용한다.
+   * status별로 API를 다시 호출하지 않으므로 statusFilter 변경 시 추가 fetch가 발생하지 않는다.
+   */
+  const { data: records, isLoading } = usePaymentRecords(clubIdStr, batchId);
 
-  const filteredRecords = useMemo(
+  /** 필드 필터만 적용 → 상태별 탭 숫자가 필드 필터와 연동되도록 */
+  const filteredAllRecords = useMemo(
     () => applyFilters(records ?? [], filters),
     [records, filters]
   );
-  /** 필터 적용된 전체 목록 → 상태별 탭 숫자가 필터와 연동되도록 */
-  const filteredAllRecords = useMemo(
-    () => applyFilters(allRecords ?? [], filters),
-    [allRecords, filters]
+  /** 필드 필터 + 상태 필터 → 표시 목록과 일괄 확정 대상의 기준 */
+  const filteredRecords = useMemo(
+    () =>
+      statusFilter
+        ? filteredAllRecords.filter((r) => r.status === statusFilter)
+        : filteredAllRecords,
+    [filteredAllRecords, statusFilter]
   );
   const sortedRecords = useMemo(
     () => applySort(filteredRecords, sortBy, sortOrder),
@@ -327,7 +326,7 @@ function ProcessPage() {
   };
 
   const confirmedInBatch = batchId
-    ? (allRecords ?? []).filter((r) => r.status === 'CONFIRMED').length
+    ? (records ?? []).filter((r) => r.status === 'CONFIRMED').length
     : 0;
 
   const handleDeleteBatch = async () => {
@@ -367,7 +366,10 @@ function ProcessPage() {
     ERROR: '에러',
     SKIPPED: '건너뜀',
   };
-  const totalFromApi = records?.length ?? 0;
+  /** 필드 필터 적용 전, 현재 선택된 상태 탭 기준의 전체 건수 */
+  const totalBeforeFieldFilters = statusFilter
+    ? (records ?? []).filter((r) => r.status === statusFilter).length
+    : (records?.length ?? 0);
   const displayCount = sortedRecords.length;
   const hasActiveFilters =
     filters.transactionDateFrom !== '' ||
@@ -422,7 +424,7 @@ function ProcessPage() {
           <div className="text-sm text-blue-800">
             <span className="font-medium">배치 필터 적용 중</span>
             {' · '}
-            {allRecords?.length ?? 0}건
+            {records?.length ?? 0}건
           </div>
           <button
             onClick={() => setShowDeleteModal(true)}
@@ -450,7 +452,7 @@ function ProcessPage() {
               </p>
             ) : (
               <p className="text-sm text-gray-600 mb-4">
-                이 배치({allRecords?.length ?? 0}건)를 삭제하시겠습니까?
+                이 배치({records?.length ?? 0}건)를 삭제하시겠습니까?
               </p>
             )}
             <div className="flex justify-end gap-2">
@@ -515,7 +517,7 @@ function ProcessPage() {
           )}
           {statusLabel != null && ' · '}
           {hasActiveFilters
-            ? `전체 ${totalFromApi}건 중 필터 결과 ${displayCount}건`
+            ? `전체 ${totalBeforeFieldFilters}건 중 필터 결과 ${displayCount}건`
             : `${displayCount}건 표시 중`}
         </p>
 
