@@ -5,8 +5,6 @@ import { Filter, RotateCcw } from 'lucide-react';
 import MemberMultiSelectDropdown from '@/components/molecules/membership-fee/MemberMultiSelectDropdown';
 
 export interface PaymentRecordFilterValues {
-  transactionDateFrom: string;
-  transactionDateTo: string;
   depositorNameKeyword: string;
   amountMin: string;
   amountMax: string;
@@ -14,8 +12,6 @@ export interface PaymentRecordFilterValues {
 }
 
 const INITIAL_FILTERS: PaymentRecordFilterValues = {
-  transactionDateFrom: '',
-  transactionDateTo: '',
   depositorNameKeyword: '',
   amountMin: '',
   amountMax: '',
@@ -50,8 +46,6 @@ function PaymentRecordFilters({
   };
 
   const hasActiveFilters =
-    filters.transactionDateFrom !== '' ||
-    filters.transactionDateTo !== '' ||
     filters.depositorNameKeyword.trim() !== '' ||
     filters.amountMin !== '' ||
     filters.amountMax !== '' ||
@@ -90,30 +84,6 @@ function PaymentRecordFilters({
 
       {isOpen && (
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-200 rounded-b-lg">
-          <div className="min-w-0">
-            <label className="block text-xs font-medium text-gray-500 mb-1">
-              거래일 (부터)
-            </label>
-            <input
-              type="date"
-              value={filters.transactionDateFrom}
-              onChange={(e) =>
-                onUpdate({ transactionDateFrom: e.target.value })
-              }
-              className="w-full px-3 py-2 text-sm border rounded-lg"
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="block text-xs font-medium text-gray-500 mb-1">
-              거래일 (까지)
-            </label>
-            <input
-              type="date"
-              value={filters.transactionDateTo}
-              onChange={(e) => onUpdate({ transactionDateTo: e.target.value })}
-              className="w-full px-3 py-2 text-sm border rounded-lg"
-            />
-          </div>
           <div className="min-w-0">
             <label className="block text-xs font-medium text-gray-500 mb-1">
               입금자명 (포함)

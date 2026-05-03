@@ -42,6 +42,27 @@ type PaymentRecordSortOrder = 'asc' | 'desc';
 const DEFAULT_RECENT_MONTHS = 3;
 const RECENT_MONTH_OPTIONS = [1, 3, 6, 12] as const;
 
+type DateRange = { from: string; to: string };
+
+/** YYYY-MM-DD 포맷의 로컬 날짜 문자열을 반환 (date input value 호환) */
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** 오늘로부터 N개월 전 ~ 오늘 범위를 YYYY-MM-DD 문자열로 반환 */
+function buildRecentRange(months: number): DateRange {
+  const today = new Date();
+  const fromDate = new Date();
+  fromDate.setMonth(fromDate.getMonth() - months);
+  return {
+    from: formatLocalDate(fromDate),
+    to: formatLocalDate(today),
+  };
+}
+
 function getRecordMemberIds(record: PaymentRecord): number[] {
   if (record.matchedMembers && record.matchedMembers.length > 0) {
     return record.matchedMembers.map((m) => m.clubMemberId);
@@ -66,19 +87,6 @@ function applyFilters(
   filters: PaymentRecordFilterValues
 ): PaymentRecord[] {
   return records.filter((record) => {
-    if (filters.transactionDateFrom) {
-      const from = new Date(filters.transactionDateFrom);
-      from.setHours(0, 0, 0, 0);
-      const d = new Date(record.transactionDate);
-      d.setHours(0, 0, 0, 0);
-      if (d < from) return false;
-    }
-    if (filters.transactionDateTo) {
-      const to = new Date(filters.transactionDateTo);
-      to.setHours(23, 59, 59, 999);
-      const d = new Date(record.transactionDate);
-      if (d > to) return false;
-    }
     const keyword = filters.depositorNameKeyword.trim();
     if (keyword) {
       if (!record.depositorName.toLowerCase().includes(keyword.toLowerCase())) {
@@ -172,26 +180,45 @@ function ProcessPage() {
   const [sortOrder, setSortOrder] = useState<PaymentRecordSortOrder>('desc');
 
   /**
-   * 거래일 기준 최근 N개월만 가져오는 기본 정책.
-   * null 이면 "전체 보기" 모드(상한 해제).
+   * 거래일 기준 fetch 범위.
+   * - appliedRange: 실제 fetch에 반영되는 값. null이면 "전체 보기"
+   * - draftRange: 사용자가 편집 중인 값 (프리셋/직접 입력). 적용 버튼을 눌러야 applied에 반영
    * batchId로 진입한 경우에는 batch 자체가 자연 상한이므로 이 정책을 적용하지 않는다
    * (오래된 batch가 비어보이는 혼란을 피하기 위함).
    */
-  const [recentMonthsLimit, setRecentMonthsLimit] = useState<number | null>(
-    DEFAULT_RECENT_MONTHS
+  const [appliedRange, setAppliedRange] = useState<DateRange | null>(() =>
+    buildRecentRange(DEFAULT_RECENT_MONTHS)
   );
-  const isRecentLimitActive = !batchId && recentMonthsLimit != null;
+  const [draftRange, setDraftRange] = useState<DateRange>(() =>
+    buildRecentRange(DEFAULT_RECENT_MONTHS)
+  );
+  const isRangeActive = !batchId && appliedRange != null;
+  const isDraftDirty =
+    appliedRange == null ||
+    draftRange.from !== appliedRange.from ||
+    draftRange.to !== appliedRange.to;
+
+  /** draft가 어떤 프리셋과 일치하는지 판정 (UI 하이라이트용) */
+  const draftPresetMonths = useMemo(() => {
+    for (const m of RECENT_MONTH_OPTIONS) {
+      const r = buildRecentRange(m);
+      if (r.from === draftRange.from && r.to === draftRange.to) return m;
+    }
+    return null;
+  }, [draftRange]);
 
   const statusFilter =
     typeof filterStatus === 'string' ? filterStatus : undefined;
 
+  /** API에 보낼 ISO 문자열 (하루 끝까지 포함하기 위해 to는 23:59:59.999 적용) */
   const recentRange = useMemo(() => {
-    if (!isRecentLimitActive) return undefined;
-    const to = new Date();
-    const from = new Date();
-    from.setMonth(from.getMonth() - recentMonthsLimit!);
-    return { from: from.toISOString(), to: to.toISOString() };
-  }, [isRecentLimitActive, recentMonthsLimit]);
+    if (!isRangeActive || appliedRange == null) return undefined;
+    const fromDate = new Date(appliedRange.from);
+    fromDate.setHours(0, 0, 0, 0);
+    const toDate = new Date(appliedRange.to);
+    toDate.setHours(23, 59, 59, 999);
+    return { from: fromDate.toISOString(), to: toDate.toISOString() };
+  }, [isRangeActive, appliedRange]);
 
   /**
    * batch 단위 전체 목록을 한 번만 받아 클라이언트에서 필드/상태 필터를 모두 적용한다.
@@ -398,8 +425,6 @@ function ProcessPage() {
     : (records?.length ?? 0);
   const displayCount = sortedRecords.length;
   const hasActiveFilters =
-    filters.transactionDateFrom !== '' ||
-    filters.transactionDateTo !== '' ||
     filters.depositorNameKeyword.trim() !== '' ||
     filters.amountMin !== '' ||
     filters.amountMax !== '' ||
@@ -446,32 +471,74 @@ function ProcessPage() {
 
       {/* 거래일 범위 안내 배너 (batch 진입 시에는 batch 자체가 자연 상한이라 숨김) */}
       {!batchId &&
-        (recentMonthsLimit != null ? (
-          <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
-            <div className="text-sm text-amber-800">
-              <span className="font-medium">
-                최근 {recentMonthsLimit}개월 거래만 표시 중
-              </span>
-              {' · '}
-              성능을 위해 기본 적용됩니다
-            </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={recentMonthsLimit}
-                onChange={(e) => setRecentMonthsLimit(Number(e.target.value))}
-                className="text-sm border rounded px-2 py-1 bg-white"
-              >
-                {RECENT_MONTH_OPTIONS.map((m) => (
-                  <option key={m} value={m}>
-                    {m === 12 ? '1년' : `${m}개월`}
-                  </option>
-                ))}
-              </select>
+        (appliedRange != null ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 space-y-3">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="text-sm text-amber-800">
+                <span className="font-medium">
+                  거래일 {appliedRange.from} ~ {appliedRange.to} 표시 중
+                </span>
+                {' · '}
+                성능을 위해 기본 적용됩니다
+              </div>
               <button
-                onClick={() => setRecentMonthsLimit(null)}
+                onClick={() => setAppliedRange(null)}
                 className="text-sm text-amber-700 underline"
               >
                 전체 보기
+              </button>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="date"
+                value={draftRange.from}
+                max={draftRange.to || undefined}
+                onChange={(e) =>
+                  setDraftRange((prev) => ({ ...prev, from: e.target.value }))
+                }
+                className="text-sm border rounded px-2 py-1 bg-white"
+              />
+              <span className="text-sm text-amber-800">~</span>
+              <input
+                type="date"
+                value={draftRange.to}
+                min={draftRange.from || undefined}
+                onChange={(e) =>
+                  setDraftRange((prev) => ({ ...prev, to: e.target.value }))
+                }
+                className="text-sm border rounded px-2 py-1 bg-white"
+              />
+              <div className="flex items-center gap-1 ml-1">
+                {RECENT_MONTH_OPTIONS.map((m) => {
+                  const isActive = draftPresetMonths === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setDraftRange(buildRecentRange(m))}
+                      className={`text-xs px-2 py-1 rounded border ${
+                        isActive
+                          ? 'bg-amber-200 border-amber-400 text-amber-900'
+                          : 'bg-white border-amber-200 text-amber-700 hover:bg-amber-100'
+                      }`}
+                    >
+                      {m === 12 ? '1년' : `${m}개월`}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setAppliedRange({ ...draftRange })}
+                disabled={
+                  !isDraftDirty ||
+                  !draftRange.from ||
+                  !draftRange.to ||
+                  draftRange.from > draftRange.to
+                }
+                className="ml-auto text-sm px-3 py-1 rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                적용
               </button>
             </div>
           </div>
@@ -483,7 +550,11 @@ function ProcessPage() {
               누적 데이터가 많을 경우 화면이 느려질 수 있습니다
             </div>
             <button
-              onClick={() => setRecentMonthsLimit(DEFAULT_RECENT_MONTHS)}
+              onClick={() => {
+                const r = buildRecentRange(DEFAULT_RECENT_MONTHS);
+                setDraftRange(r);
+                setAppliedRange(r);
+              }}
               className="text-sm text-red-700 underline"
             >
               최근 {DEFAULT_RECENT_MONTHS}개월로 돌아가기
