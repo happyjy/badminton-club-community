@@ -41,6 +41,8 @@ type PaymentRecordSortOrder = 'asc' | 'desc';
 
 const DEFAULT_RECENT_MONTHS = 3;
 const RECENT_MONTH_OPTIONS = [1, 3, 6, 12] as const;
+/** 한 번에 조회 가능한 최대 범위 길이 (일). 윤년 안전하게 366일로 둠) */
+const MAX_RANGE_DAYS = 366;
 
 type DateRange = { from: string; to: string };
 
@@ -61,6 +63,14 @@ function buildRecentRange(months: number): DateRange {
     from: formatLocalDate(fromDate),
     to: formatLocalDate(today),
   };
+}
+
+/** YYYY-MM-DD 문자열 두 개의 차이를 일 단위로 반환 (from, to 포함) */
+function diffDaysInclusive(from: string, to: string): number {
+  const fromDate = new Date(from);
+  const toDate = new Date(to);
+  const ms = toDate.getTime() - fromDate.getTime();
+  return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
 }
 
 function getRecordMemberIds(record: PaymentRecord): number[] {
@@ -180,23 +190,26 @@ function ProcessPage() {
   const [sortOrder, setSortOrder] = useState<PaymentRecordSortOrder>('desc');
 
   /**
-   * 거래일 기준 fetch 범위.
-   * - appliedRange: 실제 fetch에 반영되는 값. null이면 "전체 보기"
+   * 거래일 기준 fetch 범위. 한 번에 최대 1년치(MAX_RANGE_DAYS)만 조회 가능.
+   * - appliedRange: 실제 fetch에 반영되는 값
    * - draftRange: 사용자가 편집 중인 값 (프리셋/직접 입력). 적용 버튼을 눌러야 applied에 반영
    * batchId로 진입한 경우에는 batch 자체가 자연 상한이므로 이 정책을 적용하지 않는다
    * (오래된 batch가 비어보이는 혼란을 피하기 위함).
    */
-  const [appliedRange, setAppliedRange] = useState<DateRange | null>(() =>
+  const [appliedRange, setAppliedRange] = useState<DateRange>(() =>
     buildRecentRange(DEFAULT_RECENT_MONTHS)
   );
   const [draftRange, setDraftRange] = useState<DateRange>(() =>
     buildRecentRange(DEFAULT_RECENT_MONTHS)
   );
-  const isRangeActive = !batchId && appliedRange != null;
+  const isRangeActive = !batchId;
   const isDraftDirty =
-    appliedRange == null ||
-    draftRange.from !== appliedRange.from ||
-    draftRange.to !== appliedRange.to;
+    draftRange.from !== appliedRange.from || draftRange.to !== appliedRange.to;
+  const draftRangeDays =
+    draftRange.from && draftRange.to && draftRange.from <= draftRange.to
+      ? diffDaysInclusive(draftRange.from, draftRange.to)
+      : 0;
+  const isDraftRangeTooLong = draftRangeDays > MAX_RANGE_DAYS;
 
   /** draft가 어떤 프리셋과 일치하는지 판정 (UI 하이라이트용) */
   const draftPresetMonths = useMemo(() => {
@@ -212,7 +225,7 @@ function ProcessPage() {
 
   /** API에 보낼 ISO 문자열 (하루 끝까지 포함하기 위해 to는 23:59:59.999 적용) */
   const recentRange = useMemo(() => {
-    if (!isRangeActive || appliedRange == null) return undefined;
+    if (!isRangeActive) return undefined;
     const fromDate = new Date(appliedRange.from);
     fromDate.setHours(0, 0, 0, 0);
     const toDate = new Date(appliedRange.to);
@@ -470,97 +483,75 @@ function ProcessPage() {
       </div>
 
       {/* 거래일 범위 안내 배너 (batch 진입 시에는 batch 자체가 자연 상한이라 숨김) */}
-      {!batchId &&
-        (appliedRange != null ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 space-y-3">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="text-sm text-amber-800">
-                <span className="font-medium">
-                  거래일 {appliedRange.from} ~ {appliedRange.to} 표시 중
-                </span>
-                {' · '}
-                성능을 위해 기본 적용됩니다
-              </div>
-              <button
-                onClick={() => setAppliedRange(null)}
-                className="text-sm text-amber-700 underline"
-              >
-                전체 보기
-              </button>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <input
-                type="date"
-                value={draftRange.from}
-                max={draftRange.to || undefined}
-                onChange={(e) =>
-                  setDraftRange((prev) => ({ ...prev, from: e.target.value }))
-                }
-                className="text-sm border rounded px-2 py-1 bg-white"
-              />
-              <span className="text-sm text-amber-800">~</span>
-              <input
-                type="date"
-                value={draftRange.to}
-                min={draftRange.from || undefined}
-                onChange={(e) =>
-                  setDraftRange((prev) => ({ ...prev, to: e.target.value }))
-                }
-                className="text-sm border rounded px-2 py-1 bg-white"
-              />
-              <div className="flex items-center gap-1 ml-1">
-                {RECENT_MONTH_OPTIONS.map((m) => {
-                  const isActive = draftPresetMonths === m;
-                  return (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setDraftRange(buildRecentRange(m))}
-                      className={`text-xs px-2 py-1 rounded border ${
-                        isActive
-                          ? 'bg-amber-200 border-amber-400 text-amber-900'
-                          : 'bg-white border-amber-200 text-amber-700 hover:bg-amber-100'
-                      }`}
-                    >
-                      {m === 12 ? '1년' : `${m}개월`}
-                    </button>
-                  );
-                })}
-              </div>
-              <button
-                type="button"
-                onClick={() => setAppliedRange({ ...draftRange })}
-                disabled={
-                  !isDraftDirty ||
-                  !draftRange.from ||
-                  !draftRange.to ||
-                  draftRange.from > draftRange.to
-                }
-                className="ml-auto text-sm px-3 py-1 rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                적용
-              </button>
-            </div>
+      {!batchId && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 space-y-3">
+          <div className="text-sm text-amber-800">
+            <span className="font-medium">
+              거래일 {appliedRange.from} ~ {appliedRange.to} 표시 중
+            </span>
+            {' · '}한 번에 최대 1년까지 조회할 수 있습니다
           </div>
-        ) : (
-          <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
-            <div className="text-sm text-red-800">
-              <span className="font-medium">전체 거래 표시 중</span>
-              {' · '}
-              누적 데이터가 많을 경우 화면이 느려질 수 있습니다
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              type="date"
+              value={draftRange.from}
+              max={draftRange.to || undefined}
+              onChange={(e) =>
+                setDraftRange((prev) => ({ ...prev, from: e.target.value }))
+              }
+              className="text-sm border rounded px-2 py-1 bg-white"
+            />
+            <span className="text-sm text-amber-800">~</span>
+            <input
+              type="date"
+              value={draftRange.to}
+              min={draftRange.from || undefined}
+              onChange={(e) =>
+                setDraftRange((prev) => ({ ...prev, to: e.target.value }))
+              }
+              className="text-sm border rounded px-2 py-1 bg-white"
+            />
+            <div className="flex items-center gap-1 ml-1">
+              {RECENT_MONTH_OPTIONS.map((m) => {
+                const isActive = draftPresetMonths === m;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setDraftRange(buildRecentRange(m))}
+                    className={`text-xs px-2 py-1 rounded border ${
+                      isActive
+                        ? 'bg-amber-200 border-amber-400 text-amber-900'
+                        : 'bg-white border-amber-200 text-amber-700 hover:bg-amber-100'
+                    }`}
+                  >
+                    {m === 12 ? '1년' : `${m}개월`}
+                  </button>
+                );
+              })}
             </div>
             <button
-              onClick={() => {
-                const r = buildRecentRange(DEFAULT_RECENT_MONTHS);
-                setDraftRange(r);
-                setAppliedRange(r);
-              }}
-              className="text-sm text-red-700 underline"
+              type="button"
+              onClick={() => setAppliedRange({ ...draftRange })}
+              disabled={
+                !isDraftDirty ||
+                !draftRange.from ||
+                !draftRange.to ||
+                draftRange.from > draftRange.to ||
+                isDraftRangeTooLong
+              }
+              className="ml-auto text-sm px-3 py-1 rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              최근 {DEFAULT_RECENT_MONTHS}개월로 돌아가기
+              적용
             </button>
           </div>
-        ))}
+          {isDraftRangeTooLong && (
+            <p className="text-xs text-red-600">
+              조회 기간은 최대 1년까지만 선택할 수 있습니다.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* 배치 필터 중일 때 배치 정보 헤더 */}
       {batchId && (
