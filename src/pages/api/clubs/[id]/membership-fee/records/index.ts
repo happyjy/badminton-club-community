@@ -16,7 +16,7 @@ export default withAuth(async function handler(
     });
   }
 
-  const { id: clubId, batchId, status } = req.query;
+  const { id: clubId, batchId, status, from, to } = req.query;
 
   if (!clubId || typeof clubId !== 'string') {
     return res.status(400).json({
@@ -54,6 +54,19 @@ export default withAuth(async function handler(
 
     if (status && typeof status === 'string') {
       whereClause.status = status;
+    }
+
+    const dateFilter: { gte?: Date; lte?: Date } = {};
+    if (from && typeof from === 'string') {
+      const fromDate = new Date(from);
+      if (!Number.isNaN(fromDate.getTime())) dateFilter.gte = fromDate;
+    }
+    if (to && typeof to === 'string') {
+      const toDate = new Date(to);
+      if (!Number.isNaN(toDate.getTime())) dateFilter.lte = toDate;
+    }
+    if (dateFilter.gte || dateFilter.lte) {
+      whereClause.transactionDate = dateFilter;
     }
 
     const records = await prisma.paymentRecord.findMany({

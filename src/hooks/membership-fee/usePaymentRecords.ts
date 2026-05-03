@@ -51,13 +51,20 @@ interface BulkConfirmResponse {
   message: string;
 }
 
+// 거래일 기준 최근 N개월만 가져오는 기본 정책.
+// null 이면 "전체 보기" 모드(상한 해제). batchId 진입에도 동일하게 적용한다.
+export interface PaymentRecordsRange {
+  from?: string;
+  to?: string;
+}
+
 export function usePaymentRecords(
   clubId: string | undefined,
   batchId?: string,
-  status?: string
+  range?: PaymentRecordsRange
 ) {
   return useQuery<PaymentRecord[]>({
-    queryKey: ['paymentRecords', clubId, batchId, status],
+    queryKey: ['paymentRecords', clubId, batchId, range?.from, range?.to],
     queryFn: async () => {
       if (!clubId) {
         throw new Error('클럽 ID가 필요합니다');
@@ -65,7 +72,8 @@ export function usePaymentRecords(
 
       const params = new URLSearchParams();
       if (batchId) params.append('batchId', batchId);
-      if (status) params.append('status', status);
+      if (range?.from) params.append('from', range.from);
+      if (range?.to) params.append('to', range.to);
 
       const response = await axios.get<RecordsResponse>(
         `/api/clubs/${clubId}/membership-fee/records?${params.toString()}`

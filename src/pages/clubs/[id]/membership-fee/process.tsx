@@ -39,6 +39,9 @@ interface Member {
 
 type PaymentRecordSortOrder = 'asc' | 'desc';
 
+const DEFAULT_RECENT_MONTHS = 3;
+const RECENT_MONTH_OPTIONS = [1, 3, 6, 12] as const;
+
 function getRecordMemberIds(record: PaymentRecord): number[] {
   if (record.matchedMembers && record.matchedMembers.length > 0) {
     return record.matchedMembers.map((m) => m.clubMemberId);
@@ -168,14 +171,34 @@ function ProcessPage() {
   const [sortBy, setSortBy] = useState<PaymentRecordSortBy>('transactionDate');
   const [sortOrder, setSortOrder] = useState<PaymentRecordSortOrder>('desc');
 
+  /**
+   * 거래일 기준 최근 N개월만 가져오는 기본 정책.
+   * null 이면 "전체 보기" 모드(상한 해제). batchId 진입에도 동일하게 적용한다.
+   */
+  const [recentMonthsLimit, setRecentMonthsLimit] = useState<number | null>(
+    DEFAULT_RECENT_MONTHS
+  );
+
   const statusFilter =
     typeof filterStatus === 'string' ? filterStatus : undefined;
+
+  const recentRange = useMemo(() => {
+    if (recentMonthsLimit == null) return undefined;
+    const to = new Date();
+    const from = new Date();
+    from.setMonth(from.getMonth() - recentMonthsLimit);
+    return { from: from.toISOString(), to: to.toISOString() };
+  }, [recentMonthsLimit]);
 
   /**
    * batch 단위 전체 목록을 한 번만 받아 클라이언트에서 필드/상태 필터를 모두 적용한다.
    * status별로 API를 다시 호출하지 않으므로 statusFilter 변경 시 추가 fetch가 발생하지 않는다.
    */
-  const { data: records, isLoading } = usePaymentRecords(clubIdStr, batchId);
+  const { data: records, isLoading } = usePaymentRecords(
+    clubIdStr,
+    batchId,
+    recentRange
+  );
 
   /** 필드 필터만 적용 → 상태별 탭 숫자가 필드 필터와 연동되도록 */
   const filteredAllRecords = useMemo(
@@ -417,6 +440,52 @@ function ProcessPage() {
         </button>
         <h1 className="text-2xl font-bold">입금 내역 처리</h1>
       </div>
+
+      {/* 거래일 범위 안내 배너 */}
+      {recentMonthsLimit != null ? (
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
+          <div className="text-sm text-amber-800">
+            <span className="font-medium">
+              최근 {recentMonthsLimit}개월 거래만 표시 중
+            </span>
+            {' · '}
+            성능을 위해 기본 적용됩니다
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={recentMonthsLimit}
+              onChange={(e) => setRecentMonthsLimit(Number(e.target.value))}
+              className="text-sm border rounded px-2 py-1 bg-white"
+            >
+              {RECENT_MONTH_OPTIONS.map((m) => (
+                <option key={m} value={m}>
+                  {m === 12 ? '1년' : `${m}개월`}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => setRecentMonthsLimit(null)}
+              className="text-sm text-amber-700 underline"
+            >
+              전체 보기
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+          <div className="text-sm text-red-800">
+            <span className="font-medium">전체 거래 표시 중</span>
+            {' · '}
+            누적 데이터가 많을 경우 화면이 느려질 수 있습니다
+          </div>
+          <button
+            onClick={() => setRecentMonthsLimit(DEFAULT_RECENT_MONTHS)}
+            className="text-sm text-red-700 underline"
+          >
+            최근 {DEFAULT_RECENT_MONTHS}개월로 돌아가기
+          </button>
+        </div>
+      )}
 
       {/* 배치 필터 중일 때 배치 정보 헤더 */}
       {batchId && (
