@@ -173,22 +173,25 @@ function ProcessPage() {
 
   /**
    * 거래일 기준 최근 N개월만 가져오는 기본 정책.
-   * null 이면 "전체 보기" 모드(상한 해제). batchId 진입에도 동일하게 적용한다.
+   * null 이면 "전체 보기" 모드(상한 해제).
+   * batchId로 진입한 경우에는 batch 자체가 자연 상한이므로 이 정책을 적용하지 않는다
+   * (오래된 batch가 비어보이는 혼란을 피하기 위함).
    */
   const [recentMonthsLimit, setRecentMonthsLimit] = useState<number | null>(
     DEFAULT_RECENT_MONTHS
   );
+  const isRecentLimitActive = !batchId && recentMonthsLimit != null;
 
   const statusFilter =
     typeof filterStatus === 'string' ? filterStatus : undefined;
 
   const recentRange = useMemo(() => {
-    if (recentMonthsLimit == null) return undefined;
+    if (!isRecentLimitActive) return undefined;
     const to = new Date();
     const from = new Date();
-    from.setMonth(from.getMonth() - recentMonthsLimit);
+    from.setMonth(from.getMonth() - recentMonthsLimit!);
     return { from: from.toISOString(), to: to.toISOString() };
-  }, [recentMonthsLimit]);
+  }, [isRecentLimitActive, recentMonthsLimit]);
 
   /**
    * batch 단위 전체 목록을 한 번만 받아 클라이언트에서 필드/상태 필터를 모두 적용한다.
@@ -441,51 +444,52 @@ function ProcessPage() {
         <h1 className="text-2xl font-bold">입금 내역 처리</h1>
       </div>
 
-      {/* 거래일 범위 안내 배너 */}
-      {recentMonthsLimit != null ? (
-        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
-          <div className="text-sm text-amber-800">
-            <span className="font-medium">
-              최근 {recentMonthsLimit}개월 거래만 표시 중
-            </span>
-            {' · '}
-            성능을 위해 기본 적용됩니다
+      {/* 거래일 범위 안내 배너 (batch 진입 시에는 batch 자체가 자연 상한이라 숨김) */}
+      {!batchId &&
+        (recentMonthsLimit != null ? (
+          <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
+            <div className="text-sm text-amber-800">
+              <span className="font-medium">
+                최근 {recentMonthsLimit}개월 거래만 표시 중
+              </span>
+              {' · '}
+              성능을 위해 기본 적용됩니다
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={recentMonthsLimit}
+                onChange={(e) => setRecentMonthsLimit(Number(e.target.value))}
+                className="text-sm border rounded px-2 py-1 bg-white"
+              >
+                {RECENT_MONTH_OPTIONS.map((m) => (
+                  <option key={m} value={m}>
+                    {m === 12 ? '1년' : `${m}개월`}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => setRecentMonthsLimit(null)}
+                className="text-sm text-amber-700 underline"
+              >
+                전체 보기
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={recentMonthsLimit}
-              onChange={(e) => setRecentMonthsLimit(Number(e.target.value))}
-              className="text-sm border rounded px-2 py-1 bg-white"
-            >
-              {RECENT_MONTH_OPTIONS.map((m) => (
-                <option key={m} value={m}>
-                  {m === 12 ? '1년' : `${m}개월`}
-                </option>
-              ))}
-            </select>
+        ) : (
+          <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+            <div className="text-sm text-red-800">
+              <span className="font-medium">전체 거래 표시 중</span>
+              {' · '}
+              누적 데이터가 많을 경우 화면이 느려질 수 있습니다
+            </div>
             <button
-              onClick={() => setRecentMonthsLimit(null)}
-              className="text-sm text-amber-700 underline"
+              onClick={() => setRecentMonthsLimit(DEFAULT_RECENT_MONTHS)}
+              className="text-sm text-red-700 underline"
             >
-              전체 보기
+              최근 {DEFAULT_RECENT_MONTHS}개월로 돌아가기
             </button>
           </div>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
-          <div className="text-sm text-red-800">
-            <span className="font-medium">전체 거래 표시 중</span>
-            {' · '}
-            누적 데이터가 많을 경우 화면이 느려질 수 있습니다
-          </div>
-          <button
-            onClick={() => setRecentMonthsLimit(DEFAULT_RECENT_MONTHS)}
-            className="text-sm text-red-700 underline"
-          >
-            최근 {DEFAULT_RECENT_MONTHS}개월로 돌아가기
-          </button>
-        </div>
-      )}
+        ))}
 
       {/* 배치 필터 중일 때 배치 정보 헤더 */}
       {batchId && (
