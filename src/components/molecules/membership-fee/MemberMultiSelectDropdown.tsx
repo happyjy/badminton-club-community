@@ -5,6 +5,17 @@ import { ChevronDown, Search, X } from 'lucide-react';
 interface Member {
   id: number;
   name: string | null;
+  status?: string;
+  leftAt?: string | null;
+}
+
+function formatLeftLabel(leftAt: string | null | undefined): string {
+  if (!leftAt) return '탈퇴';
+  const d = new Date(leftAt);
+  if (Number.isNaN(d.getTime())) return '탈퇴';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `탈퇴 ${y}-${m}`;
 }
 
 interface MemberMultiSelectDropdownProps {
@@ -26,14 +37,17 @@ function MemberMultiSelectDropdown({
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // 선택된 멤버 목록
   const selectedMembers = members.filter((m) =>
     selectedMemberIds.includes(m.id)
   );
 
+  // 검색된 멤버 목록
   const filteredMembers = members.filter((m) =>
     m.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -48,6 +62,7 @@ function MemberMultiSelectDropdown({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // 멤버 토글
   const handleToggle = (memberId: number) => {
     const next = selectedMemberIds.includes(memberId)
       ? selectedMemberIds.filter((id) => id !== memberId)
@@ -55,11 +70,13 @@ function MemberMultiSelectDropdown({
     onSelect(next);
   };
 
+  // 멤버 하나 해제
   const handleClearOne = (e: React.MouseEvent, memberId: number) => {
     e.stopPropagation();
     onSelect(selectedMemberIds.filter((id) => id !== memberId));
   };
 
+  // 모든 멤버 해제
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     onSelect([]);
@@ -67,7 +84,14 @@ function MemberMultiSelectDropdown({
 
   const displayText =
     selectedMembers.length > 0
-      ? selectedMembers.map((m) => m.name || '(이름 없음)').join(', ')
+      ? selectedMembers
+          .map((m) => {
+            const base = m.name || '(이름 없음)';
+            return m.status === 'LEFT'
+              ? `${base} (${formatLeftLabel(m.leftAt)})`
+              : base;
+          })
+          .join(', ')
       : '';
 
   return (
@@ -108,23 +132,39 @@ function MemberMultiSelectDropdown({
 
       {selectedMembers.length > 0 && (
         <div className="mt-2 p-2 border rounded-lg bg-gray-50 flex flex-wrap gap-1">
-          {selectedMembers.map((m) => (
-            <span
-              key={m.id}
-              className="inline-flex max-w-full items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs"
-            >
-              <span className="truncate">{m.name || '(이름 없음)'}</span>
-              {!disabled && (
-                <button
-                  type="button"
-                  onClick={(e) => handleClearOne(e, m.id)}
-                  className="hover:bg-blue-200 rounded p-0.5"
-                >
-                  <X size={12} />
-                </button>
-              )}
-            </span>
-          ))}
+          {selectedMembers.map((m) => {
+            const isLeft = m.status === 'LEFT';
+            return (
+              <span
+                key={m.id}
+                className={`inline-flex max-w-full items-center gap-1 px-2 py-0.5 rounded text-xs ${
+                  isLeft
+                    ? 'bg-gray-200 text-gray-700'
+                    : 'bg-blue-100 text-blue-800'
+                }`}
+              >
+                <span className="truncate">
+                  {m.name || '(이름 없음)'}
+                  {isLeft && (
+                    <span className="ml-1 text-[10px]">
+                      ({formatLeftLabel(m.leftAt)})
+                    </span>
+                  )}
+                </span>
+                {!disabled && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleClearOne(e, m.id)}
+                    className={`rounded p-0.5 ${
+                      isLeft ? 'hover:bg-gray-300' : 'hover:bg-blue-200'
+                    }`}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </span>
+            );
+          })}
         </div>
       )}
 
@@ -154,6 +194,7 @@ function MemberMultiSelectDropdown({
             ) : (
               filteredMembers.map((member) => {
                 const isSelected = selectedMemberIds.includes(member.id);
+                const isLeft = member.status === 'LEFT';
                 return (
                   <button
                     key={member.id}
@@ -161,7 +202,7 @@ function MemberMultiSelectDropdown({
                     onClick={() => handleToggle(member.id)}
                     className={`w-full px-3 py-2 flex items-center gap-2 text-left text-sm hover:bg-gray-100 ${
                       isSelected ? 'bg-blue-50' : ''
-                    }`}
+                    } ${isLeft ? 'text-gray-500' : ''}`}
                   >
                     <span
                       className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${
@@ -174,7 +215,14 @@ function MemberMultiSelectDropdown({
                         <span className="text-white text-xs">✓</span>
                       )}
                     </span>
-                    {member.name || '(이름 없음)'}
+                    <span className="truncate">
+                      {member.name || '(이름 없음)'}
+                    </span>
+                    {isLeft && (
+                      <span className="ml-auto shrink-0 text-[10px] px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded">
+                        {formatLeftLabel(member.leftAt)}
+                      </span>
+                    )}
                   </button>
                 );
               })

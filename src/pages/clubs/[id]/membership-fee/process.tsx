@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -18,6 +18,7 @@ import PaymentRecordTable, {
   YearMonthSelection,
 } from '@/components/organisms/membership-fee/PaymentRecordTable';
 
+import { useMatchableMembers } from '@/hooks/membership-fee/useMatchableMembers';
 import {
   usePaymentRecords,
   useUpdatePaymentRecord,
@@ -31,11 +32,6 @@ import {
 import { withAuth } from '@/lib/withAuth';
 import { PaymentRecord } from '@/types/membership-fee.types';
 import { checkClubAdminPermission } from '@/utils/permissions';
-
-interface Member {
-  id: number;
-  name: string | null;
-}
 
 type PaymentRecordSortOrder = 'asc' | 'desc';
 
@@ -181,7 +177,6 @@ function ProcessPage() {
   const batchId = typeof batchIdQuery === 'string' ? batchIdQuery : undefined;
 
   const [year, setYear] = useState(new Date().getFullYear());
-  const [members, setMembers] = useState<Member[]>([]);
   const [filters, setFilters] =
     useState<PaymentRecordFilterValues>(INITIAL_FILTERS);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -268,29 +263,35 @@ function ProcessPage() {
   const unskipMutation = useUnskipPayment(clubIdStr);
   const bulkConfirmMutation = useBulkConfirmPayments(clubIdStr);
 
-  useEffect(() => {
-    const fetchMembers = async () => {
-      if (!clubId) return;
-
-      try {
-        const response = await fetch(`/api/clubs/members?clubId=${clubId}`);
-        const result = await response.json();
-        if (response.ok) {
-          const memberList = result.data.users.map(
-            (user: { clubMember: { id: number; name: string | null } }) => ({
-              id: user.clubMember.id,
-              name: user.clubMember.name,
-            })
-          );
-          setMembers(memberList);
-        }
-      } catch (error) {
-        console.error('회원 목록 조회 실패:', error);
-      }
+  /**
+   * 매칭 후보 회원 조회 범위.
+   * - 거래일 범위 모드: appliedRange 사용
+   * - batch 모드: 해당 batch records의 거래일 min/max 사용 (records 도착 후 자동 적용)
+   * 범위가 정해지면 거래일 시점 기준으로 활동 중이던 회원만 후보로 받는다.
+   */
+  const matchableRange = useMemo(() => {
+    if (isRangeActive) {
+      return {
+        from: new Date(`${appliedRange.from}T00:00:00.000`).toISOString(),
+        to: new Date(`${appliedRange.to}T23:59:59.999`).toISOString(),
+      };
+    }
+    if (!records || records.length === 0) return undefined;
+    let minTs = Infinity;
+    let maxTs = -Infinity;
+    for (const r of records) {
+      const ts = new Date(r.transactionDate).getTime();
+      if (ts < minTs) minTs = ts;
+      if (ts > maxTs) maxTs = ts;
+    }
+    if (!Number.isFinite(minTs) || !Number.isFinite(maxTs)) return undefined;
+    return {
+      from: new Date(minTs).toISOString(),
+      to: new Date(maxTs).toISOString(),
     };
+  }, [isRangeActive, appliedRange, records]);
 
-    fetchMembers();
-  }, [clubId]);
+  const { data: members = [] } = useMatchableMembers(clubIdStr, matchableRange);
 
   const handleUpdateMember = async (recordId: string, memberIds: number[]) => {
     try {

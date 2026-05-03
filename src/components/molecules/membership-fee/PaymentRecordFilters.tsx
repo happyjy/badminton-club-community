@@ -21,6 +21,8 @@ const INITIAL_FILTERS: PaymentRecordFilterValues = {
 interface Member {
   id: number;
   name: string | null;
+  status?: string;
+  leftAt?: string | null;
 }
 
 interface PaymentRecordFiltersProps {

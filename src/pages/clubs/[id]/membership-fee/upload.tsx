@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -10,6 +10,7 @@ import PaymentRecordTable, {
   YearMonthSelection,
 } from '@/components/organisms/membership-fee/PaymentRecordTable';
 
+import { useMatchableMembers } from '@/hooks/membership-fee/useMatchableMembers';
 import { useMembershipFeeSettings } from '@/hooks/membership-fee/useMembershipFeeSettings';
 import {
   useUploadPaymentExcel,
@@ -24,17 +25,11 @@ import { withAuth } from '@/lib/withAuth';
 import { PaymentRecord } from '@/types/membership-fee.types';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
-interface Member {
-  id: number;
-  name: string | null;
-}
-
 function UploadPage() {
   const router = useRouter();
   const { id: clubId } = router.query;
   const clubIdStr = typeof clubId === 'string' ? clubId : undefined;
 
-  const [members, setMembers] = useState<Member[]>([]);
   const [uploadedRecords, setUploadedRecords] = useState<PaymentRecord[]>([]);
   const [uploadSummary, setUploadSummary] = useState<{
     total: number;
@@ -54,29 +49,24 @@ function UploadPage() {
   const skipMutation = useSkipPayment(clubIdStr);
   const unskipMutation = useUnskipPayment(clubIdStr);
 
-  useEffect(() => {
-    const fetchMembers = async () => {
-      if (!clubId) return;
-
-      try {
-        const response = await fetch(`/api/clubs/members?clubId=${clubId}`);
-        const result = await response.json();
-        if (response.ok) {
-          const memberList = result.data.users.map(
-            (user: { clubMember: { id: number; name: string | null } }) => ({
-              id: user.clubMember.id,
-              name: user.clubMember.name,
-            })
-          );
-          setMembers(memberList);
-        }
-      } catch (error) {
-        console.error('회원 목록 조회 실패:', error);
-      }
+  /** 막 업로드된 records의 거래일 min/max를 매칭 후보 조회 범위로 사용 */
+  const matchableRange = useMemo(() => {
+    if (uploadedRecords.length === 0) return undefined;
+    let minTs = Infinity;
+    let maxTs = -Infinity;
+    for (const r of uploadedRecords) {
+      const ts = new Date(r.transactionDate).getTime();
+      if (ts < minTs) minTs = ts;
+      if (ts > maxTs) maxTs = ts;
+    }
+    if (!Number.isFinite(minTs) || !Number.isFinite(maxTs)) return undefined;
+    return {
+      from: new Date(minTs).toISOString(),
+      to: new Date(maxTs).toISOString(),
     };
+  }, [uploadedRecords]);
 
-    fetchMembers();
-  }, [clubId]);
+  const { data: members = [] } = useMatchableMembers(clubIdStr, matchableRange);
 
   const handleFileUpload = async (file: File) => {
     try {

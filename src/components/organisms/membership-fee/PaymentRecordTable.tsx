@@ -23,6 +23,8 @@ export type YearMonthSelection = { year: number; months: number[] };
 interface Member {
   id: number;
   name: string | null;
+  status?: string;
+  leftAt?: string | null;
 }
 
 export type PaymentRecordSortBy =
