@@ -47,7 +47,7 @@ const MAX_RANGE_DAYS = 366;
 type DateRange = { from: string; to: string };
 
 /** YYYY-MM-DD 포맷의 로컬 날짜 문자열을 반환 (date input value 호환) */
-function formatLocalDate(d: Date): string {
+export function formatLocalDate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -55,7 +55,7 @@ function formatLocalDate(d: Date): string {
 }
 
 /** 오늘로부터 N개월 전 ~ 오늘 범위를 YYYY-MM-DD 문자열로 반환 */
-function buildRecentRange(months: number): DateRange {
+export function buildRecentRange(months: number): DateRange {
   const today = new Date();
   const fromDate = new Date();
   fromDate.setMonth(fromDate.getMonth() - months);
@@ -66,14 +66,14 @@ function buildRecentRange(months: number): DateRange {
 }
 
 /** YYYY-MM-DD 문자열 두 개의 차이를 일 단위로 반환 (from, to 포함) */
-function diffDaysInclusive(from: string, to: string): number {
+export function diffDaysInclusive(from: string, to: string): number {
   const fromDate = new Date(from);
   const toDate = new Date(to);
   const ms = toDate.getTime() - fromDate.getTime();
   return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
 }
 
-function getRecordMemberIds(record: PaymentRecord): number[] {
+export function getRecordMemberIds(record: PaymentRecord): number[] {
   if (record.matchedMembers && record.matchedMembers.length > 0) {
     return record.matchedMembers.map((m) => m.clubMemberId);
   }
@@ -83,7 +83,7 @@ function getRecordMemberIds(record: PaymentRecord): number[] {
   return [];
 }
 
-function formatMatchedMembersForSort(record: PaymentRecord): string {
+export function formatMatchedMembersForSort(record: PaymentRecord): string {
   if (record.matchedMembers && record.matchedMembers.length > 0) {
     return record.matchedMembers
       .map((m) => m.clubMember?.name ?? '')
@@ -92,7 +92,7 @@ function formatMatchedMembersForSort(record: PaymentRecord): string {
   return record.matchedMember?.name ?? '';
 }
 
-function applyFilters(
+export function applyFilters(
   records: PaymentRecord[],
   filters: PaymentRecordFilterValues
 ): PaymentRecord[] {
@@ -133,7 +133,7 @@ function applyFilters(
   });
 }
 
-function applySort(
+export function applySort(
   records: PaymentRecord[],
   sortBy: PaymentRecordSortBy,
   sortOrder: PaymentRecordSortOrder
