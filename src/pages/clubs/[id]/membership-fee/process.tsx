@@ -208,8 +208,7 @@ function ProcessPage() {
     buildRecentRange(DEFAULT_RECENT_MONTHS)
   );
   const isRangeActive = !batchId;
-  const isDraftDirty =
-    draftRange.from !== appliedRange.from || draftRange.to !== appliedRange.to;
+  // draftRange의 날짜 차이를 일 단위로 계산
   const draftRangeDays =
     draftRange.from && draftRange.to && draftRange.from <= draftRange.to
       ? diffDaysInclusive(draftRange.from, draftRange.to)
@@ -741,7 +740,6 @@ function ProcessPage() {
               type="button"
               onClick={() => setAppliedRange({ ...draftRange })}
               disabled={
-                !isDraftDirty ||
                 !draftRange.from ||
                 !draftRange.to ||
                 draftRange.from > draftRange.to ||
