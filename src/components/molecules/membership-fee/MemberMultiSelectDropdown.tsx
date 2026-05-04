@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 
 import { ChevronDown, Search, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface Member {
   id: number;
@@ -36,6 +37,18 @@ function MemberMultiSelectDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelPos, setPanelPos] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 선택된 멤버 목록
   const selectedMembers = members.filter((m) =>
@@ -47,13 +60,13 @@ function MemberMultiSelectDropdown({
     m.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 외부 클릭 시 드롭다운 닫기
+  // 외부 클릭 시 드롭다운 닫기 (portal된 패널 영역도 "내부"로 간주)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      const insideTrigger = dropdownRef.current?.contains(target);
+      const insidePanel = panelRef.current?.contains(target);
+      if (!insideTrigger && !insidePanel) {
         setIsOpen(false);
       }
     };
@@ -61,6 +74,30 @@ function MemberMultiSelectDropdown({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // 패널 위치 계산: 트리거 좌표를 viewport 기준(fixed)으로 환산.
+  // overflow:auto/hidden 부모에 갇히지 않도록 body로 portal하기 때문에 필요.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+
+    const updatePosition = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setPanelPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [isOpen]);
 
   // 멤버 토글
   const handleToggle = (memberId: number) => {
@@ -97,6 +134,7 @@ function MemberMultiSelectDropdown({
   return (
     <div ref={dropdownRef} className="relative min-w-0 w-[calc(100%-20px)]">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
@@ -168,68 +206,81 @@ function MemberMultiSelectDropdown({
         </div>
       )}
 
-      {isOpen && (
-        <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-hidden">
-          <div className="p-2 border-b">
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="검색..."
-                className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-blue-500"
-                autoFocus
-              />
-            </div>
-          </div>
-          <div className="overflow-y-auto max-h-48">
-            {filteredMembers.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-gray-500">
-                검색 결과가 없습니다
+      {isOpen &&
+        mounted &&
+        panelPos &&
+        createPortal(
+          <div
+            ref={panelRef}
+            style={{
+              position: 'fixed',
+              top: panelPos.top,
+              left: panelPos.left,
+              width: panelPos.width,
+            }}
+            className="z-50 bg-white border rounded-lg shadow-lg max-h-60 overflow-hidden"
+          >
+            <div className="p-2 border-b">
+              <div className="relative">
+                <Search
+                  size={16}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="검색..."
+                  className="w-full pl-8 pr-3 py-1.5 border rounded text-sm focus:outline-none focus:border-blue-500"
+                  autoFocus
+                />
               </div>
-            ) : (
-              filteredMembers.map((member) => {
-                const isSelected = selectedMemberIds.includes(member.id);
-                const isLeft = member.status === 'LEFT';
-                return (
-                  <button
-                    key={member.id}
-                    type="button"
-                    onClick={() => handleToggle(member.id)}
-                    className={`w-full px-3 py-2 flex items-center gap-2 text-left text-sm hover:bg-gray-100 ${
-                      isSelected ? 'bg-blue-50' : ''
-                    } ${isLeft ? 'text-gray-500' : ''}`}
-                  >
-                    <span
-                      className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${
-                        isSelected
-                          ? 'bg-blue-500 border-blue-500'
-                          : 'border-gray-300'
-                      }`}
+            </div>
+            <div className="overflow-y-auto max-h-48">
+              {filteredMembers.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-gray-500">
+                  검색 결과가 없습니다
+                </div>
+              ) : (
+                filteredMembers.map((member) => {
+                  const isSelected = selectedMemberIds.includes(member.id);
+                  const isLeft = member.status === 'LEFT';
+                  return (
+                    <button
+                      key={member.id}
+                      type="button"
+                      onClick={() => handleToggle(member.id)}
+                      className={`w-full px-3 py-2 flex items-center gap-2 text-left text-sm hover:bg-gray-100 ${
+                        isSelected ? 'bg-blue-50' : ''
+                      } ${isLeft ? 'text-gray-500' : ''}`}
                     >
-                      {isSelected && (
-                        <span className="text-white text-xs">✓</span>
-                      )}
-                    </span>
-                    <span className="truncate">
-                      {member.name || '(이름 없음)'}
-                    </span>
-                    {isLeft && (
-                      <span className="ml-auto shrink-0 text-[10px] px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded">
-                        {formatLeftLabel(member.leftAt)}
+                      <span
+                        className={`w-4 h-4 border rounded flex items-center justify-center shrink-0 ${
+                          isSelected
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'border-gray-300'
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="text-white text-xs">✓</span>
+                        )}
                       </span>
-                    )}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
+                      <span className="truncate">
+                        {member.name || '(이름 없음)'}
+                      </span>
+                      {isLeft && (
+                        <span className="ml-auto shrink-0 text-[10px] px-1.5 py-0.5 bg-gray-200 text-gray-700 rounded">
+                          {formatLeftLabel(member.leftAt)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

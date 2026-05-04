@@ -173,11 +173,17 @@ function PaymentDashboardTable({
                     const isExempt = member.type === 'exempt';
                     const isLeave =
                       member.leaveMonths?.includes(month) ?? false;
+                    // 입금 시작일이 표시 연도와 같은 경우에만 시작월 표시.
+                    // 작년 가입자가 1월 휴회로 firstObligationMonth가 2 이상으로
+                    // 밀려난 케이스는 제외 (feeObligationStartMonth가 작년이므로).
+                    const startYearStr =
+                      member.feeObligationStartMonth?.split('.')[0];
                     const isStartMonth =
                       !isExempt &&
                       member.firstObligationMonth != null &&
                       member.firstObligationMonth > 1 &&
-                      month === member.firstObligationMonth;
+                      month === member.firstObligationMonth &&
+                      startYearStr === String(year);
                     const isLeftMonth =
                       member.isLeft &&
                       member.leftMonth != null &&
