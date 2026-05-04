@@ -277,6 +277,10 @@ export interface BulkConfirmInput {
   selections?: { year: number; months: number[] }[];
 }
 
+export interface BulkUnconfirmInput {
+  recordIds: string[];
+}
+
 // 매칭 결과 타입
 export interface MatchResult {
   memberId: number | null;

@@ -165,6 +165,13 @@ export const bulkConfirmSchema = z.object({
 
 export type BulkConfirmSchema = z.infer<typeof bulkConfirmSchema>;
 
+// 일괄 확정 취소 스키마
+export const bulkUnconfirmSchema = z.object({
+  recordIds: z.array(z.string()).min(1, '최소 1개의 레코드를 선택해야 합니다'),
+});
+
+export type BulkUnconfirmSchema = z.infer<typeof bulkUnconfirmSchema>;
+
 // 연도 쿼리 스키마
 export const yearQuerySchema = z.object({
   year: z

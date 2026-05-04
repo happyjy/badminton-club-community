@@ -5,6 +5,7 @@ import {
   PaymentRecord,
   PaymentConfirmInput,
   BulkConfirmInput,
+  BulkUnconfirmInput,
 } from '@/types/membership-fee.types';
 
 interface RecordsResponse {
@@ -338,6 +339,44 @@ export function useBulkConfirmPayments(clubId: string | undefined) {
       }
 
       return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['paymentRecords', clubId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['paymentDashboard', clubId],
+      });
+    },
+  });
+}
+
+export function useBulkUnconfirmPayments(clubId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: BulkUnconfirmInput) => {
+      if (!clubId) {
+        throw new Error('클럽 ID가 필요합니다');
+      }
+
+      try {
+        const response = await axios.post<BulkConfirmResponse>(
+          `/api/clubs/${clubId}/membership-fee/records/bulk-unconfirm`,
+          data
+        );
+
+        if (response.data.status !== 200) {
+          throw new Error(response.data.message);
+        }
+
+        return response.data.data;
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.data?.error) {
+          throw new Error(err.response.data.error);
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

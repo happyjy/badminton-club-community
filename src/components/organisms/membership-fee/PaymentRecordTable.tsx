@@ -173,8 +173,13 @@ function PaymentRecordTable({
 
   const isSelectionEnabled =
     selectedRecordIds != null && onSelectedRecordIdsChange != null;
+  const isRecordSelectable = (r: PaymentRecord) => {
+    if (r.status === 'CONFIRMED') return true;
+    if (r.status === 'MATCHED' && getRecordMemberIds(r).length > 0) return true;
+    return false;
+  };
   const selectableRecordIds = records
-    .filter((r) => r.status === 'MATCHED' && getRecordMemberIds(r).length > 0)
+    .filter(isRecordSelectable)
     .map((r) => r.id);
   const isAllSelected =
     isSelectionEnabled &&
@@ -345,9 +350,7 @@ function PaymentRecordTable({
         </thead>
         <tbody>
           {records.map((record) => {
-            const isSelectable =
-              record.status === 'MATCHED' &&
-              getRecordMemberIds(record).length > 0;
+            const isSelectable = isRecordSelectable(record);
             const isChecked =
               isSelectionEnabled && selectedRecordIds!.includes(record.id);
             return (

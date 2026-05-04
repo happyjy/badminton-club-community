@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -28,6 +28,7 @@ import {
   useSkipPayment,
   useUnskipPayment,
   useBulkConfirmPayments,
+  useBulkUnconfirmPayments,
 } from '@/hooks/membership-fee/usePaymentRecords';
 
 import { withAuth } from '@/lib/withAuth';
@@ -269,6 +270,7 @@ function ProcessPage() {
   const skipMutation = useSkipPayment(clubIdStr);
   const unskipMutation = useUnskipPayment(clubIdStr);
   const bulkConfirmMutation = useBulkConfirmPayments(clubIdStr);
+  const bulkUnconfirmMutation = useBulkUnconfirmPayments(clubIdStr);
 
   /**
    * 매칭 후보 회원 조회 범위.
@@ -410,6 +412,61 @@ function ProcessPage() {
       setBulkSelectionMonths([]);
     } catch (error: any) {
       alert(error.message || '선택 항목 일괄 확정에 실패했습니다.');
+    }
+  };
+
+  /**
+   * 체크박스 다중 선택은 일괄 동작이 정의된 탭에서만 활성화한다.
+   * - MATCHED 탭: 선택 항목 확정
+   * - CONFIRMED 탭: 선택 항목 확정 취소
+   * 그 외(전체/대기/에러/건너뜀)는 일괄 동작이 없어 체크박스를 숨긴다.
+   */
+  const isBulkSelectionTab =
+    statusFilter === 'MATCHED' || statusFilter === 'CONFIRMED';
+
+  /**
+   * statusFilter가 바뀌면 선택을 초기화한다.
+   * Why: MATCHED 탭과 CONFIRMED 탭의 선택은 의미가 다르다(확정 vs. 확정 취소).
+   * 탭 전환 시 직전 선택이 따라오면 잘못된 일괄 작업으로 이어질 위험이 있다.
+   */
+  useEffect(() => {
+    setSelectedRecordIds([]);
+  }, [statusFilter]);
+
+  const handleBulkUnconfirmSelected = async () => {
+    if (selectedRecordIds.length === 0) {
+      alert('선택된 항목이 없습니다.');
+      return;
+    }
+    if (
+      !confirm(
+        `${selectedRecordIds.length}건의 확정을 취소하시겠습니까? 회원·월 수정 후 다시 확정해야 합니다.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const result = await bulkUnconfirmMutation.mutateAsync({
+        recordIds: selectedRecordIds,
+      });
+      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
+      const failedDetail = result.results.failed
+        .map((f) => {
+          const depositor =
+            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
+          return `• ${depositor}: ${f.reason}`;
+        })
+        .join('\n');
+      alert(
+        `${result.summary.success}건 확정 취소, ${result.summary.failed}건 실패` +
+          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
+      );
+      setSelectedRecordIds((prev) =>
+        prev.filter((id) => !result.results.success.includes(id))
+      );
+    } catch (error: any) {
+      alert(error.message || '선택 항목 일괄 확정 취소에 실패했습니다.');
     }
   };
 
@@ -717,53 +774,86 @@ function ProcessPage() {
 
         {selectedRecordIds.length > 0 && (
           <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm font-medium text-blue-900">
-                선택 {selectedRecordIds.length}건
-              </span>
-              <button
-                type="button"
-                onClick={() => setSelectedRecordIds([])}
-                className="text-xs text-blue-700 hover:underline"
-              >
-                선택 해제
-              </button>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">연도:</span>
-                <select
-                  value={bulkSelectionYear}
-                  onChange={(e) => setBulkSelectionYear(Number(e.target.value))}
-                  className="px-2 py-1 text-sm border rounded"
-                >
-                  {[year - 1, year, year + 1].map((y) => (
-                    <option key={y} value={y}>
-                      {y}년
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex-1 min-w-[20rem]">
-                <MonthSelector
-                  selectedMonths={bulkSelectionMonths}
-                  onMonthsChange={setBulkSelectionMonths}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleBulkConfirmSelected}
-                disabled={
-                  bulkConfirmMutation.isPending ||
-                  bulkSelectionMonths.length === 0
-                }
-                className="px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
-              >
-                선택 항목 확정
-              </button>
-            </div>
-            <p className="mt-2 text-xs text-blue-800">
-              선택한 회원들에게 위에서 고른 연도·월을 동일하게 적용합니다.
-              (의무월 외 / 이미 납부된 월은 자동으로 실패 처리됩니다)
-            </p>
+            {statusFilter === 'CONFIRMED' ? (
+              <>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm font-medium text-blue-900">
+                    선택 {selectedRecordIds.length}건
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRecordIds([])}
+                    className="text-xs text-blue-700 hover:underline"
+                  >
+                    선택 해제
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkUnconfirmSelected}
+                    disabled={bulkUnconfirmMutation.isPending}
+                    className="ml-auto px-3 py-1.5 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    선택 항목 확정 취소
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-blue-800">
+                  선택한 입금 내역의 확정을 취소합니다. 회원·월 수정 후 다시
+                  확정해야 합니다.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm font-medium text-blue-900">
+                    선택 {selectedRecordIds.length}건
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRecordIds([])}
+                    className="text-xs text-blue-700 hover:underline"
+                  >
+                    선택 해제
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">연도:</span>
+                    <select
+                      value={bulkSelectionYear}
+                      onChange={(e) =>
+                        setBulkSelectionYear(Number(e.target.value))
+                      }
+                      className="px-2 py-1 text-sm border rounded"
+                    >
+                      {[year - 1, year, year + 1].map((y) => (
+                        <option key={y} value={y}>
+                          {y}년
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1 min-w-[20rem]">
+                    <MonthSelector
+                      selectedMonths={bulkSelectionMonths}
+                      onMonthsChange={setBulkSelectionMonths}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleBulkConfirmSelected}
+                    disabled={
+                      bulkConfirmMutation.isPending ||
+                      bulkSelectionMonths.length === 0
+                    }
+                    className="px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    선택 항목 확정
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-blue-800">
+                  선택한 회원들에게 위에서 고른 연도·월을 동일하게 적용합니다.
+                  (의무월 외 / 이미 납부된 월은 자동으로 실패 처리됩니다)
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -779,15 +869,18 @@ function ProcessPage() {
           onUnconfirm={handleUnconfirm}
           onSkip={handleSkip}
           onUnskip={handleUnskip}
-          selectedRecordIds={selectedRecordIds}
-          onSelectedRecordIdsChange={setSelectedRecordIds}
+          selectedRecordIds={isBulkSelectionTab ? selectedRecordIds : undefined}
+          onSelectedRecordIdsChange={
+            isBulkSelectionTab ? setSelectedRecordIds : undefined
+          }
           isUpdating={
             updateMutation.isPending ||
             confirmMutation.isPending ||
             unconfirmMutation.isPending ||
             skipMutation.isPending ||
             unskipMutation.isPending ||
-            bulkConfirmMutation.isPending
+            bulkConfirmMutation.isPending ||
+            bulkUnconfirmMutation.isPending
           }
         />
       </div>
