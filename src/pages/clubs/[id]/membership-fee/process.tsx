@@ -7,13 +7,14 @@ import axios from 'axios';
 import { ArrowLeft, CheckCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-import MonthSelector from '@/components/molecules/membership-fee/MonthSelector';
 import PaymentRecordFilters, {
   INITIAL_FILTERS,
   PaymentRecordFilterValues,
 } from '@/components/molecules/membership-fee/PaymentRecordFilters';
 import ProcessStatusFilterTabs from '@/components/molecules/membership-fee/ProcessStatusFilterTabs';
+import TransactionDateRangeBanner from '@/components/molecules/membership-fee/TransactionDateRangeBanner';
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
+import BulkActionBar from '@/components/organisms/membership-fee/BulkActionBar';
 import PaymentRecordTable, {
   PaymentRecordSortBy,
   YearMonthSelection,
@@ -29,10 +30,7 @@ import {
   useSkipPayment,
   useUnskipPayment,
 } from '@/hooks/membership-fee/usePaymentRecords';
-import {
-  RECENT_MONTH_OPTIONS,
-  useTransactionDateRange,
-} from '@/hooks/membership-fee/useTransactionDateRange';
+import { useTransactionDateRange } from '@/hooks/membership-fee/useTransactionDateRange';
 
 import {
   applyFilters,
@@ -347,72 +345,15 @@ function ProcessPage() {
 
       {/* 거래일 범위 안내 배너 (batch 진입 시에는 batch 자체가 자연 상한이라 숨김) */}
       {!batchId && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 space-y-3">
-          <div className="text-sm text-amber-800">
-            <span className="font-medium">
-              거래일 {appliedRange.from} ~ {appliedRange.to} 표시 중
-            </span>
-            {' · '}한 번에 최대 1년까지 조회할 수 있습니다
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <input
-              type="date"
-              value={draftRange.from}
-              max={draftRange.to || undefined}
-              onChange={(e) =>
-                setDraftRange((prev) => ({ ...prev, from: e.target.value }))
-              }
-              className="text-sm border rounded px-2 py-1 bg-white"
-            />
-            <span className="text-sm text-amber-800">~</span>
-            <input
-              type="date"
-              value={draftRange.to}
-              min={draftRange.from || undefined}
-              onChange={(e) =>
-                setDraftRange((prev) => ({ ...prev, to: e.target.value }))
-              }
-              className="text-sm border rounded px-2 py-1 bg-white"
-            />
-            <div className="flex items-center gap-1 ml-1">
-              {RECENT_MONTH_OPTIONS.map((m) => {
-                const isActive = draftPresetMonths === m;
-                return (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setDraftToPreset(m)}
-                    className={`text-xs px-2 py-1 rounded border ${
-                      isActive
-                        ? 'bg-amber-200 border-amber-400 text-amber-900'
-                        : 'bg-white border-amber-200 text-amber-700 hover:bg-amber-100'
-                    }`}
-                  >
-                    {m === 12 ? '1년' : `${m}개월`}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              onClick={applyDraft}
-              disabled={
-                !draftRange.from ||
-                !draftRange.to ||
-                draftRange.from > draftRange.to ||
-                isDraftRangeTooLong
-              }
-              className="ml-auto text-sm px-3 py-1 rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              적용
-            </button>
-          </div>
-          {isDraftRangeTooLong && (
-            <p className="text-xs text-red-600">
-              조회 기간은 최대 1년까지만 선택할 수 있습니다.
-            </p>
-          )}
-        </div>
+        <TransactionDateRangeBanner
+          appliedRange={appliedRange}
+          draftRange={draftRange}
+          setDraftRange={setDraftRange}
+          applyDraft={applyDraft}
+          setDraftToPreset={setDraftToPreset}
+          draftPresetMonths={draftPresetMonths}
+          isDraftRangeTooLong={isDraftRangeTooLong}
+        />
       )}
 
       {/* 배치 필터 중일 때 배치 정보 헤더 */}
@@ -519,155 +460,13 @@ function ProcessPage() {
         </p>
 
         {selectedRecordIds.length > 0 && (
-          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            {statusFilter === 'CONFIRMED' && (
-              <>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-medium text-blue-900">
-                    선택 {selectedRecordIds.length}건
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRecordIds([])}
-                    className="text-xs text-blue-700 hover:underline"
-                  >
-                    선택 해제
-                  </button>
-                  <button
-                    type="button"
-                    onClick={bulk.handleBulkUnconfirmSelected}
-                    disabled={bulk.isBulkUnconfirmPending}
-                    className="ml-auto px-3 py-1.5 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    선택 항목 확정 취소
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-blue-800">
-                  선택한 입금 내역의 확정을 취소합니다. 회원·월 수정 후 다시
-                  확정해야 합니다.
-                </p>
-              </>
-            )}
-            {statusFilter === 'MATCHED' && (
-              <>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-medium text-blue-900">
-                    선택 {selectedRecordIds.length}건
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRecordIds([])}
-                    className="text-xs text-blue-700 hover:underline"
-                  >
-                    선택 해제
-                  </button>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">연도:</span>
-                    <select
-                      value={bulk.bulkSelectionYear}
-                      onChange={(e) =>
-                        bulk.setBulkSelectionYear(Number(e.target.value))
-                      }
-                      className="px-2 py-1 text-sm border rounded"
-                    >
-                      {[year - 1, year, year + 1].map((y) => (
-                        <option key={y} value={y}>
-                          {y}년
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex-1 min-w-[20rem]">
-                    <MonthSelector
-                      selectedMonths={bulk.bulkSelectionMonths}
-                      onMonthsChange={bulk.setBulkSelectionMonths}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={bulk.handleBulkConfirmSelected}
-                    disabled={
-                      bulk.isBulkConfirmPending ||
-                      bulk.bulkSelectionMonths.length === 0
-                    }
-                    className="px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    선택 항목 확정
-                  </button>
-                  <button
-                    type="button"
-                    onClick={bulk.handleBulkSkipSelected}
-                    disabled={bulk.isBulkSkipPending}
-                    className="px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    선택 항목 건너뛰기
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-blue-800">
-                  선택한 회원들에게 위에서 고른 연도·월을 동일하게 적용합니다.
-                  (의무월 외 / 이미 납부된 월은 자동으로 실패 처리됩니다)
-                  {' · '}정산에서 제외하려면 [선택 항목 건너뛰기]를 사용하세요.
-                </p>
-              </>
-            )}
-            {(statusFilter === 'PENDING' || statusFilter === 'ERROR') && (
-              <>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-medium text-blue-900">
-                    선택 {selectedRecordIds.length}건
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRecordIds([])}
-                    className="text-xs text-blue-700 hover:underline"
-                  >
-                    선택 해제
-                  </button>
-                  <button
-                    type="button"
-                    onClick={bulk.handleBulkSkipSelected}
-                    disabled={bulk.isBulkSkipPending}
-                    className="ml-auto px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    선택 항목 건너뛰기
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-blue-800">
-                  {statusFilter === 'ERROR'
-                    ? '선택한 입금 내역을 건너뛰기 처리합니다. 에러 사유와 무관하게 정산 대상에서 제외됩니다.'
-                    : '선택한 입금 내역을 건너뛰기 처리합니다. 정산 대상에서 제외됩니다.'}
-                </p>
-              </>
-            )}
-            {statusFilter === 'SKIPPED' && (
-              <>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-sm font-medium text-blue-900">
-                    선택 {selectedRecordIds.length}건
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRecordIds([])}
-                    className="text-xs text-blue-700 hover:underline"
-                  >
-                    선택 해제
-                  </button>
-                  <button
-                    type="button"
-                    onClick={bulk.handleBulkUnskipSelected}
-                    disabled={bulk.isBulkUnskipPending}
-                    className="ml-auto px-3 py-1.5 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    선택 항목 건너뜀 해제
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-blue-800">
-                  선택한 입금 내역의 건너뛰기를 해제합니다. 매칭 회원이 있으면
-                  매칭됨으로, 없으면 대기로 복원됩니다.
-                </p>
-              </>
-            )}
-          </div>
+          <BulkActionBar
+            statusFilter={statusFilter}
+            selectedRecordIds={selectedRecordIds}
+            setSelectedRecordIds={setSelectedRecordIds}
+            year={year}
+            bulk={bulk}
+          />
         )}
 
         <PaymentRecordTable
