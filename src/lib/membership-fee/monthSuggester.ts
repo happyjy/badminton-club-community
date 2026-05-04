@@ -17,21 +17,14 @@ export function suggestMonths(
 
   const suggestions: number[] = [];
 
-  // 현재 월부터 시작해서 미납된 월 찾기 (의무 월만)
-  for (let i = 0; i < 12 && suggestions.length < monthCount; i++) {
-    const month = ((baseMonth - 1 + i) % 12) + 1;
-    if (allowed.has(month) && !paid.has(month)) {
-      suggestions.push(month);
-    }
+  // 1) 거래월 포함 그 이전(과거)의 미납 의무월부터 채움 — 밀린 회비 우선
+  for (let m = 1; m <= baseMonth && suggestions.length < monthCount; m++) {
+    if (allowed.has(m) && !paid.has(m)) suggestions.push(m);
   }
 
-  // 앞쪽 미납 월도 포함
-  if (suggestions.length < monthCount) {
-    for (let i = 1; i < baseMonth && suggestions.length < monthCount; i++) {
-      if (allowed.has(i) && !paid.has(i) && !suggestions.includes(i)) {
-        suggestions.push(i);
-      }
-    }
+  // 2) 부족하면 거래월 이후의 미납 의무월로 보충 (선납)
+  for (let m = baseMonth + 1; m <= 12 && suggestions.length < monthCount; m++) {
+    if (allowed.has(m) && !paid.has(m)) suggestions.push(m);
   }
 
   return suggestions.sort((a, b) => a - b);
