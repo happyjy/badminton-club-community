@@ -172,6 +172,20 @@ export const bulkUnconfirmSchema = z.object({
 
 export type BulkUnconfirmSchema = z.infer<typeof bulkUnconfirmSchema>;
 
+// 일괄 건너뛰기 스키마
+export const bulkSkipSchema = z.object({
+  recordIds: z.array(z.string()).min(1, '최소 1개의 레코드를 선택해야 합니다'),
+});
+
+export type BulkSkipSchema = z.infer<typeof bulkSkipSchema>;
+
+// 일괄 건너뜀 해제 스키마
+export const bulkUnskipSchema = z.object({
+  recordIds: z.array(z.string()).min(1, '최소 1개의 레코드를 선택해야 합니다'),
+});
+
+export type BulkUnskipSchema = z.infer<typeof bulkUnskipSchema>;
+
 // 연도 쿼리 스키마
 export const yearQuerySchema = z.object({
   year: z

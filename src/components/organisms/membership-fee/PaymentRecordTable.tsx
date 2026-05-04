@@ -176,6 +176,9 @@ function PaymentRecordTable({
   const isRecordSelectable = (r: PaymentRecord) => {
     if (r.status === 'CONFIRMED') return true;
     if (r.status === 'MATCHED' && getRecordMemberIds(r).length > 0) return true;
+    if (r.status === 'PENDING') return true;
+    if (r.status === 'ERROR') return true;
+    if (r.status === 'SKIPPED') return true;
     return false;
   };
   const selectableRecordIds = records

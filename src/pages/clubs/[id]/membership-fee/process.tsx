@@ -29,6 +29,8 @@ import {
   useUnskipPayment,
   useBulkConfirmPayments,
   useBulkUnconfirmPayments,
+  useBulkSkipPayments,
+  useBulkUnskipPayments,
 } from '@/hooks/membership-fee/usePaymentRecords';
 
 import { withAuth } from '@/lib/withAuth';
@@ -271,6 +273,8 @@ function ProcessPage() {
   const unskipMutation = useUnskipPayment(clubIdStr);
   const bulkConfirmMutation = useBulkConfirmPayments(clubIdStr);
   const bulkUnconfirmMutation = useBulkUnconfirmPayments(clubIdStr);
+  const bulkSkipMutation = useBulkSkipPayments(clubIdStr);
+  const bulkUnskipMutation = useBulkUnskipPayments(clubIdStr);
 
   /**
    * 매칭 후보 회원 조회 범위.
@@ -417,12 +421,19 @@ function ProcessPage() {
 
   /**
    * 체크박스 다중 선택은 일괄 동작이 정의된 탭에서만 활성화한다.
-   * - MATCHED 탭: 선택 항목 확정
+   * - PENDING 탭: 선택 항목 건너뛰기
+   * - MATCHED 탭: 선택 항목 확정 / 선택 항목 건너뛰기
    * - CONFIRMED 탭: 선택 항목 확정 취소
-   * 그 외(전체/대기/에러/건너뜀)는 일괄 동작이 없어 체크박스를 숨긴다.
+   * - ERROR 탭: 선택 항목 건너뛰기
+   * - SKIPPED 탭: 선택 항목 건너뜀 해제
+   * 전체 탭은 상태 혼재로 단일 일괄 동작이 정의되지 않아 체크박스를 숨긴다.
    */
   const isBulkSelectionTab =
-    statusFilter === 'MATCHED' || statusFilter === 'CONFIRMED';
+    statusFilter === 'PENDING' ||
+    statusFilter === 'MATCHED' ||
+    statusFilter === 'CONFIRMED' ||
+    statusFilter === 'ERROR' ||
+    statusFilter === 'SKIPPED';
 
   /**
    * statusFilter가 바뀌면 선택을 초기화한다.
@@ -467,6 +478,86 @@ function ProcessPage() {
       );
     } catch (error: any) {
       alert(error.message || '선택 항목 일괄 확정 취소에 실패했습니다.');
+    }
+  };
+
+  /**
+   * 사용자가 체크한 record들을 일괄 건너뛰기 처리.
+   * PENDING / MATCHED / ERROR 탭에서 호출된다. CONFIRMED·SKIPPED는 백엔드에서 거부.
+   */
+  const handleBulkSkipSelected = async () => {
+    if (selectedRecordIds.length === 0) {
+      alert('선택된 항목이 없습니다.');
+      return;
+    }
+    if (
+      !confirm(
+        `${selectedRecordIds.length}건을 건너뛰기 처리하시겠습니까? 정산 대상에서 제외됩니다.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const result = await bulkSkipMutation.mutateAsync({
+        recordIds: selectedRecordIds,
+      });
+      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
+      const failedDetail = result.results.failed
+        .map((f) => {
+          const depositor =
+            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
+          return `• ${depositor}: ${f.reason}`;
+        })
+        .join('\n');
+      alert(
+        `${result.summary.success}건 건너뛰기, ${result.summary.failed}건 실패` +
+          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
+      );
+      setSelectedRecordIds((prev) =>
+        prev.filter((id) => !result.results.success.includes(id))
+      );
+    } catch (error: any) {
+      alert(error.message || '선택 항목 일괄 건너뛰기에 실패했습니다.');
+    }
+  };
+
+  /**
+   * 사용자가 체크한 record들의 건너뛰기 해제.
+   * 매칭 회원 유무에 따라 백엔드가 MATCHED / PENDING으로 분기 복원한다.
+   */
+  const handleBulkUnskipSelected = async () => {
+    if (selectedRecordIds.length === 0) {
+      alert('선택된 항목이 없습니다.');
+      return;
+    }
+    if (
+      !confirm(`${selectedRecordIds.length}건의 건너뛰기를 해제하시겠습니까?`)
+    ) {
+      return;
+    }
+
+    try {
+      const result = await bulkUnskipMutation.mutateAsync({
+        recordIds: selectedRecordIds,
+      });
+      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
+      const failedDetail = result.results.failed
+        .map((f) => {
+          const depositor =
+            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
+          return `• ${depositor}: ${f.reason}`;
+        })
+        .join('\n');
+      alert(
+        `${result.summary.success}건 건너뜀 해제, ${result.summary.failed}건 실패` +
+          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
+      );
+      setSelectedRecordIds((prev) =>
+        prev.filter((id) => !result.results.success.includes(id))
+      );
+    } catch (error: any) {
+      alert(error.message || '선택 항목 일괄 건너뜀 해제에 실패했습니다.');
     }
   };
 
@@ -774,7 +865,7 @@ function ProcessPage() {
 
         {selectedRecordIds.length > 0 && (
           <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-            {statusFilter === 'CONFIRMED' ? (
+            {statusFilter === 'CONFIRMED' && (
               <>
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-sm font-medium text-blue-900">
@@ -801,7 +892,8 @@ function ProcessPage() {
                   확정해야 합니다.
                 </p>
               </>
-            ) : (
+            )}
+            {statusFilter === 'MATCHED' && (
               <>
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-sm font-medium text-blue-900">
@@ -847,10 +939,76 @@ function ProcessPage() {
                   >
                     선택 항목 확정
                   </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkSkipSelected}
+                    disabled={bulkSkipMutation.isPending}
+                    className="px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    선택 항목 건너뛰기
+                  </button>
                 </div>
                 <p className="mt-2 text-xs text-blue-800">
                   선택한 회원들에게 위에서 고른 연도·월을 동일하게 적용합니다.
                   (의무월 외 / 이미 납부된 월은 자동으로 실패 처리됩니다)
+                  {' · '}정산에서 제외하려면 [선택 항목 건너뛰기]를 사용하세요.
+                </p>
+              </>
+            )}
+            {(statusFilter === 'PENDING' || statusFilter === 'ERROR') && (
+              <>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm font-medium text-blue-900">
+                    선택 {selectedRecordIds.length}건
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRecordIds([])}
+                    className="text-xs text-blue-700 hover:underline"
+                  >
+                    선택 해제
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkSkipSelected}
+                    disabled={bulkSkipMutation.isPending}
+                    className="ml-auto px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    선택 항목 건너뛰기
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-blue-800">
+                  {statusFilter === 'ERROR'
+                    ? '선택한 입금 내역을 건너뛰기 처리합니다. 에러 사유와 무관하게 정산 대상에서 제외됩니다.'
+                    : '선택한 입금 내역을 건너뛰기 처리합니다. 정산 대상에서 제외됩니다.'}
+                </p>
+              </>
+            )}
+            {statusFilter === 'SKIPPED' && (
+              <>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm font-medium text-blue-900">
+                    선택 {selectedRecordIds.length}건
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRecordIds([])}
+                    className="text-xs text-blue-700 hover:underline"
+                  >
+                    선택 해제
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkUnskipSelected}
+                    disabled={bulkUnskipMutation.isPending}
+                    className="ml-auto px-3 py-1.5 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    선택 항목 건너뜀 해제
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-blue-800">
+                  선택한 입금 내역의 건너뛰기를 해제합니다. 매칭 회원이 있으면
+                  매칭됨으로, 없으면 대기로 복원됩니다.
                 </p>
               </>
             )}
@@ -880,7 +1038,9 @@ function ProcessPage() {
             skipMutation.isPending ||
             unskipMutation.isPending ||
             bulkConfirmMutation.isPending ||
-            bulkUnconfirmMutation.isPending
+            bulkUnconfirmMutation.isPending ||
+            bulkSkipMutation.isPending ||
+            bulkUnskipMutation.isPending
           }
         />
       </div>

@@ -281,6 +281,14 @@ export interface BulkUnconfirmInput {
   recordIds: string[];
 }
 
+export interface BulkSkipInput {
+  recordIds: string[];
+}
+
+export interface BulkUnskipInput {
+  recordIds: string[];
+}
+
 // 매칭 결과 타입
 export interface MatchResult {
   memberId: number | null;
