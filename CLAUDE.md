@@ -111,6 +111,13 @@ src/pages/api/clubs/
 
 `docs/` 폴더에 기능별 상세 문서 있음 (게스트 신청, SMS, 휴대폰 인증, 회비 정산 등)
 
+## 작업별 룰 (`.claude/rules/`)
+
+특정 패턴의 작업을 시작할 때 해당 룰 문서를 먼저 읽고 따른다.
+
+- API 핸들러 추가/수정 시 → `.claude/rules/api-handler-conventions.md` (Prisma 싱글톤, 핸들러 보일러플레이트, 응답 포맷)
+- 일괄 처리 API 추가 시 → `.claude/rules/bulk-action-pattern.md`
+
 ## 문서화 정책
 
 기능 변경은 **화면 단위와 기능 단위로 분리**해 문서화한다.
