@@ -48,6 +48,9 @@ interface PaymentRecordTableProps {
   onSkip: (recordId: string) => void;
   onUnskip: (recordId: string) => void;
   isUpdating?: boolean;
+  /** 다중 선택 활성화 시 함께 전달. 없으면 체크박스 컬럼이 숨겨짐. */
+  selectedRecordIds?: string[];
+  onSelectedRecordIdsChange?: (ids: string[]) => void;
 }
 
 function getRecordMemberIds(record: PaymentRecord): number[] {
@@ -157,6 +160,8 @@ function PaymentRecordTable({
   onSkip,
   onUnskip,
   isUpdating = false,
+  selectedRecordIds,
+  onSelectedRecordIdsChange,
 }: PaymentRecordTableProps) {
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [confirmingRecordId, setConfirmingRecordId] = useState<string | null>(
@@ -165,6 +170,44 @@ function PaymentRecordTable({
   const [selections, setSelections] = useState<YearMonthSelection[]>([]);
   const [addYear, setAddYear] = useState(year);
   const [addMonths, setAddMonths] = useState<number[]>([]);
+
+  const isSelectionEnabled =
+    selectedRecordIds != null && onSelectedRecordIdsChange != null;
+  const selectableRecordIds = records
+    .filter((r) => r.status === 'MATCHED' && getRecordMemberIds(r).length > 0)
+    .map((r) => r.id);
+  const isAllSelected =
+    isSelectionEnabled &&
+    selectableRecordIds.length > 0 &&
+    selectableRecordIds.every((id) => selectedRecordIds!.includes(id));
+  const isPartiallySelected =
+    isSelectionEnabled &&
+    !isAllSelected &&
+    selectableRecordIds.some((id) => selectedRecordIds!.includes(id));
+
+  const toggleSelectAll = () => {
+    if (!isSelectionEnabled) return;
+    if (isAllSelected) {
+      onSelectedRecordIdsChange!(
+        selectedRecordIds!.filter((id) => !selectableRecordIds.includes(id))
+      );
+    } else {
+      onSelectedRecordIdsChange!([
+        ...new Set([...selectedRecordIds!, ...selectableRecordIds]),
+      ]);
+    }
+  };
+
+  const toggleSelectOne = (recordId: string) => {
+    if (!isSelectionEnabled) return;
+    if (selectedRecordIds!.includes(recordId)) {
+      onSelectedRecordIdsChange!(
+        selectedRecordIds!.filter((id) => id !== recordId)
+      );
+    } else {
+      onSelectedRecordIdsChange!([...selectedRecordIds!, recordId]);
+    }
+  };
 
   const handleStartEdit = (recordId: string) => {
     setEditingRecordId(recordId);
@@ -246,6 +289,20 @@ function PaymentRecordTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-50 border-b">
+            {isSelectionEnabled && (
+              <th className="px-3 py-3 text-center w-10">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = isPartiallySelected;
+                  }}
+                  onChange={toggleSelectAll}
+                  disabled={selectableRecordIds.length === 0}
+                  aria-label="모두 선택"
+                />
+              </th>
+            )}
             <SortableTh
               label="거래일"
               column="transactionDate"
@@ -287,287 +344,316 @@ function PaymentRecordTable({
           </tr>
         </thead>
         <tbody>
-          {records.map((record) => (
-            <Fragment key={record.id}>
-              <tr className="border-b hover:bg-gray-50">
-                <td className="px-4 py-3 whitespace-nowrap">
-                  {new Date(record.transactionDate).toLocaleDateString('ko-KR')}
-                </td>
-                <td className="px-4 py-3">{record.depositorName}</td>
-                <td className="px-4 py-3 text-right whitespace-nowrap">
-                  {record.amount.toLocaleString()}원
-                </td>
-                <td className="px-4 py-3">
-                  {editingRecordId === record.id ? (
-                    <div className="flex items-center gap-2">
-                      <div className="min-w-[12rem] max-w-[20rem]">
-                        <MemberMultiSelectDropdown
-                          members={members}
-                          selectedMemberIds={getRecordMemberIds(record)}
-                          onSelect={(memberIds) => {
-                            onUpdateMember(record.id, memberIds);
-                          }}
-                          disabled={isUpdating}
+          {records.map((record) => {
+            const isSelectable =
+              record.status === 'MATCHED' &&
+              getRecordMemberIds(record).length > 0;
+            const isChecked =
+              isSelectionEnabled && selectedRecordIds!.includes(record.id);
+            return (
+              <Fragment key={record.id}>
+                <tr className="border-b hover:bg-gray-50">
+                  {isSelectionEnabled && (
+                    <td className="px-3 py-3 text-center">
+                      {isSelectable ? (
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleSelectOne(record.id)}
+                          aria-label="선택"
                         />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditingRecordId(null)}
-                        className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap"
-                      >
-                        취소
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <span>
-                          {formatMatchedMembers(record) || (
-                            <span className="text-red-500 whitespace-nowrap">
-                              미매칭
-                            </span>
-                          )}
-                        </span>
-                        {record.status !== 'CONFIRMED' &&
-                          record.status !== 'SKIPPED' && (
-                            <button
-                              type="button"
-                              onClick={() => handleStartEdit(record.id)}
-                              className="p-1 text-gray-400 hover:text-gray-600"
-                              title="회원 수정"
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                          )}
-                      </div>
-                      {getRecordMemberIds(record).length > 0 &&
-                        (record.lastPaidYearMonth ? (
-                          <span className="text-xs text-gray-500">
-                            최종 납부: {record.lastPaidYearMonth.year}년{' '}
-                            {record.lastPaidYearMonth.month}월
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">
-                            최종 납부: 없음
-                          </span>
-                        ))}
-                    </div>
+                      ) : (
+                        <span className="inline-block w-4 h-4" />
+                      )}
+                    </td>
                   )}
-                </td>
-                <td className="px-4 py-3 text-center min-w-24">
-                  <RecordStatusBadge status={record.status} />
-                  {record.errorReason && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {record.errorReason}
-                    </p>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-center gap-2">
-                    {confirmingRecordId === record.id && (
-                      <span className="text-xs text-green-700 whitespace-nowrap">
-                        확정 설정 중
-                      </span>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {new Date(record.transactionDate).toLocaleDateString(
+                      'ko-KR'
                     )}
-                    {/* 
+                  </td>
+                  <td className="px-4 py-3">{record.depositorName}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    {record.amount.toLocaleString()}원
+                  </td>
+                  <td className="px-4 py-3">
+                    {editingRecordId === record.id ? (
+                      <div className="flex items-center gap-2">
+                        <div className="min-w-[12rem] max-w-[20rem]">
+                          <MemberMultiSelectDropdown
+                            members={members}
+                            selectedMemberIds={getRecordMemberIds(record)}
+                            onSelect={(memberIds) => {
+                              onUpdateMember(record.id, memberIds);
+                            }}
+                            disabled={isUpdating}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRecordId(null)}
+                          className="text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                          <span>
+                            {formatMatchedMembers(record) || (
+                              <span className="text-red-500 whitespace-nowrap">
+                                미매칭
+                              </span>
+                            )}
+                          </span>
+                          {record.status !== 'CONFIRMED' &&
+                            record.status !== 'SKIPPED' && (
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(record.id)}
+                                className="p-1 text-gray-400 hover:text-gray-600"
+                                title="회원 수정"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                            )}
+                        </div>
+                        {getRecordMemberIds(record).length > 0 &&
+                          (record.lastPaidYearMonth ? (
+                            <span className="text-xs text-gray-500">
+                              최종 납부: {record.lastPaidYearMonth.year}년{' '}
+                              {record.lastPaidYearMonth.month}월
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">
+                              최종 납부: 없음
+                            </span>
+                          ))}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center min-w-24">
+                    <RecordStatusBadge status={record.status} />
+                    {record.errorReason && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {record.errorReason}
+                      </p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-2">
+                      {confirmingRecordId === record.id && (
+                        <span className="text-xs text-green-700 whitespace-nowrap">
+                          확정 설정 중
+                        </span>
+                      )}
+                      {/* 
                       확정 설정 중이 아니고, 
                       건너뛰기 설정 중이 아니고, 
                       확정 설정 중이 아니면 
                       확정 설정 버튼을 표시 
                       */}
-                    {record.status !== 'CONFIRMED' &&
-                      record.status !== 'SKIPPED' &&
-                      confirmingRecordId !== record.id && (
-                        <>
-                          {getRecordMemberIds(record).length > 0 && (
+                      {record.status !== 'CONFIRMED' &&
+                        record.status !== 'SKIPPED' &&
+                        confirmingRecordId !== record.id && (
+                          <>
+                            {getRecordMemberIds(record).length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => handleStartConfirm(record)}
+                                disabled={isUpdating}
+                                className="p-1.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                                title="확정"
+                              >
+                                <Check size={18} />
+                              </button>
+                            )}
                             <button
                               type="button"
-                              onClick={() => handleStartConfirm(record)}
+                              onClick={() => onSkip(record.id)}
                               disabled={isUpdating}
-                              className="p-1.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
-                              title="확정"
+                              className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded disabled:opacity-50"
+                              title="건너뛰기"
                             >
-                              <Check size={18} />
+                              <SkipForward size={18} />
                             </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => onSkip(record.id)}
-                            disabled={isUpdating}
-                            className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded disabled:opacity-50"
-                            title="건너뛰기"
-                          >
-                            <SkipForward size={18} />
-                          </button>
-                        </>
-                      )}
-                    {/* 
+                          </>
+                        )}
+                      {/* 
                       확정된 경우 
                       확정된 월을 표시하고, 
                       확정 취소 버튼을 표시 
                       */}
-                    {record.status === 'CONFIRMED' &&
-                      (() => {
-                        const monthsStr = formatConfirmedMonths(record);
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-green-600">
-                              {monthsStr ? `확정됨 (${monthsStr})` : '확정됨'}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => onUnconfirm(record.id)}
-                              disabled={isUpdating}
-                              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
-                              title="확정 취소 후 수정"
-                            >
-                              <RotateCcw size={16} />
-                            </button>
-                          </div>
-                        );
-                      })()}
-                    {/* 
+                      {record.status === 'CONFIRMED' &&
+                        (() => {
+                          const monthsStr = formatConfirmedMonths(record);
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-green-600">
+                                {monthsStr ? `확정됨 (${monthsStr})` : '확정됨'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => onUnconfirm(record.id)}
+                                disabled={isUpdating}
+                                className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+                                title="확정 취소 후 수정"
+                              >
+                                <RotateCcw size={16} />
+                              </button>
+                            </div>
+                          );
+                        })()}
+                      {/* 
                       건너뜀 경우 
                       건너뜀 월을 표시하고, 
                       건너뜀 해제 버튼을 표시 
                       */}
-                    {record.status === 'SKIPPED' && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-yellow-600 whitespace-nowrap">
-                          건너뜀
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onUnskip(record.id)}
-                          disabled={isUpdating}
-                          className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
-                          title="건너뛰기 해제 후 수정"
-                        >
-                          <RotateCcw size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-              {/* 
+                      {record.status === 'SKIPPED' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-yellow-600 whitespace-nowrap">
+                            건너뜀
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onUnskip(record.id)}
+                            disabled={isUpdating}
+                            className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-50"
+                            title="건너뛰기 해제 후 수정"
+                          >
+                            <RotateCcw size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+                {/* 
                 확정 설정 중인 경우 
                 확정 설정 월을 표시하고, 
                 확정 버튼과 설정 취소 버튼을 표시 
                 */}
-              {confirmingRecordId === record.id && (
-                <tr className="border-b bg-green-50/40">
-                  <td colSpan={6} className="px-4 py-3">
-                    <div className="space-y-2 w-full max-w-4xl">
-                      {record.lastPaidYearMonth &&
-                        (() => {
-                          const last = record.lastPaidYearMonth;
-                          const next = getNextMonth(last);
-                          return (
-                            <p className="text-sm text-gray-600">
-                              <span className="font-medium">최종 납부월:</span>{' '}
-                              {last.year}년 {last.month}월{' · '}
-                              <span className="text-green-700 font-medium">
-                                차기월(권장): {next.year}년 {next.month}월
-                              </span>
+                {confirmingRecordId === record.id && (
+                  <tr className="border-b bg-green-50/40">
+                    <td
+                      colSpan={isSelectionEnabled ? 7 : 6}
+                      className="px-4 py-3"
+                    >
+                      <div className="space-y-2 w-full max-w-4xl">
+                        {record.lastPaidYearMonth &&
+                          (() => {
+                            const last = record.lastPaidYearMonth;
+                            const next = getNextMonth(last);
+                            return (
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">
+                                  최종 납부월:
+                                </span>{' '}
+                                {last.year}년 {last.month}월{' · '}
+                                <span className="text-green-700 font-medium">
+                                  차기월(권장): {next.year}년 {next.month}월
+                                </span>
+                              </p>
+                            );
+                          })()}
+                        {!record.lastPaidYearMonth &&
+                          getRecordMemberIds(record).length > 0 && (
+                            <p className="text-sm text-gray-500">
+                              최종 납부월: 없음 (첫 납부 또는 이전 확정 이력
+                              없음)
                             </p>
-                          );
-                        })()}
-                      {!record.lastPaidYearMonth &&
-                        getRecordMemberIds(record).length > 0 && (
-                          <p className="text-sm text-gray-500">
-                            최종 납부월: 없음 (첫 납부 또는 이전 확정 이력 없음)
+                          )}
+                        {selections.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {selections.map((sel, idx) => (
+                              <span
+                                key={`${sel.year}-${idx}`}
+                                className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded"
+                              >
+                                {sel.year}년 {sel.months.join(', ')}월
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSelection(idx)}
+                                  className="p-0.5 rounded hover:bg-blue-200"
+                                  title="제거"
+                                  aria-label="제거"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-gray-600">연도:</span>
+                          <select
+                            value={addYear}
+                            onChange={(e) => setAddYear(Number(e.target.value))}
+                            className="px-2 py-1 text-sm border rounded"
+                          >
+                            {yearOptions.map((y) => (
+                              <option key={y} value={y}>
+                                {y}년
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={handleAddSelection}
+                            disabled={addMonths.length === 0}
+                            className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                            title="선택한 연도·월 추가"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                        <MonthSelector
+                          selectedMonths={addMonths}
+                          onMonthsChange={setAddMonths}
+                        />
+                        <p className="text-xs text-gray-400">
+                          연도·월 선택 후 + 버튼으로 추가 (여러 연도 가능)
+                        </p>
+                        {addMonths.length > 0 && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            선택한 {addYear}년 {addMonths.join(', ')}월을 위
+                            [＋] 버튼으로 추가한 뒤 확정해주세요.
                           </p>
                         )}
-                      {selections.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {selections.map((sel, idx) => (
-                            <span
-                              key={`${sel.year}-${idx}`}
-                              className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded"
-                            >
-                              {sel.year}년 {sel.months.join(', ')}월
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveSelection(idx)}
-                                className="p-0.5 rounded hover:bg-blue-200"
-                                title="제거"
-                                aria-label="제거"
-                              >
-                                <X size={12} />
-                              </button>
-                            </span>
-                          ))}
+                        <div className="flex justify-end gap-2 mt-2">
+                          <button
+                            type="button"
+                            onClick={handleCancelConfirm}
+                            className="px-3 py-1 text-sm border rounded hover:bg-gray-50 whitespace-nowrap"
+                          >
+                            취소
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleConfirm(record.id)}
+                            disabled={
+                              totalMonthsCount === 0 ||
+                              isUpdating ||
+                              addMonths.length > 0
+                            }
+                            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
+                            title={
+                              addMonths.length > 0
+                                ? '선택한 연도·월을 먼저 [추가]해주세요'
+                                : undefined
+                            }
+                          >
+                            확정
+                          </button>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm text-gray-600">연도:</span>
-                        <select
-                          value={addYear}
-                          onChange={(e) => setAddYear(Number(e.target.value))}
-                          className="px-2 py-1 text-sm border rounded"
-                        >
-                          {yearOptions.map((y) => (
-                            <option key={y} value={y}>
-                              {y}년
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={handleAddSelection}
-                          disabled={addMonths.length === 0}
-                          className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
-                          title="선택한 연도·월 추가"
-                        >
-                          <Plus size={16} />
-                        </button>
                       </div>
-                      <MonthSelector
-                        selectedMonths={addMonths}
-                        onMonthsChange={setAddMonths}
-                      />
-                      <p className="text-xs text-gray-400">
-                        연도·월 선택 후 + 버튼으로 추가 (여러 연도 가능)
-                      </p>
-                      {addMonths.length > 0 && (
-                        <p className="text-xs text-amber-600 mt-1">
-                          선택한 {addYear}년 {addMonths.join(', ')}월을 위 [＋]
-                          버튼으로 추가한 뒤 확정해주세요.
-                        </p>
-                      )}
-                      <div className="flex justify-end gap-2 mt-2">
-                        <button
-                          type="button"
-                          onClick={handleCancelConfirm}
-                          className="px-3 py-1 text-sm border rounded hover:bg-gray-50 whitespace-nowrap"
-                        >
-                          취소
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleConfirm(record.id)}
-                          disabled={
-                            totalMonthsCount === 0 ||
-                            isUpdating ||
-                            addMonths.length > 0
-                          }
-                          className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
-                          title={
-                            addMonths.length > 0
-                              ? '선택한 연도·월을 먼저 [추가]해주세요'
-                              : undefined
-                          }
-                        >
-                          확정
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </Fragment>
-          ))}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>

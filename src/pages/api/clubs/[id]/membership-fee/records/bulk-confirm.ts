@@ -61,7 +61,18 @@ export default withAuth(async function handler(
       });
     }
 
-    const { recordIds, year } = parseResult.data;
+    const { recordIds, year, selections } = parseResult.data;
+
+    /**
+     * 사용자 지정 월(selections)이 있으면 평탄화해 모든 record에 동일 적용.
+     * 자동 추천(suggestMonths)을 우회하더라도 의무월·금액 검증은 그대로 유지한다.
+     */
+    const userSelectedMonths =
+      selections && selections.length > 0
+        ? selections.flatMap((s) =>
+            s.months.map((m) => ({ year: s.year, month: m }))
+          )
+        : null;
 
     // 회비 유형 및 금액 조회
     const feeTypes = await prisma.feeType.findMany({
@@ -249,17 +260,6 @@ export default withAuth(async function handler(
         }
         const monthCount = record.amount / totalPerMonth;
 
-        const existingPayments = await prisma.membershipPayment.findMany({
-          where: {
-            clubMemberId: { in: memberIds },
-            year,
-          },
-          select: { month: true },
-        });
-        const paidMonthsForSuggestion = [
-          ...new Set(existingPayments.map((p) => p.month)),
-        ].map((month) => ({ month }));
-
         // 회원별 의무 월(휴회 제외) → 부부 시 둘 다 의무인 구간만 후보
         const firstMonths = memberIds
           .map((mid) =>
@@ -277,22 +277,95 @@ export default withAuth(async function handler(
           combinedLeavePeriods
         );
 
-        const transactionMonth =
-          new Date(record.transactionDate).getMonth() + 1;
+        let resolvedTargets: { year: number; month: number }[];
 
-        const suggestedMonths = suggestMonths(
-          monthCount,
-          paidMonthsForSuggestion,
-          transactionMonth,
-          eligibleMonths
-        );
+        if (userSelectedMonths) {
+          /**
+           * 사용자 지정 월: 자동 추천 우회. 단,
+           * - 갯수가 입금 금액(monthCount)과 일치해야 하고
+           * - 모든 월이 의무월(eligibleMonths) 안이어야 하며
+           * - 이미 납부된 월과 겹치면 안 된다.
+           */
+          if (userSelectedMonths.length !== monthCount) {
+            results.failed.push({
+              recordId: record.id,
+              reason: `지정한 월 수(${userSelectedMonths.length})가 입금 금액 기준 월 수(${monthCount})와 다릅니다`,
+            });
+            continue;
+          }
 
-        if (suggestedMonths.length < monthCount) {
-          results.failed.push({
-            recordId: record.id,
-            reason: '납부 가능한 월이 부족합니다',
+          const sameYearMonths = userSelectedMonths
+            .filter((ym) => ym.year === year)
+            .map((ym) => ym.month);
+          const outOfEligible = sameYearMonths.filter(
+            (m) => !eligibleMonths.includes(m)
+          );
+          if (outOfEligible.length > 0) {
+            results.failed.push({
+              recordId: record.id,
+              reason: `의무월이 아닌 월이 포함됨 (${outOfEligible.join(', ')}월) — 휴회·가입 이전일 수 있습니다`,
+            });
+            continue;
+          }
+
+          const existingPaymentsAllYears =
+            await prisma.membershipPayment.findMany({
+              where: {
+                clubMemberId: { in: memberIds },
+                OR: userSelectedMonths.map((ym) => ({
+                  year: ym.year,
+                  month: ym.month,
+                })),
+              },
+              select: { year: true, month: true },
+            });
+          const duplicates = userSelectedMonths.filter((ym) =>
+            existingPaymentsAllYears.some(
+              (p) => p.year === ym.year && p.month === ym.month
+            )
+          );
+          if (duplicates.length > 0) {
+            results.failed.push({
+              recordId: record.id,
+              reason: `이미 납부된 월이 포함됨 (${duplicates
+                .map((d) => `${d.year}년 ${d.month}월`)
+                .join(', ')})`,
+            });
+            continue;
+          }
+
+          resolvedTargets = userSelectedMonths;
+        } else {
+          const existingPayments = await prisma.membershipPayment.findMany({
+            where: {
+              clubMemberId: { in: memberIds },
+              year,
+            },
+            select: { month: true },
           });
-          continue;
+          const paidMonthsForSuggestion = [
+            ...new Set(existingPayments.map((p) => p.month)),
+          ].map((month) => ({ month }));
+
+          const transactionMonth =
+            new Date(record.transactionDate).getMonth() + 1;
+
+          const suggestedMonths = suggestMonths(
+            monthCount,
+            paidMonthsForSuggestion,
+            transactionMonth,
+            eligibleMonths
+          );
+
+          if (suggestedMonths.length < monthCount) {
+            results.failed.push({
+              recordId: record.id,
+              reason: '납부 가능한 월이 부족합니다',
+            });
+            continue;
+          }
+
+          resolvedTargets = suggestedMonths.map((m) => ({ year, month: m }));
         }
 
         await prisma.$transaction(async (tx) => {
@@ -300,13 +373,13 @@ export default withAuth(async function handler(
             const clubMemberId = memberIds[i];
             const amountPerMonth = amountPerMemberPerMonth[i];
             await Promise.all(
-              suggestedMonths.map((month) =>
+              resolvedTargets.map((ym) =>
                 tx.membershipPayment.create({
                   data: {
                     clubMemberId,
                     paymentRecordId: record.id,
-                    year,
-                    month,
+                    year: ym.year,
+                    month: ym.month,
                     amount: amountPerMonth,
                     confirmedById: adminMember.id,
                   },

@@ -156,6 +156,11 @@ export type YearMonthSelection = z.infer<typeof yearMonthSelectionSchema>;
 export const bulkConfirmSchema = z.object({
   recordIds: z.array(z.string()).min(1, '최소 1개의 레코드를 선택해야 합니다'),
   year: z.number().int().min(2020).max(2100),
+  /**
+   * 사용자가 지정한 연도·월. 있으면 record별 자동 추천(suggestMonths) 대신
+   * 이 selections를 모든 record에 동일하게 적용한다.
+   */
+  selections: z.array(yearMonthSelectionSchema).optional(),
 });
 
 export type BulkConfirmSchema = z.infer<typeof bulkConfirmSchema>;

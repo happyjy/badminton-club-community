@@ -7,6 +7,7 @@ import axios from 'axios';
 import { ArrowLeft, CheckCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
+import MonthSelector from '@/components/molecules/membership-fee/MonthSelector';
 import PaymentRecordFilters, {
   INITIAL_FILTERS,
   PaymentRecordFilterValues,
@@ -183,6 +184,12 @@ function ProcessPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [sortBy, setSortBy] = useState<PaymentRecordSortBy>('transactionDate');
   const [sortOrder, setSortOrder] = useState<PaymentRecordSortOrder>('desc');
+  /** 다중 선택된 record id. 사용자가 "선택 항목 일괄 확정"으로 한 번에 처리할 대상. */
+  const [selectedRecordIds, setSelectedRecordIds] = useState<string[]>([]);
+  const [bulkSelectionYear, setBulkSelectionYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  const [bulkSelectionMonths, setBulkSelectionMonths] = useState<number[]>([]);
 
   /**
    * 거래일 기준 fetch 범위. 한 번에 최대 1년치(MAX_RANGE_DAYS)만 조회 가능.
@@ -352,6 +359,57 @@ function ProcessPage() {
       );
     } catch (error: any) {
       toast.error(error.message || '건너뛰기 해제에 실패했습니다.');
+    }
+  };
+
+  /**
+   * 사용자가 체크한 record들을 지정한 연도·월로 일괄 확정.
+   * Why: 같은 월(예: 5월)을 여러 회원에게 동시 확정하는 운영 패턴이 잦은데,
+   * 기존 일괄 확정 버튼은 record별로 자동 추천된 월(보통 차기월)을 사용하므로
+   * 사용자가 원하는 월로 묶어 처리할 수 없었다.
+   */
+  const handleBulkConfirmSelected = async () => {
+    if (selectedRecordIds.length === 0) {
+      alert('선택된 항목이 없습니다.');
+      return;
+    }
+    if (bulkSelectionMonths.length === 0) {
+      alert('적용할 월을 선택해주세요.');
+      return;
+    }
+
+    if (
+      !confirm(
+        `${selectedRecordIds.length}건을 ${bulkSelectionYear}년 ${bulkSelectionMonths.join(', ')}월로 일괄 확정하시겠습니까?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const result = await bulkConfirmMutation.mutateAsync({
+        recordIds: selectedRecordIds,
+        year,
+        selections: [{ year: bulkSelectionYear, months: bulkSelectionMonths }],
+      });
+      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
+      const failedDetail = result.results.failed
+        .map((f) => {
+          const depositor =
+            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
+          return `• ${depositor}: ${f.reason}`;
+        })
+        .join('\n');
+      alert(
+        `${result.summary.success}건 확정, ${result.summary.failed}건 실패` +
+          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
+      );
+      setSelectedRecordIds((prev) =>
+        prev.filter((id) => !result.results.success.includes(id))
+      );
+      setBulkSelectionMonths([]);
+    } catch (error: any) {
+      alert(error.message || '선택 항목 일괄 확정에 실패했습니다.');
     }
   };
 
@@ -657,6 +715,58 @@ function ProcessPage() {
             : `${displayCount}건 표시 중`}
         </p>
 
+        {selectedRecordIds.length > 0 && (
+          <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-blue-900">
+                선택 {selectedRecordIds.length}건
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedRecordIds([])}
+                className="text-xs text-blue-700 hover:underline"
+              >
+                선택 해제
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">연도:</span>
+                <select
+                  value={bulkSelectionYear}
+                  onChange={(e) => setBulkSelectionYear(Number(e.target.value))}
+                  className="px-2 py-1 text-sm border rounded"
+                >
+                  {[year - 1, year, year + 1].map((y) => (
+                    <option key={y} value={y}>
+                      {y}년
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[20rem]">
+                <MonthSelector
+                  selectedMonths={bulkSelectionMonths}
+                  onMonthsChange={setBulkSelectionMonths}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleBulkConfirmSelected}
+                disabled={
+                  bulkConfirmMutation.isPending ||
+                  bulkSelectionMonths.length === 0
+                }
+                className="px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
+              >
+                선택 항목 확정
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-blue-800">
+              선택한 회원들에게 위에서 고른 연도·월을 동일하게 적용합니다.
+              (의무월 외 / 이미 납부된 월은 자동으로 실패 처리됩니다)
+            </p>
+          </div>
+        )}
+
         <PaymentRecordTable
           records={sortedRecords}
           members={members}
@@ -669,6 +779,8 @@ function ProcessPage() {
           onUnconfirm={handleUnconfirm}
           onSkip={handleSkip}
           onUnskip={handleUnskip}
+          selectedRecordIds={selectedRecordIds}
+          onSelectedRecordIdsChange={setSelectedRecordIds}
           isUpdating={
             updateMutation.isPending ||
             confirmMutation.isPending ||

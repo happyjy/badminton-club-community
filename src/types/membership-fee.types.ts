@@ -273,6 +273,8 @@ export interface PaymentConfirmInput {
 export interface BulkConfirmInput {
   recordIds: string[];
   year: number;
+  /** 지정 시 자동 추천(suggestMonths) 대신 모든 record에 동일 적용 */
+  selections?: { year: number; months: number[] }[];
 }
 
 // 매칭 결과 타입
