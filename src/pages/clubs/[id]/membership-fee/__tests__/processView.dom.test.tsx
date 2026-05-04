@@ -1,11 +1,8 @@
 /**
- * process.tsx 안의 순수 함수에 대한 동작 동등성 안전망.
+ * processView.ts(순수 함수)의 동작 안전망.
  *
- * 리팩토링 1번(`src/lib/membership-fee/processView.ts`로 추출) 시
- * 함수 본문이 그대로 옮겨졌는지 확인하는 게 목적이다.
- * 추출 후에는 import 경로만 새 모듈로 교체하면 동일 케이스가 통과해야 한다.
- *
- * jsdom 환경 — process.tsx가 React/Next 의존을 끌고 와 node env에선 import 불가.
+ * 리팩토링 1번으로 process.tsx의 인라인 함수들이 추출된 모듈을 직접 검증한다.
+ * jsdom 환경 — PaymentRecordFilters 등 컴포넌트 타입이 같은 그래프에 있어 jsdom에 둔다.
  */
 import { describe, it, expect } from '@jest/globals';
 
@@ -19,7 +16,7 @@ import {
   formatMatchedMembersForSort,
   applyFilters,
   applySort,
-} from '@/pages/clubs/[id]/membership-fee/process';
+} from '@/lib/membership-fee/processView';
 import type { PaymentRecord } from '@/types/membership-fee.types';
 
 const EMPTY_FILTERS: PaymentRecordFilterValues = {

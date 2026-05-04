@@ -24,7 +24,7 @@ import { act, renderHook } from '@testing-library/react';
 import {
   buildRecentRange,
   diffDaysInclusive,
-} from '@/pages/clubs/[id]/membership-fee/process';
+} from '@/lib/membership-fee/processView';
 
 const DEFAULT_RECENT_MONTHS = 3;
 const RECENT_MONTH_OPTIONS = [1, 3, 6, 12] as const;

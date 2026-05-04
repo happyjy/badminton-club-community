@@ -22,7 +22,14 @@
  */
 import { useState } from 'react';
 
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from '@jest/globals';
 import { act, renderHook } from '@testing-library/react';
 
 import type { PaymentRecord } from '@/types/membership-fee.types';
