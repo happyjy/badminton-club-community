@@ -40,7 +40,16 @@ import {
 import { withAuth } from '@/lib/withAuth';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: '대기',
+  MATCHED: '매칭됨',
+  CONFIRMED: '확정',
+  ERROR: '에러',
+  SKIPPED: '건너뜀',
+};
+
 function ProcessPage() {
+  // ── 1) routing & query parse ────────────────────────────────────────────
   const router = useRouter();
   const queryClient = useQueryClient();
   const {
@@ -50,7 +59,10 @@ function ProcessPage() {
   } = router.query;
   const clubIdStr = typeof clubId === 'string' ? clubId : undefined;
   const batchId = typeof batchIdQuery === 'string' ? batchIdQuery : undefined;
+  const statusFilter =
+    typeof filterStatus === 'string' ? filterStatus : undefined;
 
+  // ── 2) state ────────────────────────────────────────────────────────────
   const [year, setYear] = useState(new Date().getFullYear());
   const [filters, setFilters] =
     useState<PaymentRecordFilterValues>(INITIAL_FILTERS);
@@ -61,6 +73,7 @@ function ProcessPage() {
   /** 다중 선택된 record id. 사용자가 "선택 항목 일괄 확정"으로 한 번에 처리할 대상. */
   const [selectedRecordIds, setSelectedRecordIds] = useState<string[]>([]);
 
+  // ── 3) custom hooks (data flow 순) ─────────────────────────────────────
   /**
    * 거래일 기준 fetch 범위. 한 번에 최대 1년치만 조회 가능.
    * batchId 진입 시에는 batch 자체가 자연 상한이라 정책 비활성화.
@@ -77,9 +90,6 @@ function ProcessPage() {
     apiRange: recentRange,
   } = useTransactionDateRange(isRangeActive);
 
-  const statusFilter =
-    typeof filterStatus === 'string' ? filterStatus : undefined;
-
   /**
    * batch 단위 전체 목록을 한 번만 받아 클라이언트에서 필드/상태 필터를 모두 적용한다.
    * status별로 API를 다시 호출하지 않으므로 statusFilter 변경 시 추가 fetch가 발생하지 않는다.
@@ -88,24 +98,6 @@ function ProcessPage() {
     clubIdStr,
     batchId,
     recentRange
-  );
-
-  /** 필드 필터만 적용 → 상태별 탭 숫자가 필드 필터와 연동되도록 */
-  const filteredAllRecords = useMemo(
-    () => applyFilters(records ?? [], filters),
-    [records, filters]
-  );
-  /** 필드 필터 + 상태 필터 → 표시 목록과 일괄 확정 대상의 기준 */
-  const filteredRecords = useMemo(
-    () =>
-      statusFilter
-        ? filteredAllRecords.filter((r) => r.status === statusFilter)
-        : filteredAllRecords,
-    [filteredAllRecords, statusFilter]
-  );
-  const sortedRecords = useMemo(
-    () => applySort(filteredRecords, sortBy, sortOrder),
-    [filteredRecords, sortBy, sortOrder]
   );
 
   const updateMutation = useUpdatePaymentRecord(clubIdStr);
@@ -152,6 +144,81 @@ function ProcessPage() {
 
   const { data: members = [] } = useMatchableMembers(clubIdStr, matchableRange);
 
+  // ── 4) derived values ──────────────────────────────────────────────────
+  /** 필드 필터만 적용 → 상태별 탭 숫자가 필드 필터와 연동되도록 */
+  const filteredAllRecords = useMemo(
+    () => applyFilters(records ?? [], filters),
+    [records, filters]
+  );
+  /** 필드 필터 + 상태 필터 → 표시 목록과 일괄 확정 대상의 기준 */
+  const filteredRecords = useMemo(
+    () =>
+      statusFilter
+        ? filteredAllRecords.filter((r) => r.status === statusFilter)
+        : filteredAllRecords,
+    [filteredAllRecords, statusFilter]
+  );
+  const sortedRecords = useMemo(
+    () => applySort(filteredRecords, sortBy, sortOrder),
+    [filteredRecords, sortBy, sortOrder]
+  );
+
+  const statusCounts = {
+    total: filteredAllRecords.length,
+    pending: filteredAllRecords.filter((r) => r.status === 'PENDING').length,
+    matched: filteredAllRecords.filter((r) => r.status === 'MATCHED').length,
+    confirmed: filteredAllRecords.filter((r) => r.status === 'CONFIRMED')
+      .length,
+    error: filteredAllRecords.filter((r) => r.status === 'ERROR').length,
+    skipped: filteredAllRecords.filter((r) => r.status === 'SKIPPED').length,
+  };
+
+  /** 필드 필터 적용 전, 현재 선택된 상태 탭 기준의 전체 건수 */
+  const totalBeforeFieldFilters = statusFilter
+    ? (records ?? []).filter((r) => r.status === statusFilter).length
+    : (records?.length ?? 0);
+  const displayCount = sortedRecords.length;
+  const hasActiveFilters =
+    filters.depositorNameKeyword.trim() !== '' ||
+    filters.amountMin !== '' ||
+    filters.amountMax !== '' ||
+    filters.matchedMemberIds.length > 0;
+  const statusLabel =
+    statusFilter && STATUS_LABELS[statusFilter]
+      ? STATUS_LABELS[statusFilter]
+      : null;
+
+  /**
+   * 체크박스 다중 선택은 일괄 동작이 정의된 탭에서만 활성화한다.
+   * - PENDING 탭: 선택 항목 건너뛰기
+   * - MATCHED 탭: 선택 항목 확정 / 선택 항목 건너뛰기
+   * - CONFIRMED 탭: 선택 항목 확정 취소
+   * - ERROR 탭: 선택 항목 건너뛰기
+   * - SKIPPED 탭: 선택 항목 건너뜀 해제
+   * 전체 탭은 상태 혼재로 단일 일괄 동작이 정의되지 않아 체크박스를 숨긴다.
+   */
+  const isBulkSelectionTab =
+    statusFilter === 'PENDING' ||
+    statusFilter === 'MATCHED' ||
+    statusFilter === 'CONFIRMED' ||
+    statusFilter === 'ERROR' ||
+    statusFilter === 'SKIPPED';
+
+  const confirmedInBatch = batchId
+    ? (records ?? []).filter((r) => r.status === 'CONFIRMED').length
+    : 0;
+
+  // ── 5) effects ─────────────────────────────────────────────────────────
+  /**
+   * statusFilter가 바뀌면 선택을 초기화한다.
+   * Why: MATCHED 탭과 CONFIRMED 탭의 선택은 의미가 다르다(확정 vs. 확정 취소).
+   * 탭 전환 시 직전 선택이 따라오면 잘못된 일괄 작업으로 이어질 위험이 있다.
+   */
+  useEffect(() => {
+    setSelectedRecordIds([]);
+  }, [statusFilter]);
+
+  // ── 6) handlers ────────────────────────────────────────────────────────
   const handleUpdateMember = async (recordId: string, memberIds: number[]) => {
     try {
       await updateMutation.mutateAsync({
@@ -214,31 +281,6 @@ function ProcessPage() {
     }
   };
 
-  /**
-   * 체크박스 다중 선택은 일괄 동작이 정의된 탭에서만 활성화한다.
-   * - PENDING 탭: 선택 항목 건너뛰기
-   * - MATCHED 탭: 선택 항목 확정 / 선택 항목 건너뛰기
-   * - CONFIRMED 탭: 선택 항목 확정 취소
-   * - ERROR 탭: 선택 항목 건너뛰기
-   * - SKIPPED 탭: 선택 항목 건너뜀 해제
-   * 전체 탭은 상태 혼재로 단일 일괄 동작이 정의되지 않아 체크박스를 숨긴다.
-   */
-  const isBulkSelectionTab =
-    statusFilter === 'PENDING' ||
-    statusFilter === 'MATCHED' ||
-    statusFilter === 'CONFIRMED' ||
-    statusFilter === 'ERROR' ||
-    statusFilter === 'SKIPPED';
-
-  /**
-   * statusFilter가 바뀌면 선택을 초기화한다.
-   * Why: MATCHED 탭과 CONFIRMED 탭의 선택은 의미가 다르다(확정 vs. 확정 취소).
-   * 탭 전환 시 직전 선택이 따라오면 잘못된 일괄 작업으로 이어질 위험이 있다.
-   */
-  useEffect(() => {
-    setSelectedRecordIds([]);
-  }, [statusFilter]);
-
   const handleBulkConfirm = async () => {
     const hasMatchedMembers = (r: {
       matchedMemberId?: number | null;
@@ -251,10 +293,6 @@ function ProcessPage() {
       .map((r) => r.id);
     await bulk.handleBulkConfirmAllMatched(matchedRecordIds);
   };
-
-  const confirmedInBatch = batchId
-    ? (records ?? []).filter((r) => r.status === 'CONFIRMED').length
-    : 0;
 
   const handleDeleteBatch = async () => {
     if (!clubIdStr || !batchId) return;
@@ -275,38 +313,6 @@ function ProcessPage() {
       setShowDeleteModal(false);
     }
   };
-
-  const statusCounts = {
-    total: filteredAllRecords.length,
-    pending: filteredAllRecords.filter((r) => r.status === 'PENDING').length,
-    matched: filteredAllRecords.filter((r) => r.status === 'MATCHED').length,
-    confirmed: filteredAllRecords.filter((r) => r.status === 'CONFIRMED')
-      .length,
-    error: filteredAllRecords.filter((r) => r.status === 'ERROR').length,
-    skipped: filteredAllRecords.filter((r) => r.status === 'SKIPPED').length,
-  };
-
-  const STATUS_LABELS: Record<string, string> = {
-    PENDING: '대기',
-    MATCHED: '매칭됨',
-    CONFIRMED: '확정',
-    ERROR: '에러',
-    SKIPPED: '건너뜀',
-  };
-  /** 필드 필터 적용 전, 현재 선택된 상태 탭 기준의 전체 건수 */
-  const totalBeforeFieldFilters = statusFilter
-    ? (records ?? []).filter((r) => r.status === statusFilter).length
-    : (records?.length ?? 0);
-  const displayCount = sortedRecords.length;
-  const hasActiveFilters =
-    filters.depositorNameKeyword.trim() !== '' ||
-    filters.amountMin !== '' ||
-    filters.amountMax !== '' ||
-    filters.matchedMemberIds.length > 0;
-  const statusLabel =
-    statusFilter && STATUS_LABELS[statusFilter]
-      ? STATUS_LABELS[statusFilter]
-      : null;
 
   const onSortChange = (column: PaymentRecordSortBy) => {
     if (sortBy === column) {
