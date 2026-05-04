@@ -19,6 +19,7 @@ import PaymentRecordTable, {
   YearMonthSelection,
 } from '@/components/organisms/membership-fee/PaymentRecordTable';
 
+import { useBulkPaymentActions } from '@/hooks/membership-fee/useBulkPaymentActions';
 import { useMatchableMembers } from '@/hooks/membership-fee/useMatchableMembers';
 import {
   usePaymentRecords,
@@ -27,147 +28,19 @@ import {
   useUnconfirmPayment,
   useSkipPayment,
   useUnskipPayment,
-  useBulkConfirmPayments,
-  useBulkUnconfirmPayments,
-  useBulkSkipPayments,
-  useBulkUnskipPayments,
 } from '@/hooks/membership-fee/usePaymentRecords';
+import {
+  RECENT_MONTH_OPTIONS,
+  useTransactionDateRange,
+} from '@/hooks/membership-fee/useTransactionDateRange';
 
+import {
+  applyFilters,
+  applySort,
+  PaymentRecordSortOrder,
+} from '@/lib/membership-fee/processView';
 import { withAuth } from '@/lib/withAuth';
-import { PaymentRecord } from '@/types/membership-fee.types';
 import { checkClubAdminPermission } from '@/utils/permissions';
-
-type PaymentRecordSortOrder = 'asc' | 'desc';
-
-const DEFAULT_RECENT_MONTHS = 3;
-const RECENT_MONTH_OPTIONS = [1, 3, 6, 12] as const;
-/** 한 번에 조회 가능한 최대 범위 길이 (일). 윤년 안전하게 366일로 둠) */
-const MAX_RANGE_DAYS = 366;
-
-type DateRange = { from: string; to: string };
-
-/** YYYY-MM-DD 포맷의 로컬 날짜 문자열을 반환 (date input value 호환) */
-export function formatLocalDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-/** 오늘로부터 N개월 전 ~ 오늘 범위를 YYYY-MM-DD 문자열로 반환 */
-export function buildRecentRange(months: number): DateRange {
-  const today = new Date();
-  const fromDate = new Date();
-  fromDate.setMonth(fromDate.getMonth() - months);
-  return {
-    from: formatLocalDate(fromDate),
-    to: formatLocalDate(today),
-  };
-}
-
-/** YYYY-MM-DD 문자열 두 개의 차이를 일 단위로 반환 (from, to 포함) */
-export function diffDaysInclusive(from: string, to: string): number {
-  const fromDate = new Date(from);
-  const toDate = new Date(to);
-  const ms = toDate.getTime() - fromDate.getTime();
-  return Math.floor(ms / (1000 * 60 * 60 * 24)) + 1;
-}
-
-export function getRecordMemberIds(record: PaymentRecord): number[] {
-  if (record.matchedMembers && record.matchedMembers.length > 0) {
-    return record.matchedMembers.map((m) => m.clubMemberId);
-  }
-  if (record.matchedMemberId) {
-    return [record.matchedMemberId];
-  }
-  return [];
-}
-
-export function formatMatchedMembersForSort(record: PaymentRecord): string {
-  if (record.matchedMembers && record.matchedMembers.length > 0) {
-    return record.matchedMembers
-      .map((m) => m.clubMember?.name ?? '')
-      .join(', ');
-  }
-  return record.matchedMember?.name ?? '';
-}
-
-export function applyFilters(
-  records: PaymentRecord[],
-  filters: PaymentRecordFilterValues
-): PaymentRecord[] {
-  return records.filter((record) => {
-    const keyword = filters.depositorNameKeyword.trim();
-    if (keyword) {
-      if (!record.depositorName.toLowerCase().includes(keyword.toLowerCase())) {
-        return false;
-      }
-    }
-    const amountMin =
-      filters.amountMin !== '' ? Number(filters.amountMin) : null;
-    const amountMax =
-      filters.amountMax !== '' ? Number(filters.amountMax) : null;
-    if (
-      amountMin != null &&
-      !Number.isNaN(amountMin) &&
-      record.amount < amountMin
-    ) {
-      return false;
-    }
-    if (
-      amountMax != null &&
-      !Number.isNaN(amountMax) &&
-      record.amount > amountMax
-    ) {
-      return false;
-    }
-    if (
-      filters.matchedMemberIds.length > 0 &&
-      getRecordMemberIds(record).every(
-        (id) => !filters.matchedMemberIds.includes(id)
-      )
-    ) {
-      return false;
-    }
-    return true;
-  });
-}
-
-export function applySort(
-  records: PaymentRecord[],
-  sortBy: PaymentRecordSortBy,
-  sortOrder: PaymentRecordSortOrder
-): PaymentRecord[] {
-  const dir = sortOrder === 'asc' ? 1 : -1;
-  return [...records].sort((a, b) => {
-    let cmp = 0;
-    switch (sortBy) {
-      case 'transactionDate': {
-        const ta = new Date(a.transactionDate).getTime();
-        const tb = new Date(b.transactionDate).getTime();
-        cmp = ta - tb;
-        break;
-      }
-      case 'depositorName':
-        cmp = (a.depositorName ?? '').localeCompare(b.depositorName ?? '');
-        break;
-      case 'amount':
-        cmp = a.amount - b.amount;
-        break;
-      case 'matchedMember':
-        cmp = formatMatchedMembersForSort(a).localeCompare(
-          formatMatchedMembersForSort(b)
-        );
-        break;
-      case 'status':
-        cmp = (a.status ?? '').localeCompare(b.status ?? '');
-        break;
-      default:
-        break;
-    }
-    return cmp * dir;
-  });
-}
 
 function ProcessPage() {
   const router = useRouter();
@@ -189,53 +62,25 @@ function ProcessPage() {
   const [sortOrder, setSortOrder] = useState<PaymentRecordSortOrder>('desc');
   /** 다중 선택된 record id. 사용자가 "선택 항목 일괄 확정"으로 한 번에 처리할 대상. */
   const [selectedRecordIds, setSelectedRecordIds] = useState<string[]>([]);
-  const [bulkSelectionYear, setBulkSelectionYear] = useState<number>(
-    new Date().getFullYear()
-  );
-  const [bulkSelectionMonths, setBulkSelectionMonths] = useState<number[]>([]);
 
   /**
-   * 거래일 기준 fetch 범위. 한 번에 최대 1년치(MAX_RANGE_DAYS)만 조회 가능.
-   * - appliedRange: 실제 fetch에 반영되는 값
-   * - draftRange: 사용자가 편집 중인 값 (프리셋/직접 입력). 적용 버튼을 눌러야 applied에 반영
-   * batchId로 진입한 경우에는 batch 자체가 자연 상한이므로 이 정책을 적용하지 않는다
-   * (오래된 batch가 비어보이는 혼란을 피하기 위함).
+   * 거래일 기준 fetch 범위. 한 번에 최대 1년치만 조회 가능.
+   * batchId 진입 시에는 batch 자체가 자연 상한이라 정책 비활성화.
    */
-  const [appliedRange, setAppliedRange] = useState<DateRange>(() =>
-    buildRecentRange(DEFAULT_RECENT_MONTHS)
-  );
-  const [draftRange, setDraftRange] = useState<DateRange>(() =>
-    buildRecentRange(DEFAULT_RECENT_MONTHS)
-  );
   const isRangeActive = !batchId;
-  // draftRange의 날짜 차이를 일 단위로 계산
-  const draftRangeDays =
-    draftRange.from && draftRange.to && draftRange.from <= draftRange.to
-      ? diffDaysInclusive(draftRange.from, draftRange.to)
-      : 0;
-  const isDraftRangeTooLong = draftRangeDays > MAX_RANGE_DAYS;
-
-  /** draft가 어떤 프리셋과 일치하는지 판정 (UI 하이라이트용) */
-  const draftPresetMonths = useMemo(() => {
-    for (const m of RECENT_MONTH_OPTIONS) {
-      const r = buildRecentRange(m);
-      if (r.from === draftRange.from && r.to === draftRange.to) return m;
-    }
-    return null;
-  }, [draftRange]);
+  const {
+    appliedRange,
+    draftRange,
+    setDraftRange,
+    applyDraft,
+    setDraftToPreset,
+    isDraftRangeTooLong,
+    draftPresetMonths,
+    apiRange: recentRange,
+  } = useTransactionDateRange(isRangeActive);
 
   const statusFilter =
     typeof filterStatus === 'string' ? filterStatus : undefined;
-
-  /** API에 보낼 ISO 문자열 (하루 끝까지 포함하기 위해 to는 23:59:59.999 적용) */
-  const recentRange = useMemo(() => {
-    if (!isRangeActive) return undefined;
-    const fromDate = new Date(appliedRange.from);
-    fromDate.setHours(0, 0, 0, 0);
-    const toDate = new Date(appliedRange.to);
-    toDate.setHours(23, 59, 59, 999);
-    return { from: fromDate.toISOString(), to: toDate.toISOString() };
-  }, [isRangeActive, appliedRange]);
 
   /**
    * batch 단위 전체 목록을 한 번만 받아 클라이언트에서 필드/상태 필터를 모두 적용한다.
@@ -270,10 +115,14 @@ function ProcessPage() {
   const unconfirmMutation = useUnconfirmPayment(clubIdStr);
   const skipMutation = useSkipPayment(clubIdStr);
   const unskipMutation = useUnskipPayment(clubIdStr);
-  const bulkConfirmMutation = useBulkConfirmPayments(clubIdStr);
-  const bulkUnconfirmMutation = useBulkUnconfirmPayments(clubIdStr);
-  const bulkSkipMutation = useBulkSkipPayments(clubIdStr);
-  const bulkUnskipMutation = useBulkUnskipPayments(clubIdStr);
+
+  const bulk = useBulkPaymentActions({
+    clubIdStr,
+    records,
+    selectedRecordIds,
+    setSelectedRecordIds,
+    year,
+  });
 
   /**
    * 매칭 후보 회원 조회 범위.
@@ -368,57 +217,6 @@ function ProcessPage() {
   };
 
   /**
-   * 사용자가 체크한 record들을 지정한 연도·월로 일괄 확정.
-   * Why: 같은 월(예: 5월)을 여러 회원에게 동시 확정하는 운영 패턴이 잦은데,
-   * 기존 일괄 확정 버튼은 record별로 자동 추천된 월(보통 차기월)을 사용하므로
-   * 사용자가 원하는 월로 묶어 처리할 수 없었다.
-   */
-  const handleBulkConfirmSelected = async () => {
-    if (selectedRecordIds.length === 0) {
-      alert('선택된 항목이 없습니다.');
-      return;
-    }
-    if (bulkSelectionMonths.length === 0) {
-      alert('적용할 월을 선택해주세요.');
-      return;
-    }
-
-    if (
-      !confirm(
-        `${selectedRecordIds.length}건을 ${bulkSelectionYear}년 ${bulkSelectionMonths.join(', ')}월로 일괄 확정하시겠습니까?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const result = await bulkConfirmMutation.mutateAsync({
-        recordIds: selectedRecordIds,
-        year,
-        selections: [{ year: bulkSelectionYear, months: bulkSelectionMonths }],
-      });
-      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
-      const failedDetail = result.results.failed
-        .map((f) => {
-          const depositor =
-            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
-          return `• ${depositor}: ${f.reason}`;
-        })
-        .join('\n');
-      alert(
-        `${result.summary.success}건 확정, ${result.summary.failed}건 실패` +
-          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
-      );
-      setSelectedRecordIds((prev) =>
-        prev.filter((id) => !result.results.success.includes(id))
-      );
-      setBulkSelectionMonths([]);
-    } catch (error: any) {
-      alert(error.message || '선택 항목 일괄 확정에 실패했습니다.');
-    }
-  };
-
-  /**
    * 체크박스 다중 선택은 일괄 동작이 정의된 탭에서만 활성화한다.
    * - PENDING 탭: 선택 항목 건너뛰기
    * - MATCHED 탭: 선택 항목 확정 / 선택 항목 건너뛰기
@@ -443,123 +241,6 @@ function ProcessPage() {
     setSelectedRecordIds([]);
   }, [statusFilter]);
 
-  const handleBulkUnconfirmSelected = async () => {
-    if (selectedRecordIds.length === 0) {
-      alert('선택된 항목이 없습니다.');
-      return;
-    }
-    if (
-      !confirm(
-        `${selectedRecordIds.length}건의 확정을 취소하시겠습니까? 회원·월 수정 후 다시 확정해야 합니다.`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const result = await bulkUnconfirmMutation.mutateAsync({
-        recordIds: selectedRecordIds,
-      });
-      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
-      const failedDetail = result.results.failed
-        .map((f) => {
-          const depositor =
-            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
-          return `• ${depositor}: ${f.reason}`;
-        })
-        .join('\n');
-      alert(
-        `${result.summary.success}건 확정 취소, ${result.summary.failed}건 실패` +
-          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
-      );
-      setSelectedRecordIds((prev) =>
-        prev.filter((id) => !result.results.success.includes(id))
-      );
-    } catch (error: any) {
-      alert(error.message || '선택 항목 일괄 확정 취소에 실패했습니다.');
-    }
-  };
-
-  /**
-   * 사용자가 체크한 record들을 일괄 건너뛰기 처리.
-   * PENDING / MATCHED / ERROR 탭에서 호출된다. CONFIRMED·SKIPPED는 백엔드에서 거부.
-   */
-  const handleBulkSkipSelected = async () => {
-    if (selectedRecordIds.length === 0) {
-      alert('선택된 항목이 없습니다.');
-      return;
-    }
-    if (
-      !confirm(
-        `${selectedRecordIds.length}건을 건너뛰기 처리하시겠습니까? 정산 대상에서 제외됩니다.`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const result = await bulkSkipMutation.mutateAsync({
-        recordIds: selectedRecordIds,
-      });
-      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
-      const failedDetail = result.results.failed
-        .map((f) => {
-          const depositor =
-            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
-          return `• ${depositor}: ${f.reason}`;
-        })
-        .join('\n');
-      alert(
-        `${result.summary.success}건 건너뛰기, ${result.summary.failed}건 실패` +
-          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
-      );
-      setSelectedRecordIds((prev) =>
-        prev.filter((id) => !result.results.success.includes(id))
-      );
-    } catch (error: any) {
-      alert(error.message || '선택 항목 일괄 건너뛰기에 실패했습니다.');
-    }
-  };
-
-  /**
-   * 사용자가 체크한 record들의 건너뛰기 해제.
-   * 매칭 회원 유무에 따라 백엔드가 MATCHED / PENDING으로 분기 복원한다.
-   */
-  const handleBulkUnskipSelected = async () => {
-    if (selectedRecordIds.length === 0) {
-      alert('선택된 항목이 없습니다.');
-      return;
-    }
-    if (
-      !confirm(`${selectedRecordIds.length}건의 건너뛰기를 해제하시겠습니까?`)
-    ) {
-      return;
-    }
-
-    try {
-      const result = await bulkUnskipMutation.mutateAsync({
-        recordIds: selectedRecordIds,
-      });
-      const recordById = new Map((records ?? []).map((r) => [r.id, r]));
-      const failedDetail = result.results.failed
-        .map((f) => {
-          const depositor =
-            recordById.get(f.recordId)?.depositorName ?? '(알 수 없음)';
-          return `• ${depositor}: ${f.reason}`;
-        })
-        .join('\n');
-      alert(
-        `${result.summary.success}건 건너뜀 해제, ${result.summary.failed}건 실패` +
-          (failedDetail ? `\n\n실패 사유:\n${failedDetail}` : '')
-      );
-      setSelectedRecordIds((prev) =>
-        prev.filter((id) => !result.results.success.includes(id))
-      );
-    } catch (error: any) {
-      alert(error.message || '선택 항목 일괄 건너뜀 해제에 실패했습니다.');
-    }
-  };
-
   const handleBulkConfirm = async () => {
     const hasMatchedMembers = (r: {
       matchedMemberId?: number | null;
@@ -567,34 +248,10 @@ function ProcessPage() {
     }) =>
       r.matchedMemberId != null ||
       (r.matchedMembers != null && r.matchedMembers.length > 0);
-    const matchedRecords = filteredRecords.filter(
-      (r) => r.status === 'MATCHED' && hasMatchedMembers(r)
-    );
-
-    if (matchedRecords.length === 0) {
-      alert('확정할 수 있는 레코드가 없습니다.');
-      return;
-    }
-
-    if (
-      !confirm(
-        `${matchedRecords.length}건의 입금 내역을 일괄 확정하시겠습니까?`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const result = await bulkConfirmMutation.mutateAsync({
-        recordIds: matchedRecords.map((r) => r.id),
-        year,
-      });
-      alert(
-        `${result.summary.success}건 확정, ${result.summary.failed}건 실패`
-      );
-    } catch (error: any) {
-      alert(error.message || '일괄 확정에 실패했습니다.');
-    }
+    const matchedRecordIds = filteredRecords
+      .filter((r) => r.status === 'MATCHED' && hasMatchedMembers(r))
+      .map((r) => r.id);
+    await bulk.handleBulkConfirmAllMatched(matchedRecordIds);
   };
 
   const confirmedInBatch = batchId
@@ -724,7 +381,7 @@ function ProcessPage() {
                   <button
                     key={m}
                     type="button"
-                    onClick={() => setDraftRange(buildRecentRange(m))}
+                    onClick={() => setDraftToPreset(m)}
                     className={`text-xs px-2 py-1 rounded border ${
                       isActive
                         ? 'bg-amber-200 border-amber-400 text-amber-900'
@@ -738,7 +395,7 @@ function ProcessPage() {
             </div>
             <button
               type="button"
-              onClick={() => setAppliedRange({ ...draftRange })}
+              onClick={applyDraft}
               disabled={
                 !draftRange.from ||
                 !draftRange.to ||
@@ -822,7 +479,7 @@ function ProcessPage() {
             {statusCounts.matched > 0 && (
               <button
                 onClick={handleBulkConfirm}
-                disabled={bulkConfirmMutation.isPending}
+                disabled={bulk.isBulkConfirmPending}
                 className="flex items-center gap-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
               >
                 <CheckCircle size={18} />
@@ -878,8 +535,8 @@ function ProcessPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleBulkUnconfirmSelected}
-                    disabled={bulkUnconfirmMutation.isPending}
+                    onClick={bulk.handleBulkUnconfirmSelected}
+                    disabled={bulk.isBulkUnconfirmPending}
                     className="ml-auto px-3 py-1.5 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 whitespace-nowrap"
                   >
                     선택 항목 확정 취소
@@ -907,9 +564,9 @@ function ProcessPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">연도:</span>
                     <select
-                      value={bulkSelectionYear}
+                      value={bulk.bulkSelectionYear}
                       onChange={(e) =>
-                        setBulkSelectionYear(Number(e.target.value))
+                        bulk.setBulkSelectionYear(Number(e.target.value))
                       }
                       className="px-2 py-1 text-sm border rounded"
                     >
@@ -922,16 +579,16 @@ function ProcessPage() {
                   </div>
                   <div className="flex-1 min-w-[20rem]">
                     <MonthSelector
-                      selectedMonths={bulkSelectionMonths}
-                      onMonthsChange={setBulkSelectionMonths}
+                      selectedMonths={bulk.bulkSelectionMonths}
+                      onMonthsChange={bulk.setBulkSelectionMonths}
                     />
                   </div>
                   <button
                     type="button"
-                    onClick={handleBulkConfirmSelected}
+                    onClick={bulk.handleBulkConfirmSelected}
                     disabled={
-                      bulkConfirmMutation.isPending ||
-                      bulkSelectionMonths.length === 0
+                      bulk.isBulkConfirmPending ||
+                      bulk.bulkSelectionMonths.length === 0
                     }
                     className="px-3 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 whitespace-nowrap"
                   >
@@ -939,8 +596,8 @@ function ProcessPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleBulkSkipSelected}
-                    disabled={bulkSkipMutation.isPending}
+                    onClick={bulk.handleBulkSkipSelected}
+                    disabled={bulk.isBulkSkipPending}
                     className="px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 whitespace-nowrap"
                   >
                     선택 항목 건너뛰기
@@ -968,8 +625,8 @@ function ProcessPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleBulkSkipSelected}
-                    disabled={bulkSkipMutation.isPending}
+                    onClick={bulk.handleBulkSkipSelected}
+                    disabled={bulk.isBulkSkipPending}
                     className="ml-auto px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 whitespace-nowrap"
                   >
                     선택 항목 건너뛰기
@@ -997,8 +654,8 @@ function ProcessPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleBulkUnskipSelected}
-                    disabled={bulkUnskipMutation.isPending}
+                    onClick={bulk.handleBulkUnskipSelected}
+                    disabled={bulk.isBulkUnskipPending}
                     className="ml-auto px-3 py-1.5 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 whitespace-nowrap"
                   >
                     선택 항목 건너뜀 해제
@@ -1035,10 +692,10 @@ function ProcessPage() {
             unconfirmMutation.isPending ||
             skipMutation.isPending ||
             unskipMutation.isPending ||
-            bulkConfirmMutation.isPending ||
-            bulkUnconfirmMutation.isPending ||
-            bulkSkipMutation.isPending ||
-            bulkUnskipMutation.isPending
+            bulk.isBulkConfirmPending ||
+            bulk.isBulkUnconfirmPending ||
+            bulk.isBulkSkipPending ||
+            bulk.isBulkUnskipPending
           }
         />
       </div>
