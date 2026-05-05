@@ -140,6 +140,11 @@ function PaymentDashboardTable({
                     ) : (
                       member.name
                     )}
+                    {member.couplePartnerName && (
+                      <div className="text-xs text-gray-500 font-normal">
+                        ({member.couplePartnerName})
+                      </div>
+                    )}
                   </td>
                   <td className="px-2 py-2 text-center whitespace-nowrap">
                     <span className="inline-flex items-center gap-1">

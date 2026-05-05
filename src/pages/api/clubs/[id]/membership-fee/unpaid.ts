@@ -111,13 +111,11 @@ export default withAuth(async function handler(
       },
     });
 
-    // 부부 그룹 멤버 ID Set
-    const coupleMemberIds = new Set<number>();
+    // 부부 그룹 매핑 — clubMemberId → coupleGroupId
     const memberToCoupleGroup = new Map<number, number>();
 
     coupleGroups.forEach((group) => {
       group.members.forEach((m) => {
-        coupleMemberIds.add(m.clubMemberId);
         memberToCoupleGroup.set(m.clubMemberId, group.id);
       });
     });
@@ -136,8 +134,7 @@ export default withAuth(async function handler(
 
     const paidMemberIds = new Set(payments.map((p) => p.clubMemberId));
 
-    // 미납 회원 목록 생성
-    const processedCoupleGroups = new Set<number>();
+    // 미납 회원 목록 생성 — 부부도 본인 기준으로 의무·납부 판단
     const unpaidMembers: Array<{
       id: number;
       name: string | null;
@@ -165,43 +162,21 @@ export default withAuth(async function handler(
       // 이미 납부한 회원 제외
       if (paidMemberIds.has(member.id)) return;
 
-      const isCouple = coupleMemberIds.has(member.id);
       const coupleGroupId = memberToCoupleGroup.get(member.id);
+      const coupleGroup = coupleGroupId
+        ? coupleGroups.find((g) => g.id === coupleGroupId)
+        : null;
+      const partnerMember = coupleGroup?.members.find(
+        (m) => m.clubMemberId !== member.id
+      );
 
-      if (isCouple && coupleGroupId) {
-        // 부부 그룹 처리
-        if (processedCoupleGroups.has(coupleGroupId)) return;
-        processedCoupleGroups.add(coupleGroupId);
-
-        const coupleGroup = coupleGroups.find((g) => g.id === coupleGroupId);
-        const partnerMember = coupleGroup?.members.find(
-          (m) => m.clubMemberId !== member.id
-        );
-        const partnerStartAt = partnerMember
-          ? (clubMembers.find((c) => c.id === partnerMember.clubMemberId)
-              ?.feeObligationStartAt ?? null)
-          : null;
-        const partnerLeave = partnerMember
-          ? (leaveMap.get(partnerMember.clubMemberId) ?? [])
-          : [];
-        if (!isMonthObligated(year, month, partnerStartAt, partnerLeave))
-          return;
-
-        unpaidMembers.push({
-          id: member.id,
-          name: member.name,
-          phoneNumber: member.phoneNumber,
-          type: 'couple',
-          partnerName: partnerMember?.clubMember.name,
-        });
-      } else {
-        unpaidMembers.push({
-          id: member.id,
-          name: member.name,
-          phoneNumber: member.phoneNumber,
-          type: 'regular',
-        });
-      }
+      unpaidMembers.push({
+        id: member.id,
+        name: member.name,
+        phoneNumber: member.phoneNumber,
+        type: coupleGroupId ? 'couple' : 'regular',
+        partnerName: partnerMember?.clubMember.name ?? null,
+      });
     });
 
     // 이름순 정렬

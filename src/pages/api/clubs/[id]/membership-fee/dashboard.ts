@@ -183,13 +183,11 @@ export default withAuth(async function handler(
       },
     });
 
-    // 부부 그룹 멤버 ID Set
-    const coupleMemberIds = new Set<number>();
+    // 부부 그룹 매핑 — clubMemberId → coupleGroupId
     const memberToCoupleGroup = new Map<number, number>();
 
     coupleGroups.forEach((group) => {
       group.members.forEach((m) => {
-        coupleMemberIds.add(m.clubMemberId);
         memberToCoupleGroup.set(m.clubMemberId, group.id);
       });
     });
@@ -208,239 +206,115 @@ export default withAuth(async function handler(
       amountsByMonth.set(p.month, currentAmount + p.amount);
     });
 
-    // 이미 처리된 부부 그룹 ID 추적
-    const processedCoupleGroups = new Set<number>();
+    // 회원 목록 생성 — 부부도 개인 row로 산출 (의무·휴회·탈퇴·납부 모두 본인 기준)
+    const members = clubMembers.map((member) => {
+      const isExempt = exemptedMemberIds.has(member.id);
+      const coupleGroupId = memberToCoupleGroup.get(member.id);
+      const coupleGroup = coupleGroupId
+        ? coupleGroups.find((g) => g.id === coupleGroupId)
+        : null;
+      const partnerMember = coupleGroup?.members.find(
+        (m) => m.clubMemberId !== member.id
+      );
+      const couplePartnerName = partnerMember?.clubMember.name ?? null;
 
-    // 회원 목록 생성
-    const members = clubMembers
-      .map((member) => {
-        const isExempt = exemptedMemberIds.has(member.id);
-        const isCouple = coupleMemberIds.has(member.id);
-        const coupleGroupId = memberToCoupleGroup.get(member.id);
+      const isLeft = member.status === 'LEFT';
+      const memberLeftAt = isLeft ? member.leftAt : null;
+      const leavePeriodsMember = leaveMap.get(member.id) ?? [];
+      // 첫번째 의무 월 계산
+      const firstObligation = getFirstObligationMonth(
+        year,
+        member.feeObligationStartAt,
+        leavePeriodsMember,
+        memberLeftAt
+      );
+      // 회비 납부 의무 월 개수 계산 (휴회 월 제외, 탈퇴월 이후 제외)
+      const totalMonthsMember =
+        firstObligation != null
+          ? obligationMonthCount(
+              year,
+              member.feeObligationStartAt,
+              leavePeriodsMember,
+              memberLeftAt
+            )
+          : 0;
+      const paidMonths = paymentsByMember.get(member.id) || new Set();
 
-        // 부부인 경우, 이미 처리된 그룹이면 건너뛰기
-        if (isCouple && coupleGroupId) {
-          if (processedCoupleGroups.has(coupleGroupId)) {
-            return null; // 이미 처리됨
-          }
-          processedCoupleGroups.add(coupleGroupId);
-
-          // 부부 그룹 정보 가져오기
-          const coupleGroup = coupleGroups.find((g) => g.id === coupleGroupId);
-          const partnerMember = coupleGroup?.members.find(
-            (m) => m.clubMemberId !== member.id
-          );
-
-          const couplePartnerName = partnerMember?.clubMember.name || null;
-          const displayName = couplePartnerName
-            ? `${member.name || ''}·${couplePartnerName}`
-            : member.name || '(이름 없음)';
-
-          // 부부: 둘 중 늦은 의무 시작월 기준, 휴회 월 제외, 탈퇴월 이후 제외
-          const partnerData = partnerMember
-            ? clubMembers.find((c) => c.id === partnerMember.clubMemberId)
-            : null;
-          const partnerStartAt = partnerData?.feeObligationStartAt ?? null;
-
-          // 부부 탈퇴: 둘 다 탈퇴 시 늦은 탈퇴월 기준
-          const memberIsLeft = member.status === 'LEFT';
-          const partnerIsLeft = partnerData?.status === 'LEFT';
-          const coupleIsLeft = memberIsLeft || partnerIsLeft;
-          const coupleLeftDates = [
-            memberIsLeft ? member.leftAt : null,
-            partnerIsLeft ? (partnerData?.leftAt ?? null) : null,
-          ].filter(Boolean) as Date[];
-          // 둘 다 탈퇴: 늦은 탈퇴일, 한 명만 탈퇴: 그 회원의 탈퇴일 (의무 종료하지 않음)
-          const bothLeft = memberIsLeft && partnerIsLeft;
-          const coupleLeftAt =
-            bothLeft && coupleLeftDates.length > 0
-              ? new Date(Math.max(...coupleLeftDates.map((d) => d.getTime())))
-              : null;
-
-          const firstA = getFirstObligationMonth(
-            year,
-            member.feeObligationStartAt,
-            []
-          );
-          const firstB = getFirstObligationMonth(year, partnerStartAt, []);
-          const effectiveFirstRaw =
-            firstA != null && firstB != null
-              ? Math.max(firstA, firstB)
-              : (firstA ?? firstB ?? 1);
-          const coupleLeavePeriods: LeavePeriod[] = [
-            ...(leaveMap.get(member.id) ?? []),
-            ...(partnerMember
-              ? (leaveMap.get(partnerMember.clubMemberId) ?? [])
-              : []),
-          ];
-          const obligationMonthsCouple = getObligationMonths(
-            year,
-            new Date(year, effectiveFirstRaw - 1, 1),
-            coupleLeavePeriods,
-            coupleLeftAt
-          );
-          const effectiveFirst = obligationMonthsCouple[0] ?? effectiveFirstRaw;
-          const totalMonthsCouple = obligationMonthsCouple.length;
-          const paidMonths = paymentsByMember.get(member.id) || new Set();
-          const obligationSet = new Set(obligationMonthsCouple);
-
-          const paymentsObj: Record<number, boolean> = {};
-          for (let m = 1; m <= 12; m++) {
-            paymentsObj[m] = obligationSet.has(m) ? paidMonths.has(m) : false;
-          }
-          const paidCountCouple = obligationMonthsCouple.filter((m) =>
-            paidMonths.has(m)
-          ).length;
-
-          // 부부 휴회/병가 월 계산
-          const coupleLastMonth =
-            coupleLeftAt && coupleLeftAt.getFullYear() === year
-              ? coupleLeftAt.getMonth() + 1
-              : 12;
-          const leaveMonthsCouple: number[] = [];
-          for (let m = effectiveFirstRaw; m <= coupleLastMonth; m++) {
-            if (!obligationSet.has(m)) leaveMonthsCouple.push(m);
-          }
-
-          // 부부: 둘 중 늦은 feeObligationStartAt 기준
-          const coupleStartDates = [
-            member.feeObligationStartAt,
-            partnerData?.feeObligationStartAt ?? null,
-          ].filter(Boolean) as Date[];
-          const coupleEffectiveStart =
-            coupleStartDates.length > 0
-              ? new Date(Math.max(...coupleStartDates.map((d) => d.getTime())))
-              : null;
-
-          // 부부 탈퇴 정보
-          const coupleLeftMonth =
-            coupleIsLeft && coupleLeftAt && coupleLeftAt.getFullYear() === year
-              ? coupleLeftAt.getMonth() + 1
-              : undefined;
-          const coupleLeftAtFormatted =
-            coupleIsLeft && coupleLeftDates.length > 0
-              ? (() => {
-                  const d = new Date(
-                    Math.max(...coupleLeftDates.map((dt) => dt.getTime()))
-                  );
-                  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`;
-                })()
-              : null;
-
-          return {
-            id: member.id,
-            userId: member.userId,
-            name: displayName,
-            type: 'couple' as const,
-            couplePartnerName,
-            payments: paymentsObj,
-            paidCount: paidCountCouple,
-            totalMonths: totalMonthsCouple,
-            firstObligationMonth: effectiveFirst,
-            obligationMonths: obligationMonthsCouple,
-            leaveMonths: leaveMonthsCouple,
-            feeObligationStartMonth: coupleEffectiveStart
-              ? `${coupleEffectiveStart.getFullYear()}.${String(coupleEffectiveStart.getMonth() + 1).padStart(2, '0')}`
-              : null,
-            isLeft: coupleIsLeft,
-            leftMonth: coupleLeftMonth,
-            leftAtFormatted: coupleLeftAtFormatted,
-          };
-        }
-
-        // 일반 회원 (휴회 월 제외, 탈퇴월 이후 제외)
-        const isLeft = member.status === 'LEFT';
-        const memberLeftAt = isLeft ? member.leftAt : null;
-        const leavePeriodsMember = leaveMap.get(member.id) ?? [];
-        // 첫번째 의무 월 계산
-        const firstObligation = getFirstObligationMonth(
+      const paymentsObj: Record<number, boolean> = {};
+      for (let m = 1; m <= 12; m++) {
+        const obligated = isMonthObligated(
           year,
+          m,
           member.feeObligationStartAt,
           leavePeriodsMember,
           memberLeftAt
         );
-        // 회비 납부 의무 월 개수 계산 (휴회 월 제외, 탈퇴월 이후 제외)
-        const totalMonthsMember =
-          firstObligation != null
-            ? obligationMonthCount(
-                year,
-                member.feeObligationStartAt,
-                leavePeriodsMember,
-                memberLeftAt
-              )
-            : 0;
-        const paidMonths = paymentsByMember.get(member.id) || new Set();
+        paymentsObj[m] = obligated ? paidMonths.has(m) : false;
+      }
+      const obligationMonthsMember = getObligationMonths(
+        year,
+        member.feeObligationStartAt,
+        leavePeriodsMember,
+        memberLeftAt
+      );
+      const paidCountMember = obligationMonthsMember.filter((m) =>
+        paidMonths.has(m)
+      ).length;
 
-        const paymentsObj: Record<number, boolean> = {};
-        for (let m = 1; m <= 12; m++) {
-          const obligated = isMonthObligated(
-            year,
-            m,
-            member.feeObligationStartAt,
-            leavePeriodsMember,
-            memberLeftAt
-          );
-          paymentsObj[m] = obligated ? paidMonths.has(m) : false;
-        }
-        const obligationMonthsMember = getObligationMonths(
-          year,
-          member.feeObligationStartAt,
-          leavePeriodsMember,
-          memberLeftAt
-        );
-        const paidCountMember = obligationMonthsMember.filter((m) =>
-          paidMonths.has(m)
-        ).length;
-
-        // 휴회/병가 월 계산: 의무 시작월~탈퇴월 사이에서 의무 목록에 없는 달
-        const rawFirst = getFirstObligationMonth(
-          year,
-          member.feeObligationStartAt,
-          []
-        );
-        const obligationSet = new Set(obligationMonthsMember);
-        const leaveMonthsMember: number[] = [];
-        if (rawFirst != null) {
-          const lastMonth =
-            memberLeftAt && memberLeftAt.getFullYear() === year
-              ? memberLeftAt.getMonth() + 1
-              : 12;
-          for (let m = rawFirst; m <= lastMonth; m++) {
-            if (!obligationSet.has(m)) leaveMonthsMember.push(m);
-          }
-        }
-
-        // 탈퇴 정보
-        const leftMonth =
-          isLeft && memberLeftAt && memberLeftAt.getFullYear() === year
+      // 휴회/병가 월 계산: 의무 시작월~탈퇴월 사이에서 의무 목록에 없는 달
+      const rawFirst = getFirstObligationMonth(
+        year,
+        member.feeObligationStartAt,
+        []
+      );
+      const obligationSet = new Set(obligationMonthsMember);
+      const leaveMonthsMember: number[] = [];
+      if (rawFirst != null) {
+        const lastMonth =
+          memberLeftAt && memberLeftAt.getFullYear() === year
             ? memberLeftAt.getMonth() + 1
-            : undefined;
-        const leftAtFormatted =
-          isLeft && memberLeftAt
-            ? `${memberLeftAt.getFullYear()}.${String(memberLeftAt.getMonth() + 1).padStart(2, '0')}`
-            : null;
+            : 12;
+        for (let m = rawFirst; m <= lastMonth; m++) {
+          if (!obligationSet.has(m)) leaveMonthsMember.push(m);
+        }
+      }
 
-        return {
-          id: member.id,
-          userId: member.userId,
-          name: member.name || '(이름 없음)',
-          type: isExempt ? ('exempt' as const) : ('regular' as const),
-          couplePartnerName: null,
-          payments: paymentsObj,
-          paidCount: paidCountMember,
-          totalMonths: totalMonthsMember,
-          firstObligationMonth: firstObligation ?? 1,
-          obligationMonths: obligationMonthsMember,
-          leaveMonths: leaveMonthsMember,
-          feeObligationStartMonth: member.feeObligationStartAt
-            ? `${member.feeObligationStartAt.getFullYear()}.${String(member.feeObligationStartAt.getMonth() + 1).padStart(2, '0')}`
-            : null,
-          isLeft,
-          leftMonth,
-          leftAtFormatted,
-        };
-      })
-      .filter(Boolean);
+      // 탈퇴 정보
+      const leftMonth =
+        isLeft && memberLeftAt && memberLeftAt.getFullYear() === year
+          ? memberLeftAt.getMonth() + 1
+          : undefined;
+      const leftAtFormatted =
+        isLeft && memberLeftAt
+          ? `${memberLeftAt.getFullYear()}.${String(memberLeftAt.getMonth() + 1).padStart(2, '0')}`
+          : null;
+
+      const memberType: 'exempt' | 'couple' | 'regular' = isExempt
+        ? 'exempt'
+        : coupleGroupId
+          ? 'couple'
+          : 'regular';
+
+      return {
+        id: member.id,
+        userId: member.userId,
+        name: member.name || '(이름 없음)',
+        type: memberType,
+        couplePartnerName,
+        payments: paymentsObj,
+        paidCount: paidCountMember,
+        totalMonths: totalMonthsMember,
+        firstObligationMonth: firstObligation ?? 1,
+        obligationMonths: obligationMonthsMember,
+        leaveMonths: leaveMonthsMember,
+        feeObligationStartMonth: member.feeObligationStartAt
+          ? `${member.feeObligationStartAt.getFullYear()}.${String(member.feeObligationStartAt.getMonth() + 1).padStart(2, '0')}`
+          : null,
+        isLeft,
+        leftMonth,
+        leftAtFormatted,
+      };
+    });
 
     // 월별 통계: 해당 월에 의무 있는 회원 수 기준 (휴회 월 제외)
     const monthlyStats = Array.from({ length: 12 }, (_, i) => {
@@ -449,7 +323,7 @@ export default withAuth(async function handler(
       let totalCount = 0;
 
       members.forEach((m) => {
-        if (!m || m.type === 'exempt') return;
+        if (m.type === 'exempt') return;
         const isObligated = m.obligationMonths
           ? m.obligationMonths.includes(month)
           : (m.firstObligationMonth ?? 1) <= month;
@@ -503,7 +377,7 @@ export default withAuth(async function handler(
       data: {
         year,
         feeSettings,
-        members: members.filter(Boolean),
+        members,
         summary: {
           totalMembers: clubMembers.length,
           exemptMembers: exemptedMemberIds.size,
