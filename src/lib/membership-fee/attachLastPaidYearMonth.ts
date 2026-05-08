@@ -1,3 +1,5 @@
+import { getNextObligatedMonth, type LeavePeriod } from './feeObligation';
+
 import type { PrismaClient } from '@prisma/client';
 
 /** 매칭 회원 정보만 있으면 됨 (records/upload 공통) */
@@ -8,9 +10,10 @@ export interface RecordWithMatchedMembers {
 }
 
 export type LastPaidYearMonth = { year: number; month: number } | null;
+export type NextSuggestedYearMonth = { year: number; month: number } | null;
 
 /**
- * 입금 내역 레코드에 매칭 회원 기준 '최종 납부월'을 붙여 반환.
+ * 입금 내역 레코드에 매칭 회원 기준 '최종 납부월'과 '차기 의무월(휴회/탈퇴 반영)'을 붙여 반환.
  * GET records, upload API 등에서 공통 사용.
  */
 export async function attachLastPaidYearMonth<
@@ -18,7 +21,12 @@ export async function attachLastPaidYearMonth<
 >(
   prisma: PrismaClient,
   records: T[]
-): Promise<(T & { lastPaidYearMonth: LastPaidYearMonth })[]> {
+): Promise<
+  (T & {
+    lastPaidYearMonth: LastPaidYearMonth;
+    nextSuggestedYearMonth: NextSuggestedYearMonth;
+  })[]
+> {
   const memberIds = [
     ...new Set(
       records.flatMap((r) => {
@@ -30,11 +38,37 @@ export async function attachLastPaidYearMonth<
   ].filter((id): id is number => id != null);
 
   const lastPaidByMember = new Map<number, { year: number; month: number }>();
+  const memberMetaById = new Map<
+    number,
+    {
+      feeObligationStartAt: Date | null;
+      leftAt: Date | null;
+      leavePeriods: LeavePeriod[];
+    }
+  >();
+
   if (memberIds.length > 0) {
-    const payments = await prisma.membershipPayment.findMany({
-      where: { clubMemberId: { in: memberIds } },
-      select: { clubMemberId: true, year: true, month: true },
-    });
+    const [payments, members, leaves] = await Promise.all([
+      prisma.membershipPayment.findMany({
+        where: { clubMemberId: { in: memberIds } },
+        select: { clubMemberId: true, year: true, month: true },
+      }),
+      prisma.clubMember.findMany({
+        where: { id: { in: memberIds } },
+        select: { id: true, feeObligationStartAt: true, leftAt: true },
+      }),
+      prisma.memberLeave.findMany({
+        where: { clubMemberId: { in: memberIds } },
+        select: {
+          clubMemberId: true,
+          startYear: true,
+          startMonth: true,
+          endYear: true,
+          endMonth: true,
+        },
+      }),
+    ]);
+
     for (const p of payments) {
       const key = p.year * 12 + p.month;
       const existing = lastPaidByMember.get(p.clubMemberId);
@@ -46,6 +80,24 @@ export async function attachLastPaidYearMonth<
         });
       }
     }
+
+    for (const m of members) {
+      memberMetaById.set(m.id, {
+        feeObligationStartAt: m.feeObligationStartAt ?? null,
+        leftAt: m.leftAt ?? null,
+        leavePeriods: [],
+      });
+    }
+    for (const lv of leaves) {
+      const meta = memberMetaById.get(lv.clubMemberId);
+      if (!meta) continue;
+      meta.leavePeriods.push({
+        startYear: lv.startYear,
+        startMonth: lv.startMonth,
+        endYear: lv.endYear ?? undefined,
+        endMonth: lv.endMonth ?? undefined,
+      });
+    }
   }
 
   return records.map((r) => {
@@ -53,9 +105,13 @@ export async function attachLastPaidYearMonth<
       ...(r.matchedMembers ?? []).map((m) => m.clubMemberId),
       ...(r.matchedMemberId ? [r.matchedMemberId] : []),
     ];
+
     let lastPaidYearMonth: { year: number; month: number } | null = null;
+    let nextSuggestedYearMonth: { year: number; month: number } | null = null;
+    let nextSuggestedKey = Infinity;
+
     for (const mid of ids) {
-      const lm = lastPaidByMember.get(mid);
+      const lm = lastPaidByMember.get(mid) ?? null;
       if (lm) {
         const key = lm.year * 12 + lm.month;
         const curKey = lastPaidYearMonth
@@ -63,7 +119,27 @@ export async function attachLastPaidYearMonth<
           : 0;
         if (key > curKey) lastPaidYearMonth = lm;
       }
+
+      // 회원별 차기 의무월 계산 후, record 단위에서는 가장 이른 차기월을 채택
+      // (다중 매칭에서 한 명이라도 미납이면 그 사람 기준의 다음 의무월을 추천)
+      const meta = memberMetaById.get(mid);
+      if (meta) {
+        const next = getNextObligatedMonth(
+          lm,
+          meta.feeObligationStartAt,
+          meta.leavePeriods,
+          meta.leftAt
+        );
+        if (next) {
+          const nKey = next.year * 12 + next.month;
+          if (nKey < nextSuggestedKey) {
+            nextSuggestedKey = nKey;
+            nextSuggestedYearMonth = next;
+          }
+        }
+      }
     }
-    return { ...r, lastPaidYearMonth };
+
+    return { ...r, lastPaidYearMonth, nextSuggestedYearMonth };
   });
 }

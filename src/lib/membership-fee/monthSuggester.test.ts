@@ -31,9 +31,9 @@ describe('suggestMonths', () => {
 
   it('의무월 + 납부 이력을 모두 반영해 채울 수 있는 만큼만 반환', () => {
     // 12월에 3개월치, 11월·12월 이미 납부, 의무월 1~12 → [1, 2, 3]
-    expect(
-      suggestMonths(3, [{ month: 11 }, { month: 12 }], 12)
-    ).toEqual([1, 2, 3]);
+    expect(suggestMonths(3, [{ month: 11 }, { month: 12 }], 12)).toEqual([
+      1, 2, 3,
+    ]);
   });
 
   it('월 수가 가능한 후보보다 많으면 가능한 만큼만 반환', () => {

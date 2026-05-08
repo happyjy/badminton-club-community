@@ -135,3 +135,59 @@ export function getObligationMonths(
   }
   return months;
 }
+
+/**
+ * 마지막 납부월 다음의 첫 의무월(휴회 제외, 탈퇴월 이후 제외)을 반환.
+ * - lastPaid가 없으면 feeObligationStartAt 기준 첫 의무월부터 탐색.
+ * - 의무 구간이 끝났거나 24개월 이내에 의무월이 없으면 null.
+ */
+export function getNextObligatedMonth(
+  lastPaid: { year: number; month: number } | null,
+  feeObligationStartAt: Date | null,
+  leavePeriods: LeavePeriod[] = [],
+  leftAt?: Date | null
+): { year: number; month: number } | null {
+  let year: number;
+  let month: number;
+  if (lastPaid) {
+    if (lastPaid.month === 12) {
+      year = lastPaid.year + 1;
+      month = 1;
+    } else {
+      year = lastPaid.year;
+      month = lastPaid.month + 1;
+    }
+  } else {
+    const startYear = feeObligationStartAt
+      ? feeObligationStartAt.getFullYear()
+      : new Date().getFullYear();
+    const startMonth = feeObligationStartAt
+      ? feeObligationStartAt.getMonth() + 1
+      : 1;
+    year = startYear;
+    month = startMonth;
+  }
+
+  // 탐색 상한: 24개월. 의무 구간이 매우 길게 휴회되어 있더라도 비현실적 루프 방지.
+  for (let i = 0; i < 24; i++) {
+    if (leftAt) {
+      const leftYear = leftAt.getFullYear();
+      const leftMonth = leftAt.getMonth() + 1;
+      if (year > leftYear || (year === leftYear && month > leftMonth)) {
+        return null;
+      }
+    }
+    if (
+      isMonthObligated(year, month, feeObligationStartAt, leavePeriods, leftAt)
+    ) {
+      return { year, month };
+    }
+    if (month === 12) {
+      year += 1;
+      month = 1;
+    } else {
+      month += 1;
+    }
+  }
+  return null;
+}

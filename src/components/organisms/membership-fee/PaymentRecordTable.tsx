@@ -226,7 +226,10 @@ function PaymentRecordTable({
     setConfirmingRecordId(record.id);
     setEditingRecordId(null);
     const lastPaid = record.lastPaidYearMonth ?? null;
-    const nextDefault = lastPaid ? getNextMonth(lastPaid) : null;
+    // 백엔드가 휴회/탈퇴 반영해 내려준 차기 의무월을 우선 사용. fallback은 +1개월.
+    const nextDefault =
+      record.nextSuggestedYearMonth ??
+      (lastPaid ? getNextMonth(lastPaid) : null);
     if (nextDefault) {
       setSelections([{ year: nextDefault.year, months: [nextDefault.month] }]);
       setAddYear(nextDefault.year);
@@ -550,7 +553,9 @@ function PaymentRecordTable({
                         {record.lastPaidYearMonth &&
                           (() => {
                             const last = record.lastPaidYearMonth;
-                            const next = getNextMonth(last);
+                            const next =
+                              record.nextSuggestedYearMonth ??
+                              getNextMonth(last);
                             return (
                               <p className="text-sm text-gray-600">
                                 <span className="font-medium">

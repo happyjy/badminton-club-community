@@ -6,6 +6,7 @@ import {
   obligationMonthCount,
   getObligationMonths,
   isMonthInLeave,
+  getNextObligatedMonth,
   type LeavePeriod,
 } from './feeObligation';
 
@@ -114,6 +115,92 @@ describe('feeObligation', () => {
 
     it('obligationMonthCount에서 휴회 월 제외', () => {
       expect(obligationMonthCount(2025, null, [leaveMarToMay])).toBe(9);
+    });
+  });
+
+  describe('getNextObligatedMonth', () => {
+    it('lastPaid 다음 달이 의무월이면 그대로 반환', () => {
+      const lastPaid = { year: 2025, month: 2 };
+      expect(getNextObligatedMonth(lastPaid, null)).toEqual({
+        year: 2025,
+        month: 3,
+      });
+    });
+
+    it('lastPaid 다음 달이 휴회 월이면 휴회 종료 직후 의무월 반환', () => {
+      // 1월 납부, 3~5월 병가 → 다음 의무월은 6월
+      const lastPaid = { year: 2025, month: 2 };
+      const leave: LeavePeriod = {
+        startYear: 2025,
+        startMonth: 3,
+        endYear: 2025,
+        endMonth: 5,
+      };
+      expect(getNextObligatedMonth(lastPaid, null, [leave])).toEqual({
+        year: 2025,
+        month: 6,
+      });
+    });
+
+    it('lastPaid가 12월이면 다음 해 1월부터 탐색', () => {
+      const lastPaid = { year: 2025, month: 12 };
+      expect(getNextObligatedMonth(lastPaid, null)).toEqual({
+        year: 2026,
+        month: 1,
+      });
+    });
+
+    it('lastPaid가 12월이고 다음 해 1~2월 휴회면 3월', () => {
+      const lastPaid = { year: 2025, month: 12 };
+      const leave: LeavePeriod = {
+        startYear: 2026,
+        startMonth: 1,
+        endYear: 2026,
+        endMonth: 2,
+      };
+      expect(getNextObligatedMonth(lastPaid, null, [leave])).toEqual({
+        year: 2026,
+        month: 3,
+      });
+    });
+
+    it('lastPaid가 없으면 feeObligationStartAt 기준 첫 의무월', () => {
+      const start = new Date('2025-04-15');
+      expect(getNextObligatedMonth(null, start)).toEqual({
+        year: 2025,
+        month: 4,
+      });
+    });
+
+    it('lastPaid가 없고 시작 월이 휴회면 휴회 이후 첫 의무월', () => {
+      const start = new Date('2025-03-01');
+      const leave: LeavePeriod = {
+        startYear: 2025,
+        startMonth: 3,
+        endYear: 2025,
+        endMonth: 4,
+      };
+      expect(getNextObligatedMonth(null, start, [leave])).toEqual({
+        year: 2025,
+        month: 5,
+      });
+    });
+
+    it('탈퇴월 이후로는 null', () => {
+      const lastPaid = { year: 2025, month: 5 };
+      const leftAt = new Date('2025-05-20');
+      expect(getNextObligatedMonth(lastPaid, null, [], leftAt)).toBe(null);
+    });
+
+    it('휴회가 종료 미정이고 24개월 내 의무월이 없으면 null', () => {
+      const lastPaid = { year: 2025, month: 2 };
+      const openLeave: LeavePeriod = {
+        startYear: 2025,
+        startMonth: 3,
+        endYear: null,
+        endMonth: null,
+      };
+      expect(getNextObligatedMonth(lastPaid, null, [openLeave])).toBe(null);
     });
   });
 });

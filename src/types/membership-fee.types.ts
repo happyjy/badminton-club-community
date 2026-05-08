@@ -132,6 +132,8 @@ export interface PaymentRecord {
   payments?: { id: string; year: number; month: number }[];
   /** 매칭 회원 기준 최종 납부월 (차기월 자동 추천용) */
   lastPaidYearMonth?: { year: number; month: number } | null;
+  /** 휴회/병가·탈퇴를 반영한 차기 의무월 (백엔드 계산) */
+  nextSuggestedYearMonth?: { year: number; month: number } | null;
 }
 
 // 납부 내역
