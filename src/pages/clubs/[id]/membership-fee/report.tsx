@@ -147,7 +147,13 @@ function ReportPage() {
                   <td className="px-4 py-2">
                     <span className="font-medium">{member.name}</span>
                     {member.type === 'couple' && (
-                      <span className="ml-1 text-xs text-pink-600">(부부)</span>
+                      <span className="ml-1 text-xs text-pink-600">
+                        (부부
+                        {member.couplePartnerName
+                          ? ` · ${member.couplePartnerName}`
+                          : ''}
+                        )
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-2 text-center">
@@ -193,7 +199,10 @@ function ReportPage() {
                       {member.name || '(이름 없음)'}
                     </span>
                     {member.type === 'couple' && (
-                      <span className="ml-1 text-xs text-pink-600">(부부)</span>
+                      <span className="ml-1 text-xs text-pink-600">
+                        (부부
+                        {member.partnerName ? ` · ${member.partnerName}` : ''})
+                      </span>
                     )}
                   </div>
                 </div>
