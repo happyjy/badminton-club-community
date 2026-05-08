@@ -7,6 +7,7 @@ import {
   getObligationMonths,
   isMonthInLeave,
   getNextObligatedMonth,
+  explainNextObligatedMonth,
   type LeavePeriod,
 } from './feeObligation';
 
@@ -201,6 +202,79 @@ describe('feeObligation', () => {
         endMonth: null,
       };
       expect(getNextObligatedMonth(lastPaid, null, [openLeave])).toBe(null);
+    });
+  });
+
+  describe('explainNextObligatedMonth', () => {
+    it('일반 케이스: 단순 +1이면 reasons는 빈 배열', () => {
+      const lastPaid = { year: 2025, month: 2 };
+      const result = explainNextObligatedMonth(lastPaid, null);
+      expect(result.next).toEqual({ year: 2025, month: 3 });
+      expect(result.reasons).toEqual([]);
+    });
+
+    it('휴회 끼어 차기월이 밀리면 휴회 사유 라벨', () => {
+      const lastPaid = { year: 2026, month: 2 };
+      const leave: LeavePeriod = {
+        startYear: 2026,
+        startMonth: 3,
+        endYear: 2026,
+        endMonth: 4,
+      };
+      const result = explainNextObligatedMonth(lastPaid, null, [leave]);
+      expect(result.next).toEqual({ year: 2026, month: 5 });
+      expect(result.reasons).toEqual(['2026년 3~4월 휴회 제외']);
+    });
+
+    it('연속되지 않은 휴회는 별도 라벨로', () => {
+      const lastPaid = { year: 2026, month: 2 };
+      const leaveMar: LeavePeriod = {
+        startYear: 2026,
+        startMonth: 3,
+        endYear: 2026,
+        endMonth: 3,
+      };
+      const leaveMay: LeavePeriod = {
+        startYear: 2026,
+        startMonth: 5,
+        endYear: 2026,
+        endMonth: 5,
+      };
+      const result = explainNextObligatedMonth(lastPaid, null, [
+        leaveMar,
+        leaveMay,
+      ]);
+      // 4월은 의무월이라 그 시점에 결과 반환 → 5월 휴회는 reasons에 안 들어감
+      expect(result.next).toEqual({ year: 2026, month: 4 });
+      expect(result.reasons).toEqual(['2026년 3월 휴회 제외']);
+    });
+
+    it('연도 경계를 넘는 휴회 라벨', () => {
+      const lastPaid = { year: 2025, month: 11 };
+      const leave: LeavePeriod = {
+        startYear: 2025,
+        startMonth: 12,
+        endYear: 2026,
+        endMonth: 2,
+      };
+      const result = explainNextObligatedMonth(lastPaid, null, [leave]);
+      expect(result.next).toEqual({ year: 2026, month: 3 });
+      expect(result.reasons).toEqual(['2025년 12월~2026년 2월 휴회 제외']);
+    });
+
+    it('lastPaid 없고 의무 시작월이 미래면 의무 시작월 라벨', () => {
+      const start = new Date('2026-04-15');
+      const result = explainNextObligatedMonth(null, start);
+      expect(result.next).toEqual({ year: 2026, month: 4 });
+      expect(result.reasons).toEqual(['의무 시작월: 2026년 4월']);
+    });
+
+    it('탈퇴로 차기월 없으면 탈퇴 사유', () => {
+      const lastPaid = { year: 2026, month: 5 };
+      const leftAt = new Date('2026-05-20');
+      const result = explainNextObligatedMonth(lastPaid, null, [], leftAt);
+      expect(result.next).toBeNull();
+      expect(result.reasons).toEqual(['2026년 5월 탈퇴로 더 이상 의무 없음']);
     });
   });
 });

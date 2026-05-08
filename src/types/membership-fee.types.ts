@@ -134,6 +134,11 @@ export interface PaymentRecord {
   lastPaidYearMonth?: { year: number; month: number } | null;
   /** 휴회/병가·탈퇴를 반영한 차기 의무월 (백엔드 계산) */
   nextSuggestedYearMonth?: { year: number; month: number } | null;
+  /**
+   * 차기월이 단순 `lastPaid + 1`이 아닐 때의 사유 라벨.
+   * 빈 배열이면 사유 라인을 숨김. 차기월이 null인 탈퇴 케이스에서도 사유 메시지 노출에 사용.
+   */
+  nextSuggestedReasons?: string[];
 }
 
 // 납부 내역

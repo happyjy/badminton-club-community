@@ -553,27 +553,54 @@ function PaymentRecordTable({
                         {record.lastPaidYearMonth &&
                           (() => {
                             const last = record.lastPaidYearMonth;
-                            const next =
-                              record.nextSuggestedYearMonth ??
-                              getNextMonth(last);
+                            // 백엔드가 명시적으로 null을 보내면 (탈퇴 등) 차기월을 추천하지 않음.
+                            // 필드 자체가 미정의(undefined)면 단순 +1로 fallback.
+                            const explicitNoNext =
+                              record.nextSuggestedYearMonth === null;
+                            const next = explicitNoNext
+                              ? null
+                              : (record.nextSuggestedYearMonth ??
+                                getNextMonth(last));
+                            const reasons = record.nextSuggestedReasons ?? [];
                             return (
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">
-                                  최종 납부월:
-                                </span>{' '}
-                                {last.year}년 {last.month}월{' · '}
-                                <span className="text-green-700 font-medium">
-                                  차기월(권장): {next.year}년 {next.month}월
-                                </span>
-                              </p>
+                              <>
+                                <p className="text-sm text-gray-600">
+                                  <span className="font-medium">
+                                    최종 납부월:
+                                  </span>{' '}
+                                  {last.year}년 {last.month}월{' · '}
+                                  {next ? (
+                                    <span className="text-green-700 font-medium">
+                                      차기월(권장): {next.year}년 {next.month}월
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-500 font-medium">
+                                      차기월(권장): 없음
+                                    </span>
+                                  )}
+                                </p>
+                                {reasons.length > 0 && (
+                                  <p className="text-xs text-gray-500 ml-4">
+                                    └ {reasons.join(' · ')}
+                                  </p>
+                                )}
+                              </>
                             );
                           })()}
                         {!record.lastPaidYearMonth &&
                           getRecordMemberIds(record).length > 0 && (
-                            <p className="text-sm text-gray-500">
-                              최종 납부월: 없음 (첫 납부 또는 이전 확정 이력
-                              없음)
-                            </p>
+                            <>
+                              <p className="text-sm text-gray-500">
+                                최종 납부월: 없음 (첫 납부 또는 이전 확정 이력
+                                없음)
+                              </p>
+                              {record.nextSuggestedReasons &&
+                                record.nextSuggestedReasons.length > 0 && (
+                                  <p className="text-xs text-gray-500 ml-4">
+                                    └ {record.nextSuggestedReasons.join(' · ')}
+                                  </p>
+                                )}
+                            </>
                           )}
                         {selections.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">

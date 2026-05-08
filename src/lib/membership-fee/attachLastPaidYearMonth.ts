@@ -1,4 +1,4 @@
-import { getNextObligatedMonth, type LeavePeriod } from './feeObligation';
+import { explainNextObligatedMonth, type LeavePeriod } from './feeObligation';
 
 import type { PrismaClient } from '@prisma/client';
 
@@ -11,6 +11,7 @@ export interface RecordWithMatchedMembers {
 
 export type LastPaidYearMonth = { year: number; month: number } | null;
 export type NextSuggestedYearMonth = { year: number; month: number } | null;
+export type NextSuggestedReasons = string[];
 
 /**
  * 입금 내역 레코드에 매칭 회원 기준 '최종 납부월'과 '차기 의무월(휴회/탈퇴 반영)'을 붙여 반환.
@@ -25,6 +26,7 @@ export async function attachLastPaidYearMonth<
   (T & {
     lastPaidYearMonth: LastPaidYearMonth;
     nextSuggestedYearMonth: NextSuggestedYearMonth;
+    nextSuggestedReasons: NextSuggestedReasons;
   })[]
 > {
   const memberIds = [
@@ -108,6 +110,7 @@ export async function attachLastPaidYearMonth<
 
     let lastPaidYearMonth: { year: number; month: number } | null = null;
     let nextSuggestedYearMonth: { year: number; month: number } | null = null;
+    let nextSuggestedReasons: string[] = [];
     let nextSuggestedKey = Infinity;
 
     for (const mid of ids) {
@@ -122,24 +125,31 @@ export async function attachLastPaidYearMonth<
 
       // 회원별 차기 의무월 계산 후, record 단위에서는 가장 이른 차기월을 채택
       // (다중 매칭에서 한 명이라도 미납이면 그 사람 기준의 다음 의무월을 추천)
+      // 채택된 회원의 사유만 응답에 싣는다 (다른 회원 사유 섞으면 혼란).
       const meta = memberMetaById.get(mid);
       if (meta) {
-        const next = getNextObligatedMonth(
+        const explanation = explainNextObligatedMonth(
           lm,
           meta.feeObligationStartAt,
           meta.leavePeriods,
           meta.leftAt
         );
-        if (next) {
-          const nKey = next.year * 12 + next.month;
+        if (explanation.next) {
+          const nKey = explanation.next.year * 12 + explanation.next.month;
           if (nKey < nextSuggestedKey) {
             nextSuggestedKey = nKey;
-            nextSuggestedYearMonth = next;
+            nextSuggestedYearMonth = explanation.next;
+            nextSuggestedReasons = explanation.reasons;
           }
         }
       }
     }
 
-    return { ...r, lastPaidYearMonth, nextSuggestedYearMonth };
+    return {
+      ...r,
+      lastPaidYearMonth,
+      nextSuggestedYearMonth,
+      nextSuggestedReasons,
+    };
   });
 }
