@@ -372,6 +372,14 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       >
         거절
       </Button>
+      <Button
+        onClick={onClickDeleteGuest}
+        pending={isDeleting}
+        disabled={isUpdating || isDeleting}
+        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
+      >
+        삭제
+      </Button>
     </>
   );
 
@@ -384,14 +392,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors min-w-[60px]"
       >
         수정
-      </Button>
-      <Button
-        onClick={onClickDeleteGuest}
-        pending={isDeleting}
-        disabled={isUpdating || isDeleting}
-        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
-      >
-        삭제
       </Button>
     </>
   );
