@@ -21,7 +21,9 @@ function TournamentCard({ tournament, onClick }: TournamentCardProps) {
       className="w-full rounded-lg border border-gray-200 p-4 text-left hover:border-blue-300 hover:bg-blue-50/30"
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold">{tournament.title}</h3>
+        <h3 className="min-w-0 break-words font-semibold">
+          {tournament.title}
+        </h3>
         <TournamentStatusBadge status={tournament.effectiveStatus} />
       </div>
 
