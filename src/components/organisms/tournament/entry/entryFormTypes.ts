@@ -8,7 +8,9 @@ export interface PlayerFormValue {
 }
 
 export interface EventFormValue {
-  eventOptionId: string;
+  eventTypeId: string;
+  ageGroup: string;
+  level: string;
   playerKeys: string[];
 }
 

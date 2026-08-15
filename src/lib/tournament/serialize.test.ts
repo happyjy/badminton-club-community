@@ -7,11 +7,9 @@ const ENTRIES = [
     entryEvents: [
       {
         status: 'ACTIVE' as const,
-        eventOption: {
-          eventType: '남자복식',
-          ageGroup: '30대부',
-          level: 'A조',
-        },
+        ageGroup: '30대부',
+        level: 'A조',
+        eventType: { name: '남자복식' },
         eventPlayers: [
           { entryPlayer: { name: '홍길동' } },
           { entryPlayer: { name: '김철수' } },
@@ -45,11 +43,9 @@ describe('toPublicParticipants', () => {
         entryEvents: [
           {
             status: 'CANCELED' as const,
-            eventOption: {
-              eventType: '남자복식',
-              ageGroup: '30대부',
-              level: 'A조',
-            },
+            ageGroup: '30대부',
+            level: 'A조',
+            eventType: { name: '남자복식' },
             eventPlayers: [{ entryPlayer: { name: '홍길동' } }],
           },
         ],

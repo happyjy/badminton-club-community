@@ -6,7 +6,9 @@ import type {
 export type MaskableEntry = {
   entryEvents: Array<{
     status: EntryEventStatus;
-    eventOption: { eventType: string; ageGroup: string; level: string };
+    ageGroup: string;
+    level: string;
+    eventType: { name: string };
     eventPlayers: Array<{ entryPlayer: { name: string } }>;
   }>;
 };
@@ -27,9 +29,9 @@ export function toPublicParticipants(
       .flatMap((event) =>
         event.eventPlayers.map((eventPlayer) => ({
           name: eventPlayer.entryPlayer.name,
-          eventType: event.eventOption.eventType,
-          ageGroup: event.eventOption.ageGroup,
-          level: event.eventOption.level,
+          eventType: event.eventType.name,
+          ageGroup: event.ageGroup,
+          level: event.level,
         }))
       )
   );
@@ -43,9 +45,9 @@ export const PUBLIC_PARTICIPANT_SELECT = {
   entryEvents: {
     select: {
       status: true,
-      eventOption: {
-        select: { eventType: true, ageGroup: true, level: true },
-      },
+      ageGroup: true,
+      level: true,
+      eventType: { select: { name: true } },
       eventPlayers: {
         select: { entryPlayer: { select: { name: true } } },
       },

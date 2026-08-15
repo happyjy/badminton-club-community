@@ -6,16 +6,16 @@ import { FormField } from '@/components/molecules/form/FormField';
 import { formatFee } from '@/lib/tournament/display';
 
 import type { EntryFormValues } from './entryFormTypes';
-import type { TournamentEventOption } from '@prisma/client';
+import type { TournamentEventType } from '@prisma/client';
 
 interface EntrySummaryProps {
-  eventOptions: TournamentEventOption[];
+  eventTypes: TournamentEventType[];
   useTeamName: boolean;
   bankAccount: string | null;
 }
 
 function EntrySummary({
-  eventOptions,
+  eventTypes,
   useTeamName,
   bankAccount,
 }: EntrySummaryProps) {
@@ -23,12 +23,12 @@ function EntrySummary({
 
   const events = watch('events') ?? [];
   const feeById = new Map(
-    eventOptions.map((option) => [option.id, option.fee])
+    eventTypes.map((eventType) => [eventType.id, eventType.fee])
   );
 
   // 화면 표시용 금액이다. 실제 청구액은 서버가 다시 계산한다.
   const totalFee = events.reduce(
-    (sum, event) => sum + (feeById.get(event.eventOptionId) ?? 0),
+    (sum, event) => sum + (feeById.get(event.eventTypeId) ?? 0),
     0
   );
 

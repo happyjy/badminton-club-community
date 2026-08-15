@@ -67,7 +67,9 @@ function TournamentApplyPage() {
       events: myEntry.entryEvents
         .filter((event) => event.status === 'ACTIVE')
         .map((event) => ({
-          eventOptionId: event.eventOption.id,
+          eventTypeId: event.eventType.id,
+          ageGroup: event.ageGroup,
+          level: event.level,
           playerKeys: event.eventPlayers
             .map((ep) => playerKeyById.get(ep.entryPlayerId))
             .filter(Boolean) as string[],
@@ -104,7 +106,9 @@ function TournamentApplyPage() {
             order: index,
           })),
           events: values.events.map((event) => ({
-            eventOptionId: event.eventOptionId,
+            eventTypeId: event.eventTypeId,
+            ageGroup: event.ageGroup,
+            level: event.level,
             playerKeys: event.playerKeys.filter(Boolean),
           })),
         },
@@ -149,9 +153,13 @@ function TournamentApplyPage() {
       <FormProvider {...methods}>
         <form onSubmit={onSubmitForm} className="space-y-8">
           <PlayerListField tshirtSizes={detail.tournament.tshirtSizes} />
-          <EventListField eventOptions={detail.tournament.eventOptions} />
+          <EventListField
+            eventTypes={detail.tournament.eventTypes}
+            ageGroups={detail.tournament.ageGroups}
+            levels={detail.tournament.levels}
+          />
           <EntrySummary
-            eventOptions={detail.tournament.eventOptions}
+            eventTypes={detail.tournament.eventTypes}
             useTeamName={detail.tournament.useTeamName}
             bankAccount={detail.tournament.bankAccount}
           />

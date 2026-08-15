@@ -10,7 +10,9 @@ export type CsvEntry = {
   entryEvents: Array<{
     status: EntryEventStatus;
     fee: number;
-    eventOption: { eventType: string; ageGroup: string; level: string };
+    ageGroup: string;
+    level: string;
+    eventType: { name: string };
     eventPlayers: Array<{
       entryPlayer: {
         name: string;
@@ -54,9 +56,9 @@ export function toCsvRows(entries: CsvEntry[]): string[][] {
       .filter((event) => event.status === 'ACTIVE')
       .flatMap((event) =>
         event.eventPlayers.map(({ entryPlayer }) => [
-          event.eventOption.eventType,
-          event.eventOption.ageGroup,
-          event.eventOption.level,
+          event.eventType.name,
+          event.ageGroup,
+          event.level,
           entryPlayer.name,
           entryPlayer.gender,
           entryPlayer.birthDate,

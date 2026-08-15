@@ -40,7 +40,7 @@ export default withAuth(async function handler(
           players: { orderBy: { order: 'asc' } },
           entryEvents: {
             include: {
-              eventOption: true,
+              eventType: true,
               eventPlayers: { include: { entryPlayer: true } },
             },
           },
@@ -69,7 +69,7 @@ export default withAuth(async function handler(
 
       const tournament = await prisma.tournament.findFirst({
         where: { id: tournamentId, clubId },
-        include: { eventOptions: true },
+        include: { eventTypes: true },
       });
       if (!tournament) {
         return res
@@ -77,21 +77,18 @@ export default withAuth(async function handler(
           .json({ error: '대회를 찾을 수 없습니다.', status: 404 });
       }
 
-      const validation = validateEntrySubmission(
-        input,
-        tournament.eventOptions
-      );
+      const validation = validateEntrySubmission(input, tournament);
       if (!validation.ok) {
         return res.status(400).json({ error: validation.error, status: 400 });
       }
 
       const feeById = new Map(
-        tournament.eventOptions.map((option) => [option.id, option.fee])
+        tournament.eventTypes.map((eventType) => [eventType.id, eventType.fee])
       );
       // 클라이언트가 보낸 금액은 무시하고 DB 값으로 총액을 계산한다
       const totalFee = calculateTotalFee(
         input.events.map((event) => ({
-          fee: feeById.get(event.eventOptionId) ?? 0,
+          fee: feeById.get(event.eventTypeId) ?? 0,
           status: 'ACTIVE' as const,
         }))
       );
@@ -143,8 +140,10 @@ export default withAuth(async function handler(
           const entryEvent = await tx.entryEvent.create({
             data: {
               entryId: entry.id,
-              eventOptionId: event.eventOptionId,
-              fee: feeById.get(event.eventOptionId) ?? 0,
+              eventTypeId: event.eventTypeId,
+              ageGroup: event.ageGroup,
+              level: event.level,
+              fee: feeById.get(event.eventTypeId) ?? 0,
             },
           });
           await tx.entryEventPlayer.createMany({

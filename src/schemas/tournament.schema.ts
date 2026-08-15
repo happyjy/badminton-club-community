@@ -1,15 +1,13 @@
 import { z } from 'zod';
 
-const eventOptionSchema = z.object({
+const eventTypeSchema = z.object({
   // 폼의 hidden input이 신규 종목에 빈 문자열을 넣으므로 undefined로 정규화한다.
   // 그래야 서버가 '기존 종목 수정'이 아니라 '신규 생성'으로 분기한다.
   id: z
     .string()
     .optional()
     .transform((value) => (value ? value : undefined)),
-  eventType: z.string().trim().min(1, '종목을 입력해주세요.'),
-  ageGroup: z.string().trim().min(1, '연령을 입력해주세요.'),
-  level: z.string().trim().default(''),
+  name: z.string().trim().min(1, '종목을 입력해주세요.'),
   playerCount: z.union([z.literal(1), z.literal(2)]),
   fee: z.number().int().min(0, '참가비는 0원 이상이어야 합니다.'),
   order: z.number().int().min(0).default(0),
@@ -28,8 +26,13 @@ export const tournamentInputSchema = z
     useTeamName: z.boolean(),
     tshirtSizes: z.array(z.string().trim().min(1)),
     bankAccount: z.string().trim().nullable().optional(),
-    eventOptions: z
-      .array(eventOptionSchema)
+    ageGroups: z
+      .array(z.string().trim().min(1))
+      .min(1, '연령을 1개 이상 등록해주세요.'),
+    // 급수를 쓰지 않는 대회도 있으므로 빈 배열을 허용한다
+    levels: z.array(z.string().trim().min(1)),
+    eventTypes: z
+      .array(eventTypeSchema)
       .min(1, '종목을 1개 이상 등록해주세요.'),
   })
   .refine(
@@ -40,13 +43,19 @@ export const tournamentInputSchema = z
   )
   .refine(
     (input) => {
-      const keys = input.eventOptions.map(
-        (option) => `${option.eventType}|${option.ageGroup}|${option.level}`
-      );
-      return new Set(keys).size === keys.length;
+      const names = input.eventTypes.map((eventType) => eventType.name);
+      return new Set(names).size === names.length;
     },
-    { message: '중복된 종목 조합이 있습니다.', path: ['eventOptions'] }
-  );
+    { message: '중복된 종목이 있습니다.', path: ['eventTypes'] }
+  )
+  .refine((input) => new Set(input.ageGroups).size === input.ageGroups.length, {
+    message: '중복된 연령이 있습니다.',
+    path: ['ageGroups'],
+  })
+  .refine((input) => new Set(input.levels).size === input.levels.length, {
+    message: '중복된 급수가 있습니다.',
+    path: ['levels'],
+  });
 
 const playerSchema = z.object({
   key: z.string().min(1),
@@ -61,7 +70,9 @@ const playerSchema = z.object({
 // fee/totalFee는 의도적으로 스키마에 없다.
 // zod는 기본적으로 정의되지 않은 키를 제거하므로 클라이언트가 보내도 무시된다.
 const entryEventSchema = z.object({
-  eventOptionId: z.string().min(1),
+  eventTypeId: z.string().min(1),
+  ageGroup: z.string().trim().min(1, '연령을 선택해주세요.'),
+  level: z.string().trim().default(''),
   playerKeys: z.array(z.string().min(1)).min(1).max(2),
 });
 

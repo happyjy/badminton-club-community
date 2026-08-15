@@ -105,7 +105,11 @@ function MyEntryPage() {
       <section className="space-y-3">
         <h2 className="font-semibold">신청 종목</h2>
         {activeEvents.map((event) => {
-          const label = formatEventLabel(event.eventOption);
+          const label = formatEventLabel({
+            eventType: event.eventType.name,
+            ageGroup: event.ageGroup,
+            level: event.level,
+          });
           const names = event.eventPlayers
             .map((ep) => playerNameById.get(ep.entryPlayerId))
             .filter(Boolean)
@@ -145,7 +149,12 @@ function MyEntryPage() {
                 key={event.id}
                 className="rounded-lg bg-gray-50 p-3 text-sm text-gray-400 line-through"
               >
-                {formatEventLabel(event.eventOption)} · {formatFee(event.fee)}
+                {formatEventLabel({
+                  eventType: event.eventType.name,
+                  ageGroup: event.ageGroup,
+                  level: event.level,
+                })}{' '}
+                · {formatFee(event.fee)}
               </div>
             ))}
           </div>

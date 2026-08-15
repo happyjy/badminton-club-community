@@ -45,7 +45,7 @@ export default withAuth(async function handler(
     const entry = await prisma.tournamentEntry.findFirst({
       where: { id: entryId, tournamentId, tournament: { clubId } },
       include: {
-        tournament: { include: { eventOptions: true } },
+        tournament: { include: { eventTypes: true } },
         entryEvents: true,
       },
     });
@@ -64,23 +64,20 @@ export default withAuth(async function handler(
         .json({ error: '신청이 마감되었습니다.', status: 400 });
     }
 
-    const validation = validateEntrySubmission(
-      input,
-      entry.tournament.eventOptions
-    );
+    const validation = validateEntrySubmission(input, entry.tournament);
     if (!validation.ok) {
       return res.status(400).json({ error: validation.error, status: 400 });
     }
 
     const feeById = new Map(
-      entry.tournament.eventOptions.map((option) => [option.id, option.fee])
+      entry.tournament.eventTypes.map((e) => [e.id, e.fee])
     );
     const canceledEvents = entry.entryEvents.filter(
       (event) => event.status === 'CANCELED'
     );
     const totalFee = calculateTotalFee([
       ...input.events.map((event) => ({
-        fee: feeById.get(event.eventOptionId) ?? 0,
+        fee: feeById.get(event.eventTypeId) ?? 0,
         status: 'ACTIVE' as const,
       })),
       ...canceledEvents,
@@ -115,8 +112,10 @@ export default withAuth(async function handler(
         const entryEvent = await tx.entryEvent.create({
           data: {
             entryId,
-            eventOptionId: event.eventOptionId,
-            fee: feeById.get(event.eventOptionId) ?? 0,
+            eventTypeId: event.eventTypeId,
+            ageGroup: event.ageGroup,
+            level: event.level,
+            fee: feeById.get(event.eventTypeId) ?? 0,
           },
         });
         await tx.entryEventPlayer.createMany({

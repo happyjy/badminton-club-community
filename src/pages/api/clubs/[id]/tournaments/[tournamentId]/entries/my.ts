@@ -35,7 +35,7 @@ export default withAuth(async function handler(
         players: { orderBy: { order: 'asc' } },
         entryEvents: {
           include: {
-            eventOption: true,
+            eventType: true,
             eventPlayers: { select: { entryPlayerId: true } },
           },
         },

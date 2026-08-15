@@ -10,7 +10,9 @@ const ENTRY = {
     {
       status: 'ACTIVE' as const,
       fee: 30000,
-      eventOption: { eventType: '남자복식', ageGroup: '30대부', level: 'A조' },
+      ageGroup: '30대부',
+      level: 'A조',
+      eventType: { name: '남자복식' },
       eventPlayers: [
         {
           entryPlayer: {

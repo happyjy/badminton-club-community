@@ -57,7 +57,11 @@ function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
                 <td className="py-3">
                   {activeEvents.map((event) => (
                     <p key={event.id} className="text-xs">
-                      {formatEventLabel(event.eventOption)}
+                      {formatEventLabel({
+                        eventType: event.eventType.name,
+                        ageGroup: event.ageGroup,
+                        level: event.level,
+                      })}
                     </p>
                   ))}
                   {activeEvents.length === 0 && (

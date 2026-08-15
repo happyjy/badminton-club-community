@@ -50,9 +50,9 @@ export default withAuth(async function handler(
           select: {
             status: true,
             fee: true,
-            eventOption: {
-              select: { eventType: true, ageGroup: true, level: true },
-            },
+            ageGroup: true,
+            level: true,
+            eventType: { select: { name: true } },
             eventPlayers: {
               select: {
                 entryPlayer: {
@@ -67,7 +67,7 @@ export default withAuth(async function handler(
               },
             },
           },
-          orderBy: { eventOption: { order: 'asc' } },
+          orderBy: { eventType: { order: 'asc' } },
         },
       },
     });

@@ -3,16 +3,22 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 
-import { formatEventLabel, formatFee } from '@/lib/tournament/display';
+import { formatFee } from '@/lib/tournament/display';
 
 import type { EntryFormValues } from './entryFormTypes';
-import type { TournamentEventOption } from '@prisma/client';
+import type { TournamentEventType } from '@prisma/client';
 
 interface EventListFieldProps {
-  eventOptions: TournamentEventOption[];
+  eventTypes: TournamentEventType[];
+  ageGroups: string[];
+  levels: string[];
 }
 
-function EventListField({ eventOptions }: EventListFieldProps) {
+function EventListField({
+  eventTypes,
+  ageGroups,
+  levels,
+}: EventListFieldProps) {
   const { control, register, watch, setValue } =
     useFormContext<EntryFormValues>();
   const { fields, append, remove } = useFieldArray({
@@ -23,13 +29,19 @@ function EventListField({ eventOptions }: EventListFieldProps) {
   const players = watch('players') ?? [];
   const events = watch('events') ?? [];
 
-  const activeOptions = eventOptions.filter((option) => option.isActive);
-  const optionById = new Map(
-    activeOptions.map((option) => [option.id, option])
-  );
+  const activeTypes = eventTypes.filter((eventType) => eventType.isActive);
+  const typeById = new Map(activeTypes.map((type) => [type.id, type]));
+
+  const typeOptions = activeTypes.map((type) => ({
+    value: type.id,
+    label: `${type.name} · ${formatFee(type.fee)}`,
+  }));
+  const ageOptions = ageGroups.map((age) => ({ value: age, label: age }));
+  const levelOptions = levels.map((level) => ({ value: level, label: level }));
+  const usesLevel = levels.length > 0;
 
   const onClickAddEvent = () => {
-    append({ eventOptionId: '', playerKeys: [] });
+    append({ eventTypeId: '', ageGroup: '', level: '', playerKeys: [] });
   };
 
   return (
@@ -46,32 +58,17 @@ function EventListField({ eventOptions }: EventListFieldProps) {
       </div>
 
       {fields.map((field, index) => {
-        const selectedId = events[index]?.eventOptionId ?? '';
-        const option = optionById.get(selectedId);
-        const playerCount = option?.playerCount ?? 0;
-        // 이미 다른 줄에서 고른 종목은 제외한다
-        const takenIds = new Set(
-          events
-            .map((event, i) => (i === index ? null : event.eventOptionId))
-            .filter(Boolean) as string[]
-        );
-
-        const selectableOptions = activeOptions
-          .filter((o) => !takenIds.has(o.id))
-          .map((o) => ({
-            value: o.id,
-            label: `${formatEventLabel(o)} · ${formatFee(o.fee)}`,
-          }));
+        const selected = events[index];
+        const eventType = typeById.get(selected?.eventTypeId ?? '');
+        const playerCount = eventType?.playerCount ?? 0;
 
         const playerOptions = players.map((player, i) => ({
           value: player.key,
           label: player.name.trim() || `선수 ${i + 1}`,
         }));
 
-        const onChangeEventOption = (
-          e: React.ChangeEvent<HTMLSelectElement>
-        ) => {
-          setValue(`events.${index}.eventOptionId`, e.target.value);
+        const onChangeEventType = (e: React.ChangeEvent<HTMLSelectElement>) => {
+          setValue(`events.${index}.eventTypeId`, e.target.value);
           // 종목이 바뀌면 인원수가 달라질 수 있으므로 배정을 초기화한다
           setValue(`events.${index}.playerKeys`, []);
         };
@@ -94,13 +91,29 @@ function EventListField({ eventOptions }: EventListFieldProps) {
               </button>
             </div>
 
-            <FormField label="종목 선택" required>
+            <FormField label="종목" required>
               <Select
-                options={selectableOptions}
-                value={selectedId}
-                onChange={onChangeEventOption}
+                options={typeOptions}
+                value={selected?.eventTypeId ?? ''}
+                onChange={onChangeEventType}
               />
             </FormField>
+
+            <FormField label="연령" required>
+              <Select
+                options={ageOptions}
+                {...register(`events.${index}.ageGroup`, { required: true })}
+              />
+            </FormField>
+
+            {usesLevel && (
+              <FormField label="급수" required>
+                <Select
+                  options={levelOptions}
+                  {...register(`events.${index}.level`, { required: true })}
+                />
+              </FormField>
+            )}
 
             {playerCount > 0 &&
               Array.from({ length: playerCount }).map((_, slot) => (
@@ -114,9 +127,9 @@ function EventListField({ eventOptions }: EventListFieldProps) {
                 </FormField>
               ))}
 
-            {option && (
+            {eventType && (
               <p className="text-right text-sm text-gray-600">
-                참가비 {formatFee(option.fee)}
+                참가비 {formatFee(eventType.fee)}
               </p>
             )}
           </div>

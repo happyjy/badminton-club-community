@@ -21,16 +21,9 @@ const EMPTY_TOURNAMENT: TournamentInput = {
   useTeamName: false,
   tshirtSizes: [],
   bankAccount: '',
-  eventOptions: [
-    {
-      eventType: '',
-      ageGroup: '',
-      level: '',
-      playerCount: 2,
-      fee: 0,
-      order: 0,
-    },
-  ],
+  ageGroups: [],
+  levels: [],
+  eventTypes: [{ name: '', playerCount: 2, fee: 0, order: 0 }],
 };
 
 function NewTournamentPage() {
@@ -73,14 +66,14 @@ function NewTournamentPage() {
         bankAccount: source.tournament.bankAccount ?? '',
         useTeamName: source.tournament.useTeamName,
         tshirtSizes: source.tournament.tshirtSizes,
-        eventOptions: source.tournament.eventOptions
-          .filter((option) => option.isActive)
-          .map((option, index) => ({
-            eventType: option.eventType,
-            ageGroup: option.ageGroup,
-            level: option.level,
-            playerCount: option.playerCount,
-            fee: option.fee,
+        ageGroups: source.tournament.ageGroups,
+        levels: source.tournament.levels,
+        eventTypes: source.tournament.eventTypes
+          .filter((eventType) => eventType.isActive)
+          .map((eventType, index) => ({
+            name: eventType.name,
+            playerCount: eventType.playerCount,
+            fee: eventType.fee,
             order: index,
           })),
       }

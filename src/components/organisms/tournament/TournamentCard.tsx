@@ -11,7 +11,7 @@ interface TournamentCardProps {
 
 function TournamentCard({ tournament, onClick }: TournamentCardProps) {
   const daysLeft = getDaysUntil(new Date(tournament.applyDeadline), new Date());
-  const fees = tournament.eventOptions.map((option) => option.fee);
+  const fees = tournament.eventTypes.map((eventType) => eventType.fee);
   const minFee = fees.length > 0 ? Math.min(...fees) : 0;
 
   return (

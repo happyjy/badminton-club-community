@@ -5,7 +5,7 @@ import type {
   EntryPlayer,
   Tournament,
   TournamentEntry,
-  TournamentEventOption,
+  TournamentEventType,
   TournamentStatus,
 } from '@prisma/client';
 
@@ -29,11 +29,9 @@ export interface TournamentApiSuccess<T> {
 }
 
 // ---------- 관리자: 대회 생성/수정 입력 ----------
-export interface EventOptionInput {
-  id?: string; // 수정 시 기존 옵션 식별용. 신규는 undefined
-  eventType: string;
-  ageGroup: string;
-  level: string;
+export interface EventTypeInput {
+  id?: string; // 수정 시 기존 종목 식별용. 신규는 undefined
+  name: string;
   playerCount: number;
   fee: number;
   order: number;
@@ -51,7 +49,9 @@ export interface TournamentInput {
   useTeamName: boolean;
   tshirtSizes: string[];
   bankAccount?: string | null;
-  eventOptions: EventOptionInput[];
+  ageGroups: string[];
+  levels: string[];
+  eventTypes: EventTypeInput[];
 }
 
 // ---------- 신청자: 신청 제출 입력 ----------
@@ -66,7 +66,9 @@ export interface PlayerInput {
 }
 
 export interface EntryEventInput {
-  eventOptionId: string;
+  eventTypeId: string;
+  ageGroup: string;
+  level: string;
   playerKeys: string[]; // PlayerInput.key 참조
 }
 
@@ -88,7 +90,7 @@ export interface PublicParticipant {
 
 // ---------- 관리자용: 민감정보 포함 ----------
 export type EntryEventWithDetail = EntryEvent & {
-  eventOption: TournamentEventOption;
+  eventType: TournamentEventType;
   eventPlayers: Array<{ entryPlayer: EntryPlayer }>;
 };
 
@@ -99,7 +101,7 @@ export type EntryForAdmin = TournamentEntry & {
 };
 
 export type TournamentWithOptions = Tournament & {
-  eventOptions: TournamentEventOption[];
+  eventTypes: TournamentEventType[];
 };
 
 // 대회 상세 응답 (회원용)

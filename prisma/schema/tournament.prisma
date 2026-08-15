@@ -13,25 +13,27 @@ model Tournament {
   useTeamName     Boolean           @default(false)        // 팀명 입력 사용 여부
   tshirtSizes     String[]                                 // 빈 배열이면 티셔츠 미사용
   bankAccount     String?                                  // 입금 계좌 안내
+  // 연령·급수는 금액과 무관한 단순 선택지라 문자열 배열로 둔다.
+  // 종목(TournamentEventType)만 금액을 가지므로 별도 테이블이다.
+  ageGroups       String[]                                 // 20대부, 30대부 ...
+  levels          String[]                                 // A조, B조, 초심 ... 비어 있으면 급수 미사용
   createdBy       Int                                      // ClubMember id
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
   club            Club                     @relation("ClubToTournament", fields: [clubId], references: [id], onDelete: Cascade)
-  eventOptions    TournamentEventOption[]
+  eventTypes      TournamentEventType[]
   entries         TournamentEntry[]
 
   @@index([clubId])
   @@index([clubId, status])
 }
 
-// 종목 옵션 (관리자가 대회마다 정의)
-model TournamentEventOption {
+// 종목 (관리자가 대회마다 정의). 참가비는 종목 단위로 정해진다.
+model TournamentEventType {
   id            String       @id @default(cuid())
   tournamentId  String
-  eventType     String                            // 남자복식, 혼합복식 등
-  ageGroup      String                            // 30대부 등
-  level         String       @default("")         // A조 등. 없는 대회도 있음
+  name          String                            // 남자복식, 혼합복식 등
   playerCount   Int                               // 1 또는 2
   fee           Int                               // 참가비 (원)
   order         Int          @default(0)
@@ -40,7 +42,7 @@ model TournamentEventOption {
   tournament    Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   entryEvents   EntryEvent[]
 
-  @@unique([tournamentId, eventType, ageGroup, level])
+  @@unique([tournamentId, name])
   @@index([tournamentId])
 }
 
@@ -90,19 +92,23 @@ model EntryPlayer {
 model EntryEvent {
   id             String                 @id @default(cuid())
   entryId        String
-  eventOptionId  String
+  eventTypeId    String
+  // 연령·급수는 신청 시점에 고른 값을 그대로 남긴다.
+  // 관리자가 나중에 목록을 바꿔도 기존 신청 기록이 흔들리지 않는다.
+  ageGroup       String
+  level          String                 @default("")
   fee            Int                                          // 신청 시점 참가비 스냅샷
   status         EntryEventStatus       @default(ACTIVE)
   canceledAt     DateTime?
 
   entry          TournamentEntry        @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  // 대회를 삭제하면 종목 옵션도 지워지므로 신청 종목도 함께 정리되어야 한다.
+  // 대회를 삭제하면 종목도 지워지므로 신청 종목도 함께 정리되어야 한다.
   // Cascade가 없으면 신청이 있는 대회를 삭제할 때 FK 위반이 난다.
-  eventOption    TournamentEventOption  @relation(fields: [eventOptionId], references: [id], onDelete: Cascade)
+  eventType      TournamentEventType    @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventPlayers   EntryEventPlayer[]
 
   @@index([entryId])
-  @@index([eventOptionId])
+  @@index([eventTypeId])
 }
 
 // 종목 ↔ 선수 배정

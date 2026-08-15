@@ -7,7 +7,7 @@ import TournamentStatusBadge from '@/components/organisms/tournament/TournamentS
 
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
 
-import { formatEventLabel, formatFee } from '@/lib/tournament/display';
+import { formatFee } from '@/lib/tournament/display';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
 
@@ -92,18 +92,33 @@ function TournamentDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {tournament.eventOptions
-                .filter((option) => option.isActive)
-                .map((option) => (
-                  <tr key={option.id} className="border-b last:border-0">
-                    <td className="py-2">{formatEventLabel(option)}</td>
-                    <td className="py-2">{option.playerCount}명</td>
-                    <td className="py-2 text-right">{formatFee(option.fee)}</td>
+              {tournament.eventTypes
+                .filter((eventType) => eventType.isActive)
+                .map((eventType) => (
+                  <tr key={eventType.id} className="border-b last:border-0">
+                    <td className="py-2">{eventType.name}</td>
+                    <td className="py-2">{eventType.playerCount}명</td>
+                    <td className="py-2 text-right">
+                      {formatFee(eventType.fee)}
+                    </td>
                   </tr>
                 ))}
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="space-y-1 text-sm">
+        <p>
+          <span className="text-gray-400">연령 </span>
+          {tournament.ageGroups.join(', ')}
+        </p>
+        {tournament.levels.length > 0 && (
+          <p>
+            <span className="text-gray-400">급수 </span>
+            {tournament.levels.join(', ')}
+          </p>
+        )}
       </section>
 
       <section>

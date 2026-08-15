@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { CUSTOM_VALUE } from './eventOptionPresets';
+/** '기타 직접입력'을 나타내는 내부 센티넬. 실제 저장값이 아니다. */
+const CUSTOM_VALUE = '__CUSTOM__';
 
 interface PresetOrCustomInputProps {
   value: string;

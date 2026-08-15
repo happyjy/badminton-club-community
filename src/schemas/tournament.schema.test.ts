@@ -17,16 +17,9 @@ const VALID_TOURNAMENT = {
   useTeamName: true,
   tshirtSizes: ['S', 'M', 'L'],
   bankAccount: '○○은행 123-456',
-  eventOptions: [
-    {
-      eventType: '남자복식',
-      ageGroup: '30대부',
-      level: 'A조',
-      playerCount: 2,
-      fee: 30000,
-      order: 0,
-    },
-  ],
+  ageGroups: ['30대부', '40대부'],
+  levels: ['A조', 'B조'],
+  eventTypes: [{ name: '남자복식', playerCount: 2, fee: 30000, order: 0 }],
 };
 
 describe('tournamentInputSchema', () => {
@@ -44,12 +37,28 @@ describe('tournamentInputSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('종목 옵션이 비어 있으면 거부한다', () => {
+  it('종목이 비어 있으면 거부한다', () => {
     const result = tournamentInputSchema.safeParse({
       ...VALID_TOURNAMENT,
-      eventOptions: [],
+      eventTypes: [],
     });
     expect(result.success).toBe(false);
+  });
+
+  it('연령이 비어 있으면 거부한다', () => {
+    const result = tournamentInputSchema.safeParse({
+      ...VALID_TOURNAMENT,
+      ageGroups: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('급수는 비어 있어도 통과한다 (급수 없는 대회)', () => {
+    const result = tournamentInputSchema.safeParse({
+      ...VALID_TOURNAMENT,
+      levels: [],
+    });
+    expect(result.success).toBe(true);
   });
 
   it('마감일이 시작일보다 빠르면 거부한다', () => {
@@ -61,11 +70,19 @@ describe('tournamentInputSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('종목 조합이 중복되면 거부한다', () => {
-    const option = VALID_TOURNAMENT.eventOptions[0];
+  it('종목명이 중복되면 거부한다', () => {
+    const eventType = VALID_TOURNAMENT.eventTypes[0];
     const result = tournamentInputSchema.safeParse({
       ...VALID_TOURNAMENT,
-      eventOptions: [option, { ...option, order: 1 }],
+      eventTypes: [eventType, { ...eventType, order: 1 }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('연령이 중복되면 거부한다', () => {
+    const result = tournamentInputSchema.safeParse({
+      ...VALID_TOURNAMENT,
+      ageGroups: ['30대부', '30대부'],
     });
     expect(result.success).toBe(false);
   });
@@ -73,7 +90,7 @@ describe('tournamentInputSchema', () => {
   it('playerCount가 1도 2도 아니면 거부한다', () => {
     const result = tournamentInputSchema.safeParse({
       ...VALID_TOURNAMENT,
-      eventOptions: [{ ...VALID_TOURNAMENT.eventOptions[0], playerCount: 3 }],
+      eventTypes: [{ ...VALID_TOURNAMENT.eventTypes[0], playerCount: 3 }],
     });
     expect(result.success).toBe(false);
   });
@@ -81,7 +98,7 @@ describe('tournamentInputSchema', () => {
   it('참가비가 음수면 거부한다', () => {
     const result = tournamentInputSchema.safeParse({
       ...VALID_TOURNAMENT,
-      eventOptions: [{ ...VALID_TOURNAMENT.eventOptions[0], fee: -1 }],
+      eventTypes: [{ ...VALID_TOURNAMENT.eventTypes[0], fee: -1 }],
     });
     expect(result.success).toBe(false);
   });
@@ -89,7 +106,7 @@ describe('tournamentInputSchema', () => {
   it('무료 대회(참가비 0원)를 허용한다', () => {
     const result = tournamentInputSchema.safeParse({
       ...VALID_TOURNAMENT,
-      eventOptions: [{ ...VALID_TOURNAMENT.eventOptions[0], fee: 0 }],
+      eventTypes: [{ ...VALID_TOURNAMENT.eventTypes[0], fee: 0 }],
     });
     expect(result.success).toBe(true);
   });
@@ -119,7 +136,14 @@ describe('entrySubmissionSchema', () => {
         order: 0,
       },
     ],
-    events: [{ eventOptionId: 'opt-1', playerKeys: ['p1'] }],
+    events: [
+      {
+        eventTypeId: 'et-1',
+        ageGroup: '30대부',
+        level: 'A조',
+        playerKeys: ['p1'],
+      },
+    ],
   };
 
   it('정상 입력을 통과시킨다', () => {
@@ -130,7 +154,15 @@ describe('entrySubmissionSchema', () => {
     const parsed = entrySubmissionSchema.parse({
       ...VALID_ENTRY,
       totalFee: 999999,
-      events: [{ eventOptionId: 'opt-1', playerKeys: ['p1'], fee: 1 }],
+      events: [
+        {
+          eventTypeId: 'et-1',
+          ageGroup: '30대부',
+          level: 'A조',
+          playerKeys: ['p1'],
+          fee: 1,
+        },
+      ],
     });
     expect(parsed).not.toHaveProperty('totalFee');
     expect(parsed.events[0]).not.toHaveProperty('fee');
@@ -153,20 +185,20 @@ describe('entrySubmissionSchema', () => {
   });
 });
 
-describe('eventOption.id 정규화', () => {
+describe('eventType.id 정규화', () => {
   it('빈 문자열 id는 undefined로 바뀐다 (신규 생성으로 분기되도록)', () => {
     const parsed = tournamentInputSchema.parse({
       ...VALID_TOURNAMENT,
-      eventOptions: [{ ...VALID_TOURNAMENT.eventOptions[0], id: '' }],
+      eventTypes: [{ ...VALID_TOURNAMENT.eventTypes[0], id: '' }],
     });
-    expect(parsed.eventOptions[0].id).toBeUndefined();
+    expect(parsed.eventTypes[0].id).toBeUndefined();
   });
 
   it('실제 id는 그대로 유지된다 (기존 종목 수정으로 분기되도록)', () => {
     const parsed = tournamentInputSchema.parse({
       ...VALID_TOURNAMENT,
-      eventOptions: [{ ...VALID_TOURNAMENT.eventOptions[0], id: 'opt-abc' }],
+      eventTypes: [{ ...VALID_TOURNAMENT.eventTypes[0], id: 'et-abc' }],
     });
-    expect(parsed.eventOptions[0].id).toBe('opt-abc');
+    expect(parsed.eventTypes[0].id).toBe('et-abc');
   });
 });

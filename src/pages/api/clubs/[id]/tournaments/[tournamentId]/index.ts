@@ -31,7 +31,7 @@ export default withAuth(async function handler(
 
       const tournament = await prisma.tournament.findFirst({
         where: { id: tournamentId, clubId },
-        include: { eventOptions: { orderBy: { order: 'asc' } } },
+        include: { eventTypes: { orderBy: { order: 'asc' } } },
       });
       if (!tournament) {
         return res
@@ -87,7 +87,7 @@ export default withAuth(async function handler(
       const existing = await prisma.tournament.findFirst({
         where: { id: tournamentId, clubId },
         include: {
-          eventOptions: {
+          eventTypes: {
             include: { _count: { select: { entryEvents: true } } },
           },
         },
@@ -99,22 +99,22 @@ export default withAuth(async function handler(
       }
 
       const keptIds = new Set(
-        input.eventOptions
-          .map((option) => option.id)
+        input.eventTypes
+          .map((eventType) => eventType.id)
           .filter(Boolean) as string[]
       );
 
       // 신청이 있는 종목의 인원수 변경은 차단한다 (기존 배정이 무효화됨)
-      for (const option of input.eventOptions) {
-        if (!option.id) continue;
-        const before = existing.eventOptions.find((o) => o.id === option.id);
+      for (const eventType of input.eventTypes) {
+        if (!eventType.id) continue;
+        const before = existing.eventTypes.find((e) => e.id === eventType.id);
         if (!before) continue;
         if (
           before._count.entryEvents > 0 &&
-          before.playerCount !== option.playerCount
+          before.playerCount !== eventType.playerCount
         ) {
           return res.status(400).json({
-            error: `이미 신청이 있는 종목(${before.eventType} ${before.ageGroup})의 인원수는 변경할 수 없습니다.`,
+            error: `이미 신청이 있는 종목(${before.name})의 인원수는 변경할 수 없습니다.`,
             status: 400,
           });
         }
@@ -137,40 +137,40 @@ export default withAuth(async function handler(
             useTeamName: input.useTeamName,
             tshirtSizes: input.tshirtSizes,
             bankAccount: input.bankAccount ?? null,
+            ageGroups: input.ageGroups,
+            levels: input.levels,
           },
         });
 
         // 목록에서 빠진 종목: 신청이 있으면 비활성화, 없으면 삭제
-        for (const before of existing.eventOptions) {
+        for (const before of existing.eventTypes) {
           if (keptIds.has(before.id)) continue;
           if (before._count.entryEvents > 0) {
-            await tx.tournamentEventOption.update({
+            await tx.tournamentEventType.update({
               where: { id: before.id },
               data: { isActive: false },
             });
           } else {
-            await tx.tournamentEventOption.delete({ where: { id: before.id } });
+            await tx.tournamentEventType.delete({ where: { id: before.id } });
           }
         }
 
         // 기존 종목 수정 / 신규 종목 생성
-        for (const [index, option] of input.eventOptions.entries()) {
+        for (const [index, eventType] of input.eventTypes.entries()) {
           const data = {
-            eventType: option.eventType,
-            ageGroup: option.ageGroup,
-            level: option.level,
-            playerCount: option.playerCount,
-            fee: option.fee,
-            order: option.order ?? index,
+            name: eventType.name,
+            playerCount: eventType.playerCount,
+            fee: eventType.fee,
+            order: eventType.order ?? index,
             isActive: true,
           };
-          if (option.id) {
-            await tx.tournamentEventOption.update({
-              where: { id: option.id },
+          if (eventType.id) {
+            await tx.tournamentEventType.update({
+              where: { id: eventType.id },
               data,
             });
           } else {
-            await tx.tournamentEventOption.create({
+            await tx.tournamentEventType.create({
               data: { ...data, tournamentId },
             });
           }
@@ -179,7 +179,7 @@ export default withAuth(async function handler(
 
       const updated = await prisma.tournament.findUnique({
         where: { id: tournamentId },
-        include: { eventOptions: { orderBy: { order: 'asc' } } },
+        include: { eventTypes: { orderBy: { order: 'asc' } } },
       });
 
       return res.status(200).json({

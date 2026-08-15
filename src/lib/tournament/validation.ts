@@ -1,9 +1,15 @@
 import type { EntrySubmissionInput } from '@/types/tournament.types';
 
-export type ValidatableOption = {
+export type ValidatableEventType = {
   id: string;
   playerCount: number;
   isActive: boolean;
+};
+
+export type ValidatableTournament = {
+  eventTypes: ValidatableEventType[];
+  ageGroups: string[];
+  levels: string[];
 };
 
 export type ValidationResult = { ok: true } | { ok: false; error: string };
@@ -19,7 +25,7 @@ function fail(error: string): ValidationResult {
  */
 export function validateEntrySubmission(
   input: EntrySubmissionInput,
-  options: ValidatableOption[]
+  tournament: ValidatableTournament
 ): ValidationResult {
   if (!input.privacyAgreed) {
     return fail('개인정보 수집·이용에 동의해야 신청할 수 있습니다.');
@@ -42,22 +48,38 @@ export function validateEntrySubmission(
     return fail('선수 이름을 모두 입력해주세요.');
   }
 
-  const optionMap = new Map(options.map((option) => [option.id, option]));
-  const seenOptionIds = new Set<string>();
+  const eventTypeMap = new Map(
+    tournament.eventTypes.map((eventType) => [eventType.id, eventType])
+  );
+  const ageGroupSet = new Set(tournament.ageGroups);
+  const levelSet = new Set(tournament.levels);
+  // 대회가 급수를 쓰지 않으면 빈 문자열만 허용한다
+  const usesLevel = tournament.levels.length > 0;
+
+  const seenCombinations = new Set<string>();
 
   for (const event of input.events) {
-    const option = optionMap.get(event.eventOptionId);
-    if (!option || !option.isActive) {
+    const eventType = eventTypeMap.get(event.eventTypeId);
+    if (!eventType || !eventType.isActive) {
       return fail('선택할 수 없는 종목입니다.');
     }
-    if (seenOptionIds.has(event.eventOptionId)) {
+    if (!ageGroupSet.has(event.ageGroup)) {
+      return fail('선택할 수 없는 연령입니다.');
+    }
+    if (usesLevel ? !levelSet.has(event.level) : event.level !== '') {
+      return fail('선택할 수 없는 급수입니다.');
+    }
+
+    // 같은 종목이라도 연령·급수가 다르면 별개 신청이다
+    const key = `${event.eventTypeId}|${event.ageGroup}|${event.level}`;
+    if (seenCombinations.has(key)) {
       return fail('같은 종목을 중복 신청했습니다.');
     }
-    seenOptionIds.add(event.eventOptionId);
+    seenCombinations.add(key);
 
-    if (event.playerKeys.length !== option.playerCount) {
+    if (event.playerKeys.length !== eventType.playerCount) {
       return fail(
-        `종목별 선수 인원이 맞지 않습니다. (필요: ${option.playerCount}명)`
+        `종목별 선수 인원이 맞지 않습니다. (필요: ${eventType.playerCount}명)`
       );
     }
     if (new Set(event.playerKeys).size !== event.playerKeys.length) {

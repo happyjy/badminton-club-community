@@ -63,17 +63,17 @@ function EditTournamentPage() {
     useTeamName: tournament.useTeamName,
     tshirtSizes: tournament.tshirtSizes,
     bankAccount: tournament.bankAccount ?? '',
+    ageGroups: tournament.ageGroups,
+    levels: tournament.levels,
     // 비활성 종목은 편집 목록에서 제외한다.
     // 목록에 없으면 서버가 비활성 상태를 유지하므로 기존 신청은 안전하다.
-    eventOptions: tournament.eventOptions
-      .filter((option) => option.isActive)
-      .map((option, index) => ({
-        id: option.id,
-        eventType: option.eventType,
-        ageGroup: option.ageGroup,
-        level: option.level,
-        playerCount: option.playerCount,
-        fee: option.fee,
+    eventTypes: tournament.eventTypes
+      .filter((eventType) => eventType.isActive)
+      .map((eventType, index) => ({
+        id: eventType.id,
+        name: eventType.name,
+        playerCount: eventType.playerCount,
+        fee: eventType.fee,
         order: index,
       })),
   };

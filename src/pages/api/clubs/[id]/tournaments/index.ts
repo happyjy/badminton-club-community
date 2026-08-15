@@ -31,7 +31,7 @@ export default withAuth(async function handler(
         },
         orderBy: { applyDeadline: 'desc' },
         include: {
-          eventOptions: { orderBy: { order: 'asc' } },
+          eventTypes: { orderBy: { order: 'asc' } },
           _count: { select: { entries: true } },
         },
       });
@@ -78,19 +78,19 @@ export default withAuth(async function handler(
           useTeamName: input.useTeamName,
           tshirtSizes: input.tshirtSizes,
           bankAccount: input.bankAccount ?? null,
+          ageGroups: input.ageGroups,
+          levels: input.levels,
           createdBy: member.id,
-          eventOptions: {
-            create: input.eventOptions.map((option, index) => ({
-              eventType: option.eventType,
-              ageGroup: option.ageGroup,
-              level: option.level,
-              playerCount: option.playerCount,
-              fee: option.fee,
-              order: option.order ?? index,
+          eventTypes: {
+            create: input.eventTypes.map((eventType, index) => ({
+              name: eventType.name,
+              playerCount: eventType.playerCount,
+              fee: eventType.fee,
+              order: eventType.order ?? index,
             })),
           },
         },
-        include: { eventOptions: { orderBy: { order: 'asc' } } },
+        include: { eventTypes: { orderBy: { order: 'asc' } } },
       });
 
       return res.status(201).json({

@@ -49,7 +49,11 @@ function TournamentAdminPage() {
     for (const entry of filtered) {
       for (const event of entry.entryEvents) {
         if (event.status !== 'ACTIVE') continue;
-        const label = formatEventLabel(event.eventOption);
+        const label = formatEventLabel({
+          eventType: event.eventType.name,
+          ageGroup: event.ageGroup,
+          level: event.level,
+        });
         const list = groups.get(label) ?? [];
         for (const eventPlayer of event.eventPlayers) {
           list.push({

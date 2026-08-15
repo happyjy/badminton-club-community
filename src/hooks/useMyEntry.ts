@@ -23,11 +23,11 @@ export type MyEntry = {
     id: string;
     fee: number;
     status: 'ACTIVE' | 'CANCELED';
-    eventOption: {
+    ageGroup: string;
+    level: string;
+    eventType: {
       id: string;
-      eventType: string;
-      ageGroup: string;
-      level: string;
+      name: string;
       playerCount: number;
       fee: number;
     };

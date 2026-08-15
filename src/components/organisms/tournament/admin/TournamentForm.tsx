@@ -7,7 +7,9 @@ import { FormField } from '@/components/molecules/form/FormField';
 
 import type { TournamentInput } from '@/types/tournament.types';
 
-import EventOptionEditor from './EventOptionEditor';
+import { AGE_GROUP_PRESETS, LEVEL_PRESETS } from './eventOptionPresets';
+import EventTypeEditor from './EventTypeEditor';
+import TagListField from './TagListField';
 
 interface TournamentFormProps {
   defaultValues: TournamentInput;
@@ -26,6 +28,9 @@ function TournamentForm({
   const [sizeInput, setSizeInput] = useState('');
 
   const tshirtSizes = methods.watch('tshirtSizes') ?? [];
+  const ageGroups = methods.watch('ageGroups') ?? [];
+  const levels = methods.watch('levels') ?? [];
+  const eventTypeCount = (methods.watch('eventTypes') ?? []).length;
 
   const onClickAddSize = () => {
     const size = sizeInput.trim();
@@ -49,9 +54,8 @@ function TournamentForm({
         ? new Date(values.applyStartAt).toISOString()
         : null,
       applyDeadline: new Date(values.applyDeadline).toISOString(),
-      eventOptions: values.eventOptions.map((option, index) => ({
-        ...option,
-        level: option.level ?? '',
+      eventTypes: values.eventTypes.map((eventType, index) => ({
+        ...eventType,
         order: index,
       })),
     });
@@ -122,7 +126,37 @@ function TournamentForm({
         <section className="space-y-4">
           <h2 className="font-semibold">③ 신청 양식 설정</h2>
 
-          <EventOptionEditor />
+          <EventTypeEditor />
+
+          <TagListField
+            label="연령"
+            values={ageGroups}
+            presets={AGE_GROUP_PRESETS}
+            placeholder="예: 시니어부"
+            emptyHint="연령을 1개 이상 선택해야 합니다."
+            onChangeValues={(values) => methods.setValue('ageGroups', values)}
+          />
+
+          <TagListField
+            label="급수"
+            values={levels}
+            presets={LEVEL_PRESETS}
+            placeholder="예: 1부"
+            emptyHint="비워두면 급수 구분 없이 신청받습니다."
+            onChangeValues={(values) => methods.setValue('levels', values)}
+          />
+
+          <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
+            신청자는 <b>종목 {eventTypeCount}개</b> ×{' '}
+            <b>연령 {ageGroups.length}개</b>
+            {levels.length > 0 && (
+              <>
+                {' '}
+                × <b>급수 {levels.length}개</b>
+              </>
+            )}{' '}
+            중에서 각각 선택합니다.
+          </p>
 
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" {...methods.register('useTeamName')} />
