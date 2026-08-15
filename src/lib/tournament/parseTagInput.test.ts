@@ -38,6 +38,6 @@ describe('parseTagInput', () => {
   });
 
   it('한글 값도 그대로 처리한다', () => {
-    expect(parseTagInput('20대부, 시니어부')).toEqual(['20대부', '시니어부']);
+    expect(parseTagInput('20대, 시니어')).toEqual(['20대', '시니어']);
   });
 });

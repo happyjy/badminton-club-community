@@ -17,10 +17,10 @@ describe('formatEventLabel', () => {
     expect(
       formatEventLabel({
         eventType: '남자복식',
-        ageGroup: '30대부',
+        ageGroup: '30대',
         level: 'A조',
       })
-    ).toBe('남자복식 30대부 A조');
+    ).toBe('남자복식 30대 A조');
   });
 
   it('급수가 비어 있으면 생략한다', () => {

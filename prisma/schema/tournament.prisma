@@ -15,7 +15,7 @@ model Tournament {
   bankAccount     String?                                  // 입금 계좌 안내
   // 연령·급수는 금액과 무관한 단순 선택지라 문자열 배열로 둔다.
   // 종목(TournamentEventType)만 금액을 가지므로 별도 테이블이다.
-  ageGroups       String[]                                 // 20대부, 30대부 ...
+  ageGroups       String[]                                 // 20대, 30대 ...
   levels          String[]                                 // A조, B조, 초심 ... 비어 있으면 급수 미사용
   createdBy       Int                                      // ClubMember id
   createdAt       DateTime          @default(now())

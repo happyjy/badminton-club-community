@@ -17,7 +17,7 @@ const VALID_TOURNAMENT = {
   useTeamName: true,
   tshirtSizes: ['S', 'M', 'L'],
   bankAccount: '○○은행 123-456',
-  ageGroups: ['30대부', '40대부'],
+  ageGroups: ['30대', '40대'],
   levels: ['A조', 'B조'],
   eventTypes: [{ name: '남자복식', playerCount: 2, fee: 30000, order: 0 }],
 };
@@ -82,7 +82,7 @@ describe('tournamentInputSchema', () => {
   it('연령이 중복되면 거부한다', () => {
     const result = tournamentInputSchema.safeParse({
       ...VALID_TOURNAMENT,
-      ageGroups: ['30대부', '30대부'],
+      ageGroups: ['30대', '30대'],
     });
     expect(result.success).toBe(false);
   });
@@ -139,7 +139,7 @@ describe('entrySubmissionSchema', () => {
     events: [
       {
         eventTypeId: 'et-1',
-        ageGroup: '30대부',
+        ageGroup: '30대',
         level: 'A조',
         playerKeys: ['p1'],
       },
@@ -157,7 +157,7 @@ describe('entrySubmissionSchema', () => {
       events: [
         {
           eventTypeId: 'et-1',
-          ageGroup: '30대부',
+          ageGroup: '30대',
           level: 'A조',
           playerKeys: ['p1'],
           fee: 1,

@@ -10,7 +10,7 @@ const ENTRY = {
     {
       status: 'ACTIVE' as const,
       fee: 30000,
-      ageGroup: '30대부',
+      ageGroup: '30대',
       level: 'A조',
       eventType: { name: '남자복식' },
       eventPlayers: [
@@ -47,7 +47,7 @@ describe('toCsvRows', () => {
     const [first] = toCsvRows([ENTRY]);
     expect(first).toEqual([
       '남자복식',
-      '30대부',
+      '30대',
       'A조',
       '홍길동',
       '남',

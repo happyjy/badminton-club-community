@@ -10,7 +10,7 @@ const TOURNAMENT = {
     { id: 'et-single', playerCount: 1, isActive: true },
     { id: 'et-inactive', playerCount: 2, isActive: false },
   ],
-  ageGroups: ['30대부', '40대부'],
+  ageGroups: ['30대', '40대'],
   levels: ['A조', 'B조'],
 };
 
@@ -44,7 +44,7 @@ function makeInput(
     events: [
       {
         eventTypeId: 'et-double',
-        ageGroup: '30대부',
+        ageGroup: '30대',
         level: 'A조',
         playerKeys: ['p1', 'p2'],
       },
@@ -117,7 +117,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-other',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p2'],
           },
@@ -134,7 +134,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-inactive',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p2'],
           },
@@ -151,7 +151,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '70대부',
+            ageGroup: '70대',
             level: 'A조',
             playerKeys: ['p1', 'p2'],
           },
@@ -168,7 +168,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'Z조',
             playerKeys: ['p1', 'p2'],
           },
@@ -186,7 +186,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: '',
             playerKeys: ['p1', 'p2'],
           },
@@ -201,7 +201,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p2'],
           },
@@ -218,7 +218,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1'],
           },
@@ -238,7 +238,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-single',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p2'],
           },
@@ -258,7 +258,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p-ghost'],
           },
@@ -278,7 +278,7 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p1'],
           },
@@ -295,7 +295,7 @@ describe('validateEntrySubmission', () => {
   it('종목·연령·급수가 모두 같으면 중복 신청으로 본다', () => {
     const one = {
       eventTypeId: 'et-double',
-      ageGroup: '30대부',
+      ageGroup: '30대',
       level: 'A조',
       playerKeys: ['p1', 'p2'],
     };
@@ -315,13 +315,13 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p2'],
           },
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'B조',
             playerKeys: ['p1', 'p2'],
           },
@@ -348,13 +348,13 @@ describe('validateEntrySubmission', () => {
         events: [
           {
             eventTypeId: 'et-double',
-            ageGroup: '30대부',
+            ageGroup: '30대',
             level: 'A조',
             playerKeys: ['p1', 'p2'],
           },
           {
             eventTypeId: 'et-single',
-            ageGroup: '40대부',
+            ageGroup: '40대',
             level: 'B조',
             playerKeys: ['p1'],
           },
