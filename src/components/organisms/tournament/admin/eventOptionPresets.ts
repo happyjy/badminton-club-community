@@ -10,13 +10,7 @@ export const EVENT_TYPE_PRESETS = [
   '여자단식',
 ];
 
-export const AGE_GROUP_PRESETS = [
-  '20대부',
-  '30대부',
-  '40대부',
-  '50대부',
-  '60대부',
-];
+export const AGE_GROUP_PRESETS = ['20대', '30대', '40대', '50대', '60대'];
 
 export const LEVEL_PRESETS = ['A조', 'B조', 'C조', 'D조', '초심'];
 

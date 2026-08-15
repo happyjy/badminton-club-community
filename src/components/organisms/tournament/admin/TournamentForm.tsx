@@ -137,7 +137,7 @@ function TournamentForm({
             label="연령"
             values={ageGroups}
             presets={AGE_GROUP_PRESETS}
-            placeholder="예: 시니어부 (쉼표로 여러 개)"
+            placeholder="예: 시니어 (쉼표로 여러 개)"
             emptyHint="연령을 1개 이상 선택해야 합니다."
             onChangeValues={(values) => methods.setValue('ageGroups', values)}
           />
