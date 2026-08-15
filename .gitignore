@@ -43,3 +43,6 @@ next-env.d.ts
 
 # cursor rules
 .cursorrules
+
+# git worktrees
+.claude/worktrees/
