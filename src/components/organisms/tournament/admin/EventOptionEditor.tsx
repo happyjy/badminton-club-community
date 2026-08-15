@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
-import { formatFee } from '@/lib/tournament/display';
 import type {
   EventOptionInput,
   TournamentInput,
@@ -10,21 +9,39 @@ import type {
 
 import BulkEventGenerator from './BulkEventGenerator';
 import {
-  AGE_GROUP_PRESETS,
-  EVENT_TYPE_PRESETS,
-  guessPlayerCount,
-  LEVEL_PRESETS,
-} from './eventOptionPresets';
-import PresetOrCustomInput from './PresetOrCustomInput';
+  AgeGroupField,
+  EventTypeField,
+  FeeField,
+  HiddenIdField,
+  LevelField,
+  PlayerCountField,
+} from './EventOptionFields';
 
 function EventOptionEditor() {
-  const { control, register, watch, setValue } =
-    useFormContext<TournamentInput>();
+  const { control, watch } = useFormContext<TournamentInput>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'eventOptions',
   });
   const [isBulkOpen, setIsBulkOpen] = useState(false);
+
+  // CSS로 숨기지 않고 한쪽만 실제로 렌더링한다.
+  // 두 레이아웃을 동시에 두면 같은 name으로 register가 두 번 일어나
+  // ref가 서로 덮어써 입력값이 유실된다.
+  //
+  // 관리자 화면은 주로 PC에서 쓰므로 기본값을 true로 두어
+  // 프리렌더 직후 모바일 레이아웃이 스쳐 보이는 것을 막는다.
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    setIsDesktop(mediaQuery.matches);
+
+    const onChange = (event: MediaQueryListEvent) =>
+      setIsDesktop(event.matches);
+    mediaQuery.addEventListener('change', onChange);
+    return () => mediaQuery.removeEventListener('change', onChange);
+  }, []);
 
   const options = watch('eventOptions') ?? [];
 
@@ -53,17 +70,9 @@ function EventOptionEditor() {
     });
   };
 
-  // 종목명을 고르면 복식/단식에 맞춰 인원수를 제안한다 (이후 수동 변경 가능)
-  const onChangeEventType = (index: number, value: string) => {
-    setValue(`eventOptions.${index}.eventType`, value);
-    if (value) {
-      setValue(`eventOptions.${index}.playerCount`, guessPlayerCount(value));
-    }
-  };
-
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold">종목 옵션</h2>
         <div className="flex gap-2">
           <button
@@ -91,94 +100,108 @@ function EventOptionEditor() {
         />
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+      {isDesktop ? (
+        /* PC: 표 형태 — 여러 줄을 한눈에 비교하기 좋다 */
+        <table className="w-full table-fixed text-sm">
           <thead>
             <tr className="border-b text-left text-gray-500">
-              <th className="py-2">종목</th>
-              <th className="py-2">연령</th>
-              <th className="py-2">급수</th>
-              <th className="py-2">인원</th>
-              <th className="py-2">참가비</th>
-              <th className="py-2" />
+              <th className="w-[22%] py-2 pr-2">종목</th>
+              <th className="w-[20%] py-2 pr-2">연령</th>
+              <th className="w-[16%] py-2 pr-2">급수</th>
+              <th className="w-[13%] py-2 pr-2">인원</th>
+              <th className="w-[19%] py-2 pr-2">참가비</th>
+              <th className="w-[10%] py-2 text-right">삭제</th>
             </tr>
           </thead>
           <tbody>
             {fields.map((field, index) => (
-              <tr key={field.id} className="border-b last:border-0">
+              <tr key={field.id} className="border-b align-top last:border-0">
                 <td className="py-2 pr-2">
-                  {/* 수정 시 기존 종목을 식별하는 id를 폼에 유지한다 */}
-                  <input
-                    type="hidden"
-                    {...register(`eventOptions.${index}.id`)}
-                  />
-                  <PresetOrCustomInput
-                    value={options[index]?.eventType ?? ''}
-                    presets={EVENT_TYPE_PRESETS}
-                    placeholder="남자복식"
-                    onChangeValue={(value) => onChangeEventType(index, value)}
-                  />
+                  <HiddenIdField index={index} />
+                  <EventTypeField index={index} />
                 </td>
                 <td className="py-2 pr-2">
-                  <PresetOrCustomInput
-                    value={options[index]?.ageGroup ?? ''}
-                    presets={AGE_GROUP_PRESETS}
-                    placeholder="30대부"
-                    onChangeValue={(value) =>
-                      setValue(`eventOptions.${index}.ageGroup`, value)
-                    }
-                  />
+                  <AgeGroupField index={index} />
                 </td>
                 <td className="py-2 pr-2">
-                  <PresetOrCustomInput
-                    value={options[index]?.level ?? ''}
-                    presets={LEVEL_PRESETS}
-                    placeholder="A조"
-                    allowEmpty
-                    onChangeValue={(value) =>
-                      setValue(`eventOptions.${index}.level`, value)
-                    }
-                  />
+                  <LevelField index={index} />
                 </td>
                 <td className="py-2 pr-2">
-                  <select
-                    className="rounded border-gray-300 text-sm"
-                    {...register(`eventOptions.${index}.playerCount`, {
-                      valueAsNumber: true,
-                    })}
-                  >
-                    <option value={1}>1명</option>
-                    <option value={2}>2명</option>
-                  </select>
+                  <PlayerCountField index={index} />
                 </td>
                 <td className="py-2 pr-2">
-                  <input
-                    type="number"
-                    min={0}
-                    step={1000}
-                    className="w-28 rounded border-gray-300 text-sm"
-                    {...register(`eventOptions.${index}.fee`, {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    {formatFee(options[index]?.fee ?? 0)}
-                  </p>
+                  <FeeField index={index} />
                 </td>
-                <td className="py-2">
+                <td className="py-2 text-right">
                   <button
                     type="button"
                     onClick={() => remove(index)}
-                    className="text-sm text-red-500"
+                    aria-label={`${index + 1}번 종목 삭제`}
+                    title="삭제"
+                    className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
                   >
-                    삭제
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      ) : (
+        /* 모바일: 카드 형태 — 가로 스크롤 없이 모든 항목이 보인다 */
+        <div className="space-y-3">
+          {fields.map((field, index) => (
+            <div
+              key={field.id}
+              className="space-y-3 rounded-lg border border-gray-200 p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">
+                  종목 {index + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => remove(index)}
+                  className="rounded px-2 py-1 text-sm text-red-500 hover:bg-red-50"
+                >
+                  삭제
+                </button>
+              </div>
+
+              <HiddenIdField index={index} />
+
+              <div className="grid grid-cols-[3.5rem_1fr] items-center gap-x-2 gap-y-2">
+                <span className="text-xs text-gray-500">종목</span>
+                <EventTypeField index={index} />
+
+                <span className="text-xs text-gray-500">연령</span>
+                <AgeGroupField index={index} />
+
+                <span className="text-xs text-gray-500">급수</span>
+                <LevelField index={index} />
+
+                <span className="text-xs text-gray-500">인원</span>
+                <PlayerCountField index={index} />
+
+                <span className="text-xs text-gray-500">참가비</span>
+                <FeeField index={index} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {fields.length === 0 && (
         <p className="rounded-md bg-gray-50 p-4 text-center text-sm text-gray-500">

@@ -41,9 +41,9 @@ function PresetOrCustomInput({
 
   if (isCustom) {
     return (
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 items-center gap-1">
         <input
-          className="w-full rounded border-gray-300 text-sm"
+          className="w-full min-w-0 rounded border-gray-300 text-sm"
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChangeValue(e.target.value)}
@@ -54,10 +54,23 @@ function PresetOrCustomInput({
             setIsCustom(false);
             onChangeValue('');
           }}
-          className="shrink-0 text-xs text-gray-400 hover:text-gray-600"
-          title="목록에서 선택으로 되돌리기"
+          aria-label="목록에서 선택으로 되돌리기"
+          title="목록에서 선택"
+          className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
         >
-          목록
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
         </button>
       </div>
     );
