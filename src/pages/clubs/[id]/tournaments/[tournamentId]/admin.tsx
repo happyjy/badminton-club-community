@@ -4,10 +4,12 @@ import { useRouter } from 'next/router';
 
 import toast from 'react-hot-toast';
 
+import DeleteTournamentDialog from '@/components/organisms/tournament/admin/DeleteTournamentDialog';
 import EntryTable from '@/components/organisms/tournament/admin/EntryTable';
 
 import {
   useAdminEntries,
+  useDeleteTournament,
   useUpdatePaymentStatus,
 } from '@/hooks/useTournamentAdmin';
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
@@ -23,6 +25,7 @@ function TournamentAdminPage() {
   const tournamentId = router.query.tournamentId as string | undefined;
 
   const [viewMode, setViewMode] = useState<ViewMode>('entry');
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'ALL' | EntryPaymentStatus>(
     'ALL'
   );
@@ -30,6 +33,7 @@ function TournamentAdminPage() {
   const { data: detail } = useTournamentDetail(clubId, tournamentId);
   const { data: entries, isLoading } = useAdminEntries(clubId, tournamentId);
   const updatePayment = useUpdatePaymentStatus(clubId, tournamentId);
+  const deleteTournament = useDeleteTournament(clubId);
 
   const filtered = useMemo(
     () =>
@@ -88,6 +92,21 @@ function TournamentAdminPage() {
     }
   };
 
+  const onClickDeleteTournament = async () => {
+    if (!tournamentId) return;
+    try {
+      await deleteTournament.mutateAsync(tournamentId);
+      toast.success('대회를 삭제했습니다.');
+      router.push(`/clubs/${clubId}/tournaments`);
+    } catch (error) {
+      const message =
+        (error as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error ?? '대회 삭제 중 오류가 발생했습니다.';
+      toast.error(message);
+      setIsDeleteOpen(false);
+    }
+  };
+
   const onClickDownloadCsv = () => {
     window.location.href = `/api/clubs/${clubId}/tournaments/${tournamentId}/entries/export`;
   };
@@ -120,8 +139,25 @@ function TournamentAdminPage() {
           >
             CSV 다운로드
           </button>
+          <button
+            type="button"
+            onClick={() => setIsDeleteOpen(true)}
+            className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+          >
+            대회 삭제
+          </button>
         </div>
       </header>
+
+      {isDeleteOpen && detail && (
+        <DeleteTournamentDialog
+          title={detail.tournament.title}
+          entryCount={entries?.length ?? 0}
+          isDeleting={deleteTournament.isPending}
+          onConfirm={onClickDeleteTournament}
+          onCancel={() => setIsDeleteOpen(false)}
+        />
+      )}
 
       <div className="grid grid-cols-3 gap-3 text-center">
         <div className="rounded-lg bg-gray-50 p-3">

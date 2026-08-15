@@ -48,6 +48,22 @@ export function useUpdatePaymentStatus(
   });
 }
 
+export function useDeleteTournament(clubId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (tournamentId: string) => {
+      const response = await axios.delete(
+        `/api/clubs/${clubId}/tournaments/${tournamentId}`
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tournaments', clubId] });
+    },
+  });
+}
+
 export function useSaveTournament(clubId: string | undefined) {
   const queryClient = useQueryClient();
 
