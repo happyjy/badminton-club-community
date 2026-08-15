@@ -5,6 +5,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
+import { parseTagInput } from '@/lib/tournament/parseTagInput';
 import type { TournamentInput } from '@/types/tournament.types';
 
 import { AGE_GROUP_PRESETS, LEVEL_PRESETS } from './eventOptionPresets';
@@ -32,10 +33,14 @@ function TournamentForm({
   const levels = methods.watch('levels') ?? [];
   const eventTypeCount = (methods.watch('eventTypes') ?? []).length;
 
+  // "S, M, L"처럼 쉼표로 구분해 한 번에 여러 개를 등록할 수 있다
   const onClickAddSize = () => {
-    const size = sizeInput.trim();
-    if (!size || tshirtSizes.includes(size)) return;
-    methods.setValue('tshirtSizes', [...tshirtSizes, size]);
+    const sizes = parseTagInput(sizeInput, tshirtSizes);
+    if (sizes.length === 0) {
+      setSizeInput('');
+      return;
+    }
+    methods.setValue('tshirtSizes', [...tshirtSizes, ...sizes]);
     setSizeInput('');
   };
 
@@ -132,7 +137,7 @@ function TournamentForm({
             label="연령"
             values={ageGroups}
             presets={AGE_GROUP_PRESETS}
-            placeholder="예: 시니어부"
+            placeholder="예: 시니어부 (쉼표로 여러 개)"
             emptyHint="연령을 1개 이상 선택해야 합니다."
             onChangeValues={(values) => methods.setValue('ageGroups', values)}
           />
@@ -141,7 +146,7 @@ function TournamentForm({
             label="급수"
             values={levels}
             presets={LEVEL_PRESETS}
-            placeholder="예: 1부"
+            placeholder="예: 1부, 2부 (쉼표로 여러 개)"
             emptyHint="비워두면 급수 구분 없이 신청받습니다."
             onChangeValues={(values) => methods.setValue('levels', values)}
           />
@@ -194,7 +199,14 @@ function TournamentForm({
                 type="text"
                 value={sizeInput}
                 onChange={(e) => setSizeInput(e.target.value)}
-                placeholder="S, M, L..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // 폼 전체가 제출되지 않도록 막는다
+                    e.preventDefault();
+                    onClickAddSize();
+                  }
+                }}
+                placeholder="S, M, L (쉼표로 여러 개 입력)"
                 className="flex-1 rounded-md border-gray-300 text-sm"
               />
               <button

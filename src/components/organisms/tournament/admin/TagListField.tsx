@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { parseTagInput } from '@/lib/tournament/parseTagInput';
+
 interface TagListFieldProps {
   label: string;
   values: string[];
@@ -31,10 +33,12 @@ function TagListField({
     );
   };
 
+  // "1부, 2부"처럼 쉼표로 구분해 한 번에 여러 개를 등록할 수 있다
   const onClickAddCustom = () => {
-    const next = customInput.trim();
-    if (!next || values.includes(next)) return;
-    onChangeValues([...values, next]);
+    const next = parseTagInput(customInput, values);
+    if (next.length > 0) {
+      onChangeValues([...values, ...next]);
+    }
     setCustomInput('');
   };
 
