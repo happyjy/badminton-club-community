@@ -78,11 +78,15 @@ function escapeCell(value: string): string {
   return value;
 }
 
+// UTF-8 BOM. 이게 없으면 엑셀이 CSV를 ANSI로 읽어 한글이 깨진다.
+// 리터럴로 넣으면 보이지 않는 문자라 lint가 막으므로 이스케이프로 표기한다.
+const UTF8_BOM = '\uFEFF';
+
 /**
  * CSV 문자열로 직렬화한다.
  * 앞에 BOM을 붙여야 엑셀에서 한글이 깨지지 않는다.
  */
 export function toCsvString(rows: string[][]): string {
   const body = rows.map((row) => row.map(escapeCell).join(',')).join('\r\n');
-  return `﻿${body}`;
+  return `${UTF8_BOM}${body}`;
 }

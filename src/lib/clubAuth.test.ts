@@ -15,8 +15,9 @@ type MemberRow = {
   name: string | null;
 } | null;
 
-const findUnique = prisma.clubMember
-  .findUnique as unknown as jest.Mock<() => Promise<MemberRow>>;
+const findUnique = prisma.clubMember.findUnique as unknown as jest.Mock<
+  () => Promise<MemberRow>
+>;
 
 const APPROVED_MEMBER = {
   id: 10,
