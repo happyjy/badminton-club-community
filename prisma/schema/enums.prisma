@@ -27,3 +27,20 @@ enum NotificationType {
   STATUS_UPDATE    // 승인/거절 상태 업데이트
   COMMENT_ADDED    // 댓글 추가
 }
+
+enum TournamentStatus {
+  DRAFT     // 임시저장 (ADMIN에게만 노출)
+  OPEN      // 모집중
+  CLOSED    // 마감
+}
+
+enum EntryPaymentStatus {
+  PENDING    // 입금대기
+  CONFIRMED  // 입금확인
+  CANCELED   // 취소
+}
+
+enum EntryEventStatus {
+  ACTIVE
+  CANCELED
+}

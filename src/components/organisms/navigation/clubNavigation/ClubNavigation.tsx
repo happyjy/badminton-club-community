@@ -78,6 +78,12 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     href: `/clubs/${clubId}/board`,
   };
 
+  // 대회 신청 항목 (멤버만 볼 수 있음)
+  const tournamentItem = {
+    name: '대회 신청',
+    href: `/clubs/${clubId}/tournaments`,
+  };
+
   // 기본 네비게이션 아이템 (모든 사용자에게 보이는 항목)
   const baseNavigationItems = [
     {
@@ -121,6 +127,7 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     if (clubMember) {
       items.splice(1, 0, attendanceItem);
       items.push(boardItem);
+      items.push(tournamentItem);
     }
 
     // ADMIN인 경우 추가 메뉴 포함
