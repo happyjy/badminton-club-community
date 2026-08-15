@@ -18,6 +18,27 @@ export const formatToKoreanTime = (dateStr: Date) => {
 };
 
 /**
+ * 오늘 날짜를 한국 시간(KST) 기준 'YYYY-MM-DD' 문자열로 반환하는 함수
+ * 서버(UTC)와 클라이언트(로컬 타임존)에서 동일한 값을 얻기 위해 KST 오프셋(+9h)을 직접 적용한다.
+ * @returns 'YYYY-MM-DD' 형식의 오늘 날짜 (예: "2025-02-05")
+ */
+export const getTodayInKorea = (): string => {
+  const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+  return new Date(Date.now() + KST_OFFSET_MS).toISOString().split('T')[0];
+};
+
+/**
+ * 방문희망일이 지났는지(오늘 포함) 판단하는 함수
+ * visitDate는 'YYYY-MM-DD' 문자열로 저장되므로 같은 형식끼리 문자열 비교한다.
+ * @param visitDate - 방문희망일 ('YYYY-MM-DD'). 빈 값이면 지나지 않은 것으로 간주한다.
+ * @returns 방문희망일이 오늘이거나 이전이면 true
+ */
+export const isVisitDatePassed = (visitDate?: string | null): boolean => {
+  if (!visitDate) return false;
+  return visitDate <= getTodayInKorea();
+};
+
+/**
  * 현재 달의 시작일과 종료일을 계산하는 함수
  * @param date - 기준 날짜 (기본값: 현재 날짜)
  * @returns 시작일과 종료일 객체

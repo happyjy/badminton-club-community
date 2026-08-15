@@ -22,6 +22,7 @@ import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
 import { ClubJoinFormData } from '@/types/club.types';
+import { isVisitDatePassed } from '@/utils/date';
 
 interface Comment {
   id: string;
@@ -71,6 +72,8 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
 
   const isAdmin = clubMember?.role === 'ADMIN'; // 관리자 여부 확인
   const isMyPost = user?.id === guestPost.userId; // 본인 게시물인지 확인
+  // 방문희망일이 지난(오늘 포함) 신청은 삭제할 수 없음
+  const isDeletable = !isVisitDatePassed(guestPost.visitDate);
 
   const [comments, setComments] = useState<Comment[]>([]); // 댓글 목록
   const [isLoading, setIsLoading] = useState(false); // 댓글 목록 처음 불러오기 중인지 여부
@@ -372,14 +375,16 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       >
         거절
       </Button>
-      <Button
-        onClick={onClickDeleteGuest}
-        pending={isDeleting}
-        disabled={isUpdating || isDeleting}
-        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
-      >
-        삭제
-      </Button>
+      {isDeletable && (
+        <Button
+          onClick={onClickDeleteGuest}
+          pending={isDeleting}
+          disabled={isUpdating || isDeleting}
+          className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
+        >
+          삭제
+        </Button>
+      )}
     </>
   );
 

@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { Role } from '@/types/enums';
+import { isVisitDatePassed } from '@/utils/date';
 
 // 게스트 신청 게시글 조회, 생성, 수정, 삭제 API
 export default withAuth(async function handler(
@@ -189,6 +190,13 @@ export default withAuth(async function handler(
           return res
             .status(403)
             .json({ message: '관리자만 삭제할 수 있습니다' });
+        }
+
+        // 방문희망일이 지난(오늘 포함) 신청은 삭제할 수 없음
+        if (isVisitDatePassed(guestPost.visitDate)) {
+          return res
+            .status(403)
+            .json({ message: '방문희망일이 지난 신청은 삭제할 수 없습니다' });
         }
 
         await prisma.guestPost.delete({
