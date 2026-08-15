@@ -1,7 +1,12 @@
 import { z } from 'zod';
 
 const eventOptionSchema = z.object({
-  id: z.string().optional(),
+  // 폼의 hidden input이 신규 종목에 빈 문자열을 넣으므로 undefined로 정규화한다.
+  // 그래야 서버가 '기존 종목 수정'이 아니라 '신규 생성'으로 분기한다.
+  id: z
+    .string()
+    .optional()
+    .transform((value) => (value ? value : undefined)),
   eventType: z.string().trim().min(1, '종목을 입력해주세요.'),
   ageGroup: z.string().trim().min(1, '연령을 입력해주세요.'),
   level: z.string().trim().default(''),

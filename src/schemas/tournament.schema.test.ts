@@ -152,3 +152,21 @@ describe('entrySubmissionSchema', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('eventOption.id 정규화', () => {
+  it('빈 문자열 id는 undefined로 바뀐다 (신규 생성으로 분기되도록)', () => {
+    const parsed = tournamentInputSchema.parse({
+      ...VALID_TOURNAMENT,
+      eventOptions: [{ ...VALID_TOURNAMENT.eventOptions[0], id: '' }],
+    });
+    expect(parsed.eventOptions[0].id).toBeUndefined();
+  });
+
+  it('실제 id는 그대로 유지된다 (기존 종목 수정으로 분기되도록)', () => {
+    const parsed = tournamentInputSchema.parse({
+      ...VALID_TOURNAMENT,
+      eventOptions: [{ ...VALID_TOURNAMENT.eventOptions[0], id: 'opt-abc' }],
+    });
+    expect(parsed.eventOptions[0].id).toBe('opt-abc');
+  });
+});
