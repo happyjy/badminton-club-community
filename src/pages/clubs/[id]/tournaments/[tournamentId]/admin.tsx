@@ -122,7 +122,7 @@ function TournamentAdminPage() {
           <h1 className="text-xl font-bold">신청 현황</h1>
           <p className="text-sm text-gray-500">{detail?.tournament.title}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() =>
@@ -229,7 +229,28 @@ function TournamentAdminPage() {
                   {players.length}명
                 </span>
               </h3>
-              <div className="overflow-x-auto">
+              {/* 모바일: 카드 목록 */}
+              <ul className="space-y-2 text-sm sm:hidden">
+                {players.map((player, index) => (
+                  <li
+                    key={`${player.name}-${index}`}
+                    className="rounded-md bg-gray-50 p-2"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="font-medium">{player.name}</span>
+                      <span className="shrink-0 text-xs text-gray-500">
+                        티셔츠 {player.tshirtSize ?? '-'}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-gray-500">
+                      {player.phoneNumber}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+
+              {/* PC: 표 */}
+              <div className="hidden overflow-x-auto sm:block">
                 <table className="w-full min-w-[360px] text-sm">
                   <thead>
                     <tr className="border-b text-left text-gray-500">
