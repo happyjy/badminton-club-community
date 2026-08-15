@@ -201,7 +201,9 @@ export default withAuth(async function handler(
           .json({ error: '대회를 찾을 수 없습니다.', status: 404 });
       }
 
-      // Cascade로 신청서·선수·종목이 함께 삭제된다
+      // Cascade로 종목 옵션·신청서·선수·신청 종목이 모두 함께 삭제된다.
+      // EntryEvent → TournamentEventOption 관계에도 Cascade가 있어야
+      // 신청이 있는 대회를 지울 때 FK 위반이 나지 않는다.
       await prisma.tournament.delete({ where: { id: tournamentId } });
 
       return res

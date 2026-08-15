@@ -488,7 +488,9 @@ model EntryEvent {
   canceledAt     DateTime?
 
   entry          TournamentEntry        @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  eventOption    TournamentEventOption  @relation(fields: [eventOptionId], references: [id])
+  // 대회를 삭제하면 종목 옵션도 지워지므로 신청 종목도 함께 정리되어야 한다.
+  // Cascade가 없으면 신청이 있는 대회를 삭제할 때 FK 위반이 난다.
+  eventOption    TournamentEventOption  @relation(fields: [eventOptionId], references: [id], onDelete: Cascade)
   eventPlayers   EntryEventPlayer[]
 
   @@index([entryId])
