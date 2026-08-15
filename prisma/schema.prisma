@@ -38,6 +38,24 @@ enum NotificationType {
   COMMENT_ADDED    // 댓글 추가
 }
 
+enum TournamentStatus {
+  DRAFT     // 임시저장 (ADMIN에게만 노출)
+  OPEN      // 모집중
+  CLOSED    // 마감
+}
+
+enum EntryPaymentStatus {
+  PENDING    // 입금대기
+  CONFIRMED  // 입금확인
+  CANCELED   // 취소
+}
+
+enum EntryEventStatus {
+  ACTIVE
+  CANCELED
+}
+
+
 model User {
   id                  Int                  @id @default(autoincrement())
   kakaoId             String               @unique @default("")
@@ -56,6 +74,7 @@ model User {
   guestComments       GuestComment[]
   phoneVerifications  PhoneVerification[]  // 전화번호 인증 관계 추가
   smsNotificationLogs SmsNotificationLog[] // SMS 알림 로그 관계 추가
+  tournamentEntries   TournamentEntry[]    // 대회 참가 신청 관계 추가
 } 
 
 model Club { 
@@ -79,7 +98,14 @@ model Club {
   phoneVerifications PhoneVerification[]
   postCategories     PostCategory[]      @relation("ClubToPostCategory")
   posts              Post[]              @relation("ClubToPost")
+  tournaments        Tournament[]        @relation("ClubToTournament")
 
+  // 회비 정산
+  feeTypes             FeeType[]
+  coupleGroups         CoupleGroup[]
+  coupleHistories      CoupleHistory[]
+  paymentUploadBatches PaymentUploadBatch[]
+  paymentRecords       PaymentRecord[]
 }
 
 model ClubMember {
@@ -98,6 +124,12 @@ model ClubMember {
   playingPeriod            String?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+  /// 회비 의무 시작일 (15일 규칙 적용 기준). 가입 시 기본값은 createdAt(가입 시점)의 해당 년·월, 일 01.
+  /// Prisma @default()는 다른 컬럼 참조 불가하므로 앱에서 create 시 설정.
+  feeObligationStartAt     DateTime?
+  /// 탈퇴일. status가 'LEFT'로 변경될 때 자동 설정. 관리자가 회원 상세에서 수정 가능.
+  /// 해당 년·월까지 회비 의무 있음. null이면 탈퇴하지 않은 회원.
+  leftAt                   DateTime?
 
   // Relations
   guestComments            GuestComment[]
@@ -109,9 +141,42 @@ model ClubMember {
   createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
   posts                    Post[]                @relation("PostAuthor")
   postComments             PostComment[]         @relation("PostCommentAuthor")
+  tournamentEntries        TournamentEntry[]     @relation("TournamentEntryMember")
+  // 회비 정산
+  memberFeeType                 MemberFeeType?
+  coupleMembers                 CoupleMember[]
+  coupleHistoriesAsSelf         CoupleHistory[]       @relation("CoupleHistorySelf")
+  coupleHistoriesAsPartner      CoupleHistory[]       @relation("CoupleHistoryPartner")
+  feeExemptionsAsMember         FeeExemption[]        @relation("FeeExemptionMember")
+  feeExemptionsAsCreator        FeeExemption[]        @relation("FeeExemptionCreator")
+  paymentUploadBatches          PaymentUploadBatch[]
+  matchedPaymentRecords         PaymentRecord[]
+  paymentRecordMatchedMembers   PaymentRecordMatchedMember[]
+  membershipPaymentsAsMember    MembershipPayment[]   @relation("MembershipPaymentMember")
+  membershipPaymentsAsConfirmer MembershipPayment[]   @relation("MembershipPaymentConfirmer")
+  memberLeaves                  MemberLeave[]
 
   @@unique([clubId, userId])
 } 
+
+
+// 회원별 휴회/병가 기간 (회비 의무 제외용, 기간 제한 없음)
+model MemberLeave {
+  id           Int      @id @default(autoincrement())
+  clubMemberId Int
+  startYear    Int
+  startMonth   Int      // 1~12
+  endYear      Int?
+  endMonth     Int?     // 1~12, null = 미정/장기
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  // Relations
+  clubMember ClubMember @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+
+  @@index([clubMemberId])
+  @@index([clubMemberId, startYear, startMonth])
+}
 
 
 // 게시판 카테고리
@@ -325,6 +390,125 @@ model GuestPost_copy {
   @@index([userId])
 }
 
+// 외부 대회 (클럽이 참가 신청을 취합하는 대상)
+model Tournament {
+  id              String            @id @default(cuid())
+  clubId          Int
+  title           String
+  hostName        String?                                  // 주최 (예: ○○시 배드민턴협회)
+  description     String?                                  // 모집 요강
+  tournamentDate  String?                                  // 대회 일자
+  location        String?                                  // 대회 장소
+  applyStartAt    DateTime?                                // 신청 시작 일시
+  applyDeadline   DateTime                                 // 신청 마감 일시
+  status          TournamentStatus  @default(DRAFT)        // 관리자의 수동 의도
+  useTeamName     Boolean           @default(false)        // 팀명 입력 사용 여부
+  tshirtSizes     String[]                                 // 빈 배열이면 티셔츠 미사용
+  bankAccount     String?                                  // 입금 계좌 안내
+  createdBy       Int                                      // ClubMember id
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  club            Club                     @relation("ClubToTournament", fields: [clubId], references: [id], onDelete: Cascade)
+  eventOptions    TournamentEventOption[]
+  entries         TournamentEntry[]
+
+  @@index([clubId])
+  @@index([clubId, status])
+}
+
+// 종목 옵션 (관리자가 대회마다 정의)
+model TournamentEventOption {
+  id            String       @id @default(cuid())
+  tournamentId  String
+  eventType     String                            // 남자복식, 혼합복식 등
+  ageGroup      String                            // 30대부 등
+  level         String       @default("")         // A조 등. 없는 대회도 있음
+  playerCount   Int                               // 1 또는 2
+  fee           Int                               // 참가비 (원)
+  order         Int          @default(0)
+  isActive      Boolean      @default(true)
+
+  tournament    Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  entryEvents   EntryEvent[]
+
+  @@unique([tournamentId, eventType, ageGroup, level])
+  @@index([tournamentId])
+}
+
+// 신청서 (회원 1명이 대회당 1건)
+model TournamentEntry {
+  id               String              @id @default(cuid())
+  tournamentId     String
+  userId           Int
+  clubMemberId     Int
+  depositorName    String                                        // 입금자명
+  teamName         String?                                       // useTeamName일 때만
+  paymentStatus    EntryPaymentStatus  @default(PENDING)
+  totalFee         Int                 @default(0)               // ACTIVE 종목 fee 합계
+  privacyAgreedAt  DateTime
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  tournament       Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user             User          @relation(fields: [userId], references: [id])
+  clubMember       ClubMember    @relation("TournamentEntryMember", fields: [clubMemberId], references: [id])
+  players          EntryPlayer[]
+  entryEvents      EntryEvent[]
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId])
+  @@index([userId])
+}
+
+// 선수 명단 (신청서 단위, 티셔츠 중복 방지용)
+model EntryPlayer {
+  id           String             @id @default(cuid())
+  entryId      String
+  name         String
+  gender       String
+  birthDate    String                                    // 민감정보
+  phoneNumber  String                                    // 민감정보
+  tshirtSize   String?                                   // 민감정보
+  order        Int                @default(0)
+
+  entry        TournamentEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  eventPlayers EntryEventPlayer[]
+
+  @@index([entryId])
+}
+
+// 신청 종목 1줄 (부분 취소 단위)
+model EntryEvent {
+  id             String                 @id @default(cuid())
+  entryId        String
+  eventOptionId  String
+  fee            Int                                          // 신청 시점 참가비 스냅샷
+  status         EntryEventStatus       @default(ACTIVE)
+  canceledAt     DateTime?
+
+  entry          TournamentEntry        @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  eventOption    TournamentEventOption  @relation(fields: [eventOptionId], references: [id])
+  eventPlayers   EntryEventPlayer[]
+
+  @@index([entryId])
+  @@index([eventOptionId])
+}
+
+// 종목 ↔ 선수 배정
+model EntryEventPlayer {
+  id            String       @id @default(cuid())
+  entryEventId  String
+  entryPlayerId String
+
+  entryEvent    EntryEvent   @relation(fields: [entryEventId], references: [id], onDelete: Cascade)
+  entryPlayer   EntryPlayer  @relation(fields: [entryPlayerId], references: [id], onDelete: Cascade)
+
+  @@unique([entryEventId, entryPlayerId])
+  @@index([entryEventId])
+}
+
+
 // 클럽 커스텀 설정
 model ClubCustomSettings {
   id                   Int      @id @default(autoincrement())
@@ -388,6 +572,236 @@ model SmsNotificationLog {
   @@unique([guestPostId, userId, notificationType]) // 중복 전송 방지(guestPostId, userId, notificationType 필드가 모두 같은 경우 중복 전송 방지)
   @@index([guestPostId])
   @@index([userId])
+}
+
+
+// ========================================
+// 회비 정산 관리 시스템
+// ========================================
+
+enum PaymentRecordStatus {
+  PENDING   // 대기
+  MATCHED   // 매칭됨
+  ERROR     // 에러
+  CONFIRMED // 확정
+  SKIPPED   // 건너뜀
+}
+
+// 납부 주기
+enum FeePeriod {
+  MONTHLY      // 월납 (1개월)
+  QUARTERLY    // 분기납 (3개월)
+  SEMI_ANNUAL  // 반기납 (6개월)
+  ANNUAL       // 연납 (12개월)
+}
+
+// 회비 유형 (일반, 부부, 학생 등)
+model FeeType {
+  id          Int      @id @default(autoincrement())
+  clubId      Int
+  name        String   // "일반", "부부", "학생", "주말회원" 등
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  club    Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  rates   FeeRate[]
+  members MemberFeeType[]
+
+  @@unique([clubId, name])
+  @@index([clubId])
+  @@index([clubId, isActive])
+}
+
+// 회비 금액 (유형 + 연도 + 납부주기별)
+model FeeRate {
+  id         Int       @id @default(autoincrement())
+  feeTypeId  Int
+  year       Int
+  period     FeePeriod // MONTHLY, QUARTERLY, SEMI_ANNUAL, ANNUAL
+  amount     Int       // 해당 주기의 총 금액
+  monthCount Int       // 적용 개월 수 (1, 3, 6, 12)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  feeType FeeType @relation(fields: [feeTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([feeTypeId, year, period])
+  @@index([feeTypeId])
+  @@index([year])
+}
+
+// 회원별 회비 유형 지정
+model MemberFeeType {
+  id           Int      @id @default(autoincrement())
+  clubMemberId Int      @unique // 1인 1유형만
+  feeTypeId    Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  clubMember ClubMember @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+  feeType    FeeType    @relation(fields: [feeTypeId], references: [id], onDelete: Cascade)
+
+  @@index([clubMemberId])
+  @@index([feeTypeId])
+}
+
+// 부부 그룹
+model CoupleGroup {
+  id        Int      @id @default(autoincrement())
+  clubId    Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  club    Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  members CoupleMember[]
+
+  @@index([clubId])
+}
+
+// 부부 그룹 멤버
+model CoupleMember {
+  id             Int      @id @default(autoincrement())
+  coupleGroupId  Int
+  clubMemberId   Int      @unique // 1인 1그룹만 허용
+  createdAt      DateTime @default(now())
+
+  // Relations
+  coupleGroup CoupleGroup @relation(fields: [coupleGroupId], references: [id], onDelete: Cascade)
+  clubMember  ClubMember  @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+
+  @@index([coupleGroupId])
+}
+
+// 부부 관계 이력 (거래일 기준 부부 단가 판정용)
+// CoupleGroup이 "현재 시점의 부부"만 표현해 탈퇴/해체 시 데이터가 사라지는 문제를 보완.
+// 등록 시 row 추가(endedAt=null), 해체 시 endedAt 채워서 종료. 재결합은 새 row를 누적.
+// 한 회원의 active(endedAt=null) row는 비즈니스 로직에서 동시 1건으로 제한한다.
+model CoupleHistory {
+  id                  Int       @id @default(autoincrement())
+  clubId              Int
+  clubMemberId        Int       // 본인
+  partnerClubMemberId Int       // 배우자
+  startedAt           DateTime  // 부부로 등록된 시점 (CoupleGroup.createdAt과 정렬)
+  endedAt             DateTime? // 해체 시점. null이면 현재 진행 중
+  createdAt           DateTime  @default(now())
+
+  // Relations
+  club          Club       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubMember    ClubMember @relation("CoupleHistorySelf", fields: [clubMemberId], references: [id], onDelete: Cascade)
+  partnerMember ClubMember @relation("CoupleHistoryPartner", fields: [partnerClubMemberId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@index([clubMemberId, startedAt, endedAt])
+  @@index([partnerClubMemberId])
+}
+
+// 회비 면제
+model FeeExemption {
+  id           Int      @id @default(autoincrement())
+  clubMemberId Int
+  year         Int
+  reason       String   // 면제 사유 (예: "임원")
+  createdAt    DateTime @default(now())
+  createdById  Int
+
+  // Relations
+  clubMember ClubMember @relation("FeeExemptionMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
+  createdBy  ClubMember @relation("FeeExemptionCreator", fields: [createdById], references: [id])
+
+  @@unique([clubMemberId, year])
+  @@index([clubMemberId])
+  @@index([year])
+}
+
+// 입금 내역 배치 (엑셀 업로드 단위)
+model PaymentUploadBatch {
+  id           String   @id @default(cuid())
+  clubId       Int
+  uploadedAt   DateTime @default(now())
+  uploadedById Int
+  fileName     String
+  recordCount  Int
+
+  // Relations
+  club       Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  uploadedBy ClubMember     @relation(fields: [uploadedById], references: [id])
+  records    PaymentRecord[]
+
+  @@index([clubId])
+  @@index([uploadedById])
+}
+
+// 입금 내역 - 매칭 회원 (다대다: 한 건 입금에 여러 회원 매칭 가능)
+model PaymentRecordMatchedMember {
+  id              String        @id @default(cuid())
+  paymentRecordId String
+  clubMemberId    Int
+  createdAt       DateTime      @default(now())
+
+  // Relations
+  paymentRecord PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
+  clubMember    ClubMember   @relation(fields: [clubMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentRecordId, clubMemberId])
+  @@index([paymentRecordId])
+  @@index([clubMemberId])
+}
+
+// 입금 내역 (엑셀 파싱 결과)
+model PaymentRecord {
+  id              String              @id @default(cuid())
+  batchId         String
+  clubId          Int
+  transactionDate DateTime
+  depositorName   String
+  amount          Int
+  memo            String?
+  matchedMemberId Int?                // 하위 호환: 첫 번째 매칭 회원 (matchedMembers 우선 사용)
+  status          PaymentRecordStatus @default(PENDING)
+  errorReason     String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Relations
+  batch          PaymentUploadBatch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  club           Club                       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  matchedMember  ClubMember?                @relation(fields: [matchedMemberId], references: [id])
+  matchedMembers PaymentRecordMatchedMember[]
+  payments       MembershipPayment[]
+
+  @@index([batchId])
+  @@index([clubId])
+  @@index([matchedMemberId])
+  @@index([status])
+}
+
+// 납부 내역 (확정된 회비 납부)
+model MembershipPayment {
+  id               String    @id @default(cuid())
+  clubMemberId     Int
+  paymentRecordId  String
+  year             Int
+  month            Int
+  amount           Int
+  period           FeePeriod @default(MONTHLY) // 납부 주기
+  confirmedAt      DateTime  @default(now())
+  confirmedById    Int
+
+  // Relations
+  clubMember    ClubMember    @relation("MembershipPaymentMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
+  paymentRecord PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
+  confirmedBy   ClubMember    @relation("MembershipPaymentConfirmer", fields: [confirmedById], references: [id])
+
+  @@unique([clubMemberId, year, month])
+  @@index([clubMemberId])
+  @@index([paymentRecordId])
+  @@index([year])
 }
 
 

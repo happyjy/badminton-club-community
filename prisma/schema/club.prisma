@@ -19,7 +19,14 @@ model Club {
   phoneVerifications PhoneVerification[]
   postCategories     PostCategory[]      @relation("ClubToPostCategory")
   posts              Post[]              @relation("ClubToPost")
+  tournaments        Tournament[]        @relation("ClubToTournament")
 
+  // 회비 정산
+  feeTypes             FeeType[]
+  coupleGroups         CoupleGroup[]
+  coupleHistories      CoupleHistory[]
+  paymentUploadBatches PaymentUploadBatch[]
+  paymentRecords       PaymentRecord[]
 }
 
 model ClubMember {
@@ -38,6 +45,12 @@ model ClubMember {
   playingPeriod            String?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+  /// 회비 의무 시작일 (15일 규칙 적용 기준). 가입 시 기본값은 createdAt(가입 시점)의 해당 년·월, 일 01.
+  /// Prisma @default()는 다른 컬럼 참조 불가하므로 앱에서 create 시 설정.
+  feeObligationStartAt     DateTime?
+  /// 탈퇴일. status가 'LEFT'로 변경될 때 자동 설정. 관리자가 회원 상세에서 수정 가능.
+  /// 해당 년·월까지 회비 의무 있음. null이면 탈퇴하지 않은 회원.
+  leftAt                   DateTime?
 
   // Relations
   guestComments            GuestComment[]
@@ -49,6 +62,20 @@ model ClubMember {
   createdGuestPosts        GuestPost[]           @relation("CreatedByClubMember")
   posts                    Post[]                @relation("PostAuthor")
   postComments             PostComment[]         @relation("PostCommentAuthor")
+  tournamentEntries        TournamentEntry[]     @relation("TournamentEntryMember")
+  // 회비 정산
+  memberFeeType                 MemberFeeType?
+  coupleMembers                 CoupleMember[]
+  coupleHistoriesAsSelf         CoupleHistory[]       @relation("CoupleHistorySelf")
+  coupleHistoriesAsPartner      CoupleHistory[]       @relation("CoupleHistoryPartner")
+  feeExemptionsAsMember         FeeExemption[]        @relation("FeeExemptionMember")
+  feeExemptionsAsCreator        FeeExemption[]        @relation("FeeExemptionCreator")
+  paymentUploadBatches          PaymentUploadBatch[]
+  matchedPaymentRecords         PaymentRecord[]
+  paymentRecordMatchedMembers   PaymentRecordMatchedMember[]
+  membershipPaymentsAsMember    MembershipPayment[]   @relation("MembershipPaymentMember")
+  membershipPaymentsAsConfirmer MembershipPayment[]   @relation("MembershipPaymentConfirmer")
+  memberLeaves                  MemberLeave[]
 
   @@unique([clubId, userId])
 } 

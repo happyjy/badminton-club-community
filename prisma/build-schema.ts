@@ -11,12 +11,15 @@ const schemaFiles = [
   //
   'user.prisma',
   'club.prisma',
+  'memberLeave.prisma',
   'board.prisma',
   'workout.prisma',
   'guest.prisma',
+  'tournament.prisma',
   'clubCustomSetting.prisma',
   'phoneVerification.prisma',
   'smsNotificationLog.prisma',
+  'membershipFee.prisma',
 ];
 
 let finalSchema = '';

@@ -1,0 +1,117 @@
+// 외부 대회 (클럽이 참가 신청을 취합하는 대상)
+model Tournament {
+  id              String            @id @default(cuid())
+  clubId          Int
+  title           String
+  hostName        String?                                  // 주최 (예: ○○시 배드민턴협회)
+  description     String?                                  // 모집 요강
+  tournamentDate  String?                                  // 대회 일자
+  location        String?                                  // 대회 장소
+  applyStartAt    DateTime?                                // 신청 시작 일시
+  applyDeadline   DateTime                                 // 신청 마감 일시
+  status          TournamentStatus  @default(DRAFT)        // 관리자의 수동 의도
+  useTeamName     Boolean           @default(false)        // 팀명 입력 사용 여부
+  tshirtSizes     String[]                                 // 빈 배열이면 티셔츠 미사용
+  bankAccount     String?                                  // 입금 계좌 안내
+  createdBy       Int                                      // ClubMember id
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  club            Club                     @relation("ClubToTournament", fields: [clubId], references: [id], onDelete: Cascade)
+  eventOptions    TournamentEventOption[]
+  entries         TournamentEntry[]
+
+  @@index([clubId])
+  @@index([clubId, status])
+}
+
+// 종목 옵션 (관리자가 대회마다 정의)
+model TournamentEventOption {
+  id            String       @id @default(cuid())
+  tournamentId  String
+  eventType     String                            // 남자복식, 혼합복식 등
+  ageGroup      String                            // 30대부 등
+  level         String       @default("")         // A조 등. 없는 대회도 있음
+  playerCount   Int                               // 1 또는 2
+  fee           Int                               // 참가비 (원)
+  order         Int          @default(0)
+  isActive      Boolean      @default(true)
+
+  tournament    Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  entryEvents   EntryEvent[]
+
+  @@unique([tournamentId, eventType, ageGroup, level])
+  @@index([tournamentId])
+}
+
+// 신청서 (회원 1명이 대회당 1건)
+model TournamentEntry {
+  id               String              @id @default(cuid())
+  tournamentId     String
+  userId           Int
+  clubMemberId     Int
+  depositorName    String                                        // 입금자명
+  teamName         String?                                       // useTeamName일 때만
+  paymentStatus    EntryPaymentStatus  @default(PENDING)
+  totalFee         Int                 @default(0)               // ACTIVE 종목 fee 합계
+  privacyAgreedAt  DateTime
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  tournament       Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user             User          @relation(fields: [userId], references: [id])
+  clubMember       ClubMember    @relation("TournamentEntryMember", fields: [clubMemberId], references: [id])
+  players          EntryPlayer[]
+  entryEvents      EntryEvent[]
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId])
+  @@index([userId])
+}
+
+// 선수 명단 (신청서 단위, 티셔츠 중복 방지용)
+model EntryPlayer {
+  id           String             @id @default(cuid())
+  entryId      String
+  name         String
+  gender       String
+  birthDate    String                                    // 민감정보
+  phoneNumber  String                                    // 민감정보
+  tshirtSize   String?                                   // 민감정보
+  order        Int                @default(0)
+
+  entry        TournamentEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  eventPlayers EntryEventPlayer[]
+
+  @@index([entryId])
+}
+
+// 신청 종목 1줄 (부분 취소 단위)
+model EntryEvent {
+  id             String                 @id @default(cuid())
+  entryId        String
+  eventOptionId  String
+  fee            Int                                          // 신청 시점 참가비 스냅샷
+  status         EntryEventStatus       @default(ACTIVE)
+  canceledAt     DateTime?
+
+  entry          TournamentEntry        @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  eventOption    TournamentEventOption  @relation(fields: [eventOptionId], references: [id])
+  eventPlayers   EntryEventPlayer[]
+
+  @@index([entryId])
+  @@index([eventOptionId])
+}
+
+// 종목 ↔ 선수 배정
+model EntryEventPlayer {
+  id            String       @id @default(cuid())
+  entryEventId  String
+  entryPlayerId String
+
+  entryEvent    EntryEvent   @relation(fields: [entryEventId], references: [id], onDelete: Cascade)
+  entryPlayer   EntryPlayer  @relation(fields: [entryPlayerId], references: [id], onDelete: Cascade)
+
+  @@unique([entryEventId, entryPlayerId])
+  @@index([entryEventId])
+}
