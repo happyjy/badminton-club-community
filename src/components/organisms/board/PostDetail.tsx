@@ -116,14 +116,14 @@ function PostDetail({ post }: PostDetailProps) {
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       {/* 헤더 */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-2">
             {post.isPinned && (
-              <span className="text-blue-500" title="고정 게시글">
+              <span className="shrink-0 text-blue-500" title="고정 게시글">
                 📌
               </span>
             )}
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="min-w-0 break-words text-2xl sm:text-3xl font-bold text-gray-900">
               {post.title}
             </h1>
           </div>

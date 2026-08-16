@@ -21,18 +21,18 @@ function PostCard({ post }: PostCardProps) {
       onClick={onClickPost}
     >
       <div className="flex items-start justify-between mb-2">
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-2">
             {post.isPinned && (
-              <span className="text-blue-500" title="고정 게시글">
+              <span className="shrink-0 text-blue-500" title="고정 게시글">
                 📌
               </span>
             )}
-            <h2 className="font-semibold text-lg sm:text-xl text-gray-900 line-clamp-2">
+            <h2 className="min-w-0 font-semibold text-lg sm:text-xl text-gray-900 line-clamp-2 break-words">
               {post.title}
             </h2>
           </div>
-          <p className="text-gray-600 text-sm sm:text-base line-clamp-2 mb-3">
+          <p className="text-gray-600 text-sm sm:text-base line-clamp-2 break-words mb-3">
             {post.content}
           </p>
         </div>
