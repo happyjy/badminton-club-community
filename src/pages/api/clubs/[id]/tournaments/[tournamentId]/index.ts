@@ -6,10 +6,6 @@ import {
   handleApiError,
   parseClubId,
 } from '@/lib/tournament/apiHelpers';
-import {
-  PUBLIC_PARTICIPANT_SELECT,
-  toPublicParticipants,
-} from '@/lib/tournament/serialize';
 import { resolveTournamentStatus } from '@/lib/tournament/status';
 import { tournamentInputSchema } from '@/schemas/tournament.schema';
 
@@ -49,12 +45,6 @@ export default withAuth(async function handler(
           .json({ error: '대회를 찾을 수 없습니다.', status: 404 });
       }
 
-      // 참가자 목록: 민감정보를 아예 조회하지 않는다
-      const maskedEntries = await prisma.tournamentEntry.findMany({
-        where: { tournamentId, paymentStatus: { not: 'CANCELED' } },
-        select: PUBLIC_PARTICIPANT_SELECT,
-      });
-
       const myEntry = await prisma.tournamentEntry.findUnique({
         where: { tournamentId_userId: { tournamentId, userId: req.user.id } },
         select: { id: true },
@@ -64,7 +54,6 @@ export default withAuth(async function handler(
         data: {
           tournament,
           effectiveStatus,
-          participants: toPublicParticipants(maskedEntries),
           myEntryId: myEntry?.id ?? null,
         },
         message: '대회 정보를 불러왔습니다.',
@@ -127,6 +116,7 @@ export default withAuth(async function handler(
             title: input.title,
             hostName: input.hostName ?? null,
             description: input.description ?? null,
+            applyNotice: input.applyNotice ?? null,
             tournamentDate: input.tournamentDate ?? null,
             location: input.location ?? null,
             applyStartAt: input.applyStartAt

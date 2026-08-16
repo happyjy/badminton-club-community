@@ -55,6 +55,7 @@ function EditTournamentPage() {
     title: tournament.title,
     hostName: tournament.hostName ?? '',
     description: tournament.description ?? '',
+    applyNotice: tournament.applyNotice ?? '',
     tournamentDate: tournament.tournamentDate ?? '',
     location: tournament.location ?? '',
     applyStartAt: toLocalInputValue(tournament.applyStartAt),

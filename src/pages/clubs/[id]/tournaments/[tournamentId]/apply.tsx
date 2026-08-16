@@ -6,6 +6,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
+import ApplyNotice from '@/components/organisms/tournament/entry/ApplyNotice';
 import {
   createEmptyPlayer,
   type EntryFormValues,
@@ -149,6 +150,8 @@ function TournamentApplyPage() {
       <p className="mb-6 text-sm text-gray-500">
         {myEntry ? '신청 내역 수정' : '참가 신청'}
       </p>
+
+      <ApplyNotice notice={detail.tournament.applyNotice} />
 
       <FormProvider {...methods}>
         <form onSubmit={onSubmitForm} className="space-y-8">

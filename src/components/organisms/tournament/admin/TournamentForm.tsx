@@ -93,6 +93,16 @@ function TournamentForm({
               {...methods.register('description')}
             />
           </FormField>
+          <FormField label="신청 주의사항">
+            <textarea
+              rows={4}
+              placeholder={
+                '신청 페이지 상단에 안내됩니다.\n예) 티셔츠는 넉넉한 편이니 한 치수 작게 신청해주세요.'
+              }
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              {...methods.register('applyNotice')}
+            />
+          </FormField>
           <FormField label="입금 계좌">
             <Input
               type="text"

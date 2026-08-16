@@ -183,6 +183,40 @@ describe('entrySubmissionSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  describe('birthDate 검증', () => {
+    const withBirthDate = (birthDate: string) => ({
+      ...VALID_ENTRY,
+      players: [{ ...VALID_ENTRY.players[0], birthDate }],
+    });
+
+    it('숫자 8자리로 보내면 저장 포맷으로 정규화한다', () => {
+      const parsed = entrySubmissionSchema.parse(withBirthDate('19900315'));
+      expect(parsed.players[0].birthDate).toBe('1990-03-15');
+    });
+
+    it('저장 포맷으로 보내면 그대로 유지한다', () => {
+      const parsed = entrySubmissionSchema.parse(withBirthDate('1990-03-15'));
+      expect(parsed.players[0].birthDate).toBe('1990-03-15');
+    });
+
+    it('형식만 맞고 실재하지 않는 날짜를 거부한다', () => {
+      expect(
+        entrySubmissionSchema.safeParse(withBirthDate('99999999')).success
+      ).toBe(false);
+      expect(
+        entrySubmissionSchema.safeParse(withBirthDate('1990-02-30')).success
+      ).toBe(false);
+    });
+
+    it('미래 생년월일을 거부한다', () => {
+      const nextYear = new Date().getFullYear() + 1;
+      expect(
+        entrySubmissionSchema.safeParse(withBirthDate(`${nextYear}-01-01`))
+          .success
+      ).toBe(false);
+    });
+  });
 });
 
 describe('eventType.id 정규화', () => {

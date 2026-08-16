@@ -5,6 +5,7 @@ model Tournament {
   title           String
   hostName        String?                                  // 주최 (예: ○○시 배드민턴협회)
   description     String?                                  // 모집 요강
+  applyNotice     String?                                  // 신청 시 주의사항 (신청 페이지에만 노출)
   tournamentDate  String?                                  // 대회 일자
   location        String?                                  // 대회 장소
   applyStartAt    DateTime?                                // 신청 시작 일시

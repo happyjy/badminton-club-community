@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { isValidBirthDate, toIsoBirthDate } from '@/utils/birthDate';
+
 const eventTypeSchema = z.object({
   // 폼의 hidden input이 신규 종목에 빈 문자열을 넣으므로 undefined로 정규화한다.
   // 그래야 서버가 '기존 종목 수정'이 아니라 '신규 생성'으로 분기한다.
@@ -18,6 +20,7 @@ export const tournamentInputSchema = z
     title: z.string().trim().min(1, '대회명을 입력해주세요.'),
     hostName: z.string().trim().nullable().optional(),
     description: z.string().nullable().optional(),
+    applyNotice: z.string().nullable().optional(),
     tournamentDate: z.string().trim().nullable().optional(),
     location: z.string().trim().nullable().optional(),
     applyStartAt: z.string().datetime().nullable().optional(),
@@ -61,7 +64,14 @@ const playerSchema = z.object({
   key: z.string().min(1),
   name: z.string().trim().min(1, '선수 이름을 입력해주세요.'),
   gender: z.string().trim().min(1, '성별을 선택해주세요.'),
-  birthDate: z.string().trim().min(1, '생년월일을 입력해주세요.'),
+  // min(1)만 검사하면 '99999999' 같은 값이 통과해 연령대 계산이 조용히 깨진다.
+  // 저장 포맷('YYYY-MM-DD')으로 정규화한 뒤 실재하는 날짜인지까지 확인한다.
+  birthDate: z
+    .string()
+    .trim()
+    .min(1, '생년월일을 입력해주세요.')
+    .transform(toIsoBirthDate)
+    .refine(isValidBirthDate, '올바른 생년월일이 아닙니다.'),
   phoneNumber: z.string().trim().min(1, '전화번호를 입력해주세요.'),
   tshirtSize: z.string().trim().nullable().optional(),
   order: z.number().int().min(0).default(0),

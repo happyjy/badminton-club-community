@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
-import ParticipantList from '@/components/organisms/tournament/ParticipantList';
 import TournamentStatusBadge from '@/components/organisms/tournament/TournamentStatusBadge';
 
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
@@ -10,6 +9,7 @@ import { useTournamentDetail } from '@/hooks/useTournamentDetail';
 import { formatFee } from '@/lib/tournament/display';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
+import { renderContentWithLinks } from '@/utils/renderContentWithLinks';
 
 function TournamentDetailPage() {
   const router = useRouter();
@@ -31,7 +31,7 @@ function TournamentDetailPage() {
     );
   }
 
-  const { tournament, effectiveStatus, participants, myEntryId } = detail;
+  const { tournament, effectiveStatus, myEntryId } = detail;
   const basePath = `/clubs/${clubId}/tournaments/${tournamentId}`;
 
   return (
@@ -75,7 +75,7 @@ function TournamentDetailPage() {
         <section>
           <h2 className="mb-2 font-semibold">모집 요강</h2>
           <p className="whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
-            {tournament.description}
+            {renderContentWithLinks(tournament.description)}
           </p>
         </section>
       )}
@@ -119,13 +119,6 @@ function TournamentDetailPage() {
             {tournament.levels.join(', ')}
           </p>
         )}
-      </section>
-
-      <section>
-        <h2 className="mb-2 font-semibold">
-          신청 현황 ({participants.length}명)
-        </h2>
-        <ParticipantList participants={participants} />
       </section>
 
       <div className="space-y-2">
