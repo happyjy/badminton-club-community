@@ -37,6 +37,64 @@ function renderTagListField(initialValues: string[] = []) {
   };
 }
 
+describe('TagListField 선택 목록 구분', () => {
+  it('아직 선택하지 않은 프리셋만 빠른 선택에 보여준다', () => {
+    renderTagListField(['20대', '30대']);
+
+    // 선택한 값은 빠른 선택에서 빠지고 선택 목록으로 옮겨간다
+    expect(screen.queryByRole('button', { name: '20대' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '30대' })).toBeNull();
+
+    expect(screen.getByRole('button', { name: '40대' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '50대' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '60대' })).toBeTruthy();
+  });
+
+  it('프리셋을 고르면 빠른 선택에서 빠지고 선택 목록에 들어간다', () => {
+    const { currentValues } = renderTagListField([]);
+
+    fireEvent.click(screen.getByRole('button', { name: '40대' }));
+
+    expect(currentValues()).toBe('40대');
+    expect(screen.queryByRole('button', { name: '40대' })).toBeNull();
+    expect(screen.getByRole('button', { name: '40대 제거' })).toBeTruthy();
+  });
+
+  it('선택 목록에서 빼면 빠른 선택으로 되돌아온다', () => {
+    renderTagListField(['40대']);
+
+    fireEvent.click(screen.getByRole('button', { name: '40대 제거' }));
+
+    expect(screen.getByRole('button', { name: '40대' })).toBeTruthy();
+  });
+
+  it('프리셋을 모두 고르면 빠른 선택 영역을 감춘다', () => {
+    renderTagListField([...PRESETS]);
+
+    expect(screen.queryByText('빠른 선택')).toBeNull();
+    expect(screen.getByText('선택한 연령')).toBeTruthy();
+  });
+
+  it('두 영역에 각각 라벨을 보여준다', () => {
+    renderTagListField(['20대']);
+
+    expect(screen.getByText('빠른 선택')).toBeTruthy();
+    expect(screen.getByText('선택한 연령')).toBeTruthy();
+  });
+
+  it('직접 입력한 값은 빠른 선택에 추가되지 않는다', () => {
+    renderTagListField([]);
+
+    const input = screen.getByPlaceholderText('예: 시니어');
+    fireEvent.change(input, { target: { value: '시니어' } });
+    fireEvent.click(screen.getByRole('button', { name: '추가' }));
+
+    // 선택 목록에만 있고 프리셋 칩으로는 생기지 않는다
+    expect(screen.getByRole('button', { name: '시니어 제거' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: '시니어' })).toBeNull();
+  });
+});
+
 describe('TagListField 순서 조절', () => {
   it('선택한 값을 배열 순서대로 보여준다', () => {
     renderTagListField(['20대', '30대', '25대']);

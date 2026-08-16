@@ -54,27 +54,33 @@ function TagListField({
     (value, index) => value === values[index]
   );
 
+  // 이미 고른 값은 아래 선택 목록에 있으므로 후보에서 뺀다
+  const unselectedPresets = presets.filter(
+    (preset) => !values.includes(preset)
+  );
+
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-gray-700">{label}</p>
 
       {/* 아직 선택하지 않은 기본 선택지 */}
-      <div className="flex flex-wrap gap-1.5">
-        {presets.map((preset) => (
-          <button
-            key={preset}
-            type="button"
-            onClick={() => onClickToggle(preset)}
-            className={`rounded-full px-3 py-1 text-sm ${
-              values.includes(preset)
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-600 ring-1 ring-gray-300'
-            }`}
-          >
-            {preset}
-          </button>
-        ))}
-      </div>
+      {unselectedPresets.length > 0 && (
+        <div>
+          <p className="mb-1.5 text-xs text-gray-500">빠른 선택</p>
+          <div className="flex flex-wrap gap-1.5">
+            {unselectedPresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => onClickToggle(preset)}
+                className="rounded-full bg-white px-3 py-1 text-sm text-gray-600 ring-1 ring-gray-300"
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <input
@@ -106,7 +112,8 @@ function TagListField({
         <div className="rounded-md bg-gray-50 p-2">
           <div className="mb-1.5 flex items-center justify-between">
             <p className="text-xs text-gray-500">
-              신청 화면에 이 순서대로 보입니다
+              <span className="font-medium text-gray-700">선택한 {label}</span>{' '}
+              · 신청 화면에 이 순서대로 보입니다
             </p>
             <button
               type="button"
