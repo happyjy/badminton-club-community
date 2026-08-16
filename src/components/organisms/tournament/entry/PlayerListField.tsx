@@ -1,8 +1,14 @@
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
+
+import {
+  getBirthDateError,
+  toBirthDateDigits,
+  toIsoBirthDate,
+} from '@/utils/birthDate';
 
 import {
   createEmptyPlayer,
@@ -15,7 +21,12 @@ interface PlayerListFieldProps {
 }
 
 function PlayerListField({ tshirtSizes }: PlayerListFieldProps) {
-  const { control, register, watch } = useFormContext<EntryFormValues>();
+  const {
+    control,
+    register,
+    watch,
+    formState: { errors },
+  } = useFormContext<EntryFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'players',
@@ -57,6 +68,7 @@ function PlayerListField({ tshirtSizes }: PlayerListFieldProps) {
       {fields.map((field, index) => {
         const playerKey = players?.[index]?.key ?? '';
         const isAssigned = assignedKeys.has(playerKey);
+        const playerErrors = errors.players?.[index];
 
         return (
           <div
@@ -83,35 +95,82 @@ function PlayerListField({ tshirtSizes }: PlayerListFieldProps) {
             <input type="hidden" {...register(`players.${index}.key`)} />
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <FormField label="이름" required>
+              <FormField
+                label="이름"
+                required
+                error={playerErrors?.name?.message}
+              >
                 <Input
                   type="text"
-                  {...register(`players.${index}.name`, { required: true })}
-                />
-              </FormField>
-
-              <FormField label="성별" required>
-                <Select
-                  options={GENDER_OPTIONS}
-                  {...register(`players.${index}.gender`, { required: true })}
-                />
-              </FormField>
-
-              <FormField label="생년월일" required>
-                <Input
-                  type="date"
-                  {...register(`players.${index}.birthDate`, {
-                    required: true,
+                  {...register(`players.${index}.name`, {
+                    required: '선수 이름을 입력해주세요.',
                   })}
                 />
               </FormField>
 
-              <FormField label="전화번호" required>
+              <FormField
+                label="성별"
+                required
+                error={playerErrors?.gender?.message}
+              >
+                <Select
+                  options={GENDER_OPTIONS}
+                  {...register(`players.${index}.gender`, {
+                    required: '성별을 선택해주세요.',
+                  })}
+                />
+              </FormField>
+
+              {/*
+                생년월일은 달력 대신 숫자 8자리로 받는다.
+                type="date"는 위젯 UI가 OS 구현이라 안드로이드에서 연도 이동
+                진입점(헤더 탭)을 찾기 어려웠다. 사용자가 이미 아는 값이므로
+                직접 입력이 더 빠르고 기기별 차이도 사라진다.
+                저장 값은 calculateAgeGroup 등 기존 소비처가 전제하는
+                'YYYY-MM-DD'로 정규화해 넘긴다.
+              */}
+              <FormField
+                label="생년월일"
+                required
+                error={playerErrors?.birthDate?.message}
+              >
+                <Controller
+                  control={control}
+                  name={`players.${index}.birthDate`}
+                  rules={{ validate: getBirthDateError }}
+                  render={({ field }) => (
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="bday"
+                      maxLength={8}
+                      placeholder="예: 19900315"
+                      // 저장 값('1990-03-15')이 자동으로 채워져도 숫자만 보여준다.
+                      value={toBirthDateDigits(field.value)}
+                      onChange={(event) =>
+                        field.onChange(toBirthDateDigits(event.target.value))
+                      }
+                      // 저장 포맷으로 되돌리는 시점을 blur로 잡아 입력 중 커서가 튀지 않게 한다.
+                      onBlur={() => {
+                        field.onChange(toIsoBirthDate(field.value));
+                        field.onBlur();
+                      }}
+                      ref={field.ref}
+                    />
+                  )}
+                />
+              </FormField>
+
+              <FormField
+                label="전화번호"
+                required
+                error={playerErrors?.phoneNumber?.message}
+              >
                 <Input
                   type="tel"
                   placeholder="010-1234-5678"
                   {...register(`players.${index}.phoneNumber`, {
-                    required: true,
+                    required: '전화번호를 입력해주세요.',
                   })}
                 />
               </FormField>
