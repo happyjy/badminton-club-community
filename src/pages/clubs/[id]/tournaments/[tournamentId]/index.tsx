@@ -74,7 +74,7 @@ function TournamentDetailPage() {
       {tournament.description && (
         <section>
           <h2 className="mb-2 font-semibold">모집 요강</h2>
-          <p className="whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
+          <p className="whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
             {renderContentWithLinks(tournament.description)}
           </p>
         </section>

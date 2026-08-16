@@ -118,7 +118,9 @@ export function CommentItem({
           </div>
         </div>
       ) : (
-        <p className="text-gray-700 whitespace-pre-wrap">{content}</p>
+        <p className="text-gray-700 whitespace-pre-wrap break-words">
+          {content}
+        </p>
       )}
     </div>
   );
