@@ -41,8 +41,6 @@ export interface JoinModalContextType {
   verifyPhoneCode?: (phoneNumber: string, code: string) => Promise<any>;
 
   // 날짜 관련 유틸
-  parseDate: (dateString: string) => Date | null;
-  formatDate: (date: Date | null) => string;
 
   // 날짜 범위
   minBirthDate: Date;
