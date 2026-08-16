@@ -230,7 +230,7 @@ function GuestPage({ user }: AuthProps) {
       <div className="bg-white rounded-lg shadow p-3 sm:p-6">
         <h1 className="text-2xl font-bold mb-4">{strategy.getPageTitle()}</h1>
 
-        <p className="text-gray-600 mb-6 whitespace-pre-wrap">
+        <p className="text-gray-600 mb-6 whitespace-pre-wrap break-words">
           {strategy.getDescription()}
         </p>
 

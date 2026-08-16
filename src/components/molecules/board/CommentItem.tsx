@@ -222,7 +222,7 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
           </div>
         ) : (
           <>
-            <p className="text-gray-700 whitespace-pre-wrap mb-2">
+            <p className="text-gray-700 whitespace-pre-wrap break-words mb-2">
               {comment.content}
             </p>
             <div className="flex items-center gap-3">

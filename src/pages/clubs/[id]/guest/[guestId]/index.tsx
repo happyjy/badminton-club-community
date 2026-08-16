@@ -476,7 +476,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           {/* 신청 메시지 섹션 */}
           <InfoSection title={strategy.getDetailPageMessageTitle()} fullWidth>
             <div className="bg-white p-3 rounded-md">
-              <p className="text-gray-700 whitespace-pre-wrap">
+              <p className="text-gray-700 whitespace-pre-wrap break-words">
                 {guestPost.message || '작성된 메시지가 없습니다.'}
               </p>
             </div>
