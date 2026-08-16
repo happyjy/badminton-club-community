@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
-import ParticipantList from '@/components/organisms/tournament/ParticipantList';
 import TournamentStatusBadge from '@/components/organisms/tournament/TournamentStatusBadge';
 
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
@@ -31,7 +30,7 @@ function TournamentDetailPage() {
     );
   }
 
-  const { tournament, effectiveStatus, participants, myEntryId } = detail;
+  const { tournament, effectiveStatus, myEntryId } = detail;
   const basePath = `/clubs/${clubId}/tournaments/${tournamentId}`;
 
   return (
@@ -119,13 +118,6 @@ function TournamentDetailPage() {
             {tournament.levels.join(', ')}
           </p>
         )}
-      </section>
-
-      <section>
-        <h2 className="mb-2 font-semibold">
-          신청 현황 ({participants.length}명)
-        </h2>
-        <ParticipantList participants={participants} />
       </section>
 
       <div className="space-y-2">

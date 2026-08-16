@@ -80,14 +80,6 @@ export interface EntrySubmissionInput {
   privacyAgreed: boolean;
 }
 
-// ---------- 회원용: 마스킹된 참가자 ----------
-export interface PublicParticipant {
-  name: string;
-  eventType: string;
-  ageGroup: string;
-  level: string;
-}
-
 // ---------- 관리자용: 민감정보 포함 ----------
 export type EntryEventWithDetail = EntryEvent & {
   eventType: TournamentEventType;
@@ -108,6 +100,5 @@ export type TournamentWithOptions = Tournament & {
 export interface TournamentDetailResponse {
   tournament: TournamentWithOptions;
   effectiveStatus: TournamentEffectiveStatus;
-  participants: PublicParticipant[];
   myEntryId: string | null;
 }
