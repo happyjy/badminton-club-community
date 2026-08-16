@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { parseTagInput } from '@/lib/tournament/parseTagInput';
+import { moveTagValue, sortTagValues } from '@/lib/tournament/sortTagValues';
 
 interface TagListFieldProps {
   label: string;
@@ -14,6 +15,9 @@ interface TagListFieldProps {
 /**
  * 연령·급수처럼 "목록 자체"를 설정하는 필드.
  * 기본 선택지는 칩으로 토글하고, 목록에 없는 값은 직접 입력해 추가한다.
+ *
+ * 선택한 값의 배열 순서가 신청 화면의 선택지 순서가 되므로,
+ * 선택 목록을 순서대로 보여주고 화살표·정렬로 순서를 조절할 수 있게 한다.
  */
 function TagListField({
   label,
@@ -42,13 +46,19 @@ function TagListField({
     setCustomInput('');
   };
 
-  // 기본 선택지에 없는, 직접 입력한 값들
-  const customValues = values.filter((value) => !presets.includes(value));
+  const onClickMove = (index: number, direction: -1 | 1) => {
+    onChangeValues(moveTagValue(values, index, direction));
+  };
+
+  const isSorted = sortTagValues(values).every(
+    (value, index) => value === values[index]
+  );
 
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium text-gray-700">{label}</p>
 
+      {/* 아직 선택하지 않은 기본 선택지 */}
       <div className="flex flex-wrap gap-1.5">
         {presets.map((preset) => (
           <button
@@ -63,23 +73,6 @@ function TagListField({
           >
             {preset}
           </button>
-        ))}
-
-        {customValues.map((value) => (
-          <span
-            key={value}
-            className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-3 py-1 text-sm text-white"
-          >
-            {value}
-            <button
-              type="button"
-              onClick={() => onClickToggle(value)}
-              aria-label={`${value} 제거`}
-              className="text-blue-200 hover:text-white"
-            >
-              ✕
-            </button>
-          </span>
         ))}
       </div>
 
@@ -107,8 +100,61 @@ function TagListField({
         </button>
       </div>
 
-      {values.length === 0 && (
+      {values.length === 0 ? (
         <p className="text-xs text-gray-400">{emptyHint}</p>
+      ) : (
+        <div className="rounded-md bg-gray-50 p-2">
+          <div className="mb-1.5 flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              신청 화면에 이 순서대로 보입니다
+            </p>
+            <button
+              type="button"
+              onClick={() => onChangeValues(sortTagValues(values))}
+              disabled={isSorted}
+              className="rounded-md px-2 py-1 text-xs text-blue-600 disabled:text-gray-300"
+            >
+              숫자순 정렬
+            </button>
+          </div>
+
+          <ul className="flex flex-wrap gap-1.5">
+            {values.map((value, index) => (
+              <li
+                key={value}
+                className="inline-flex items-center gap-1 rounded-full bg-blue-600 py-1 pl-2 pr-1 text-sm text-white"
+              >
+                <button
+                  type="button"
+                  onClick={() => onClickMove(index, -1)}
+                  disabled={index === 0}
+                  aria-label={`${value} 앞으로`}
+                  className="px-0.5 text-blue-200 hover:text-white disabled:text-blue-500"
+                >
+                  ‹
+                </button>
+                {value}
+                <button
+                  type="button"
+                  onClick={() => onClickMove(index, 1)}
+                  disabled={index === values.length - 1}
+                  aria-label={`${value} 뒤로`}
+                  className="px-0.5 text-blue-200 hover:text-white disabled:text-blue-500"
+                >
+                  ›
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onClickToggle(value)}
+                  aria-label={`${value} 제거`}
+                  className="px-1 text-blue-200 hover:text-white"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
