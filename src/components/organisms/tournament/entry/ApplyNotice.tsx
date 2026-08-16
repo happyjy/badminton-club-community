@@ -16,7 +16,7 @@ function ApplyNotice({ notice }: ApplyNoticeProps) {
       <h2 className="text-sm font-semibold text-amber-900">
         신청 전 확인해주세요
       </h2>
-      <p className="mt-1 whitespace-pre-wrap text-sm text-amber-900">
+      <p className="mt-1 whitespace-pre-wrap break-words text-sm text-amber-900">
         {renderContentWithLinks(notice)}
       </p>
     </section>

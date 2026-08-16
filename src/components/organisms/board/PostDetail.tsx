@@ -142,7 +142,7 @@ function PostDetail({ post }: PostDetailProps) {
 
       {/* 내용 */}
       <div className="prose max-w-none mb-6">
-        <div className="whitespace-pre-wrap text-gray-700">
+        <div className="whitespace-pre-wrap break-words text-gray-700">
           {renderContentWithLinks(post.content)}
         </div>
       </div>
