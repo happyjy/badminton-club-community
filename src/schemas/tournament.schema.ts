@@ -20,6 +20,7 @@ export const tournamentInputSchema = z
     title: z.string().trim().min(1, '대회명을 입력해주세요.'),
     hostName: z.string().trim().nullable().optional(),
     description: z.string().nullable().optional(),
+    applyNotice: z.string().nullable().optional(),
     tournamentDate: z.string().trim().nullable().optional(),
     location: z.string().trim().nullable().optional(),
     applyStartAt: z.string().datetime().nullable().optional(),

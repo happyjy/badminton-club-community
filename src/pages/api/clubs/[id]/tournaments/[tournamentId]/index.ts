@@ -116,6 +116,7 @@ export default withAuth(async function handler(
             title: input.title,
             hostName: input.hostName ?? null,
             description: input.description ?? null,
+            applyNotice: input.applyNotice ?? null,
             tournamentDate: input.tournamentDate ?? null,
             location: input.location ?? null,
             applyStartAt: input.applyStartAt

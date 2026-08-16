@@ -41,6 +41,7 @@ export interface TournamentInput {
   title: string;
   hostName?: string | null;
   description?: string | null;
+  applyNotice?: string | null;
   tournamentDate?: string | null;
   location?: string | null;
   applyStartAt?: string | null; // ISO 문자열
