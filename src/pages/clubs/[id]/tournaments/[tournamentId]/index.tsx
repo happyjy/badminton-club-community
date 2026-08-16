@@ -9,6 +9,7 @@ import { useTournamentDetail } from '@/hooks/useTournamentDetail';
 import { formatFee } from '@/lib/tournament/display';
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
+import { renderContentWithLinks } from '@/utils/renderContentWithLinks';
 
 function TournamentDetailPage() {
   const router = useRouter();
@@ -74,7 +75,7 @@ function TournamentDetailPage() {
         <section>
           <h2 className="mb-2 font-semibold">모집 요강</h2>
           <p className="whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
-            {tournament.description}
+            {renderContentWithLinks(tournament.description)}
           </p>
         </section>
       )}
