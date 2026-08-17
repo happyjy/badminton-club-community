@@ -78,9 +78,7 @@ describe('EntrySummary - 개인정보 동의 검증', () => {
     fireEvent.click(screen.getByText('제출'));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
-    expect(
-      screen.queryByText('개인정보 수집·이용에 동의해주세요.')
-    ).toBeNull();
+    expect(screen.queryByText('개인정보 수집·이용에 동의해주세요.')).toBeNull();
   });
 
   it('입금자명이 비어 있으면 안내 메시지를 보여준다', async () => {
