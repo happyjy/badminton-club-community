@@ -9,6 +9,11 @@ import {
   toBirthDateDigits,
   toIsoBirthDate,
 } from '@/utils/birthDate';
+import {
+  formatPhoneNumber,
+  getPhoneNumberError,
+  toPhoneDigits,
+} from '@/utils/phoneNumber';
 
 import {
   createEmptyPlayer,
@@ -166,12 +171,27 @@ function PlayerListField({ tshirtSizes }: PlayerListFieldProps) {
                 required
                 error={playerErrors?.phoneNumber?.message}
               >
-                <Input
-                  type="tel"
-                  placeholder="010-1234-5678"
-                  {...register(`players.${index}.phoneNumber`, {
-                    required: '전화번호를 입력해주세요.',
-                  })}
+                <Controller
+                  control={control}
+                  name={`players.${index}.phoneNumber`}
+                  rules={{ validate: getPhoneNumberError }}
+                  render={({ field }) => (
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      // '010-1234-5678' = 13자. 하이픈은 자동으로 붙는다.
+                      maxLength={13}
+                      placeholder="010-1234-5678"
+                      // 숫자만 입력해도 하이픈이 붙은 형태로 보여준다.
+                      value={formatPhoneNumber(field.value)}
+                      onChange={(event) =>
+                        field.onChange(toPhoneDigits(event.target.value))
+                      }
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                    />
+                  )}
                 />
               </FormField>
 
