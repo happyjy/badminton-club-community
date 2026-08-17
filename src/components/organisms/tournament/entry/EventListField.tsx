@@ -19,8 +19,13 @@ function EventListField({
   ageGroups,
   levels,
 }: EventListFieldProps) {
-  const { control, register, watch, setValue } =
-    useFormContext<EntryFormValues>();
+  const {
+    control,
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext<EntryFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'events',
@@ -61,6 +66,7 @@ function EventListField({
         const selected = events[index];
         const eventType = typeById.get(selected?.eventTypeId ?? '');
         const playerCount = eventType?.playerCount ?? 0;
+        const eventErrors = errors.events?.[index];
 
         const playerOptions = players.map((player, i) => ({
           value: player.key,
@@ -99,29 +105,46 @@ function EventListField({
               />
             </FormField>
 
-            <FormField label="연령" required>
+            <FormField
+              label="연령"
+              required
+              error={eventErrors?.ageGroup?.message}
+            >
               <Select
                 options={ageOptions}
-                {...register(`events.${index}.ageGroup`, { required: true })}
+                {...register(`events.${index}.ageGroup`, {
+                  required: '연령을 선택해주세요.',
+                })}
               />
             </FormField>
 
             {usesLevel && (
-              <FormField label="급수" required>
+              <FormField
+                label="급수"
+                required
+                error={eventErrors?.level?.message}
+              >
                 <Select
                   options={levelOptions}
-                  {...register(`events.${index}.level`, { required: true })}
+                  {...register(`events.${index}.level`, {
+                    required: '급수를 선택해주세요.',
+                  })}
                 />
               </FormField>
             )}
 
             {playerCount > 0 &&
               Array.from({ length: playerCount }).map((_, slot) => (
-                <FormField key={slot} label={`선수 ${slot + 1}`} required>
+                <FormField
+                  key={slot}
+                  label={`선수 ${slot + 1}`}
+                  required
+                  error={eventErrors?.playerKeys?.[slot]?.message}
+                >
                   <Select
                     options={playerOptions}
                     {...register(`events.${index}.playerKeys.${slot}`, {
-                      required: true,
+                      required: '선수를 선택해주세요.',
                     })}
                   />
                 </FormField>

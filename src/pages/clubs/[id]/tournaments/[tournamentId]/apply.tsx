@@ -167,6 +167,15 @@ function TournamentApplyPage() {
             bankAccount={detail.tournament.bankAccount}
           />
 
+          {/* 개별 필드 메시지가 화면 밖에 있으면 버튼이 먹통처럼 보인다.
+              제출 실패 사실만이라도 버튼 옆에서 알린다. */}
+          {methods.formState.submitCount > 0 && !methods.formState.isValid && (
+            <p role="alert" className="text-sm text-red-500">
+              입력하지 않은 필수 항목이 있습니다. 위 항목의 빨간 안내를
+              확인해주세요.
+            </p>
+          )}
+
           <button
             type="submit"
             disabled={submitEntry.isPending}
