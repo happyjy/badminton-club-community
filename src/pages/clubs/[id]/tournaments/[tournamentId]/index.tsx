@@ -31,8 +31,16 @@ function TournamentDetailPage() {
     );
   }
 
-  const { tournament, effectiveStatus, myEntryId } = detail;
+  const { tournament, effectiveStatus, myEntryId, myEntryPaymentStatus } =
+    detail;
   const basePath = `/clubs/${clubId}/tournaments/${tournamentId}`;
+  // 전체 취소된 신청서는 수정이 아니라 재신청으로 안내한다
+  const isEntryCanceled = myEntryPaymentStatus === 'CANCELED';
+  const applyButtonLabel = !myEntryId
+    ? '신청하기'
+    : isEntryCanceled
+      ? '다시 신청하기'
+      : '신청 내용 수정';
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
@@ -128,7 +136,7 @@ function TournamentDetailPage() {
             onClick={() => router.push(`${basePath}/apply`)}
             className="w-full rounded-md bg-blue-600 py-3 font-medium text-white"
           >
-            {myEntryId ? '신청 내용 수정' : '신청하기'}
+            {applyButtonLabel}
           </button>
         )}
         {myEntryId && (

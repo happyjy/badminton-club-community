@@ -102,4 +102,5 @@ export interface TournamentDetailResponse {
   tournament: TournamentWithOptions;
   effectiveStatus: TournamentEffectiveStatus;
   myEntryId: string | null;
+  myEntryPaymentStatus: EntryPaymentStatus | null;
 }
