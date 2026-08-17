@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 
 import DeleteTournamentDialog from '@/components/organisms/tournament/admin/DeleteTournamentDialog';
 import EntryTable from '@/components/organisms/tournament/admin/EntryTable';
+import EventGroupList from '@/components/organisms/tournament/admin/EventGroupList';
 
 import {
   useAdminEntries,
@@ -14,7 +15,8 @@ import {
 } from '@/hooks/useTournamentAdmin';
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
 
-import { formatEventLabel, formatFee } from '@/lib/tournament/display';
+import { formatFee } from '@/lib/tournament/display';
+import { groupEntriesByEvent } from '@/lib/tournament/groupEntriesByEvent';
 import type { EntryPaymentStatus } from '@/types/tournament.types';
 
 type ViewMode = 'entry' | 'event';
@@ -43,34 +45,8 @@ function TournamentAdminPage() {
     [entries, statusFilter]
   );
 
-  // 종목별 신청 인원 집계
-  const eventGroups = useMemo(() => {
-    const groups = new Map<
-      string,
-      Array<{ name: string; phoneNumber: string; tshirtSize: string | null }>
-    >();
-
-    for (const entry of filtered) {
-      for (const event of entry.entryEvents) {
-        if (event.status !== 'ACTIVE') continue;
-        const label = formatEventLabel({
-          eventType: event.eventType.name,
-          ageGroup: event.ageGroup,
-          level: event.level,
-        });
-        const list = groups.get(label) ?? [];
-        for (const eventPlayer of event.eventPlayers) {
-          list.push({
-            name: eventPlayer.entryPlayer.name,
-            phoneNumber: eventPlayer.entryPlayer.phoneNumber,
-            tshirtSize: eventPlayer.entryPlayer.tshirtSize,
-          });
-        }
-        groups.set(label, list);
-      }
-    }
-    return Array.from(groups.entries());
-  }, [filtered]);
+  // 종목별로 묶고, 종목 안에서는 다시 팀(파트너) 단위로 묶는다.
+  const eventGroups = useMemo(() => groupEntriesByEvent(filtered), [filtered]);
 
   const totalConfirmed = useMemo(
     () =>
@@ -217,70 +193,10 @@ function TournamentAdminPage() {
           onChangePaymentStatus={onChangePaymentStatus}
         />
       ) : (
-        <div className="space-y-4">
-          {eventGroups.map(([label, players]) => (
-            <section
-              key={label}
-              className="rounded-lg border border-gray-200 p-4"
-            >
-              <h3 className="mb-2 font-medium">
-                {label}{' '}
-                <span className="text-sm text-gray-400">
-                  {players.length}명
-                </span>
-              </h3>
-              {/* 모바일: 카드 목록 */}
-              <ul className="space-y-2 text-sm sm:hidden">
-                {players.map((player, index) => (
-                  <li
-                    key={`${player.name}-${index}`}
-                    className="rounded-md bg-gray-50 p-2"
-                  >
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="font-medium">{player.name}</span>
-                      <span className="shrink-0 text-xs text-gray-500">
-                        티셔츠 {player.tshirtSize ?? '-'}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      {player.phoneNumber}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-
-              {/* PC: 표 */}
-              <div className="hidden overflow-x-auto sm:block">
-                <table className="w-full min-w-[360px] text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-500">
-                      <th className="py-1">이름</th>
-                      <th className="py-1">연락처</th>
-                      <th className="py-1">티셔츠</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {players.map((player, index) => (
-                      <tr
-                        key={`${player.name}-${index}`}
-                        className="border-b last:border-0"
-                      >
-                        <td className="py-1">{player.name}</td>
-                        <td className="py-1">{player.phoneNumber}</td>
-                        <td className="py-1">{player.tshirtSize ?? '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          ))}
-          {eventGroups.length === 0 && (
-            <p className="rounded-md bg-gray-50 p-6 text-center text-sm text-gray-500">
-              신청 내역이 없습니다.
-            </p>
-          )}
-        </div>
+        <EventGroupList
+          groups={eventGroups}
+          useTeamName={detail?.tournament.useTeamName ?? false}
+        />
       )}
     </div>
   );
