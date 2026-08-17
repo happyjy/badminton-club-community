@@ -47,7 +47,7 @@ export default withAuth(async function handler(
 
       const myEntry = await prisma.tournamentEntry.findUnique({
         where: { tournamentId_userId: { tournamentId, userId: req.user.id } },
-        select: { id: true },
+        select: { id: true, paymentStatus: true },
       });
 
       return res.status(200).json({
@@ -55,6 +55,7 @@ export default withAuth(async function handler(
           tournament,
           effectiveStatus,
           myEntryId: myEntry?.id ?? null,
+          myEntryPaymentStatus: myEntry?.paymentStatus ?? null,
         },
         message: '대회 정보를 불러왔습니다.',
       });

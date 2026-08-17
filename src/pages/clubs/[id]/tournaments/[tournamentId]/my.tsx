@@ -169,7 +169,9 @@ function MyEntryPage() {
           }
           className="w-full rounded-md border border-blue-600 py-3 font-medium text-blue-600"
         >
-          신청 내용 수정
+          {myEntry.paymentStatus === 'CANCELED'
+            ? '다시 신청하기'
+            : '신청 내용 수정'}
         </button>
       ) : (
         <p className="text-center text-sm text-gray-500">
