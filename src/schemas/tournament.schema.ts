@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { isValidBirthDate, toIsoBirthDate } from '@/utils/birthDate';
+import { formatPhoneNumber, isValidPhoneNumber } from '@/utils/phoneNumber';
 
 const eventTypeSchema = z.object({
   // 폼의 hidden input이 신규 종목에 빈 문자열을 넣으므로 undefined로 정규화한다.
@@ -72,7 +73,14 @@ const playerSchema = z.object({
     .min(1, '생년월일을 입력해주세요.')
     .transform(toIsoBirthDate)
     .refine(isValidBirthDate, '올바른 생년월일이 아닙니다.'),
-  phoneNumber: z.string().trim().min(1, '전화번호를 입력해주세요.'),
+  // 클라이언트가 숫자만 보내든 하이픈을 섞어 보내든 저장 포맷을 하나로 맞춘다.
+  // 형식까지 확인해야 문자 발송(src/lib/sms.ts) 단계에서 뒤늦게 실패하지 않는다.
+  phoneNumber: z
+    .string()
+    .trim()
+    .min(1, '전화번호를 입력해주세요.')
+    .refine(isValidPhoneNumber, '올바른 전화번호가 아닙니다.')
+    .transform(formatPhoneNumber),
   tshirtSize: z.string().trim().nullable().optional(),
   order: z.number().int().min(0).default(0),
 });
