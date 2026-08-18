@@ -58,6 +58,13 @@ function getBirthDateInput(index = 0): HTMLInputElement {
   ] as HTMLInputElement;
 }
 
+/** n번째 선수의 전화번호 입력창을 가져온다. */
+function getPhoneNumberInput(index = 0): HTMLInputElement {
+  return screen.getAllByPlaceholderText('010-1234-5678')[
+    index
+  ] as HTMLInputElement;
+}
+
 describe('PlayerListField - 생년월일 입력', () => {
   it('달력 위젯 대신 숫자 키패드를 띄우는 텍스트 입력으로 렌더링한다', () => {
     renderPlayerListField();
@@ -105,6 +112,67 @@ describe('PlayerListField - 생년월일 입력', () => {
   });
 });
 
+describe('PlayerListField - 전화번호 입력', () => {
+  it('숫자 키패드를 띄우고 하이픈 포함 길이로 제한한다', () => {
+    renderPlayerListField();
+    const input = getPhoneNumberInput();
+
+    expect(input.getAttribute('inputmode')).toBe('numeric');
+    expect(input.getAttribute('maxlength')).toBe('13');
+  });
+
+  it('숫자만 입력해도 하이픈을 붙여 보여준다', () => {
+    renderPlayerListField();
+    const input = getPhoneNumberInput();
+
+    fireEvent.change(input, { target: { value: '01012345678' } });
+
+    expect(input.value).toBe('010-1234-5678');
+  });
+
+  it('입력 중에도 자리 수에 맞춰 하이픈을 붙인다', () => {
+    renderPlayerListField();
+    const input = getPhoneNumberInput();
+
+    fireEvent.change(input, { target: { value: '0101' } });
+
+    expect(input.value).toBe('010-1');
+  });
+
+  it('11자리를 넘겨 입력해도 잘라낸다', () => {
+    renderPlayerListField();
+    const input = getPhoneNumberInput();
+
+    fireEvent.change(input, { target: { value: '010123456789999' } });
+
+    expect(input.value).toBe('010-1234-5678');
+  });
+
+  it('자동 채움된 하이픈 값을 그대로 표시한다', () => {
+    renderPlayerListField({ players: [{ phoneNumber: '010-1111-2222' }] });
+
+    expect(getPhoneNumberInput().value).toBe('010-1111-2222');
+  });
+
+  it('저장 값은 숫자만 남긴 형태로 제출한다', async () => {
+    const onSubmit = jest.fn();
+    renderPlayerListField({
+      players: [{ name: '홍길동', gender: '남', birthDate: '1990-03-15' }],
+      onSubmit,
+    });
+
+    fireEvent.change(getPhoneNumberInput(), {
+      target: { value: '010-1234-5678' },
+    });
+    fireEvent.click(screen.getByText('제출'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
+    const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
+    expect(submitted.players[0].phoneNumber).toBe('01012345678');
+  });
+});
+
 describe('PlayerListField - 검증 메시지', () => {
   let onSubmit: jest.Mock;
 
@@ -143,6 +211,32 @@ describe('PlayerListField - 검증 메시지', () => {
     fireEvent.click(screen.getByText('제출'));
 
     expect(await screen.findByText('올바른 생년월일이 아닙니다.')).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('자릿수가 모자란 전화번호를 거부한다', async () => {
+    renderPlayerListField({ onSubmit });
+
+    fireEvent.change(getPhoneNumberInput(), { target: { value: '010-1234' } });
+    fireEvent.click(screen.getByText('제출'));
+
+    expect(
+      await screen.findByText('올바른 전화번호가 아닙니다. (예: 010-1234-5678)')
+    ).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('휴대폰 국번이 아닌 번호를 거부한다', async () => {
+    renderPlayerListField({ onSubmit });
+
+    fireEvent.change(getPhoneNumberInput(), {
+      target: { value: '02-1234-5678' },
+    });
+    fireEvent.click(screen.getByText('제출'));
+
+    expect(
+      await screen.findByText('올바른 전화번호가 아닙니다. (예: 010-1234-5678)')
+    ).toBeTruthy();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 

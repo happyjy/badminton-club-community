@@ -19,7 +19,11 @@ function EntrySummary({
   useTeamName,
   bankAccount,
 }: EntrySummaryProps) {
-  const { register, watch } = useFormContext<EntryFormValues>();
+  const {
+    register,
+    watch,
+    formState: { errors },
+  } = useFormContext<EntryFormValues>();
 
   const events = watch('events') ?? [];
   const feeById = new Map(
@@ -48,11 +52,17 @@ function EntrySummary({
         )}
       </div>
 
-      <FormField label="입금자명" required>
+      <FormField
+        label="입금자명"
+        required
+        error={errors.depositorName?.message}
+      >
         <Input
           type="text"
           placeholder="통장에 찍히는 이름을 적어주세요"
-          {...register('depositorName', { required: true })}
+          {...register('depositorName', {
+            required: '입금자명을 입력해주세요.',
+          })}
         />
       </FormField>
 
@@ -62,19 +72,28 @@ function EntrySummary({
         </FormField>
       )}
 
-      <label className="flex items-start gap-2 text-sm text-gray-700">
-        <input
-          type="checkbox"
-          className="mt-1"
-          {...register('privacyAgreed', { required: true })}
-        />
-        <span>
-          개인정보 수집·이용에 동의합니다. 수집한 정보(이름, 생년월일,
-          전화번호)는 대회 참가 신청 목적으로만 사용되며 주최측에 제출됩니다.
-          본인 외 선수의 정보를 입력한 경우 해당 선수의 동의를 받았음을
-          확인합니다.
-        </span>
-      </label>
+      <div className="space-y-1">
+        <label className="flex items-start gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            className="mt-1"
+            {...register('privacyAgreed', {
+              required: '개인정보 수집·이용에 동의해주세요.',
+            })}
+          />
+          <span>
+            개인정보 수집·이용에 동의합니다. 수집한 정보(이름, 생년월일,
+            전화번호)는 대회 참가 신청 목적으로만 사용되며 주최측에 제출됩니다.
+            본인 외 선수의 정보를 입력한 경우 해당 선수의 동의를 받았음을
+            확인합니다.
+          </span>
+        </label>
+        {errors.privacyAgreed && (
+          <p role="alert" className="text-sm text-red-500">
+            {errors.privacyAgreed.message}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
