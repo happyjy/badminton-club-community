@@ -82,18 +82,6 @@ function JoinModal({
   const getFullPhoneNumber = () =>
     `${phoneNumbers.first}-${phoneNumbers.second}-${phoneNumbers.third}`;
 
-  // 날짜 변환 헬퍼 함수
-  const parseDate = (dateString: string): Date | null => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? null : date;
-  };
-
-  const formatDate = (date: Date | null): string => {
-    if (!date) return '';
-    return date.toISOString().split('T')[0];
-  };
-
   // 날짜 범위 설정
   const today = new Date();
   const minBirthDate = new Date(1950, 0, 1);
@@ -175,8 +163,6 @@ function JoinModal({
     checkPhoneVerificationStatus,
     sendPhoneVerificationCode,
     verifyPhoneCode,
-    parseDate,
-    formatDate,
     minBirthDate,
     maxBirthDate,
     minVisitDate,

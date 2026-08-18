@@ -28,6 +28,23 @@ export const getTodayInKorea = (): string => {
 };
 
 /**
+ * Date를 로컬 시간 기준 'YYYY-MM-DD' 문자열로 변환하는 함수
+ * toISOString()은 UTC로 변환하므로 KST에서는 날짜가 하루 밀린다.
+ * (예: 2026-08-17 00:30 KST -> "2026-08-16")
+ * input[type=date]의 value·min·max처럼 사용자가 보는 날짜와
+ * 정확히 일치해야 하는 곳에 쓴다.
+ * @param date - 변환할 Date. null이면 빈 문자열을 반환한다.
+ * @returns 'YYYY-MM-DD' 형식 문자열 (예: "2026-08-17")
+ */
+export const toLocalDateString = (date: Date | null): string => {
+  if (!date || isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
  * 방문희망일이 지났는지(오늘 포함) 판단하는 함수
  * visitDate는 'YYYY-MM-DD' 문자열로 저장되므로 같은 형식끼리 문자열 비교한다.
  * @param visitDate - 방문희망일 ('YYYY-MM-DD'). 빈 값이면 지나지 않은 것으로 간주한다.

@@ -1,44 +1,26 @@
 import React from 'react';
 
-import CustomDatePicker from '@/components/atoms/inputs/DatePicker';
+import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
+
+import { toLocalDateString } from '@/utils/date';
 
 import { useJoinModalContext } from '../../JoinModalContext';
 
 function BirthDateField() {
-  const {
-    formData,
-    onChangeInput,
-    parseDate,
-    formatDate,
-    minBirthDate,
-    maxBirthDate,
-  } = useJoinModalContext();
-
-  const handleChange = (date: Date | null) => {
-    const event = {
-      target: {
-        name: 'birthDate',
-        value: formatDate(date),
-      },
-    } as React.ChangeEvent<HTMLInputElement>;
-    onChangeInput(event);
-  };
+  const { formData, onChangeInput, minBirthDate, maxBirthDate } =
+    useJoinModalContext();
 
   return (
     <FormField label="생년월일" required>
-      <CustomDatePicker
-        selected={parseDate(formData.birthDate || '')}
-        onChange={handleChange}
-        placeholderText="생년월일을 선택하세요"
+      <Input
+        type="date"
+        name="birthDate"
+        value={formData.birthDate || ''}
+        onChange={onChangeInput}
         required
-        minDate={minBirthDate}
-        maxDate={maxBirthDate}
-        showYearDropdown
-        showMonthDropdown
-        dropdownMode="select"
-        yearDropdownItemNumber={50}
-        scrollableYearDropdown
+        min={toLocalDateString(minBirthDate)}
+        max={toLocalDateString(maxBirthDate)}
       />
     </FormField>
   );
