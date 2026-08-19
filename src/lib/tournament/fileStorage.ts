@@ -1,12 +1,26 @@
 import { TOURNAMENT_FILE_BUCKET, getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { MAX_FILE_SIZE } from '@/lib/tournament/fileValidation';
 
 import type { NextApiRequest } from 'next';
 
 /**
+ * 본문 전체의 상한. 파일 1개(10MB)에 multipart 경계와 필드 오버헤드를 더한 여유분이다.
+ * 이 선을 넘으면 파싱하지 않고 즉시 끊어 메모리를 지킨다.
+ */
+const MAX_BODY_SIZE = MAX_FILE_SIZE + 1024 * 1024;
+
+/** 본문이 상한을 넘었을 때 던진다. 핸들러가 413으로 바꿔 응답한다. */
+export class UploadTooLargeError extends Error {
+  constructor() {
+    super('파일 크기는 10MB 이하여야 합니다.');
+    this.name = 'UploadTooLargeError';
+  }
+}
+
+/**
  * multipart 요청에서 파일 하나를 꺼낸다.
  *
- * Node 22의 내장 Request/FormData를 쓴다. formidable 같은 의존성을 더하지 않으려는 선택이며,
- * 파일 크기를 10MB로 제한하므로 요청 전체를 메모리에 올려도 안전하다.
+ * Node 22의 내장 Request/FormData를 쓴다. formidable 같은 의존성을 더하지 않으려는 선택이다.
  * 이 핸들러는 bodyParser를 꺼야 동작한다. (export const config)
  */
 export async function readSingleUpload(
@@ -16,9 +30,23 @@ export async function readSingleUpload(
   const contentType = req.headers['content-type'];
   if (!contentType?.includes('multipart/form-data')) return null;
 
+  // Content-Length가 있으면 한 바이트도 읽기 전에 거른다.
+  const declaredLength = Number(req.headers['content-length']);
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_SIZE) {
+    throw new UploadTooLargeError();
+  }
+
+  // 헤더는 위조할 수 있으므로 실제로 읽는 양도 함께 센다.
   const chunks: Buffer[] = [];
+  let received = 0;
   for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
+    received += buffer.length;
+    if (received > MAX_BODY_SIZE) {
+      req.destroy();
+      throw new UploadTooLargeError();
+    }
+    chunks.push(buffer);
   }
   const body = Buffer.concat(chunks);
 

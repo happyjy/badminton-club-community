@@ -9,6 +9,7 @@ import {
 import {
   readSingleUpload,
   removeTournamentFiles,
+  UploadTooLargeError,
   uploadTournamentFile,
 } from '@/lib/tournament/fileStorage';
 import {
@@ -142,6 +143,10 @@ export default withAuth(async function handler(
       .status(405)
       .json({ error: '허용되지 않는 메서드입니다.', status: 405 });
   } catch (error) {
+    // 용량 초과는 서버 오류가 아니라 의도된 거절이므로 413으로 알린다.
+    if (error instanceof UploadTooLargeError) {
+      return res.status(413).json({ error: error.message, status: 413 });
+    }
     return handleApiError(res, error);
   }
 });

@@ -125,8 +125,11 @@ model TournamentFile {
 
 | 메서드 | 경로 | 권한 | 설명 |
 |---|---|---|---|
+| GET | `/api/clubs/:id/tournaments/:tid/files` | 클럽 회원 | 첨부 목록 조회 |
 | POST | `/api/clubs/:id/tournaments/:tid/files` | 클럽 ADMIN | 파일 1개 업로드 |
 | DELETE | `/api/clubs/:id/tournaments/:tid/files/:fileId` | 클럽 ADMIN | 파일 1개 삭제 |
+
+관리자 화면이 폼 제출과 무관하게 목록을 갱신해야 하므로 GET도 함께 둔다.
 
 `bodyParser`를 꺼야 multipart를 받을 수 있다.
 
@@ -134,7 +137,7 @@ model TournamentFile {
 export const config = { api: { bodyParser: false } };
 ```
 
-멀티파트 파싱은 Node 내장 `req`를 직접 다루는 대신 `formidable`을 추가한다. 이미 `@types/nodemailer` 등 서버 의존성을 쓰고 있으므로 패턴에서 벗어나지 않는다.
+**멀티파트 파싱은 새 의존성 없이 처리한다.** 설계 당시에는 `formidable` 추가를 계획했으나, 실행 환경이 Node 22라 내장 `Request`/`FormData`로 충분했다. 요청 본문을 버퍼로 모아 `new Request(...).formData()`로 파싱한다. 파일이 10MB로 제한되므로 메모리에 올려도 안전하다.
 
 ### 6.2 기존 API 수정
 
@@ -216,6 +219,22 @@ const MAX_SIZE = 10 * 1024 * 1024;
 
 배포 시 호스팅 환경(Vercel 등)에도 `SUPABASE_SERVICE_ROLE_KEY`를 동일하게 등록해야 한다.
 
+## 10.1 마이그레이션 적용 시 발견한 문제
+
+`prisma migrate dev`가 **데이터베이스 리셋을 요구했다.** 실행하지 않았다.
+
+원인은 이 프로젝트가 그동안 `db push` 위주로 스키마를 반영해 와서, 마이그레이션 이력과 실제 DB가 어긋나 있었기 때문이다. `_prisma_migrations` 테이블 자체가 없었고, 스키마가 선언한 인덱스·FK 일부가 DB에 빠져 있었다.
+
+**대응:** `TournamentFile` 생성 SQL만 손으로 떼어내 `prisma db execute`로 적용하고, `prisma migrate resolve --applied`로 기록했다. 기존 마이그레이션 9개도 같은 방식으로 적용됨 처리해 `migrate status`를 정상으로 되돌렸다.
+
+**남은 부채(이 작업 범위 밖):** 스키마에 선언됐지만 DB에 없는 인덱스·FK가 여전히 있다. `PostCategory`, `PostComment`, `PaymentRecord` 등이 해당한다. 성능·정합성에 영향을 줄 수 있으므로 별도로 정리하는 편이 좋다. 확인 명령:
+
+```bash
+npx prisma migrate diff \
+  --from-schema-datasource prisma/schema.prisma \
+  --to-schema-datamodel prisma/schema.prisma --script
+```
+
 ## 11. 변경 파일 목록
 
 | 구분 | 경로 |
@@ -223,6 +242,7 @@ const MAX_SIZE = 10 * 1024 * 1024;
 | 신규 | `prisma/schema/tournament.prisma` (모델 추가) + 마이그레이션 |
 | 신규 | `src/lib/supabaseAdmin.ts` |
 | 신규 | `src/lib/tournament/fileValidation.ts` |
+| 신규 | `src/lib/tournament/fileStorage.ts` |
 | 신규 | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/files/index.ts` |
 | 신규 | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/files/[fileId].ts` |
 | 신규 | `src/components/organisms/tournament/TournamentFileList.tsx` |
