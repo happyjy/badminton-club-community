@@ -35,6 +35,8 @@ export interface ClubMemberWithUser extends User {
     playingPeriod?: number;
     lessonPeriod?: number;
     phoneNumber?: string;
+    /** 해당 클럽에 가입한 시점 (User 계정 생성일과 다름) */
+    createdAt: string;
     helperStatuses: any[]; // HelperStatus 타입이 필요하다면 import 해서 사용
   };
 }
@@ -187,7 +189,8 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
           onStatusChange={handleStatusChange}
         />
         <p className="text-gray-500 text-xs mt-2">
-          가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+          가입일:{' '}
+          {new Date(user.clubMember.createdAt).toLocaleDateString('ko-KR')}
         </p>
       </div>
     );

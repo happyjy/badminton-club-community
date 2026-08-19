@@ -22,6 +22,7 @@ function isClubMemberWithUser(item: SortableItem): item is SortableItem & {
     localTournamentLevel?: string;
     nationalTournamentLevel?: string;
     birthDate?: string;
+    createdAt?: string | Date;
   };
 } {
   return 'clubMember' in item;
@@ -33,6 +34,16 @@ const getName = (item: SortableItem): string => {
     return item.clubMember.name || '';
   }
   return '';
+};
+
+// 가입 시점 가져오는 유틸리티 함수
+// 클럽 멤버 목록은 클럽 가입일(clubMember.createdAt)을 쓰고,
+// 해당 값이 없는 대상(운동 참가자 등)은 계정 생성일로 폴백한다.
+const getCreatedAt = (item: SortableItem): string | Date => {
+  if (isClubMemberWithUser(item) && item.clubMember.createdAt) {
+    return item.clubMember.createdAt;
+  }
+  return item.createdAt;
 };
 
 // 성별 가져오는 유틸리티 함수
@@ -109,9 +120,11 @@ export function useParticipantSort({
       };
 
       // 생성일 정렬 함수
+      // 클럽 멤버는 클럽 가입 시점(clubMember.createdAt)을 기준으로,
+      // 없으면 계정 생성 시점(createdAt)으로 폴백한다.
       const sortByCreatedAt = (a: SortableItem, b: SortableItem) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
+        const dateA = new Date(getCreatedAt(a)).getTime();
+        const dateB = new Date(getCreatedAt(b)).getTime();
         return dateA === dateB ? sortByGenderAndName(a, b) : dateA - dateB;
       };
 
