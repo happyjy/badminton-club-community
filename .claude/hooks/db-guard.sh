@@ -14,13 +14,28 @@ set -uo pipefail
 payload=$(cat)
 
 # jq가 없는 환경도 있으므로 python3로 파싱한다(macOS 기본 탑재).
+#
+# 히어독 본문은 실행되는 명령이 아니라 데이터다. PR 본문이나 문서에
+# 위험 명령의 "이름"이 적혀 있다고 차단하면 오탐이 된다.
+# JSON을 풀면서 히어독 구간을 함께 비워 실제 명령만 남긴다.
 command_line=$(printf '%s' "$payload" | python3 -c '
-import json, sys
+import json, re, sys
+
 try:
     data = json.load(sys.stdin)
 except Exception:
     sys.exit(0)
-print(data.get("tool_input", {}).get("command", ""))
+
+text = data.get("tool_input", {}).get("command", "")
+
+# <<TAG / <<"TAG" / <<-TAG 형태를 찾아 본문을 지운다.
+for tag in set(re.findall(r"<<-?\s*[\"\x27]?([A-Za-z_][A-Za-z0-9_]*)[\"\x27]?", text)):
+    pattern = (r"(<<-?\s*[\"\x27]?" + re.escape(tag) + r"[\"\x27]?\n)"
+               r".*?"
+               r"(^\s*" + re.escape(tag) + r"\s*$)")
+    text = re.sub(pattern, r"\1\2", text, flags=re.DOTALL | re.MULTILINE)
+
+sys.stdout.write(text)
 ' 2>/dev/null)
 
 [ -z "$command_line" ] && exit 0
