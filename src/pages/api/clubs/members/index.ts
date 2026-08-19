@@ -59,6 +59,7 @@ export default withAuth(async function handler(
         lessonPeriod: true,
         playingPeriod: true,
         phoneNumber: true,
+        createdAt: true,
         user: {
           select: {
             id: true,
