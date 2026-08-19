@@ -17,6 +17,24 @@ function basePath(
   return `/api/clubs/${clubId}/tournaments/${tournamentId}/files`;
 }
 
+/**
+ * 첨부 목록과 대회 상세를 함께 무효화한다.
+ *
+ * 대회 상세(useTournamentDetail)도 files를 내려주는데 staleTime이 30초라,
+ * 목록만 무효화하면 관리자가 저장 후 상세로 이동했을 때 방금 올린 파일이
+ * 보이지 않는다. 안 올라간 줄 알고 다시 올리면 중복 파일이 쌓인다.
+ */
+function invalidateFileQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  clubId: string | undefined,
+  tournamentId: string | undefined
+) {
+  queryClient.invalidateQueries({ queryKey: filesKey(clubId, tournamentId) });
+  queryClient.invalidateQueries({
+    queryKey: ['tournament', clubId, tournamentId],
+  });
+}
+
 export function useTournamentFiles(
   clubId: string | undefined,
   tournamentId: string | undefined
@@ -49,9 +67,7 @@ export function useUploadTournamentFile(
       return response.data.data.file;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: filesKey(clubId, tournamentId),
-      });
+      invalidateFileQueries(queryClient, clubId, tournamentId);
     },
   });
 }
@@ -67,9 +83,7 @@ export function useDeleteTournamentFile(
       await axios.delete(`${basePath(clubId, tournamentId)}/${fileId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: filesKey(clubId, tournamentId),
-      });
+      invalidateFileQueries(queryClient, clubId, tournamentId);
     },
   });
 }

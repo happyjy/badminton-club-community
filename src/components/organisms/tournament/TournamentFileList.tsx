@@ -6,6 +6,8 @@ import type { TournamentFile } from '@/types/tournament.types';
 interface TournamentFileListProps {
   files: TournamentFile[] | undefined;
   title?: string;
+  /** 여백은 호출부가 정한다. 목록이 비면 통째로 사라져 빈 공간이 남지 않는다. */
+  className?: string;
 }
 
 /**
@@ -15,11 +17,12 @@ interface TournamentFileListProps {
 function TournamentFileList({
   files,
   title = '첨부파일',
+  className,
 }: TournamentFileListProps) {
   if (!files?.length) return null;
 
   return (
-    <div>
+    <div className={className}>
       <h3 className="mb-2 text-sm font-semibold text-gray-700">{title}</h3>
       <ul className="space-y-2">
         {files.map((file) => {

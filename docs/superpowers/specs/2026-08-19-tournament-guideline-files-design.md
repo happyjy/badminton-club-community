@@ -17,16 +17,16 @@
 
 ## 2. 확정된 요구사항
 
-| 항목 | 결정 |
-|---|---|
-| 파일 개수 | 대회당 여러 개 (요강 + 대진표 + 코트배정도 등) |
-| 파일 형식 | PDF, JPG, JPEG, PNG |
-| 용량 제한 | 파일당 10MB |
-| 저장소 | Supabase Storage, `tournament-files` 버킷 (**Public**) |
-| 업로드 권한 | 해당 클럽 ADMIN |
-| 열람 권한 | 제한 없음 (공개 URL) |
-| 업로드 시점 | 대회 저장 후 (수정 화면에서만) |
-| 기존 `description` | 그대로 유지. 첨부파일은 별도 항목 |
+| 항목               | 결정                                                   |
+| ------------------ | ------------------------------------------------------ |
+| 파일 개수          | 대회당 여러 개 (요강 + 대진표 + 코트배정도 등)         |
+| 파일 형식          | PDF, JPG, JPEG, PNG                                    |
+| 용량 제한          | 파일당 10MB                                            |
+| 저장소             | Supabase Storage, `tournament-files` 버킷 (**Public**) |
+| 업로드 권한        | 해당 클럽 ADMIN                                        |
+| 열람 권한          | 제한 없음 (공개 URL)                                   |
+| 업로드 시점        | 대회 저장 후 (수정 화면에서만)                         |
+| 기존 `description` | 그대로 유지. 첨부파일은 별도 항목                      |
 
 ### 2.1 Public 버킷을 택한 이유
 
@@ -123,11 +123,11 @@ model TournamentFile {
 
 ### 6.1 신규 엔드포인트
 
-| 메서드 | 경로 | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/clubs/:id/tournaments/:tid/files` | 클럽 회원 | 첨부 목록 조회 |
-| POST | `/api/clubs/:id/tournaments/:tid/files` | 클럽 ADMIN | 파일 1개 업로드 |
-| DELETE | `/api/clubs/:id/tournaments/:tid/files/:fileId` | 클럽 ADMIN | 파일 1개 삭제 |
+| 메서드 | 경로                                            | 권한       | 설명            |
+| ------ | ----------------------------------------------- | ---------- | --------------- |
+| GET    | `/api/clubs/:id/tournaments/:tid/files`         | 클럽 회원  | 첨부 목록 조회  |
+| POST   | `/api/clubs/:id/tournaments/:tid/files`         | 클럽 ADMIN | 파일 1개 업로드 |
+| DELETE | `/api/clubs/:id/tournaments/:tid/files/:fileId` | 클럽 ADMIN | 파일 1개 삭제   |
 
 관리자 화면이 폼 제출과 무관하게 목록을 갱신해야 하므로 GET도 함께 둔다.
 
@@ -141,10 +141,10 @@ export const config = { api: { bodyParser: false } };
 
 ### 6.2 기존 API 수정
 
-| 파일 | 변경 |
-|---|---|
-| `tournaments/[tournamentId]/index.ts` GET | `include`에 `files: { orderBy: { order: 'asc' } }` 추가 |
-| `tournaments/[tournamentId]/index.ts` DELETE | DB 삭제 전에 Storage 파일 일괄 제거 |
+| 파일                                         | 변경                                                    |
+| -------------------------------------------- | ------------------------------------------------------- |
+| `tournaments/[tournamentId]/index.ts` GET    | `include`에 `files: { orderBy: { order: 'asc' } }` 추가 |
+| `tournaments/[tournamentId]/index.ts` DELETE | DB 삭제 전에 Storage 파일 일괄 제거                     |
 
 대회 삭제 시 Storage 정리를 빠뜨리면 고아 파일이 영구히 쌓인다.
 
@@ -192,23 +192,23 @@ const MAX_SIZE = 10 * 1024 * 1024;
 
 ### 8.2 실패 처리
 
-| 상황 | 처리 |
-|---|---|
-| 10MB 초과 | 클라이언트에서 선택 즉시 차단 + 서버 재검증 |
-| 허용 안 된 형식 | 위와 동일 |
+| 상황                           | 처리                                                     |
+| ------------------------------ | -------------------------------------------------------- |
+| 10MB 초과                      | 클라이언트에서 선택 즉시 차단 + 서버 재검증              |
+| 허용 안 된 형식                | 위와 동일                                                |
 | Storage 업로드 성공 후 DB 실패 | 업로드한 파일을 Storage에서 지우고 에러 반환 (고아 방지) |
-| DB 삭제 성공 후 Storage 실패 | 로그만 남기고 성공 처리 (사용자에겐 이미 안 보인다) |
-| 관리자 아님 | 기존 `requireClubAdmin`이 403 |
-| 다른 클럽의 대회 | 404 |
+| DB 삭제 성공 후 Storage 실패   | 로그만 남기고 성공 처리 (사용자에겐 이미 안 보인다)      |
+| 관리자 아님                    | 기존 `requireClubAdmin`이 403                            |
+| 다른 클럽의 대회               | 404                                                      |
 
 ## 9. 테스트
 
 기존 `src/__tests__/components/tournament/` 패턴을 따른다.
 
-| 대상 | 파일 | 검증 내용 |
-|---|---|---|
-| 검증 로직 | `src/lib/tournament/fileValidation.test.ts` | 용량 경계값, 허용/거부 MIME, 확장자 위조, 대소문자 확장자 |
-| 목록 컴포넌트 | `src/__tests__/components/tournament/TournamentFileList.dom.test.tsx` | 빈 목록이면 렌더 안 함, 파일명·용량 표시, 링크 속성 |
+| 대상          | 파일                                                                  | 검증 내용                                                 |
+| ------------- | --------------------------------------------------------------------- | --------------------------------------------------------- |
+| 검증 로직     | `src/lib/tournament/fileValidation.test.ts`                           | 용량 경계값, 허용/거부 MIME, 확장자 위조, 대소문자 확장자 |
+| 목록 컴포넌트 | `src/__tests__/components/tournament/TournamentFileList.dom.test.tsx` | 빈 목록이면 렌더 안 함, 파일명·용량 표시, 링크 속성       |
 
 업로드 API 핸들러는 Supabase·formidable 모킹 비용이 커서 자동 테스트하지 않는다. 검증 로직을 순수 함수로 뽑아 테스트하고, 핸들러 자체는 수동 확인한다.
 
@@ -237,23 +237,23 @@ npx prisma migrate diff \
 
 ## 11. 변경 파일 목록
 
-| 구분 | 경로 |
-|---|---|
-| 신규 | `prisma/schema/tournament.prisma` (모델 추가) + 마이그레이션 |
-| 신규 | `src/lib/supabaseAdmin.ts` |
-| 신규 | `src/lib/tournament/fileValidation.ts` |
-| 신규 | `src/lib/tournament/fileStorage.ts` |
-| 신규 | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/files/index.ts` |
-| 신규 | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/files/[fileId].ts` |
-| 신규 | `src/components/organisms/tournament/TournamentFileList.tsx` |
-| 신규 | `src/components/organisms/tournament/admin/TournamentFileField.tsx` |
-| 신규 | `src/hooks/useTournamentFiles.ts` |
-| 수정 | `src/components/organisms/tournament/admin/TournamentForm.tsx` |
-| 수정 | `src/pages/clubs/[id]/tournaments/[tournamentId]/index.tsx` |
-| 수정 | `src/pages/clubs/[id]/tournaments/[tournamentId]/apply.tsx` |
-| 수정 | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/index.ts` |
-| 수정 | `src/types/tournament.types.ts` |
-| 테스트 | 위 2개 신규 |
+| 구분   | 경로                                                                    |
+| ------ | ----------------------------------------------------------------------- |
+| 신규   | `prisma/schema/tournament.prisma` (모델 추가) + 마이그레이션            |
+| 신규   | `src/lib/supabaseAdmin.ts`                                              |
+| 신규   | `src/lib/tournament/fileValidation.ts`                                  |
+| 신규   | `src/lib/tournament/fileStorage.ts`                                     |
+| 신규   | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/files/index.ts`    |
+| 신규   | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/files/[fileId].ts` |
+| 신규   | `src/components/organisms/tournament/TournamentFileList.tsx`            |
+| 신규   | `src/components/organisms/tournament/admin/TournamentFileField.tsx`     |
+| 신규   | `src/hooks/useTournamentFiles.ts`                                       |
+| 수정   | `src/components/organisms/tournament/admin/TournamentForm.tsx`          |
+| 수정   | `src/pages/clubs/[id]/tournaments/[tournamentId]/index.tsx`             |
+| 수정   | `src/pages/clubs/[id]/tournaments/[tournamentId]/apply.tsx`             |
+| 수정   | `src/pages/api/clubs/[id]/tournaments/[tournamentId]/index.ts`          |
+| 수정   | `src/types/tournament.types.ts`                                         |
+| 테스트 | 위 2개 신규                                                             |
 
 ## 12. 작업 순서
 

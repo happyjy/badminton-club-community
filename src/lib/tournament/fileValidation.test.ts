@@ -169,4 +169,10 @@ describe('formatFileSize', () => {
   ])('%i바이트를 %s로 표시한다', (bytes, expected) => {
     expect(formatFileSize(bytes)).toBe(expected);
   });
+
+  // 올림 탓에 1024KB로 표시되던 구간이 있었다. MB로 넘어가야 한다.
+  it('1MB 직전 구간을 1024KB가 아니라 MB로 표시한다', () => {
+    expect(formatFileSize(1024 * 1024 - 1)).toBe('1.0MB');
+    expect(formatFileSize(1048000)).toBe('1.0MB');
+  });
 });

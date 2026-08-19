@@ -37,16 +37,27 @@ export async function readSingleUpload(
   }
 
   // 헤더는 위조할 수 있으므로 실제로 읽는 양도 함께 센다.
+  //
+  // `for await (const chunk of req)`를 쓰면 안 된다. 그 안에서 예외를 던지면
+  // 비동기 이터레이터가 스트림을 자동으로 파괴하고, 소켓이 끊겨 핸들러가
+  // 413을 쓸 대상을 잃는다. 클라이언트는 안내 문구 대신 연결 초기화를 본다.
+  // 이터레이터를 직접 돌리면 중단해도 스트림이 살아 있어 응답을 보낼 수 있다.
+  const iterator = req[Symbol.asyncIterator]();
   const chunks: Buffer[] = [];
   let received = 0;
-  for await (const chunk of req) {
-    const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
+
+  let next = await iterator.next();
+  while (!next.done) {
+    const value = next.value;
+    const buffer = typeof value === 'string' ? Buffer.from(value) : value;
     received += buffer.length;
     if (received > MAX_BODY_SIZE) {
-      req.destroy();
+      // 더 읽지 않는 것만으로 메모리는 지켜진다. 소켓은 응답을 위해 남겨둔다.
+      req.pause();
       throw new UploadTooLargeError();
     }
     chunks.push(buffer);
+    next = await iterator.next();
   }
   const body = Buffer.concat(chunks);
 

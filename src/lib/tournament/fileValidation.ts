@@ -98,8 +98,8 @@ export function buildStoragePath(params: {
  * 1MB 미만은 KB로, 그 이상은 소수점 한 자리 MB로 보여준다.
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes < 1024 * 1024) {
-    return `${Math.max(0, Math.ceil(bytes / 1024))}KB`;
-  }
+  const kb = Math.max(0, Math.ceil(bytes / 1024));
+  // 올림 때문에 1024KB가 나오는 구간이 있다. 그때는 MB로 넘긴다.
+  if (kb < 1024) return `${kb}KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }

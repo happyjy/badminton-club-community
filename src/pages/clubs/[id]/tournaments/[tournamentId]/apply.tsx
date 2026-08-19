@@ -154,9 +154,11 @@ function TournamentApplyPage() {
 
       <ApplyNotice notice={detail.tournament.applyNotice} />
 
-      <div className="mb-6">
-        <TournamentFileList files={detail.tournament.files} title="모집 요강" />
-      </div>
+      <TournamentFileList
+        files={detail.tournament.files}
+        title="모집 요강"
+        className="mb-6"
+      />
 
       <FormProvider {...methods}>
         <form onSubmit={onSubmitForm} className="space-y-8">
