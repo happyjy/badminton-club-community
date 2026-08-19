@@ -127,4 +127,8 @@ export interface WorkoutListItemProps {
   isLoggedIn: boolean;
   onParticipate: (workoutId: number, isParticipating: boolean) => void;
   membershipStatus: MembershipStatus;
+  /** 클럽 임원이면 수정·삭제 메뉴를 보여준다 */
+  isAdmin?: boolean;
+  onEdit?: (workout: Workout) => void;
+  onDelete?: (workout: Workout) => void;
 }
