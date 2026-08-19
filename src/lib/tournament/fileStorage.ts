@@ -1,7 +1,4 @@
-import {
-  TOURNAMENT_FILE_BUCKET,
-  getSupabaseAdmin,
-} from '@/lib/supabaseAdmin';
+import { TOURNAMENT_FILE_BUCKET, getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 import type { NextApiRequest } from 'next';
 

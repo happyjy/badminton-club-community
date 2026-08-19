@@ -22,7 +22,9 @@ describe('validateTournamentFile', () => {
     ['대진표.jpeg', 'image/jpeg'],
     ['코트배정도.png', 'image/png'],
   ])('이미지 %s를 허용한다', (fileName, mimeType) => {
-    expect(validateTournamentFile({ fileName, mimeType, fileSize: 1024 })).toEqual({
+    expect(
+      validateTournamentFile({ fileName, mimeType, fileSize: 1024 })
+    ).toEqual({
       ok: true,
     });
   });

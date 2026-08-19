@@ -81,9 +81,7 @@ export default withAuth(async function handler(
 
       const file = await readSingleUpload(req);
       if (!file) {
-        return res
-          .status(400)
-          .json({ error: '파일이 없습니다.', status: 400 });
+        return res.status(400).json({ error: '파일이 없습니다.', status: 400 });
       }
 
       // 클라이언트에서 이미 걸렀더라도 서버에서 다시 확인한다.

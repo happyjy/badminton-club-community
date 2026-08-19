@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
+import TournamentFileList from '@/components/organisms/tournament/TournamentFileList';
 import TournamentStatusBadge from '@/components/organisms/tournament/TournamentStatusBadge';
 
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
@@ -79,12 +80,15 @@ function TournamentDetailPage() {
         )}
       </section>
 
-      {tournament.description && (
-        <section>
+      {(tournament.description || tournament.files?.length) && (
+        <section className="space-y-3">
           <h2 className="mb-2 font-semibold">모집 요강</h2>
-          <p className="whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
-            {renderContentWithLinks(tournament.description)}
-          </p>
+          {tournament.description && (
+            <p className="whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
+              {renderContentWithLinks(tournament.description)}
+            </p>
+          )}
+          <TournamentFileList files={tournament.files} />
         </section>
       )}
 

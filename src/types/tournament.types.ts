@@ -106,6 +106,7 @@ export type EntryForAdmin = TournamentEntry & {
 
 export type TournamentWithOptions = Tournament & {
   eventTypes: TournamentEventType[];
+  files?: TournamentFile[];
 };
 
 // 대회 상세 응답 (회원용)
