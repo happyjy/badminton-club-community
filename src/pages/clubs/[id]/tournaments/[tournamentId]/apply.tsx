@@ -14,6 +14,7 @@ import {
 import EntrySummary from '@/components/organisms/tournament/entry/EntrySummary';
 import EventListField from '@/components/organisms/tournament/entry/EventListField';
 import PlayerListField from '@/components/organisms/tournament/entry/PlayerListField';
+import TournamentFileList from '@/components/organisms/tournament/TournamentFileList';
 
 import { useMyEntry, useSubmitEntry } from '@/hooks/useMyEntry';
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
@@ -152,6 +153,12 @@ function TournamentApplyPage() {
       </p>
 
       <ApplyNotice notice={detail.tournament.applyNotice} />
+
+      <TournamentFileList
+        files={detail.tournament.files}
+        title="모집 요강"
+        className="mb-6"
+      />
 
       <FormProvider {...methods}>
         <form onSubmit={onSubmitForm} className="space-y-8">

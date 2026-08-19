@@ -6,6 +6,7 @@ import {
   handleApiError,
   parseClubId,
 } from '@/lib/tournament/apiHelpers';
+import { removeTournamentFiles } from '@/lib/tournament/fileStorage';
 import { resolveTournamentStatus } from '@/lib/tournament/status';
 import { tournamentInputSchema } from '@/schemas/tournament.schema';
 
@@ -27,7 +28,22 @@ export default withAuth(async function handler(
 
       const tournament = await prisma.tournament.findFirst({
         where: { id: tournamentId, clubId },
-        include: { eventTypes: { orderBy: { order: 'asc' } } },
+        include: {
+          eventTypes: { orderBy: { order: 'asc' } },
+          // storagePath는 내부 키라 클라이언트에 내려보내지 않는다.
+          files: {
+            orderBy: [{ order: 'asc' }, { uploadedAt: 'asc' }],
+            select: {
+              id: true,
+              fileName: true,
+              fileUrl: true,
+              fileSize: true,
+              mimeType: true,
+              order: true,
+              uploadedAt: true,
+            },
+          },
+        },
       });
       if (!tournament) {
         return res
@@ -184,7 +200,10 @@ export default withAuth(async function handler(
 
       const existing = await prisma.tournament.findFirst({
         where: { id: tournamentId, clubId },
-        select: { id: true },
+        select: {
+          id: true,
+          files: { select: { storagePath: true } },
+        },
       });
       if (!existing) {
         return res
@@ -196,6 +215,11 @@ export default withAuth(async function handler(
       // EntryEvent → TournamentEventOption 관계에도 Cascade가 있어야
       // 신청이 있는 대회를 지울 때 FK 위반이 나지 않는다.
       await prisma.tournament.delete({ where: { id: tournamentId } });
+
+      // Cascade는 DB 행만 지운다. Storage 파일은 직접 정리하지 않으면 영영 남는다.
+      await removeTournamentFiles(
+        existing.files.map((file) => file.storagePath)
+      );
 
       return res
         .status(200)

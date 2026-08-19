@@ -87,6 +87,8 @@ function EditTournamentPage() {
         submitLabel="수정 저장"
         isSubmitting={saveTournament.isPending}
         onSubmitForm={onSubmitForm}
+        clubId={clubId}
+        tournamentId={tournamentId}
       />
     </div>
   );

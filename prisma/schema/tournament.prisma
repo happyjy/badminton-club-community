@@ -25,9 +25,28 @@ model Tournament {
   club            Club                     @relation("ClubToTournament", fields: [clubId], references: [id], onDelete: Cascade)
   eventTypes      TournamentEventType[]
   entries         TournamentEntry[]
+  files           TournamentFile[]
 
   @@index([clubId])
   @@index([clubId, status])
+}
+
+// 모집 요강 첨부파일 (관리자만 업로드). 실제 파일은 Supabase Storage에 있다.
+model TournamentFile {
+  id            String       @id @default(cuid())
+  tournamentId  String
+  fileName      String                            // 사용자에게 보여줄 원본 이름
+  // Storage 키를 URL과 따로 둔다. 삭제할 때 URL을 역파싱하지 않아도 된다.
+  storagePath   String
+  fileUrl       String                            // 공개 URL
+  fileSize      Int                               // bytes
+  mimeType      String
+  order         Int          @default(0)
+  uploadedAt    DateTime     @default(now())
+
+  tournament    Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@index([tournamentId])
 }
 
 // 종목 (관리자가 대회마다 정의). 참가비는 종목 단위로 정해진다.

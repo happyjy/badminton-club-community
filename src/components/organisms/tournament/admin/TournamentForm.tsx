@@ -9,6 +9,7 @@ import { parseTagInput } from '@/lib/tournament/parseTagInput';
 import type { TournamentInput } from '@/types/tournament.types';
 
 import { AGE_GROUP_PRESETS, LEVEL_PRESETS } from './eventOptionPresets';
+import TournamentFileField from './TournamentFileField';
 import EventTypeEditor from './EventTypeEditor';
 import TagListField from './TagListField';
 
@@ -17,6 +18,9 @@ interface TournamentFormProps {
   submitLabel: string;
   isSubmitting: boolean;
   onSubmitForm: (input: TournamentInput) => void;
+  clubId?: string;
+  /** 신규 생성 화면에서는 아직 대회가 없어 첨부 영역이 안내 문구로 바뀐다. */
+  tournamentId?: string;
 }
 
 function TournamentForm({
@@ -24,6 +28,8 @@ function TournamentForm({
   submitLabel,
   isSubmitting,
   onSubmitForm,
+  clubId,
+  tournamentId,
 }: TournamentFormProps) {
   const methods = useForm<TournamentInput>({ defaultValues });
   const [sizeInput, setSizeInput] = useState('');
@@ -92,6 +98,9 @@ function TournamentForm({
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               {...methods.register('description')}
             />
+          </FormField>
+          <FormField label="모집 요강 첨부파일">
+            <TournamentFileField clubId={clubId} tournamentId={tournamentId} />
           </FormField>
           <FormField label="신청 주의사항">
             <textarea

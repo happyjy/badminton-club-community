@@ -28,6 +28,17 @@ export interface TournamentApiSuccess<T> {
   message: string;
 }
 
+// ---------- 모집 요강 첨부파일 ----------
+export interface TournamentFile {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  mimeType: string;
+  order: number;
+  uploadedAt: string;
+}
+
 // ---------- 관리자: 대회 생성/수정 입력 ----------
 export interface EventTypeInput {
   id?: string; // 수정 시 기존 종목 식별용. 신규는 undefined
@@ -95,6 +106,7 @@ export type EntryForAdmin = TournamentEntry & {
 
 export type TournamentWithOptions = Tournament & {
   eventTypes: TournamentEventType[];
+  files?: TournamentFile[];
 };
 
 // 대회 상세 응답 (회원용)
