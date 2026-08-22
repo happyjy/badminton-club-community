@@ -66,7 +66,6 @@ function TournamentApplyPage() {
         phoneNumber: player.phoneNumber,
         tshirtSize: player.tshirtSize ?? '',
         isLocalMember: player.isLocalMember,
-        isClubMember: player.isClubMember,
       })),
       events: myEntry.entryEvents
         .filter((event) => event.status === 'ACTIVE')
@@ -108,7 +107,6 @@ function TournamentApplyPage() {
             phoneNumber: player.phoneNumber,
             tshirtSize: player.tshirtSize || null,
             isLocalMember: player.isLocalMember,
-            isClubMember: player.isClubMember,
             order: index,
           })),
           events: values.events.map((event) => ({

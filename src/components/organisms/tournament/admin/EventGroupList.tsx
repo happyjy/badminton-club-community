@@ -20,23 +20,6 @@ function TeamPlayerNames({ team }: { team: GroupedTeam }) {
   );
 }
 
-/**
- * 팀 제목 줄에 외부 인원수를 요약한다.
- * 접어보지 않아도 어느 팀이 추가금 대상인지 바로 보이게 한다.
- */
-function ExternalCountBadge({ team }: { team: GroupedTeam }) {
-  const externalCount = team.players.filter(
-    (player) => !player.isClubMember
-  ).length;
-  if (externalCount === 0) return null;
-
-  return (
-    <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-      외부 {externalCount}명
-    </span>
-  );
-}
-
 function EventGroupList({
   groups,
   useTeamName,
@@ -80,7 +63,6 @@ function EventGroupList({
                         ({team.teamName})
                       </span>
                     )}
-                    <ExternalCountBadge team={team} />
                   </div>
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${PAYMENT_CLASS[team.paymentStatus]}`}
@@ -101,14 +83,9 @@ function EventGroupList({
                       <span>{player.birthDate || '-'}</span>
                       <span>{player.phoneNumber}</span>
                       <span>티셔츠 {player.tshirtSize ?? '-'}</span>
-                      {!player.isClubMember && (
-                        <span className="rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">
-                          외부
-                        </span>
-                      )}
                       {/* 추가금 대상자를 임원이 한눈에 보고 입금액을 대조한다. */}
                       {memberLabel && !player.isLocalMember && (
-                        <span className="rounded bg-rose-100 px-1.5 py-0.5 text-rose-800">
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">
                           {memberLabel} 아님
                         </span>
                       )}

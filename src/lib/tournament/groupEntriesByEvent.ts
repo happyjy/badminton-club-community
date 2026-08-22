@@ -9,7 +9,6 @@ export interface GroupedPlayer {
   phoneNumber: string;
   tshirtSize: string | null;
   isLocalMember: boolean;
-  isClubMember: boolean;
 }
 
 /**
@@ -49,7 +48,6 @@ interface GroupableEntry {
         phoneNumber: string;
         tshirtSize: string | null;
         isLocalMember: boolean;
-        isClubMember: boolean;
       };
     }>;
   }>;
@@ -93,7 +91,6 @@ export function groupEntriesByEvent(entries: GroupableEntry[]): EventGroup[] {
           phoneNumber: eventPlayer.entryPlayer.phoneNumber,
           tshirtSize: eventPlayer.entryPlayer.tshirtSize,
           isLocalMember: eventPlayer.entryPlayer.isLocalMember,
-          isClubMember: eventPlayer.entryPlayer.isClubMember,
         })),
       });
       groups.set(label, teams);

@@ -215,43 +215,24 @@ function PlayerListField({
               )}
             </div>
 
-            <div className="space-y-2 rounded-md bg-gray-50 p-3 text-sm">
-              {/* 클럽 소속은 금액과 무관하다. 임원이 명단을 파악하는 데 쓴다. */}
-              <label className="flex items-start gap-2">
+            {useSurcharge && (
+              <label className="flex items-start gap-2 rounded-md bg-gray-50 p-3 text-sm">
                 <input
                   type="checkbox"
                   className="mt-0.5 h-4 w-4"
-                  {...register(`players.${index}.isClubMember`)}
+                  {...register(`players.${index}.isLocalMember`)}
                 />
                 <span>
                   <span className="font-medium text-gray-800">
-                    우리 클럽 회원
+                    {memberLabel}
                   </span>
                   <span className="ml-2 text-gray-500">
-                    외부에서 함께 나가는 선수면 해제해주세요.
+                    해제하면 참가 종목마다 {nonMemberSurcharge.toLocaleString()}
+                    원이 추가됩니다.
                   </span>
                 </span>
               </label>
-
-              {useSurcharge && (
-                <label className="flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5 h-4 w-4"
-                    {...register(`players.${index}.isLocalMember`)}
-                  />
-                  <span>
-                    <span className="font-medium text-gray-800">
-                      {memberLabel}
-                    </span>
-                    <span className="ml-2 text-gray-500">
-                      해제하면 참가 종목마다{' '}
-                      {nonMemberSurcharge.toLocaleString()}원이 추가됩니다.
-                    </span>
-                  </span>
-                </label>
-              )}
-            </div>
+            )}
           </div>
         );
       })}
