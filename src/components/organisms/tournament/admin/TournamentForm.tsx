@@ -9,9 +9,9 @@ import { parseTagInput } from '@/lib/tournament/parseTagInput';
 import type { TournamentInput } from '@/types/tournament.types';
 
 import { AGE_GROUP_PRESETS, LEVEL_PRESETS } from './eventOptionPresets';
-import TournamentFileField from './TournamentFileField';
 import EventTypeEditor from './EventTypeEditor';
 import TagListField from './TagListField';
+import TournamentFileField from './TournamentFileField';
 
 interface TournamentFormProps {
   defaultValues: TournamentInput;
@@ -125,13 +125,13 @@ function TournamentForm({
             추가금을 0으로 두면 신청 화면에서 회원 여부를 아예 묻지 않는다.
           */}
           <FormField
-            label="비회원 1인당 추가금"
+            label="외부 선수 1인당 추가금"
             error={methods.formState.errors.memberLabel?.message}
           >
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Input
                 type="text"
-                placeholder="회원 기준 (예: 영등포구 회원)"
+                placeholder="소속 기준 (예: 당산클럽 소속)"
                 {...methods.register('memberLabel')}
               />
               <Input
@@ -145,8 +145,8 @@ function TournamentForm({
               />
             </div>
             <p className="mt-1 text-xs text-gray-500">
-              추가금은 신청 종목마다 비회원 인원수만큼 붙습니다. (예: 팀당
-              60,000원 + 비회원 1명 → 70,000원)
+              추가금은 신청 종목마다 외부 선수 인원수만큼 붙습니다. (예: 팀당
+              60,000원 + 외부 선수 1명 → 70,000원)
             </p>
           </FormField>
         </section>
