@@ -24,6 +24,7 @@ const EMPTY_TOURNAMENT: TournamentInput = {
   bankAccount: '',
   memberLabel: '',
   nonMemberSurcharge: 0,
+  minClubMembersPerTeam: 0,
   ageGroups: [],
   levels: [],
   eventTypes: [{ name: '', playerCount: 2, fee: 0, order: 0 }],

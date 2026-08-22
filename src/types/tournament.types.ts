@@ -63,6 +63,7 @@ export interface TournamentInput {
   bankAccount?: string | null;
   memberLabel?: string | null;
   nonMemberSurcharge: number;
+  minClubMembersPerTeam: number;
   ageGroups: string[];
   levels: string[];
   eventTypes: EventTypeInput[];

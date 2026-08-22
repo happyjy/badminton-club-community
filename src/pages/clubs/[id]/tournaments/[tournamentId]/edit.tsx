@@ -66,6 +66,7 @@ function EditTournamentPage() {
     bankAccount: tournament.bankAccount ?? '',
     memberLabel: tournament.memberLabel ?? '',
     nonMemberSurcharge: tournament.nonMemberSurcharge,
+    minClubMembersPerTeam: tournament.minClubMembersPerTeam,
     ageGroups: tournament.ageGroups,
     levels: tournament.levels,
     // 비활성 종목은 편집 목록에서 제외한다.

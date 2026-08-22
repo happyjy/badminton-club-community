@@ -6,9 +6,9 @@ import { validateEntrySubmission } from './validation';
 
 const TOURNAMENT = {
   eventTypes: [
-    { id: 'et-double', playerCount: 2, isActive: true },
-    { id: 'et-single', playerCount: 1, isActive: true },
-    { id: 'et-inactive', playerCount: 2, isActive: false },
+    { id: 'et-double', name: '남자복식', playerCount: 2, isActive: true },
+    { id: 'et-single', name: '남자단식', playerCount: 1, isActive: true },
+    { id: 'et-inactive', name: '혼합복식', playerCount: 2, isActive: false },
   ],
   ageGroups: ['30대', '40대'],
   levels: ['A조', 'B조'],
@@ -365,5 +365,94 @@ describe('validateEntrySubmission', () => {
       TOURNAMENT
     );
     expect(result).toEqual({ ok: true });
+  });
+});
+
+describe('validateEntrySubmission - 팀당 최소 소속 인원', () => {
+  /** 최소 소속 인원 규칙을 쓰는 대회 */
+  const RULED = {
+    ...TOURNAMENT,
+    memberLabel: '당산클럽 소속',
+    minClubMembersPerTeam: 1,
+  };
+
+  /** p1/p2의 소속 여부를 지정한 신청서를 만든다. */
+  function makeInputWithMembers(p1: boolean, p2: boolean) {
+    const input = makeInput();
+    return {
+      ...input,
+      players: [
+        { ...input.players[0], isClubMember: p1 },
+        { ...input.players[1], isClubMember: p2 },
+      ],
+    };
+  }
+
+  it('소속 회원이 1명 이상이면 통과한다', () => {
+    const result = validateEntrySubmission(
+      makeInputWithMembers(true, false),
+      RULED
+    );
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('전원 소속이면 통과한다', () => {
+    const result = validateEntrySubmission(
+      makeInputWithMembers(true, true),
+      RULED
+    );
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('전원 외부면 거부하고 이유를 알려준다', () => {
+    const result = validateEntrySubmission(
+      makeInputWithMembers(false, false),
+      RULED
+    );
+    expect(result).toEqual({
+      ok: false,
+      error:
+        '한 종목에 당산클럽 소속이 최소 1명 있어야 신청할 수 있습니다. (남자복식 30대 A조)',
+    });
+  });
+
+  it('제한이 0이면 전원 외부여도 통과한다', () => {
+    const result = validateEntrySubmission(makeInputWithMembers(false, false), {
+      ...RULED,
+      minClubMembersPerTeam: 0,
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('최소 2명을 요구하면 1명만 소속인 팀을 거부한다', () => {
+    const result = validateEntrySubmission(makeInputWithMembers(true, false), {
+      ...RULED,
+      minClubMembersPerTeam: 2,
+    });
+    expect(result).toEqual({
+      ok: false,
+      error:
+        '한 종목에 당산클럽 소속이 최소 2명 있어야 신청할 수 있습니다. (남자복식 30대 A조)',
+    });
+  });
+
+  it('단식은 필요 인원이 1명이므로 소속 1명을 요구한다', () => {
+    const input = makeInput();
+    const result = validateEntrySubmission(
+      {
+        ...input,
+        players: [{ ...input.players[0], isClubMember: false }],
+        events: [
+          {
+            eventTypeId: 'et-single',
+            ageGroup: '30대',
+            level: 'A조',
+            playerKeys: ['p1'],
+          },
+        ],
+      },
+      RULED
+    );
+    expect(result.ok).toBe(false);
   });
 });

@@ -19,6 +19,7 @@ import TournamentFileList from '@/components/organisms/tournament/TournamentFile
 import { useMyEntry, useSubmitEntry } from '@/hooks/useMyEntry';
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
 
+import { validateEntrySubmission } from '@/lib/tournament/validation';
 import { RootState } from '@/store';
 
 function TournamentApplyPage() {
@@ -92,6 +93,31 @@ function TournamentApplyPage() {
   }, [myEntry, clubMember, methods]);
 
   const onSubmitForm = methods.handleSubmit(async (values) => {
+    if (!detail) return;
+
+    // 서버와 같은 규칙으로 미리 걸러 낸다. 규칙은 validation.ts 한 곳에만 둔다.
+    const precheck = validateEntrySubmission(
+      {
+        depositorName: values.depositorName,
+        teamName: values.teamName || null,
+        privacyAgreed: true,
+        players: values.players.map((player, index) => ({
+          ...player,
+          tshirtSize: player.tshirtSize || null,
+          order: index,
+        })),
+        events: values.events.map((event) => ({
+          ...event,
+          playerKeys: event.playerKeys.filter(Boolean),
+        })),
+      },
+      detail.tournament
+    );
+    if (!precheck.ok) {
+      toast.error(precheck.error);
+      return;
+    }
+
     try {
       await submitEntry.mutateAsync({
         entryId: myEntry?.id ?? null,
@@ -173,6 +199,8 @@ function TournamentApplyPage() {
             eventTypes={detail.tournament.eventTypes}
             ageGroups={detail.tournament.ageGroups}
             levels={detail.tournament.levels}
+            memberLabel={detail.tournament.memberLabel}
+            minClubMembersPerTeam={detail.tournament.minClubMembersPerTeam}
           />
           <EntrySummary
             eventTypes={detail.tournament.eventTypes}

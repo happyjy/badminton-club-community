@@ -149,6 +149,29 @@ function TournamentForm({
               60,000원 + 외부 선수 1명 → 70,000원)
             </p>
           </FormField>
+
+          {/*
+            주최측에 본회 소속으로 등록하려면 팀에 소속 회원이 있어야 한다.
+            외부 선수만으로 이루어진 팀은 신청 단계에서 막는다.
+          */}
+          <FormField
+            label="팀당 최소 소속 인원"
+            error={methods.formState.errors.minClubMembersPerTeam?.message}
+          >
+            <Input
+              type="number"
+              min={0}
+              max={2}
+              placeholder="0 (제한 없음)"
+              {...methods.register('minClubMembersPerTeam', {
+                valueAsNumber: true,
+              })}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              한 종목에 이 인원만큼 소속 회원이 없으면 신청할 수 없습니다. 1로
+              두면 외부 선수끼리만 팀을 짤 수 없습니다. 0이면 제한 없음.
+            </p>
+          </FormField>
         </section>
 
         <section className="space-y-4">

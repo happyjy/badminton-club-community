@@ -12,12 +12,18 @@ interface EventListFieldProps {
   eventTypes: TournamentEventType[];
   ageGroups: string[];
   levels: string[];
+  /** 소속 기준 라벨 (예: 당산클럽 소속) */
+  memberLabel?: string | null;
+  /** 팀당 최소 소속 인원. 0이면 제한 없음 */
+  minClubMembersPerTeam?: number;
 }
 
 function EventListField({
   eventTypes,
   ageGroups,
   levels,
+  memberLabel,
+  minClubMembersPerTeam = 0,
 }: EventListFieldProps) {
   const {
     control,
@@ -33,6 +39,31 @@ function EventListField({
 
   const players = watch('players') ?? [];
   const events = watch('events') ?? [];
+
+  const memberByKey = new Map(
+    players.map((player) => [player.key, player.isClubMember])
+  );
+  const clubLabel = memberLabel?.trim() || '클럽 소속';
+
+  /**
+   * 주최측에 본회 소속으로 등록하려면 팀에 소속 회원이 있어야 한다.
+   * 제출 후에야 알게 되면 늦으므로 배정하는 자리에서 바로 알린다.
+   */
+  const getShortfall = (playerKeys: string[]): number => {
+    if (minClubMembersPerTeam <= 0) return 0;
+    // 아직 고르지 않은 자리는 세지 않는다. 채우는 중에 경고가 뜨면 방해가 된다.
+    const chosen = playerKeys.filter(Boolean);
+    if (chosen.length === 0) return 0;
+    const memberCount = chosen.filter(
+      (key) => memberByKey.get(key) !== false
+    ).length;
+    const remaining = chosen.length - memberCount;
+    // 남은 빈 자리를 소속으로 채우면 조건을 만족할 수 있는지 본다.
+    const fillable = memberCount + (playerKeys.length - chosen.length);
+    return fillable >= minClubMembersPerTeam || remaining === 0
+      ? 0
+      : minClubMembersPerTeam - memberCount;
+  };
 
   const activeTypes = eventTypes.filter((eventType) => eventType.isActive);
   const typeById = new Map(activeTypes.map((type) => [type.id, type]));
@@ -149,6 +180,17 @@ function EventListField({
                   />
                 </FormField>
               ))}
+
+            {getShortfall(selected?.playerKeys ?? []) > 0 && (
+              <p
+                role="alert"
+                className="rounded-md bg-red-50 p-3 text-sm text-red-700"
+              >
+                이 종목은 {clubLabel} 회원이 최소 {minClubMembersPerTeam}명
+                필요합니다. 주최측에 본회 소속으로 등록하려면 팀에 소속 회원이
+                있어야 하므로, 외부 선수끼리는 신청할 수 없습니다.
+              </p>
+            )}
 
             {eventType && (
               <p className="text-right text-sm text-gray-600">

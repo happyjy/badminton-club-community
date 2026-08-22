@@ -146,6 +146,7 @@ export default withAuth(async function handler(
             bankAccount: input.bankAccount ?? null,
             memberLabel: input.memberLabel?.trim() || null,
             nonMemberSurcharge: input.nonMemberSurcharge,
+            minClubMembersPerTeam: input.minClubMembersPerTeam,
             ageGroups: input.ageGroups,
             levels: input.levels,
           },
