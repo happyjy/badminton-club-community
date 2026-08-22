@@ -13,7 +13,7 @@ interface EntrySummaryProps {
   eventTypes: TournamentEventType[];
   useTeamName: boolean;
   bankAccount: string | null;
-  /** 비회원 1인당 추가금. 0이면 추가금 미사용 */
+  /** 외부 선수 1인당 추가금. 0이면 추가금 미사용 */
   nonMemberSurcharge: number;
 }
 
@@ -65,7 +65,7 @@ function EntrySummary({
         </div>
         {totalSurcharge > 0 && (
           <p className="mt-1 text-right text-sm text-gray-600">
-            기본 {formatFee(totalFee - totalSurcharge)} + 비회원 추가금{' '}
+            기본 {formatFee(totalFee - totalSurcharge)} + 외부 선수 추가금{' '}
             {formatFee(totalSurcharge)}
           </p>
         )}

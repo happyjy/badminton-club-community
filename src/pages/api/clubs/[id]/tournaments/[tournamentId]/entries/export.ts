@@ -62,7 +62,7 @@ export default withAuth(async function handler(
                     birthDate: true,
                     phoneNumber: true,
                     tshirtSize: true,
-                    isLocalMember: true,
+                    isClubMember: true,
                   },
                 },
               },

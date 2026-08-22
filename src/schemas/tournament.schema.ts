@@ -70,7 +70,7 @@ export const tournamentInputSchema = z
   .refine(
     (input) => input.nonMemberSurcharge === 0 || !!input.memberLabel?.trim(),
     {
-      message: '추가금을 사용하려면 회원 기준 라벨을 입력해주세요.',
+      message: '추가금을 사용하려면 소속 기준 라벨을 입력해주세요.',
       path: ['memberLabel'],
     }
   );
@@ -97,7 +97,7 @@ const playerSchema = z.object({
     .transform(formatPhoneNumber),
   tshirtSize: z.string().trim().nullable().optional(),
   // 추가금 미사용 대회에서는 서버가 항상 true로 덮으므로 기본값을 둔다
-  isLocalMember: z.boolean().default(true),
+  isClubMember: z.boolean().default(true),
   order: z.number().int().min(0).default(0),
 });
 

@@ -89,7 +89,7 @@ export default withAuth(async function handler(
       const useSurcharge = tournament.nonMemberSurcharge > 0;
       const surchargePlayers = input.players.map((player) => ({
         key: player.key,
-        isLocalMember: useSurcharge ? player.isLocalMember : true,
+        isClubMember: useSurcharge ? player.isClubMember : true,
       }));
 
       // 클라이언트가 보낸 금액은 무시하고 DB 값으로 종목별 금액을 계산한다.
@@ -143,7 +143,7 @@ export default withAuth(async function handler(
                 tournament.tshirtSizes.length > 0
                   ? (player.tshirtSize ?? null)
                   : null,
-              isLocalMember: useSurcharge ? player.isLocalMember : true,
+              isClubMember: useSurcharge ? player.isClubMember : true,
               order: player.order,
             },
           });

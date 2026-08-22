@@ -20,7 +20,7 @@ export type CsvEntry = {
         birthDate: string;
         phoneNumber: string;
         tshirtSize: string | null;
-        isLocalMember: boolean;
+        isClubMember: boolean;
       };
     }>;
   }>;
@@ -35,7 +35,7 @@ export const CSV_HEADER = [
   '생년월일',
   '전화번호',
   '티셔츠',
-  '회원여부',
+  '소속여부',
   '팀명',
   '입금자명',
   '참가비',
@@ -66,7 +66,7 @@ export function toCsvRows(entries: CsvEntry[]): string[][] {
           entryPlayer.birthDate,
           entryPlayer.phoneNumber,
           entryPlayer.tshirtSize ?? '',
-          entryPlayer.isLocalMember ? '회원' : '비회원',
+          entryPlayer.isClubMember ? '소속' : '외부',
           entry.teamName ?? '',
           entry.depositorName,
           String(event.fee),

@@ -315,10 +315,10 @@ describe('PlayerListField - 선수가 여러 명일 때', () => {
   });
 });
 
-describe('PlayerListField - 비회원 추가금', () => {
+describe('PlayerListField - 외부 선수 추가금', () => {
   const SURCHARGE = { memberLabel: '영등포구 회원', nonMemberSurcharge: 10000 };
 
-  it('추가금을 쓰지 않는 대회면 회원 여부를 묻지 않는다', () => {
+  it('추가금을 쓰지 않는 대회면 소속 여부를 묻지 않는다', () => {
     renderPlayerListField();
 
     expect(screen.queryByText('영등포구 회원')).toBeNull();
@@ -342,14 +342,14 @@ describe('PlayerListField - 비회원 추가금', () => {
     ).toBeTruthy();
   });
 
-  it('기본값은 회원(체크됨)이다', () => {
+  it('기본값은 소속(체크됨)이다', () => {
     renderPlayerListField(SURCHARGE);
 
     const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
     expect(checkbox.checked).toBe(true);
   });
 
-  it('체크를 해제하면 isLocalMember=false로 제출한다', async () => {
+  it('체크를 해제하면 isClubMember=false로 제출한다', async () => {
     const onSubmit = jest.fn();
     renderPlayerListField({
       ...SURCHARGE,
@@ -370,13 +370,13 @@ describe('PlayerListField - 비회원 추가금', () => {
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
 
     const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
-    expect(submitted.players[0].isLocalMember).toBe(false);
+    expect(submitted.players[0].isClubMember).toBe(false);
   });
 
-  it('선수마다 회원 여부를 따로 관리한다', () => {
+  it('선수마다 소속 여부를 따로 관리한다', () => {
     renderPlayerListField({
       ...SURCHARGE,
-      players: [{ isLocalMember: true }, { isLocalMember: true }],
+      players: [{ isClubMember: true }, { isClubMember: true }],
     });
 
     const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];

@@ -23,9 +23,9 @@ import {
 
 interface PlayerListFieldProps {
   tshirtSizes: string[];
-  /** 회원 기준 라벨 (예: 영등포구 회원). 추가금 미사용 대회면 null */
+  /** 소속 기준 라벨 (예: 당산클럽 소속). 추가금 미사용 대회면 null */
   memberLabel: string | null;
-  /** 비회원 1인당 추가금. 0이면 회원 여부를 묻지 않는다 */
+  /** 외부 선수 1인당 추가금. 0이면 소속 여부를 묻지 않는다 */
   nonMemberSurcharge: number;
 }
 
@@ -220,7 +220,7 @@ function PlayerListField({
                 <input
                   type="checkbox"
                   className="mt-0.5 h-4 w-4"
-                  {...register(`players.${index}.isLocalMember`)}
+                  {...register(`players.${index}.isClubMember`)}
                 />
                 <span>
                   <span className="font-medium text-gray-800">

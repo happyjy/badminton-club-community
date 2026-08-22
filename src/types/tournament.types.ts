@@ -76,7 +76,7 @@ export interface PlayerInput {
   birthDate: string;
   phoneNumber: string;
   tshirtSize?: string | null;
-  isLocalMember: boolean;
+  isClubMember: boolean;
   order: number;
 }
 

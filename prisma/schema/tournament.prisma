@@ -103,8 +103,10 @@ model EntryPlayer {
   birthDate    String                                    // 민감정보
   phoneNumber  String                                    // 민감정보
   tshirtSize   String?                                   // 민감정보
-  // Tournament.memberLabel 기준 회원 여부. 추가금 미사용 대회에서는 의미 없다.
-  isLocalMember Boolean           @default(true)
+  // Tournament.memberLabel 기준 소속 여부 (예: 당산클럽 소속).
+  // 해제된 선수는 참가 종목마다 nonMemberSurcharge가 붙는다.
+  // 추가금 미사용 대회에서는 의미 없다.
+  isClubMember Boolean            @default(true)
   order        Int                @default(0)
 
   entry        TournamentEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
