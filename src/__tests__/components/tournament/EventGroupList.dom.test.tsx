@@ -22,12 +22,14 @@ const 남자복식: EventGroup = {
           birthDate: '1990-03-15',
           phoneNumber: '010-1111-1111',
           tshirtSize: 'L',
+          isClubMember: true,
         },
         {
           name: '박영희',
           birthDate: '1992-07-01',
           phoneNumber: '010-2222-2222',
           tshirtSize: null,
+          isClubMember: false,
         },
       ],
     },
@@ -42,12 +44,14 @@ const 남자복식: EventGroup = {
           birthDate: '1988-05-05',
           phoneNumber: '010-3333-3333',
           tshirtSize: 'M',
+          isClubMember: true,
         },
         {
           name: '정다은',
           birthDate: '1995-12-25',
           phoneNumber: '010-4444-4444',
           tshirtSize: 'S',
+          isClubMember: true,
         },
       ],
     },
@@ -117,6 +121,7 @@ describe('EventGroupList', () => {
               birthDate: '1990-03-15',
               phoneNumber: '010-1111-1111',
               tshirtSize: 'L',
+              isClubMember: true,
             },
           ],
         },
@@ -135,5 +140,27 @@ describe('EventGroupList', () => {
     render(<EventGroupList groups={[]} useTeamName={false} />);
 
     expect(screen.getByText('신청 내역이 없습니다.')).toBeTruthy();
+  });
+});
+
+describe('EventGroupList - 소속 여부 배지', () => {
+  it('memberLabel이 없으면 소속 여부를 표시하지 않는다', () => {
+    render(<EventGroupList groups={[남자복식]} useTeamName={false} />);
+
+    expect(screen.queryByText(/아님/)).toBeNull();
+  });
+
+  it('외부 선수에게만 배지를 붙인다', () => {
+    render(
+      <EventGroupList
+        groups={[남자복식]}
+        useTeamName={false}
+        memberLabel="영등포구 회원"
+      />
+    );
+
+    // 4명 중 박영희 1명만 비회원이다.
+    const badges = screen.getAllByText('영등포구 회원 아님');
+    expect(badges).toHaveLength(1);
   });
 });

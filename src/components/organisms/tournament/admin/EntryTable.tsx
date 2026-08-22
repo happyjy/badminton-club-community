@@ -38,6 +38,30 @@ function getActiveEvents(
     }));
 }
 
+/**
+ * 신청서에서 외부 선수만 골라낸다.
+ * 통장 대조 시 추가금이 왜 붙었는지 바로 확인하려면 인원수와 이름이 함께 필요하다.
+ */
+function getExternalPlayers(entry: EntryForAdmin): string[] {
+  return entry.players
+    .filter((player) => !player.isClubMember)
+    .map((player) => player.name);
+}
+
+function ExternalPlayers({ names }: { names: string[] }) {
+  if (names.length === 0) return null;
+
+  // 좁은 화면에서 배지가 찌그러지지 않도록 배지와 이름을 각각 접는다.
+  return (
+    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-amber-700">
+      <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 font-medium">
+        외부 {names.length}명
+      </span>
+      <span className="min-w-0 break-words">{names.join(' · ')}</span>
+    </p>
+  );
+}
+
 function PaymentStatusSelect({
   entry,
   onChangePaymentStatus,
@@ -90,6 +114,7 @@ function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
                   {entry.teamName && (
                     <p className="text-xs text-gray-400">{entry.teamName}</p>
                   )}
+                  <ExternalPlayers names={getExternalPlayers(entry)} />
                 </div>
                 <PaymentStatusSelect
                   entry={entry}
@@ -149,6 +174,7 @@ function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
                     {entry.teamName && (
                       <p className="text-xs text-gray-400">{entry.teamName}</p>
                     )}
+                    <ExternalPlayers names={getExternalPlayers(entry)} />
                   </td>
                   <td className="py-3">{entry.depositorName}</td>
                   <td className="py-3">

@@ -1,7 +1,10 @@
 import type { EntrySubmissionInput } from '@/types/tournament.types';
 
+import { formatEventLabel } from './display';
+
 export type ValidatableEventType = {
   id: string;
+  name: string;
   playerCount: number;
   isActive: boolean;
 };
@@ -10,6 +13,10 @@ export type ValidatableTournament = {
   eventTypes: ValidatableEventType[];
   ageGroups: string[];
   levels: string[];
+  /** 소속 기준 라벨 (예: 당산클럽 소속). 오류 메시지에 쓴다 */
+  memberLabel?: string | null;
+  /** 팀당 최소 소속 인원. 0이면 제한 없음 */
+  minClubMembersPerTeam?: number;
 };
 
 export type ValidationResult = { ok: true } | { ok: false; error: string };
@@ -56,6 +63,11 @@ export function validateEntrySubmission(
   // 대회가 급수를 쓰지 않으면 빈 문자열만 허용한다
   const usesLevel = tournament.levels.length > 0;
 
+  const minClubMembers = tournament.minClubMembersPerTeam ?? 0;
+  const memberByKey = new Map(
+    input.players.map((player) => [player.key, player.isClubMember])
+  );
+
   const seenCombinations = new Set<string>();
 
   for (const event of input.events) {
@@ -81,6 +93,25 @@ export function validateEntrySubmission(
       return fail(
         `종목별 선수 인원이 맞지 않습니다. (필요: ${eventType.playerCount}명)`
       );
+    }
+
+    // 주최측에 본회 소속으로 등록하려면 팀에 소속 회원이 있어야 한다.
+    // 외부 선수만으로 이루어진 팀은 등록 자체가 불가능하므로 여기서 막는다.
+    if (minClubMembers > 0) {
+      const clubMemberCount = event.playerKeys.filter(
+        (key) => memberByKey.get(key) !== false
+      ).length;
+      if (clubMemberCount < minClubMembers) {
+        const label = tournament.memberLabel?.trim() || '클럽 소속';
+        const eventLabel = formatEventLabel({
+          eventType: eventType.name,
+          ageGroup: event.ageGroup,
+          level: event.level,
+        });
+        return fail(
+          `한 종목에 ${label}이 최소 ${minClubMembers}명 있어야 신청할 수 있습니다. (${eventLabel})`
+        );
+      }
     }
     if (new Set(event.playerKeys).size !== event.playerKeys.length) {
       return fail('한 종목에 같은 선수를 중복 배정할 수 없습니다.');

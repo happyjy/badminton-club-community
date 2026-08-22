@@ -6,7 +6,7 @@ import {
   handleApiError,
   parseClubId,
 } from '@/lib/tournament/apiHelpers';
-import { calculateTotalFee } from '@/lib/tournament/fee';
+import { calculateEventFee, calculateTotalFee } from '@/lib/tournament/fee';
 import { isAcceptingEntries } from '@/lib/tournament/status';
 import { validateEntrySubmission } from '@/lib/tournament/validation';
 import { entrySubmissionSchema } from '@/schemas/tournament.schema';
@@ -72,14 +72,28 @@ export default withAuth(async function handler(
     const feeById = new Map(
       entry.tournament.eventTypes.map((e) => [e.id, e.fee])
     );
+    // 추가금을 쓰지 않는 대회면 모든 선수를 회원으로 취급해 추가금을 0으로 만든다
+    const useSurcharge = entry.tournament.nonMemberSurcharge > 0;
+    const surchargePlayers = input.players.map((player) => ({
+      key: player.key,
+      isClubMember: useSurcharge ? player.isClubMember : true,
+    }));
+
+    // 수정된 선수 구성으로 종목별 금액을 다시 계산한다.
+    // 회원 여부를 바꾸면 금액도 함께 갱신되어야 한다.
+    const feeByEventIndex = input.events.map((event) =>
+      calculateEventFee({
+        baseFee: feeById.get(event.eventTypeId) ?? 0,
+        surcharge: entry.tournament.nonMemberSurcharge,
+        playerKeys: event.playerKeys,
+        players: surchargePlayers,
+      })
+    );
     const canceledEvents = entry.entryEvents.filter(
       (event) => event.status === 'CANCELED'
     );
     const totalFee = calculateTotalFee([
-      ...input.events.map((event) => ({
-        fee: feeById.get(event.eventTypeId) ?? 0,
-        status: 'ACTIVE' as const,
-      })),
+      ...feeByEventIndex.map((fee) => ({ fee, status: 'ACTIVE' as const })),
       ...canceledEvents,
     ]);
 
@@ -102,20 +116,22 @@ export default withAuth(async function handler(
               entry.tournament.tshirtSizes.length > 0
                 ? (player.tshirtSize ?? null)
                 : null,
+            isClubMember: useSurcharge ? player.isClubMember : true,
             order: player.order,
           },
         });
         keyToPlayerId.set(player.key, createdPlayer.id);
       }
 
-      for (const event of input.events) {
+      for (const [index, event] of input.events.entries()) {
         const entryEvent = await tx.entryEvent.create({
           data: {
             entryId,
             eventTypeId: event.eventTypeId,
             ageGroup: event.ageGroup,
             level: event.level,
-            fee: feeById.get(event.eventTypeId) ?? 0,
+            // 추가금이 반영된 최종 금액을 스냅샷으로 남긴다
+            fee: feeByEventIndex[index],
           },
         });
         await tx.entryEventPlayer.createMany({

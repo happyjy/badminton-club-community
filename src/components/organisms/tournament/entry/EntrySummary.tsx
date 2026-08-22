@@ -4,6 +4,7 @@ import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
 import { formatFee } from '@/lib/tournament/display';
+import { calculateEventFee } from '@/lib/tournament/fee';
 
 import type { EntryFormValues } from './entryFormTypes';
 import type { TournamentEventType } from '@prisma/client';
@@ -12,12 +13,15 @@ interface EntrySummaryProps {
   eventTypes: TournamentEventType[];
   useTeamName: boolean;
   bankAccount: string | null;
+  /** 외부 선수 1인당 추가금. 0이면 추가금 미사용 */
+  nonMemberSurcharge: number;
 }
 
 function EntrySummary({
   eventTypes,
   useTeamName,
   bankAccount,
+  nonMemberSurcharge,
 }: EntrySummaryProps) {
   const {
     register,
@@ -26,13 +30,25 @@ function EntrySummary({
   } = useFormContext<EntryFormValues>();
 
   const events = watch('events') ?? [];
+  const players = watch('players') ?? [];
   const feeById = new Map(
     eventTypes.map((eventType) => [eventType.id, eventType.fee])
   );
 
   // 화면 표시용 금액이다. 실제 청구액은 서버가 다시 계산한다.
-  const totalFee = events.reduce(
-    (sum, event) => sum + (feeById.get(event.eventTypeId) ?? 0),
+  const eventFees = events.map((event) => {
+    const baseFee = feeById.get(event.eventTypeId) ?? 0;
+    const fee = calculateEventFee({
+      baseFee,
+      surcharge: nonMemberSurcharge,
+      playerKeys: event.playerKeys ?? [],
+      players,
+    });
+    return { baseFee, fee, surcharge: fee - baseFee };
+  });
+  const totalFee = eventFees.reduce((sum, item) => sum + item.fee, 0);
+  const totalSurcharge = eventFees.reduce(
+    (sum, item) => sum + item.surcharge,
     0
   );
 
@@ -47,6 +63,12 @@ function EntrySummary({
             {formatFee(totalFee)}
           </span>
         </div>
+        {totalSurcharge > 0 && (
+          <p className="mt-1 text-right text-sm text-gray-600">
+            기본 {formatFee(totalFee - totalSurcharge)} + 외부 선수 추가금{' '}
+            {formatFee(totalSurcharge)}
+          </p>
+        )}
         {bankAccount && (
           <p className="mt-2 text-sm text-gray-600">입금 계좌: {bankAccount}</p>
         )}

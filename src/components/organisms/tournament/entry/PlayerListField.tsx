@@ -23,9 +23,17 @@ import {
 
 interface PlayerListFieldProps {
   tshirtSizes: string[];
+  /** 소속 기준 라벨 (예: 당산클럽 소속). 추가금 미사용 대회면 null */
+  memberLabel: string | null;
+  /** 외부 선수 1인당 추가금. 0이면 소속 여부를 묻지 않는다 */
+  nonMemberSurcharge: number;
 }
 
-function PlayerListField({ tshirtSizes }: PlayerListFieldProps) {
+function PlayerListField({
+  tshirtSizes,
+  memberLabel,
+  nonMemberSurcharge,
+}: PlayerListFieldProps) {
   const {
     control,
     register,
@@ -40,6 +48,8 @@ function PlayerListField({ tshirtSizes }: PlayerListFieldProps) {
   const events = watch('events');
   const players = watch('players');
   const useTshirt = tshirtSizes.length > 0;
+  // 라벨이 있어야 무엇을 묻는지 알 수 있으므로 둘 다 있어야 노출한다
+  const useSurcharge = nonMemberSurcharge > 0 && !!memberLabel;
   const tshirtOptions = tshirtSizes.map((size) => ({
     value: size,
     label: size,
@@ -204,6 +214,25 @@ function PlayerListField({ tshirtSizes }: PlayerListFieldProps) {
                 </FormField>
               )}
             </div>
+
+            {useSurcharge && (
+              <label className="flex items-start gap-2 rounded-md bg-gray-50 p-3 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4"
+                  {...register(`players.${index}.isClubMember`)}
+                />
+                <span>
+                  <span className="font-medium text-gray-800">
+                    {memberLabel}
+                  </span>
+                  <span className="ml-2 text-gray-500">
+                    해제하면 참가 종목마다 {nonMemberSurcharge.toLocaleString()}
+                    원이 추가됩니다.
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
         );
       })}

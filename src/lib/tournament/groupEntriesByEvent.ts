@@ -8,6 +8,7 @@ export interface GroupedPlayer {
   birthDate: string;
   phoneNumber: string;
   tshirtSize: string | null;
+  isClubMember: boolean;
 }
 
 /**
@@ -46,6 +47,7 @@ interface GroupableEntry {
         birthDate: string;
         phoneNumber: string;
         tshirtSize: string | null;
+        isClubMember: boolean;
       };
     }>;
   }>;
@@ -88,6 +90,7 @@ export function groupEntriesByEvent(entries: GroupableEntry[]): EventGroup[] {
           birthDate: eventPlayer.entryPlayer.birthDate,
           phoneNumber: eventPlayer.entryPlayer.phoneNumber,
           tshirtSize: eventPlayer.entryPlayer.tshirtSize,
+          isClubMember: eventPlayer.entryPlayer.isClubMember,
         })),
       });
       groups.set(label, teams);

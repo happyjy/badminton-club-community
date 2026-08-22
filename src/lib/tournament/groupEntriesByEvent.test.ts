@@ -34,6 +34,7 @@ function createEntry(options: {
           birthDate: '1990-03-15',
           phoneNumber: `010-0000-000${name.length}`,
           tshirtSize: null,
+          isClubMember: true,
         },
       })),
     })),

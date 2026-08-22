@@ -17,6 +17,7 @@ export type MyEntry = {
     birthDate: string;
     phoneNumber: string;
     tshirtSize: string | null;
+    isClubMember: boolean;
     order: number;
   }>;
   entryEvents: Array<{

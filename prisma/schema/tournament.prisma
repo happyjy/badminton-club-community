@@ -14,6 +14,12 @@ model Tournament {
   useTeamName     Boolean           @default(false)        // 팀명 입력 사용 여부
   tshirtSizes     String[]                                 // 빈 배열이면 티셔츠 미사용
   bankAccount     String?                                  // 입금 계좌 안내
+  // 비회원 추가금. surcharge가 0이면 기능 자체를 쓰지 않는 대회다.
+  memberLabel        String?                               // 회원 기준 라벨 (예: 영등포구 회원)
+  nonMemberSurcharge Int     @default(0)                   // 외부 선수 1인당 추가금 (원)
+  // 팀당 최소 소속 인원. 주최측에 본회 소속으로 등록하려면 팀에 소속 회원이
+  // 있어야 하므로, 외부 선수만으로 이루어진 팀은 신청을 막는다. 0이면 제한 없음.
+  minClubMembersPerTeam Int  @default(0)
   // 연령·급수는 금액과 무관한 단순 선택지라 문자열 배열로 둔다.
   // 종목(TournamentEventType)만 금액을 가지므로 별도 테이블이다.
   ageGroups       String[]                                 // 20대, 30대 ...
@@ -100,6 +106,10 @@ model EntryPlayer {
   birthDate    String                                    // 민감정보
   phoneNumber  String                                    // 민감정보
   tshirtSize   String?                                   // 민감정보
+  // Tournament.memberLabel 기준 소속 여부 (예: 당산클럽 소속).
+  // 해제된 선수는 참가 종목마다 nonMemberSurcharge가 붙는다.
+  // 추가금 미사용 대회에서는 의미 없다.
+  isClubMember Boolean            @default(true)
   order        Int                @default(0)
 
   entry        TournamentEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)

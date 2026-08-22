@@ -9,9 +9,9 @@ import { parseTagInput } from '@/lib/tournament/parseTagInput';
 import type { TournamentInput } from '@/types/tournament.types';
 
 import { AGE_GROUP_PRESETS, LEVEL_PRESETS } from './eventOptionPresets';
-import TournamentFileField from './TournamentFileField';
 import EventTypeEditor from './EventTypeEditor';
 import TagListField from './TagListField';
+import TournamentFileField from './TournamentFileField';
 
 interface TournamentFormProps {
   defaultValues: TournamentInput;
@@ -118,6 +118,59 @@ function TournamentForm({
               placeholder="○○은행 123-456 (클럽명)"
               {...methods.register('bankAccount')}
             />
+          </FormField>
+
+          {/*
+            주최측 규칙이 "특정 지역 회원이 아니면 1인당 추가금"인 대회를 위한 설정.
+            추가금을 0으로 두면 신청 화면에서 회원 여부를 아예 묻지 않는다.
+          */}
+          <FormField
+            label="외부 선수 1인당 추가금"
+            error={methods.formState.errors.memberLabel?.message}
+          >
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Input
+                type="text"
+                placeholder="소속 기준 (예: 당산클럽 소속)"
+                {...methods.register('memberLabel')}
+              />
+              <Input
+                type="number"
+                min={0}
+                step={1000}
+                placeholder="추가금 (0이면 미사용)"
+                {...methods.register('nonMemberSurcharge', {
+                  valueAsNumber: true,
+                })}
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              추가금은 신청 종목마다 외부 선수 인원수만큼 붙습니다. (예: 팀당
+              60,000원 + 외부 선수 1명 → 70,000원)
+            </p>
+          </FormField>
+
+          {/*
+            주최측에 본회 소속으로 등록하려면 팀에 소속 회원이 있어야 한다.
+            외부 선수만으로 이루어진 팀은 신청 단계에서 막는다.
+          */}
+          <FormField
+            label="팀당 최소 소속 인원"
+            error={methods.formState.errors.minClubMembersPerTeam?.message}
+          >
+            <Input
+              type="number"
+              min={0}
+              max={2}
+              placeholder="0 (제한 없음)"
+              {...methods.register('minClubMembersPerTeam', {
+                valueAsNumber: true,
+              })}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              한 종목에 이 인원만큼 소속 회원이 없으면 신청할 수 없습니다. 1로
+              두면 외부 선수끼리만 팀을 짤 수 없습니다. 0이면 제한 없음.
+            </p>
           </FormField>
         </section>
 

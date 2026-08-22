@@ -5,6 +5,7 @@ export interface PlayerFormValue {
   birthDate: string;
   phoneNumber: string;
   tshirtSize: string;
+  isClubMember: boolean;
 }
 
 export interface EventFormValue {
@@ -40,5 +41,7 @@ export function createEmptyPlayer(index: number): PlayerFormValue {
     birthDate: '',
     phoneNumber: '',
     tshirtSize: '',
+    // 기본은 소속. 외부 선수만 신청자가 체크를 해제한다.
+    isClubMember: true,
   };
 }
