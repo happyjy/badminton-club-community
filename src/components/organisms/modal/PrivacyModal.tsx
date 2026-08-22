@@ -13,9 +13,7 @@ function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-lg font-bold mb-4">개인정보 수집 및 이용에 동의</h3>
         <div className="mb-4 text-sm">
-          <p className="mb-2">
-            1. 수집/이용 목적 : 당산배드민턴클럽 가입 및 문의
-          </p>
+          <p className="mb-2">1. 수집/이용 목적 : 배드민턴클럽 가입 및 문의</p>
           <p className="mb-2">
             2. 수집하는 항목 : 이름, 연락처, 생년월일, 성별
           </p>
