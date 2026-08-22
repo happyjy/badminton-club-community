@@ -35,6 +35,7 @@ function createEntry(options: {
           phoneNumber: `010-0000-000${name.length}`,
           tshirtSize: null,
           isLocalMember: true,
+          isClubMember: true,
         },
       })),
     })),

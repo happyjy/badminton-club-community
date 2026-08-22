@@ -57,6 +57,14 @@ function renderPlayerListField(options?: {
   return render(<Wrapper />);
 }
 
+/** 라벨 문구로 n번째 선수의 체크박스를 찾는다. 체크박스가 여러 개라 필요하다. */
+function getCheckboxByLabel(label: string, index = 0): HTMLInputElement {
+  const labels = screen.getAllByText(label);
+  return labels[index]
+    .closest('label')
+    ?.querySelector('input') as HTMLInputElement;
+}
+
 /** n번째 선수의 생년월일 입력창을 가져온다. */
 function getBirthDateInput(index = 0): HTMLInputElement {
   return screen.getAllByPlaceholderText('예: 19900315')[
@@ -345,8 +353,7 @@ describe('PlayerListField - 비회원 추가금', () => {
   it('기본값은 회원(체크됨)이다', () => {
     renderPlayerListField(SURCHARGE);
 
-    const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
-    expect(checkbox.checked).toBe(true);
+    expect(getCheckboxByLabel('영등포구 회원').checked).toBe(true);
   });
 
   it('체크를 해제하면 isLocalMember=false로 제출한다', async () => {
@@ -364,7 +371,7 @@ describe('PlayerListField - 비회원 추가금', () => {
       onSubmit,
     });
 
-    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(getCheckboxByLabel('영등포구 회원'));
     fireEvent.click(screen.getByText('제출'));
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
@@ -379,13 +386,61 @@ describe('PlayerListField - 비회원 추가금', () => {
       players: [{ isLocalMember: true }, { isLocalMember: true }],
     });
 
-    const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
-    expect(checkboxes).toHaveLength(2);
+    const first = getCheckboxByLabel('영등포구 회원', 0);
+    const second = getCheckboxByLabel('영등포구 회원', 1);
 
-    fireEvent.click(checkboxes[1]);
+    fireEvent.click(second);
 
     // 두 번째만 해제되고 첫 번째는 유지되어야 한다.
-    expect(checkboxes[0].checked).toBe(true);
-    expect(checkboxes[1].checked).toBe(false);
+    expect(first.checked).toBe(true);
+    expect(second.checked).toBe(false);
+  });
+});
+
+describe('PlayerListField - 클럽 소속', () => {
+  it('추가금과 무관하게 항상 클럽 회원 여부를 묻는다', () => {
+    renderPlayerListField();
+
+    expect(screen.getByText('우리 클럽 회원')).toBeTruthy();
+  });
+
+  it('기본값은 클럽 회원(체크됨)이다', () => {
+    renderPlayerListField();
+
+    expect(getCheckboxByLabel('우리 클럽 회원').checked).toBe(true);
+  });
+
+  it('체크를 해제하면 isClubMember=false로 제출한다', async () => {
+    const onSubmit = jest.fn();
+    renderPlayerListField({
+      players: [
+        {
+          name: '김철수',
+          gender: '남',
+          birthDate: '1988-05-05',
+          phoneNumber: '010-3333-4444',
+        },
+      ],
+      onSubmit,
+    });
+
+    fireEvent.click(getCheckboxByLabel('우리 클럽 회원'));
+    fireEvent.click(screen.getByText('제출'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
+    const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
+    expect(submitted.players[0].isClubMember).toBe(false);
+  });
+
+  it('추가금을 쓰는 대회에서는 체크박스가 두 개다', () => {
+    renderPlayerListField({
+      memberLabel: '영등포구 회원',
+      nonMemberSurcharge: 10000,
+    });
+
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    expect(screen.getByText('우리 클럽 회원')).toBeTruthy();
+    expect(screen.getByText('영등포구 회원')).toBeTruthy();
   });
 });

@@ -23,6 +23,7 @@ const 남자복식: EventGroup = {
           phoneNumber: '010-1111-1111',
           tshirtSize: 'L',
           isLocalMember: true,
+          isClubMember: true,
         },
         {
           name: '박영희',
@@ -30,6 +31,7 @@ const 남자복식: EventGroup = {
           phoneNumber: '010-2222-2222',
           tshirtSize: null,
           isLocalMember: false,
+          isClubMember: false,
         },
       ],
     },
@@ -45,6 +47,7 @@ const 남자복식: EventGroup = {
           phoneNumber: '010-3333-3333',
           tshirtSize: 'M',
           isLocalMember: true,
+          isClubMember: true,
         },
         {
           name: '정다은',
@@ -52,6 +55,7 @@ const 남자복식: EventGroup = {
           phoneNumber: '010-4444-4444',
           tshirtSize: 'S',
           isLocalMember: true,
+          isClubMember: true,
         },
       ],
     },
@@ -122,6 +126,7 @@ describe('EventGroupList', () => {
               phoneNumber: '010-1111-1111',
               tshirtSize: 'L',
               isLocalMember: true,
+              isClubMember: true,
             },
           ],
         },
@@ -144,10 +149,17 @@ describe('EventGroupList', () => {
 });
 
 describe('EventGroupList - 회원 여부 배지', () => {
-  it('memberLabel이 없으면 회원 여부를 표시하지 않는다', () => {
+  it('memberLabel이 없으면 추가금 배지를 표시하지 않는다', () => {
     render(<EventGroupList groups={[남자복식]} useTeamName={false} />);
 
     expect(screen.queryByText(/아님/)).toBeNull();
+  });
+
+  it('외부 선수에게는 memberLabel과 무관하게 외부 표시를 붙인다', () => {
+    render(<EventGroupList groups={[남자복식]} useTeamName={false} />);
+
+    // 팀 요약(외부 1명)과 별개로 선수 줄에도 '외부'가 붙는다.
+    expect(screen.getByText('외부')).toBeTruthy();
   });
 
   it('비회원 선수에게만 배지를 붙인다', () => {
@@ -162,5 +174,46 @@ describe('EventGroupList - 회원 여부 배지', () => {
     // 4명 중 박영희 1명만 비회원이다.
     const badges = screen.getAllByText('영등포구 회원 아님');
     expect(badges).toHaveLength(1);
+  });
+});
+
+describe('EventGroupList - 팀별 외부 인원 요약', () => {
+  it('외부 인원이 있는 팀의 제목 줄에 인원수를 요약한다', () => {
+    // 추가금과 무관하므로 memberLabel 없이도 표시되어야 한다.
+    render(<EventGroupList groups={[남자복식]} useTeamName={false} />);
+
+    // 첫 팀(홍길동·박영희)에만 외부 1명이 있다.
+    const summaries = screen.getAllByText('외부 1명');
+    expect(summaries).toHaveLength(1);
+  });
+
+  it('전원이 클럽 회원인 팀에는 요약을 붙이지 않는다', () => {
+    const 전원내부: EventGroup = {
+      ...남자복식,
+      teams: [남자복식.teams[1]],
+    };
+
+    render(<EventGroupList groups={[전원내부]} useTeamName={false} />);
+
+    expect(screen.queryByText(/외부 \d+명/)).toBeNull();
+  });
+
+  it('한 팀에 외부 인원이 2명이면 2명으로 센다', () => {
+    const 전원외부: EventGroup = {
+      ...남자복식,
+      teams: [
+        {
+          ...남자복식.teams[0],
+          players: 남자복식.teams[0].players.map((player) => ({
+            ...player,
+            isClubMember: false,
+          })),
+        },
+      ],
+    };
+
+    render(<EventGroupList groups={[전원외부]} useTeamName={false} />);
+
+    expect(screen.getByText('외부 2명')).toBeTruthy();
   });
 });

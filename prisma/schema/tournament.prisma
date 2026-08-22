@@ -104,7 +104,11 @@ model EntryPlayer {
   phoneNumber  String                                    // 민감정보
   tshirtSize   String?                                   // 민감정보
   // Tournament.memberLabel 기준 회원 여부. 추가금 미사용 대회에서는 의미 없다.
+  // 참가비 계산에만 쓴다.
   isLocalMember Boolean           @default(true)
+  // 우리 클럽 소속 여부. 금액과 무관하며 명단 파악·주최측 제출용이다.
+  // isLocalMember와 독립이다 (클럽 사람이어도 영등포구 회원이 아닐 수 있다).
+  isClubMember  Boolean           @default(true)
   order        Int                @default(0)
 
   entry        TournamentEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)

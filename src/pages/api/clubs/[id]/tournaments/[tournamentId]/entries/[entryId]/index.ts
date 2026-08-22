@@ -117,6 +117,7 @@ export default withAuth(async function handler(
                 ? (player.tshirtSize ?? null)
                 : null,
             isLocalMember: useSurcharge ? player.isLocalMember : true,
+            isClubMember: player.isClubMember,
             order: player.order,
           },
         });

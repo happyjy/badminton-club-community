@@ -6,6 +6,7 @@ export interface PlayerFormValue {
   phoneNumber: string;
   tshirtSize: string;
   isLocalMember: boolean;
+  isClubMember: boolean;
 }
 
 export interface EventFormValue {
@@ -43,5 +44,7 @@ export function createEmptyPlayer(index: number): PlayerFormValue {
     tshirtSize: '',
     // 기본은 회원. 비회원만 신청자가 체크를 해제한다.
     isLocalMember: true,
+    // 기본은 우리 클럽 사람. 외부 선수만 체크를 해제한다.
+    isClubMember: true,
   };
 }

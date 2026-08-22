@@ -30,6 +30,7 @@ function makeInput(
         phoneNumber: '010-1111-2222',
         tshirtSize: 'L',
         isLocalMember: true,
+        isClubMember: true,
         order: 0,
       },
       {
@@ -40,6 +41,7 @@ function makeInput(
         phoneNumber: '010-3333-4444',
         tshirtSize: 'XL',
         isLocalMember: true,
+        isClubMember: true,
         order: 1,
       },
     ],

@@ -98,6 +98,8 @@ const playerSchema = z.object({
   tshirtSize: z.string().trim().nullable().optional(),
   // 추가금 미사용 대회에서는 서버가 항상 true로 덮으므로 기본값을 둔다
   isLocalMember: z.boolean().default(true),
+  // 우리 클럽 소속 여부. 금액과 무관해 항상 그대로 저장한다.
+  isClubMember: z.boolean().default(true),
   order: z.number().int().min(0).default(0),
 });
 
