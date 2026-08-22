@@ -5,6 +5,8 @@ import type {
 } from '@/lib/tournament/groupEntriesByEvent';
 
 interface EventGroupListProps {
+  /** 회원 기준 라벨. null이면 회원 여부를 표시하지 않는다 */
+  memberLabel?: string | null;
   groups: EventGroup[];
   useTeamName: boolean;
 }
@@ -18,7 +20,11 @@ function TeamPlayerNames({ team }: { team: GroupedTeam }) {
   );
 }
 
-function EventGroupList({ groups, useTeamName }: EventGroupListProps) {
+function EventGroupList({
+  groups,
+  useTeamName,
+  memberLabel,
+}: EventGroupListProps) {
   if (groups.length === 0) {
     return (
       <p className="rounded-md bg-gray-50 p-6 text-center text-sm text-gray-500">
@@ -77,6 +83,12 @@ function EventGroupList({ groups, useTeamName }: EventGroupListProps) {
                       <span>{player.birthDate || '-'}</span>
                       <span>{player.phoneNumber}</span>
                       <span>티셔츠 {player.tshirtSize ?? '-'}</span>
+                      {/* 추가금 대상자를 임원이 한눈에 보고 입금액을 대조한다. */}
+                      {memberLabel && !player.isLocalMember && (
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">
+                          {memberLabel} 아님
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>

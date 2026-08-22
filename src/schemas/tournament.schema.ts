@@ -30,6 +30,12 @@ export const tournamentInputSchema = z
     useTeamName: z.boolean(),
     tshirtSizes: z.array(z.string().trim().min(1)),
     bankAccount: z.string().trim().nullable().optional(),
+    memberLabel: z.string().trim().nullable().optional(),
+    nonMemberSurcharge: z
+      .number()
+      .int()
+      .min(0, '추가금은 0원 이상이어야 합니다.')
+      .default(0),
     ageGroups: z
       .array(z.string().trim().min(1))
       .min(1, '연령을 1개 이상 등록해주세요.'),
@@ -59,7 +65,15 @@ export const tournamentInputSchema = z
   .refine((input) => new Set(input.levels).size === input.levels.length, {
     message: '중복된 급수가 있습니다.',
     path: ['levels'],
-  });
+  })
+  // 추가금을 쓰면 신청 화면 체크박스에 표시할 기준 라벨이 반드시 필요하다
+  .refine(
+    (input) => input.nonMemberSurcharge === 0 || !!input.memberLabel?.trim(),
+    {
+      message: '추가금을 사용하려면 회원 기준 라벨을 입력해주세요.',
+      path: ['memberLabel'],
+    }
+  );
 
 const playerSchema = z.object({
   key: z.string().min(1),
@@ -82,6 +96,8 @@ const playerSchema = z.object({
     .refine(isValidPhoneNumber, '올바른 전화번호가 아닙니다.')
     .transform(formatPhoneNumber),
   tshirtSize: z.string().trim().nullable().optional(),
+  // 추가금 미사용 대회에서는 서버가 항상 true로 덮으므로 기본값을 둔다
+  isLocalMember: z.boolean().default(true),
   order: z.number().int().min(0).default(0),
 });
 

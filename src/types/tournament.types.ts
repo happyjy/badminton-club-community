@@ -61,6 +61,8 @@ export interface TournamentInput {
   useTeamName: boolean;
   tshirtSizes: string[];
   bankAccount?: string | null;
+  memberLabel?: string | null;
+  nonMemberSurcharge: number;
   ageGroups: string[];
   levels: string[];
   eventTypes: EventTypeInput[];
@@ -74,6 +76,7 @@ export interface PlayerInput {
   birthDate: string;
   phoneNumber: string;
   tshirtSize?: string | null;
+  isLocalMember: boolean;
   order: number;
 }
 

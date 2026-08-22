@@ -40,6 +40,7 @@ function renderEntrySummary(options?: {
             eventTypes={[] as unknown as TournamentEventType[]}
             useTeamName={false}
             bankAccount={null}
+            nonMemberSurcharge={0}
           />
           <button type="submit">제출</button>
         </form>

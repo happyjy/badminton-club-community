@@ -144,6 +144,8 @@ export default withAuth(async function handler(
             useTeamName: input.useTeamName,
             tshirtSizes: input.tshirtSizes,
             bankAccount: input.bankAccount ?? null,
+            memberLabel: input.memberLabel?.trim() || null,
+            nonMemberSurcharge: input.nonMemberSurcharge,
             ageGroups: input.ageGroups,
             levels: input.levels,
           },

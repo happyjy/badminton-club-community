@@ -17,6 +17,8 @@ import PlayerListField from '@/components/organisms/tournament/entry/PlayerListF
 function renderPlayerListField(options?: {
   players?: Partial<EntryFormValues['players'][number]>[];
   onSubmit?: (values: EntryFormValues) => void;
+  memberLabel?: string | null;
+  nonMemberSurcharge?: number;
 }) {
   const players = (options?.players ?? [{}]).map((override, index) => ({
     ...createEmptyPlayer(index),
@@ -41,7 +43,11 @@ function renderPlayerListField(options?: {
             options?.onSubmit?.(values)
           )}
         >
-          <PlayerListField tshirtSizes={[]} />
+          <PlayerListField
+            tshirtSizes={[]}
+            memberLabel={options?.memberLabel ?? null}
+            nonMemberSurcharge={options?.nonMemberSurcharge ?? 0}
+          />
           <button type="submit">제출</button>
         </form>
       </FormProvider>
@@ -306,5 +312,80 @@ describe('PlayerListField - 선수가 여러 명일 때', () => {
 
     const messages = await screen.findAllByText('올바른 생년월일이 아닙니다.');
     expect(messages).toHaveLength(1);
+  });
+});
+
+describe('PlayerListField - 비회원 추가금', () => {
+  const SURCHARGE = { memberLabel: '영등포구 회원', nonMemberSurcharge: 10000 };
+
+  it('추가금을 쓰지 않는 대회면 회원 여부를 묻지 않는다', () => {
+    renderPlayerListField();
+
+    expect(screen.queryByText('영등포구 회원')).toBeNull();
+  });
+
+  it('라벨만 있고 추가금이 0이면 체크박스를 숨긴다', () => {
+    renderPlayerListField({
+      memberLabel: '영등포구 회원',
+      nonMemberSurcharge: 0,
+    });
+
+    expect(screen.queryByText('영등포구 회원')).toBeNull();
+  });
+
+  it('추가금을 쓰면 대회가 정한 라벨과 금액을 보여준다', () => {
+    renderPlayerListField(SURCHARGE);
+
+    expect(screen.getByText('영등포구 회원')).toBeTruthy();
+    expect(
+      screen.getByText(/해제하면 참가 종목마다 10,000원이 추가됩니다./)
+    ).toBeTruthy();
+  });
+
+  it('기본값은 회원(체크됨)이다', () => {
+    renderPlayerListField(SURCHARGE);
+
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+  });
+
+  it('체크를 해제하면 isLocalMember=false로 제출한다', async () => {
+    const onSubmit = jest.fn();
+    renderPlayerListField({
+      ...SURCHARGE,
+      players: [
+        {
+          name: '김철수',
+          gender: '남',
+          birthDate: '1988-05-05',
+          phoneNumber: '010-3333-4444',
+        },
+      ],
+      onSubmit,
+    });
+
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByText('제출'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
+    const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
+    expect(submitted.players[0].isLocalMember).toBe(false);
+  });
+
+  it('선수마다 회원 여부를 따로 관리한다', () => {
+    renderPlayerListField({
+      ...SURCHARGE,
+      players: [{ isLocalMember: true }, { isLocalMember: true }],
+    });
+
+    const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
+    expect(checkboxes).toHaveLength(2);
+
+    fireEvent.click(checkboxes[1]);
+
+    // 두 번째만 해제되고 첫 번째는 유지되어야 한다.
+    expect(checkboxes[0].checked).toBe(true);
+    expect(checkboxes[1].checked).toBe(false);
   });
 });

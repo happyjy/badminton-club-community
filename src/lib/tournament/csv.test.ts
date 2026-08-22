@@ -21,6 +21,7 @@ const ENTRY = {
             birthDate: '1990-01-01',
             phoneNumber: '010-1111-2222',
             tshirtSize: 'L',
+            isLocalMember: true,
           },
         },
         {
@@ -30,6 +31,7 @@ const ENTRY = {
             birthDate: '1988-05-05',
             phoneNumber: '010-3333-4444',
             tshirtSize: 'XL',
+            isLocalMember: false,
           },
         },
       ],
@@ -54,6 +56,7 @@ describe('toCsvRows', () => {
       '1990-01-01',
       '010-1111-2222',
       'L',
+      '회원',
       '번개클럽',
       '홍길동',
       '30000',
@@ -89,12 +92,12 @@ describe('toCsvRows', () => {
     };
     const [first] = toCsvRows([entry]);
     expect(first[7]).toBe('');
-    expect(first[8]).toBe('');
+    expect(first[9]).toBe('');
   });
 
   it('입금 상태를 한글로 변환한다', () => {
     const pending = toCsvRows([{ ...ENTRY, paymentStatus: 'PENDING' }]);
-    expect(pending[0][11]).toBe('입금대기');
+    expect(pending[0][12]).toBe('입금대기');
   });
 
   it('헤더 길이와 행 길이가 같다', () => {
@@ -122,5 +125,19 @@ describe('toCsvString', () => {
   it('행을 개행으로 잇는다', () => {
     const csv = toCsvString([['a'], ['b']]);
     expect(csv.replace('﻿', '')).toBe('a\r\nb');
+  });
+});
+
+describe('toCsvRows - 회원 여부', () => {
+  it('회원 여부를 주최측이 읽을 수 있는 말로 적는다', () => {
+    const [member, nonMember] = toCsvRows([ENTRY]);
+
+    // 티셔츠(7) 다음 열이 회원 여부다.
+    expect(member[8]).toBe('회원');
+    expect(nonMember[8]).toBe('비회원');
+  });
+
+  it('헤더에 회원 여부 열이 있다', () => {
+    expect(CSV_HEADER[8]).toBe('회원여부');
   });
 });

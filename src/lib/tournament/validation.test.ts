@@ -29,6 +29,7 @@ function makeInput(
         birthDate: '1990-01-01',
         phoneNumber: '010-1111-2222',
         tshirtSize: 'L',
+        isLocalMember: true,
         order: 0,
       },
       {
@@ -38,6 +39,7 @@ function makeInput(
         birthDate: '1988-05-05',
         phoneNumber: '010-3333-4444',
         tshirtSize: 'XL',
+        isLocalMember: true,
         order: 1,
       },
     ],

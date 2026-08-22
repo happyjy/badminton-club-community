@@ -65,6 +65,7 @@ function TournamentApplyPage() {
         birthDate: player.birthDate,
         phoneNumber: player.phoneNumber,
         tshirtSize: player.tshirtSize ?? '',
+        isLocalMember: player.isLocalMember,
       })),
       events: myEntry.entryEvents
         .filter((event) => event.status === 'ACTIVE')
@@ -105,6 +106,7 @@ function TournamentApplyPage() {
             birthDate: player.birthDate,
             phoneNumber: player.phoneNumber,
             tshirtSize: player.tshirtSize || null,
+            isLocalMember: player.isLocalMember,
             order: index,
           })),
           events: values.events.map((event) => ({
@@ -162,7 +164,11 @@ function TournamentApplyPage() {
 
       <FormProvider {...methods}>
         <form onSubmit={onSubmitForm} className="space-y-8">
-          <PlayerListField tshirtSizes={detail.tournament.tshirtSizes} />
+          <PlayerListField
+            tshirtSizes={detail.tournament.tshirtSizes}
+            memberLabel={detail.tournament.memberLabel}
+            nonMemberSurcharge={detail.tournament.nonMemberSurcharge}
+          />
           <EventListField
             eventTypes={detail.tournament.eventTypes}
             ageGroups={detail.tournament.ageGroups}
@@ -172,6 +178,7 @@ function TournamentApplyPage() {
             eventTypes={detail.tournament.eventTypes}
             useTeamName={detail.tournament.useTeamName}
             bankAccount={detail.tournament.bankAccount}
+            nonMemberSurcharge={detail.tournament.nonMemberSurcharge}
           />
 
           {/* 개별 필드 메시지가 화면 밖에 있으면 버튼이 먹통처럼 보인다.

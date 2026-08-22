@@ -196,6 +196,11 @@ function TournamentAdminPage() {
         <EventGroupList
           groups={eventGroups}
           useTeamName={detail?.tournament.useTeamName ?? false}
+          memberLabel={
+            (detail?.tournament.nonMemberSurcharge ?? 0) > 0
+              ? detail?.tournament.memberLabel
+              : null
+          }
         />
       )}
     </div>
