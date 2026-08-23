@@ -423,20 +423,18 @@ describe('PlayerListField - 외부 신청', () => {
 
   it('외부 신청 폼을 제출하면 isClubMember가 항상 false로 제출된다', async () => {
     const onSubmit = jest.fn();
-    // 외부 신청 페이지(Task 10)는 defaultValues.isClubMember를 false로 둔다.
-    // disabled 체크박스는 register가 관리하는 값에서 빠지므로, 여기서
-    // isClubMember가 false로 "고정"되지 않고 그냥 register가 안 붙는 것뿐이라면
-    // 제출 값은 defaultValues인 false가 그대로 유지된다. 반대로 register가
-    // disabled 여부와 무관하게 값을 계속 관리하려 들면(예: 체크 안 된 채로
-    // value=false가 아니라 필드 자체가 undefined가 되는 구현이면) 이 값이
-    // undefined로 빠질 수 있다. 그런 회귀를 잡기 위한 테스트다.
+    // defaultValues가 이미 true인 선수로 시작한다. disabled 체크박스는
+    // 화면 조작만 막을 뿐 폼 상태의 기존 값은 그대로 남으므로, 컴포넌트가
+    // 값 자체를 강제로 false로 되돌리지 않으면 제출값이 true로 새어나간다.
+    // EntrySummary는 이 값으로 추가금을 계산하므로, true가 새어나가면
+    // 사용자에게 잘못된 금액을 보여주게 된다.
     renderPlayerListField({
       memberLabel: '당산클럽 소속',
       nonMemberSurcharge: 10000,
       isExternal: true,
       players: [
         {
-          isClubMember: false,
+          isClubMember: true,
           name: '홍길동',
           gender: '남',
           birthDate: '1990-03-15',
@@ -452,5 +450,56 @@ describe('PlayerListField - 외부 신청', () => {
 
     const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
     expect(submitted.players[0].isClubMember).toBe(false);
+  });
+
+  it('외부 신청에서 "선수 추가"로 새로 만든 선수도 isClubMember가 false로 제출된다', async () => {
+    const onSubmit = jest.fn();
+    // createEmptyPlayer의 기본값은 isClubMember: true다. 외부 폼에서
+    // "선수 추가"로 새로 생기는 선수도 예외 없이 false로 강제되어야 한다.
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+      isExternal: true,
+      players: [
+        {
+          name: '홍길동',
+          gender: '남',
+          birthDate: '1990-03-15',
+          phoneNumber: '010-1111-2222',
+        },
+      ],
+      onSubmit,
+    });
+
+    fireEvent.click(screen.getByText('+ 선수 추가'));
+
+    // 두 번째 선수 카드 안에서 이름 입력창을 찾는다. FormField의 라벨은
+    // htmlFor/id로 연결되어 있지 않아 getByLabelText를 쓸 수 없으므로,
+    // "선수 2" 헤더가 속한 카드로 범위를 좁혀 순수 텍스트 입력(이름)을 찾는다.
+    const secondCardHeading = screen.getByText('선수 2');
+    const secondCard = secondCardHeading.closest('div.space-y-3');
+    if (!secondCard) throw new Error('선수 2 카드가 없습니다');
+    const nameInput = secondCard.querySelector(
+      'input[type="text"]:not([placeholder])'
+    ) as HTMLInputElement;
+    const genderSelect = secondCard.querySelector(
+      'select'
+    ) as HTMLSelectElement;
+
+    fireEvent.change(nameInput, { target: { value: '김철수' } });
+    fireEvent.change(genderSelect, { target: { value: '남' } });
+    fireEvent.change(getBirthDateInput(1), { target: { value: '19910101' } });
+    fireEvent.change(getPhoneNumberInput(1), {
+      target: { value: '010-2222-3333' },
+    });
+
+    fireEvent.click(screen.getByText('제출'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
+    const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
+    expect(submitted.players).toHaveLength(2);
+    expect(submitted.players[0].isClubMember).toBe(false);
+    expect(submitted.players[1].isClubMember).toBe(false);
   });
 });

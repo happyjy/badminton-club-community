@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 
 import { Input } from '@/components/atoms/inputs/Input';
@@ -41,6 +43,7 @@ function PlayerListField({
     control,
     register,
     watch,
+    setValue,
     formState: { errors },
   } = useFormContext<EntryFormValues>();
   const { fields, append, remove } = useFieldArray({
@@ -50,6 +53,22 @@ function PlayerListField({
 
   const events = watch('events');
   const players = watch('players');
+
+  /**
+   * 외부 신청자는 정의상 비회원이므로 소속 여부를 체크박스로 잠그는 것만으론
+   * 부족하다. disabled input은 값 변경을 막을 뿐 기존 폼 값(defaultValues나
+   * "선수 추가"로 새로 생긴 필드의 기본값 true)은 그대로 남아 제출된다.
+   * 화면(checked)뿐 아니라 실제 제출값도 항상 false이도록 폼 상태 자체를
+   * 강제한다. "선수 추가"로 나중에 생기는 선수도 이 effect가 다시 잡아준다.
+   */
+  useEffect(() => {
+    if (!isExternal) return;
+    players?.forEach((player, index) => {
+      if (player.isClubMember !== false) {
+        setValue(`players.${index}.isClubMember`, false);
+      }
+    });
+  }, [isExternal, players, setValue]);
   const useTshirt = tshirtSizes.length > 0;
   // 라벨이 있어야 무엇을 묻는지 알 수 있으므로 둘 다 있어야 노출한다
   const useSurcharge = nonMemberSurcharge > 0 && !!memberLabel;
@@ -224,10 +243,9 @@ function PlayerListField({
                   type="checkbox"
                   className="mt-0.5 h-4 w-4"
                   // 외부 신청자는 정의상 비회원이므로 조작할 수 없다.
-                  // disabled된 input은 폼 값에서 빠지므로(register의 disabled 옵션과
-                  // 동일한 문제), 화면 표시(checked)와 제출 값(defaultValues) 양쪽을
-                  // 명시적으로 false로 고정한다. 신청 페이지(Task 10)도 외부 폼의
-                  // defaultValues.isClubMember를 false로 둔다.
+                  // disabled만으로는 표시(checked)만 고정될 뿐 폼 상태의 실제
+                  // 값은 그대로 남는다. 제출값은 위 useEffect가 강제로 false로
+                  // 되돌리므로 여기서는 그 값을 그대로 반영해 보여주기만 한다.
                   {...register(`players.${index}.isClubMember`)}
                   disabled={isExternal}
                   checked={isExternal ? false : players?.[index]?.isClubMember}
