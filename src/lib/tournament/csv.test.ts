@@ -6,6 +6,8 @@ const ENTRY = {
   depositorName: '홍길동',
   teamName: '번개클럽',
   paymentStatus: 'CONFIRMED' as const,
+  isExternal: false,
+  contactPhone: null,
   entryEvents: [
     {
       status: 'ACTIVE' as const,
@@ -61,6 +63,8 @@ describe('toCsvRows', () => {
       '홍길동',
       '30000',
       '입금확인',
+      '회원',
+      '',
     ]);
   });
 
@@ -139,5 +143,61 @@ describe('toCsvRows - 소속 여부', () => {
 
   it('헤더에 소속 여부 열이 있다', () => {
     expect(CSV_HEADER[8]).toBe('소속여부');
+  });
+});
+
+describe('toCsvRows - 외부 신청 구분', () => {
+  const baseEntry = {
+    depositorName: '김철수',
+    teamName: null,
+    paymentStatus: 'PENDING' as const,
+    entryEvents: [
+      {
+        status: 'ACTIVE' as const,
+        fee: 70000,
+        ageGroup: '30대',
+        level: '',
+        eventType: { name: '남자복식' },
+        eventPlayers: [
+          {
+            entryPlayer: {
+              name: '김철수',
+              gender: '남',
+              birthDate: '1990-01-01',
+              phoneNumber: '010-1111-2222',
+              tshirtSize: null,
+              isClubMember: false,
+            },
+          },
+        ],
+      },
+    ],
+  };
+
+  it('외부 신청은 신청경로를 외부로 표기한다', () => {
+    const rows = toCsvRows([
+      { ...baseEntry, isExternal: true, contactPhone: '010-1111-2222' },
+    ]);
+    expect(rows[0]).toContain('외부');
+    expect(rows[0]).toContain('010-1111-2222');
+  });
+
+  it('회원 신청은 신청경로를 회원으로 표기한다', () => {
+    const rows = toCsvRows([
+      { ...baseEntry, isExternal: false, contactPhone: null },
+    ]);
+    expect(rows[0]).toContain('회원');
+  });
+
+  it('헤더에 신청경로와 신청자연락처가 있다', () => {
+    expect(CSV_HEADER).toContain('신청경로');
+    expect(CSV_HEADER).toContain('신청자연락처');
+  });
+
+  it('헤더 길이와 행 길이가 항상 같다 — 어긋나면 엑셀에서 열이 밀린다', () => {
+    const rows = toCsvRows([
+      { ...baseEntry, isExternal: true, contactPhone: '010-1111-2222' },
+    ]);
+    expect(rows[0]).toHaveLength(CSV_HEADER.length);
   });
 });

@@ -110,7 +110,16 @@ function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-medium">{entry.clubMember?.name ?? '-'}</p>
+                  <p className="flex items-center gap-2 font-medium">
+                    <span>
+                      {entry.clubMember?.name ?? entry.contactName ?? '-'}
+                    </span>
+                    {entry.isExternal && (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-normal text-amber-800">
+                        외부 신청
+                      </span>
+                    )}
+                  </p>
                   {entry.teamName && (
                     <p className="text-xs text-gray-400">{entry.teamName}</p>
                   )}
@@ -170,7 +179,14 @@ function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
               return (
                 <tr key={entry.id} className="border-b align-top last:border-0">
                   <td className="py-3">
-                    {entry.clubMember?.name ?? '-'}
+                    <span className="inline-flex items-center gap-2">
+                      {entry.clubMember?.name ?? entry.contactName ?? '-'}
+                      {entry.isExternal && (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+                          외부 신청
+                        </span>
+                      )}
+                    </span>
                     {entry.teamName && (
                       <p className="text-xs text-gray-400">{entry.teamName}</p>
                     )}

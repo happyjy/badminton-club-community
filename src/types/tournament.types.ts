@@ -107,7 +107,7 @@ export type EntryEventWithDetail = EntryEvent & {
 export type EntryForAdmin = TournamentEntry & {
   players: EntryPlayer[];
   entryEvents: EntryEventWithDetail[];
-  clubMember: { id: number; name: string | null };
+  clubMember: { id: number; name: string | null } | null;
 };
 
 export type TournamentWithOptions = Tournament & {
