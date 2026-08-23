@@ -17,6 +17,8 @@ import {
   toPhoneDigits,
 } from '@/utils/phoneNumber';
 
+import { type SurchargeUnitValue } from '@/lib/tournament/fee';
+
 import {
   createEmptyPlayer,
   GENDER_OPTIONS,
@@ -27,8 +29,10 @@ interface PlayerListFieldProps {
   tshirtSizes: string[];
   /** 소속 기준 라벨 (예: 당산클럽 소속). 추가금 미사용 대회면 null */
   memberLabel: string | null;
-  /** 외부 선수 1인당 추가금. 0이면 소속 여부를 묻지 않는다 */
+  /** 외부 선수에게 붙는 추가금. 0이면 소속 여부를 묻지 않는다 */
   nonMemberSurcharge: number;
+  /** 추가금 부과 단위. 생략하면 1인당 */
+  surchargeUnit?: SurchargeUnitValue;
   /** 외부(비로그인) 신청 폼인지. true면 소속 체크박스를 잠근다 */
   isExternal?: boolean;
 }
@@ -37,6 +41,7 @@ function PlayerListField({
   tshirtSizes,
   memberLabel,
   nonMemberSurcharge,
+  surchargeUnit,
   isExternal = false,
 }: PlayerListFieldProps) {
   const {
@@ -72,6 +77,17 @@ function PlayerListField({
   const useTshirt = tshirtSizes.length > 0;
   // 라벨이 있어야 무엇을 묻는지 알 수 있으므로 둘 다 있어야 노출한다
   const useSurcharge = nonMemberSurcharge > 0 && !!memberLabel;
+  // 추가금 안내 문구는 부과 단위에 따라 뜻이 완전히 달라진다.
+  // 팀당 부과인데 "1인당"처럼 읽히면 외부 2명 팀이 두 배를 낼 것처럼 보인다.
+  const surchargeAmount = nonMemberSurcharge.toLocaleString();
+  const surchargeNotice =
+    surchargeUnit === 'PER_TEAM'
+      ? isExternal
+        ? `외부 신청은 참가 종목마다 ${surchargeAmount}원이 추가됩니다. (인원수와 무관하게 종목당 1회)`
+        : `${memberLabel}이 아닌 선수가 있으면 참가 종목마다 ${surchargeAmount}원이 추가됩니다. (인원수와 무관하게 종목당 1회)`
+      : isExternal
+        ? `외부 신청은 참가 종목마다 1인당 ${surchargeAmount}원이 추가됩니다.`
+        : `해제하면 참가 종목마다 1인당 ${surchargeAmount}원이 추가됩니다.`;
   const tshirtOptions = tshirtSizes.map((size) => ({
     value: size,
     label: size,
@@ -254,11 +270,7 @@ function PlayerListField({
                   <span className="font-medium text-gray-800">
                     {memberLabel}
                   </span>
-                  <span className="ml-2 text-gray-500">
-                    {isExternal
-                      ? `외부 신청은 참가 종목마다 ${nonMemberSurcharge.toLocaleString()}원이 추가됩니다.`
-                      : `해제하면 참가 종목마다 ${nonMemberSurcharge.toLocaleString()}원이 추가됩니다.`}
-                  </span>
+                  <span className="ml-2 text-gray-500">{surchargeNotice}</span>
                 </span>
               </label>
             )}

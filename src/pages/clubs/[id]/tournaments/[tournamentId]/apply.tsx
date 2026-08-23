@@ -194,6 +194,7 @@ function TournamentApplyPage() {
             tshirtSizes={detail.tournament.tshirtSizes}
             memberLabel={detail.tournament.memberLabel}
             nonMemberSurcharge={detail.tournament.nonMemberSurcharge}
+            surchargeUnit={detail.tournament.surchargeUnit}
           />
           <EventListField
             eventTypes={detail.tournament.eventTypes}

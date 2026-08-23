@@ -19,6 +19,7 @@ function renderPlayerListField(options?: {
   onSubmit?: (values: EntryFormValues) => void;
   memberLabel?: string | null;
   nonMemberSurcharge?: number;
+  surchargeUnit?: 'PER_PLAYER' | 'PER_TEAM';
   isExternal?: boolean;
 }) {
   const players = (options?.players ?? [{}]).map((override, index) => ({
@@ -48,6 +49,7 @@ function renderPlayerListField(options?: {
             tshirtSizes={[]}
             memberLabel={options?.memberLabel ?? null}
             nonMemberSurcharge={options?.nonMemberSurcharge ?? 0}
+            surchargeUnit={options?.surchargeUnit}
             isExternal={options?.isExternal}
           />
           <button type="submit">제출</button>
@@ -339,8 +341,9 @@ describe('PlayerListField - 외부 선수 추가금', () => {
     renderPlayerListField(SURCHARGE);
 
     expect(screen.getByText('영등포구 회원')).toBeTruthy();
+    // 부과 단위를 지정하지 않으면 기존 동작인 1인당 부과로 안내한다
     expect(
-      screen.getByText(/해제하면 참가 종목마다 10,000원이 추가됩니다./)
+      screen.getByText(/해제하면 참가 종목마다 1인당 10,000원이 추가됩니다./)
     ).toBeTruthy();
   });
 
@@ -501,5 +504,35 @@ describe('PlayerListField - 외부 신청', () => {
     expect(submitted.players).toHaveLength(2);
     expect(submitted.players[0].isClubMember).toBe(false);
     expect(submitted.players[1].isClubMember).toBe(false);
+  });
+});
+
+describe('PlayerListField - 추가금 부과 단위 안내', () => {
+  const SURCHARGE = { memberLabel: '당산클럽 소속', nonMemberSurcharge: 10000 };
+
+  it('팀당 부과면 인원수와 무관함을 알린다', () => {
+    renderPlayerListField({ ...SURCHARGE, surchargeUnit: 'PER_TEAM' });
+
+    // "1인당"으로 읽히면 외부 2명 팀이 두 배를 낼 것처럼 보인다
+    expect(screen.getByText(/인원수와 무관하게 종목당 1회/)).toBeTruthy();
+    expect(screen.queryByText(/1인당/)).toBeNull();
+  });
+
+  it('1인당 부과면 1인당임을 명시한다', () => {
+    renderPlayerListField({ ...SURCHARGE, surchargeUnit: 'PER_PLAYER' });
+
+    expect(screen.getByText(/1인당/)).toBeTruthy();
+    expect(screen.queryByText(/인원수와 무관/)).toBeNull();
+  });
+
+  it('외부 신청 폼에서도 팀당 부과를 그대로 알린다', () => {
+    renderPlayerListField({
+      ...SURCHARGE,
+      surchargeUnit: 'PER_TEAM',
+      isExternal: true,
+    });
+
+    expect(screen.getByText(/인원수와 무관하게 종목당 1회/)).toBeTruthy();
+    expect(screen.queryByText(/1인당/)).toBeNull();
   });
 });

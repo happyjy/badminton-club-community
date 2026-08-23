@@ -285,6 +285,7 @@ function ExternalTournamentApplyPage() {
             tshirtSizes={tournament.tshirtSizes}
             memberLabel={tournament.memberLabel}
             nonMemberSurcharge={tournament.nonMemberSurcharge}
+            surchargeUnit={tournament.surchargeUnit}
             isExternal
           />
           <EventListField
