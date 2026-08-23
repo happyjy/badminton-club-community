@@ -396,19 +396,18 @@ describe('PlayerListField - 외부 선수 추가금', () => {
 });
 
 describe('PlayerListField - 외부 신청', () => {
-  it('외부 신청이면 소속 체크박스가 비활성화되고 해제 상태다', () => {
+  it('외부 신청이면 소속 체크박스를 아예 보여주지 않는다', () => {
     renderPlayerListField({
       memberLabel: '당산클럽 소속',
       nonMemberSurcharge: 10000,
       isExternal: true,
     });
 
-    const checkbox = screen.getByRole('checkbox', {
-      name: /당산클럽 소속/,
-    }) as HTMLInputElement;
-
-    expect(checkbox.disabled).toBe(true);
-    expect(checkbox.checked).toBe(false);
+    // 외부 신청자는 정의상 비회원이라 고를 것이 없다.
+    // 조작 불가능한 체크박스가 남아 있으면 무언가 선택할 수 있는 것처럼 보인다.
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    // 대신 추가금이 붙는다는 사실은 그대로 알려야 한다
+    expect(screen.getByText(/외부 신청이라 참가 종목마다/)).toBeTruthy();
   });
 
   it('회원 신청이면 소속 체크박스를 조작할 수 있다', () => {
