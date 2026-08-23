@@ -17,6 +17,7 @@ import PlayerListField from '@/components/organisms/tournament/entry/PlayerListF
 import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
+import { isAcceptingEntries } from '@/lib/tournament/status';
 import { validateEntrySubmission } from '@/lib/tournament/validation';
 import {
   formatPhoneNumber,
@@ -59,20 +60,6 @@ interface ExternalTournament {
   ageGroups: string[];
   levels: string[];
   eventTypes: TournamentEventType[];
-}
-
-function isTournamentOpen(tournament: ExternalTournament, now: Date): boolean {
-  if (tournament.status !== 'OPEN') return false;
-  if (now.getTime() > new Date(tournament.applyDeadline).getTime()) {
-    return false;
-  }
-  if (
-    tournament.applyStartAt &&
-    now.getTime() < new Date(tournament.applyStartAt).getTime()
-  ) {
-    return false;
-  }
-  return true;
 }
 
 function ExternalTournamentApplyPage() {
@@ -210,7 +197,19 @@ function ExternalTournamentApplyPage() {
       </div>
     );
   }
-  if (!isTournamentOpen(tournament, new Date())) {
+  // 신청 가능 여부 규칙은 status.ts 한 곳에만 둔다. fetch로 받은 JSON은
+  // 날짜가 ISO 문자열로 오므로 재사용 전에 Date로 변환한다.
+  const isOpen = isAcceptingEntries(
+    {
+      status: tournament.status,
+      applyStartAt: tournament.applyStartAt
+        ? new Date(tournament.applyStartAt)
+        : null,
+      applyDeadline: new Date(tournament.applyDeadline),
+    },
+    new Date()
+  );
+  if (!isOpen) {
     return (
       <div className="p-6 text-center text-gray-500">
         현재 신청할 수 없는 대회입니다.
