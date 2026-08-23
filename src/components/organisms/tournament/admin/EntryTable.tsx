@@ -15,6 +15,8 @@ interface EntryTableProps {
     entryId: string,
     paymentStatus: EntryPaymentStatus
   ) => void;
+  /** 외부 신청서의 선수 정보 수정 요청. 없으면 수정 버튼을 숨긴다 */
+  onEditPlayers?: (entry: EntryForAdmin) => void;
 }
 
 const PAYMENT_STATUSES: EntryPaymentStatus[] = [
@@ -87,7 +89,11 @@ function PaymentStatusSelect({
 }
 
 /** 신청서 단위 뷰 — 통장 대조용 */
-function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
+function EntryTable({
+  entries,
+  onChangePaymentStatus,
+  onEditPlayers,
+}: EntryTableProps) {
   if (entries.length === 0) {
     return (
       <p className="rounded-md bg-gray-50 p-6 text-center text-sm text-gray-500">
@@ -124,6 +130,15 @@ function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
                     <p className="text-xs text-gray-400">{entry.teamName}</p>
                   )}
                   <ExternalPlayers names={getExternalPlayers(entry)} />
+                  {entry.isExternal && onEditPlayers && (
+                    <button
+                      type="button"
+                      onClick={() => onEditPlayers(entry)}
+                      className="mt-1 text-xs text-blue-600 underline"
+                    >
+                      선수 정보 수정
+                    </button>
+                  )}
                 </div>
                 <PaymentStatusSelect
                   entry={entry}
@@ -191,6 +206,15 @@ function EntryTable({ entries, onChangePaymentStatus }: EntryTableProps) {
                       <p className="text-xs text-gray-400">{entry.teamName}</p>
                     )}
                     <ExternalPlayers names={getExternalPlayers(entry)} />
+                    {entry.isExternal && onEditPlayers && (
+                      <button
+                        type="button"
+                        onClick={() => onEditPlayers(entry)}
+                        className="mt-1 block text-xs text-blue-600 underline"
+                      >
+                        선수 정보 수정
+                      </button>
+                    )}
                   </td>
                   <td className="py-3">{entry.depositorName}</td>
                   <td className="py-3">

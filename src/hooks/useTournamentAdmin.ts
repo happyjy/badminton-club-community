@@ -48,6 +48,39 @@ export function useUpdatePaymentStatus(
   });
 }
 
+/** 관리자가 외부 신청서의 선수 정보를 대신 수정한다 */
+export function useUpdateEntryPlayers(
+  clubId: string | undefined,
+  tournamentId: string | undefined
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      entryId: string;
+      players: Array<{
+        id: string;
+        name: string;
+        gender: string;
+        birthDate: string;
+        phoneNumber: string;
+        tshirtSize: string | null;
+      }>;
+    }) => {
+      const response = await axios.patch(
+        `/api/clubs/${clubId}/tournaments/${tournamentId}/entries/${params.entryId}/players`,
+        { players: params.players }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['adminEntries', clubId, tournamentId],
+      });
+    },
+  });
+}
+
 export function useDeleteTournament(clubId: string | undefined) {
   const queryClient = useQueryClient();
 

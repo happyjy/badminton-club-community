@@ -6,6 +6,8 @@ import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 
+import { type SurchargeUnitValue } from '@/lib/tournament/fee';
+
 import {
   getBirthDateError,
   toBirthDateDigits,
@@ -16,8 +18,6 @@ import {
   getPhoneNumberError,
   toPhoneDigits,
 } from '@/utils/phoneNumber';
-
-import { type SurchargeUnitValue } from '@/lib/tournament/fee';
 
 import {
   createEmptyPlayer,
