@@ -44,9 +44,7 @@ export const tournamentInputSchema = z
       .max(2, '최소 인원은 2명을 넘을 수 없습니다.')
       .default(0),
     allowExternalEntry: z.boolean().default(false),
-    surchargeUnit: z
-      .enum(['PER_PLAYER', 'PER_TEAM'])
-      .default('PER_PLAYER'),
+    surchargeUnit: z.enum(['PER_PLAYER', 'PER_TEAM']).default('PER_PLAYER'),
     ageGroups: z
       .array(z.string().trim().min(1))
       .min(1, '연령을 1개 이상 등록해주세요.'),
