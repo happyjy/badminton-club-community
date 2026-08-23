@@ -245,7 +245,7 @@ export type EventFeeInput = {
 
 ## 7. 테스트
 
-기존 vitest 패턴을 따른다.
+기존 Jest 패턴을 따른다 (`@jest/globals`, `npm test`).
 
 | 대상 | 내용 |
 |---|---|
