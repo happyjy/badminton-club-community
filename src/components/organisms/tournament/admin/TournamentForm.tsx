@@ -172,6 +172,51 @@ function TournamentForm({
               두면 외부 선수끼리만 팀을 짤 수 없습니다. 0이면 제한 없음.
             </p>
           </FormField>
+
+          {methods.watch('nonMemberSurcharge') > 0 && (
+            <FormField label="추가금 부과 단위">
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    value="PER_PLAYER"
+                    {...methods.register('surchargeUnit')}
+                  />
+                  1인당
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    value="PER_TEAM"
+                    {...methods.register('surchargeUnit')}
+                  />
+                  팀당
+                </label>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                팀당으로 두면 한 종목에 외부 선수가 몇 명이든 추가금이 1회만
+                붙습니다.
+              </p>
+            </FormField>
+          )}
+
+          <FormField label="외부 신청">
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4"
+                {...methods.register('allowExternalEntry')}
+              />
+              <span>
+                <span className="font-medium text-gray-800">
+                  로그인 없이 신청할 수 있는 공개 링크를 연다
+                </span>
+                <span className="ml-2 text-gray-500">
+                  링크를 아는 사람은 누구나 신청할 수 있습니다.
+                </span>
+              </span>
+            </label>
+          </FormField>
         </section>
 
         <section className="space-y-4">

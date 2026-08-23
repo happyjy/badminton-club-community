@@ -111,4 +111,60 @@ describe('calculateEventFee', () => {
     });
     expect(result).toBe(70000);
   });
+
+  describe('PER_TEAM 부과 단위', () => {
+    it('외부 선수가 2명이어도 추가금을 1회만 더한다', () => {
+      const result = calculateEventFee({
+        baseFee: 60000,
+        surcharge: 10000,
+        unit: 'PER_TEAM',
+        playerKeys: ['a', 'b'],
+        players: [player('a', false), player('b', false)],
+      });
+      expect(result).toBe(70000);
+    });
+
+    it('외부 선수가 1명이어도 추가금을 1회 더한다', () => {
+      const result = calculateEventFee({
+        baseFee: 60000,
+        surcharge: 10000,
+        unit: 'PER_TEAM',
+        playerKeys: ['a', 'b'],
+        players: [player('a', true), player('b', false)],
+      });
+      expect(result).toBe(70000);
+    });
+
+    it('모두 소속이면 추가금이 붙지 않는다', () => {
+      const result = calculateEventFee({
+        baseFee: 60000,
+        surcharge: 10000,
+        unit: 'PER_TEAM',
+        playerKeys: ['a', 'b'],
+        players: [player('a', true), player('b', true)],
+      });
+      expect(result).toBe(60000);
+    });
+
+    it('추가금이 0원이면 단위와 무관하게 기본 참가비만 받는다', () => {
+      const result = calculateEventFee({
+        baseFee: 60000,
+        surcharge: 0,
+        unit: 'PER_TEAM',
+        playerKeys: ['a', 'b'],
+        players: [player('a', false), player('b', false)],
+      });
+      expect(result).toBe(60000);
+    });
+
+    it('unit을 생략하면 기존 동작(1인당)을 유지한다', () => {
+      const result = calculateEventFee({
+        baseFee: 60000,
+        surcharge: 10000,
+        playerKeys: ['a', 'b'],
+        players: [player('a', false), player('b', false)],
+      });
+      expect(result).toBe(80000);
+    });
+  });
 });

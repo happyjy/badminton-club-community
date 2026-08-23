@@ -456,3 +456,82 @@ describe('validateEntrySubmission - 팀당 최소 소속 인원', () => {
     expect(result.ok).toBe(false);
   });
 });
+
+describe('validateEntrySubmission - 외부 신청', () => {
+  const tournament = {
+    ...TOURNAMENT,
+    memberLabel: '당산클럽 소속',
+    minClubMembersPerTeam: 1,
+  };
+
+  it('외부 신청이면 최소 소속 인원 검증을 면제한다', () => {
+    const result = validateEntrySubmission(
+      makeInput({
+        players: [
+          { ...makeInput().players[0], isClubMember: false },
+          { ...makeInput().players[1], isClubMember: false },
+        ],
+      }),
+      tournament,
+      { isExternal: true }
+    );
+    expect(result.ok).toBe(true);
+  });
+
+  it('회원 신청이면 최소 소속 인원 검증을 그대로 적용한다', () => {
+    const result = validateEntrySubmission(
+      makeInput({
+        players: [
+          { ...makeInput().players[0], isClubMember: false },
+          { ...makeInput().players[1], isClubMember: false },
+        ],
+      }),
+      tournament
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it('외부 신청이어도 종목 인원 수가 맞지 않으면 거부한다', () => {
+    const result = validateEntrySubmission(
+      makeInput({
+        players: [
+          { ...makeInput().players[0], isClubMember: false },
+          { ...makeInput().players[1], isClubMember: false },
+        ],
+        events: [
+          {
+            eventTypeId: 'et-double',
+            ageGroup: '30대',
+            level: 'A조',
+            playerKeys: ['p1'],
+          },
+        ],
+      }),
+      tournament,
+      { isExternal: true }
+    );
+    expect(result.ok).toBe(false);
+  });
+
+  it('외부 신청이어도 선택할 수 없는 연령이면 거부한다', () => {
+    const result = validateEntrySubmission(
+      makeInput({
+        players: [
+          { ...makeInput().players[0], isClubMember: false },
+          { ...makeInput().players[1], isClubMember: false },
+        ],
+        events: [
+          {
+            eventTypeId: 'et-double',
+            ageGroup: '99대',
+            level: 'A조',
+            playerKeys: ['p1', 'p2'],
+          },
+        ],
+      }),
+      tournament,
+      { isExternal: true }
+    );
+    expect(result.ok).toBe(false);
+  });
+});

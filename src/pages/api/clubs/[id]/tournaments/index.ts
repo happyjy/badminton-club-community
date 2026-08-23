@@ -82,6 +82,8 @@ export default withAuth(async function handler(
           memberLabel: input.memberLabel?.trim() || null,
           nonMemberSurcharge: input.nonMemberSurcharge,
           minClubMembersPerTeam: input.minClubMembersPerTeam,
+          allowExternalEntry: input.allowExternalEntry,
+          surchargeUnit: input.surchargeUnit,
           ageGroups: input.ageGroups,
           levels: input.levels,
           createdBy: member.id,

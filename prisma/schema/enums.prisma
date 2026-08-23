@@ -44,3 +44,9 @@ enum EntryEventStatus {
   ACTIVE
   CANCELED
 }
+
+// 비회원 추가금 부과 단위
+enum SurchargeUnit {
+  PER_PLAYER  // 외부 선수 1인당 부과
+  PER_TEAM    // 종목당 1회 부과 (외부 선수가 1명이라도 있으면)
+}

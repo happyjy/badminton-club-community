@@ -19,6 +19,7 @@ function renderPlayerListField(options?: {
   onSubmit?: (values: EntryFormValues) => void;
   memberLabel?: string | null;
   nonMemberSurcharge?: number;
+  isExternal?: boolean;
 }) {
   const players = (options?.players ?? [{}]).map((override, index) => ({
     ...createEmptyPlayer(index),
@@ -47,6 +48,7 @@ function renderPlayerListField(options?: {
             tshirtSizes={[]}
             memberLabel={options?.memberLabel ?? null}
             nonMemberSurcharge={options?.nonMemberSurcharge ?? 0}
+            isExternal={options?.isExternal}
           />
           <button type="submit">제출</button>
         </form>
@@ -387,5 +389,117 @@ describe('PlayerListField - 외부 선수 추가금', () => {
     // 두 번째만 해제되고 첫 번째는 유지되어야 한다.
     expect(checkboxes[0].checked).toBe(true);
     expect(checkboxes[1].checked).toBe(false);
+  });
+});
+
+describe('PlayerListField - 외부 신청', () => {
+  it('외부 신청이면 소속 체크박스가 비활성화되고 해제 상태다', () => {
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+      isExternal: true,
+    });
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /당산클럽 소속/,
+    }) as HTMLInputElement;
+
+    expect(checkbox.disabled).toBe(true);
+    expect(checkbox.checked).toBe(false);
+  });
+
+  it('회원 신청이면 소속 체크박스를 조작할 수 있다', () => {
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+    });
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /당산클럽 소속/,
+    }) as HTMLInputElement;
+
+    expect(checkbox.disabled).toBe(false);
+  });
+
+  it('외부 신청 폼을 제출하면 isClubMember가 항상 false로 제출된다', async () => {
+    const onSubmit = jest.fn();
+    // defaultValues가 이미 true인 선수로 시작한다. disabled 체크박스는
+    // 화면 조작만 막을 뿐 폼 상태의 기존 값은 그대로 남으므로, 컴포넌트가
+    // 값 자체를 강제로 false로 되돌리지 않으면 제출값이 true로 새어나간다.
+    // EntrySummary는 이 값으로 추가금을 계산하므로, true가 새어나가면
+    // 사용자에게 잘못된 금액을 보여주게 된다.
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+      isExternal: true,
+      players: [
+        {
+          isClubMember: true,
+          name: '홍길동',
+          gender: '남',
+          birthDate: '1990-03-15',
+          phoneNumber: '010-1111-2222',
+        },
+      ],
+      onSubmit,
+    });
+
+    fireEvent.click(screen.getByText('제출'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
+    const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
+    expect(submitted.players[0].isClubMember).toBe(false);
+  });
+
+  it('외부 신청에서 "선수 추가"로 새로 만든 선수도 isClubMember가 false로 제출된다', async () => {
+    const onSubmit = jest.fn();
+    // createEmptyPlayer의 기본값은 isClubMember: true다. 외부 폼에서
+    // "선수 추가"로 새로 생기는 선수도 예외 없이 false로 강제되어야 한다.
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+      isExternal: true,
+      players: [
+        {
+          name: '홍길동',
+          gender: '남',
+          birthDate: '1990-03-15',
+          phoneNumber: '010-1111-2222',
+        },
+      ],
+      onSubmit,
+    });
+
+    fireEvent.click(screen.getByText('+ 선수 추가'));
+
+    // 두 번째 선수 카드 안에서 이름 입력창을 찾는다. FormField의 라벨은
+    // htmlFor/id로 연결되어 있지 않아 getByLabelText를 쓸 수 없으므로,
+    // "선수 2" 헤더가 속한 카드로 범위를 좁혀 순수 텍스트 입력(이름)을 찾는다.
+    const secondCardHeading = screen.getByText('선수 2');
+    const secondCard = secondCardHeading.closest('div.space-y-3');
+    if (!secondCard) throw new Error('선수 2 카드가 없습니다');
+    const nameInput = secondCard.querySelector(
+      'input[type="text"]:not([placeholder])'
+    ) as HTMLInputElement;
+    const genderSelect = secondCard.querySelector(
+      'select'
+    ) as HTMLSelectElement;
+
+    fireEvent.change(nameInput, { target: { value: '김철수' } });
+    fireEvent.change(genderSelect, { target: { value: '남' } });
+    fireEvent.change(getBirthDateInput(1), { target: { value: '19910101' } });
+    fireEvent.change(getPhoneNumberInput(1), {
+      target: { value: '010-2222-3333' },
+    });
+
+    fireEvent.click(screen.getByText('제출'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
+    const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
+    expect(submitted.players).toHaveLength(2);
+    expect(submitted.players[0].isClubMember).toBe(false);
+    expect(submitted.players[1].isClubMember).toBe(false);
   });
 });

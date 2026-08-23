@@ -7,6 +7,10 @@ export type CsvEntry = {
   depositorName: string;
   teamName: string | null;
   paymentStatus: EntryPaymentStatus;
+  /** 외부(비로그인) 신청 여부 */
+  isExternal: boolean;
+  /** 외부 신청자의 연락처. 회원 신청서에는 없다 */
+  contactPhone: string | null;
   entryEvents: Array<{
     status: EntryEventStatus;
     fee: number;
@@ -40,6 +44,8 @@ export const CSV_HEADER = [
   '입금자명',
   '참가비',
   '입금상태',
+  '신청경로',
+  '신청자연락처',
 ];
 
 const PAYMENT_STATUS_LABEL: Record<EntryPaymentStatus, string> = {
@@ -71,6 +77,8 @@ export function toCsvRows(entries: CsvEntry[]): string[][] {
           entry.depositorName,
           String(event.fee),
           PAYMENT_STATUS_LABEL[entry.paymentStatus],
+          entry.isExternal ? '외부' : '회원',
+          entry.contactPhone ?? '',
         ])
       )
   );

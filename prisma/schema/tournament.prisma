@@ -20,6 +20,11 @@ model Tournament {
   // 팀당 최소 소속 인원. 주최측에 본회 소속으로 등록하려면 팀에 소속 회원이
   // 있어야 하므로, 외부 선수만으로 이루어진 팀은 신청을 막는다. 0이면 제한 없음.
   minClubMembersPerTeam Int  @default(0)
+  // 로그인 없이 신청할 수 있는 공개 링크를 열지 여부.
+  // 기본값이 false라 기존 대회는 회원 전용 그대로다.
+  allowExternalEntry    Boolean @default(false)
+  // 추가금을 1인당 물릴지 팀당 물릴지. 기존 동작이 1인당이므로 그것이 기본값이다.
+  surchargeUnit         SurchargeUnit @default(PER_PLAYER)
   // 연령·급수는 금액과 무관한 단순 선택지라 문자열 배열로 둔다.
   // 종목(TournamentEventType)만 금액을 가지므로 별도 테이블이다.
   ageGroups       String[]                                 // 20대, 30대 ...
@@ -76,8 +81,15 @@ model TournamentEventType {
 model TournamentEntry {
   id               String              @id @default(cuid())
   tournamentId     String
-  userId           Int
-  clubMemberId     Int
+  // 외부(비로그인) 신청서에는 계정이 없으므로 nullable이다.
+  userId           Int?
+  clubMemberId     Int?
+  // 외부 신청 여부. 관리자 화면에서 회원 신청과 구분하는 기준이다.
+  isExternal       Boolean             @default(false)
+  // 외부 신청자의 조회 키. 이름은 공백을 제거해, 번호는 포맷을 통일해 저장한다.
+  // 입금자명은 대리 입금 때 본인과 다를 수 있어 조회 키로 쓰지 않는다.
+  contactName      String?
+  contactPhone     String?
   depositorName    String                                        // 입금자명
   teamName         String?                                       // useTeamName일 때만
   paymentStatus    EntryPaymentStatus  @default(PENDING)
@@ -87,14 +99,17 @@ model TournamentEntry {
   updatedAt        DateTime            @updatedAt
 
   tournament       Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  user             User          @relation(fields: [userId], references: [id])
-  clubMember       ClubMember    @relation("TournamentEntryMember", fields: [clubMemberId], references: [id])
+  user             User?         @relation(fields: [userId], references: [id])
+  clubMember       ClubMember?   @relation("TournamentEntryMember", fields: [clubMemberId], references: [id])
   players          EntryPlayer[]
   entryEvents      EntryEvent[]
 
+  // userId가 NULL인 외부 신청서는 Postgres에서 이 제약에 걸리지 않는다.
+  // (NULL끼리는 서로 다르게 취급된다) 회원 중복 제출 방지는 그대로 동작한다.
   @@unique([tournamentId, userId])
   @@index([tournamentId])
   @@index([userId])
+  @@index([tournamentId, isExternal])
 }
 
 // 선수 명단 (신청서 단위, 티셔츠 중복 방지용)

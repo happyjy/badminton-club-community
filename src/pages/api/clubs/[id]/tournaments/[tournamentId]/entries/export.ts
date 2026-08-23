@@ -46,6 +46,8 @@ export default withAuth(async function handler(
         depositorName: true,
         teamName: true,
         paymentStatus: true,
+        isExternal: true,
+        contactPhone: true,
         entryEvents: {
           select: {
             status: true,

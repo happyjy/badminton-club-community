@@ -67,6 +67,8 @@ function EditTournamentPage() {
     memberLabel: tournament.memberLabel ?? '',
     nonMemberSurcharge: tournament.nonMemberSurcharge,
     minClubMembersPerTeam: tournament.minClubMembersPerTeam,
+    allowExternalEntry: tournament.allowExternalEntry,
+    surchargeUnit: tournament.surchargeUnit,
     ageGroups: tournament.ageGroups,
     levels: tournament.levels,
     // 비활성 종목은 편집 목록에서 제외한다.
