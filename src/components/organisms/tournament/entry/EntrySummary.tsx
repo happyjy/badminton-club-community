@@ -4,7 +4,10 @@ import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
 import { formatFee } from '@/lib/tournament/display';
-import { calculateEventFee } from '@/lib/tournament/fee';
+import {
+  calculateEventFee,
+  type SurchargeUnitValue,
+} from '@/lib/tournament/fee';
 
 import type { EntryFormValues } from './entryFormTypes';
 import type { TournamentEventType } from '@prisma/client';
@@ -15,6 +18,8 @@ interface EntrySummaryProps {
   bankAccount: string | null;
   /** 외부 선수 1인당 추가금. 0이면 추가금 미사용 */
   nonMemberSurcharge: number;
+  /** 추가금 부과 단위. 생략하면 1인당 */
+  surchargeUnit?: SurchargeUnitValue;
 }
 
 function EntrySummary({
@@ -22,6 +27,7 @@ function EntrySummary({
   useTeamName,
   bankAccount,
   nonMemberSurcharge,
+  surchargeUnit,
 }: EntrySummaryProps) {
   const {
     register,
@@ -41,6 +47,7 @@ function EntrySummary({
     const fee = calculateEventFee({
       baseFee,
       surcharge: nonMemberSurcharge,
+      unit: surchargeUnit,
       playerKeys: event.playerKeys ?? [],
       players,
     });

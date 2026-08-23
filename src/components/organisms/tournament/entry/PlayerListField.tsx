@@ -27,12 +27,15 @@ interface PlayerListFieldProps {
   memberLabel: string | null;
   /** 외부 선수 1인당 추가금. 0이면 소속 여부를 묻지 않는다 */
   nonMemberSurcharge: number;
+  /** 외부(비로그인) 신청 폼인지. true면 소속 체크박스를 잠근다 */
+  isExternal?: boolean;
 }
 
 function PlayerListField({
   tshirtSizes,
   memberLabel,
   nonMemberSurcharge,
+  isExternal = false,
 }: PlayerListFieldProps) {
   const {
     control,
@@ -220,15 +223,23 @@ function PlayerListField({
                 <input
                   type="checkbox"
                   className="mt-0.5 h-4 w-4"
+                  // 외부 신청자는 정의상 비회원이므로 조작할 수 없다.
+                  // disabled된 input은 폼 값에서 빠지므로(register의 disabled 옵션과
+                  // 동일한 문제), 화면 표시(checked)와 제출 값(defaultValues) 양쪽을
+                  // 명시적으로 false로 고정한다. 신청 페이지(Task 10)도 외부 폼의
+                  // defaultValues.isClubMember를 false로 둔다.
                   {...register(`players.${index}.isClubMember`)}
+                  disabled={isExternal}
+                  checked={isExternal ? false : players?.[index]?.isClubMember}
                 />
                 <span>
                   <span className="font-medium text-gray-800">
                     {memberLabel}
                   </span>
                   <span className="ml-2 text-gray-500">
-                    해제하면 참가 종목마다 {nonMemberSurcharge.toLocaleString()}
-                    원이 추가됩니다.
+                    {isExternal
+                      ? `외부 신청은 참가 종목마다 ${nonMemberSurcharge.toLocaleString()}원이 추가됩니다.`
+                      : `해제하면 참가 종목마다 ${nonMemberSurcharge.toLocaleString()}원이 추가됩니다.`}
                   </span>
                 </span>
               </label>

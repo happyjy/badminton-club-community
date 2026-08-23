@@ -19,6 +19,7 @@ function renderPlayerListField(options?: {
   onSubmit?: (values: EntryFormValues) => void;
   memberLabel?: string | null;
   nonMemberSurcharge?: number;
+  isExternal?: boolean;
 }) {
   const players = (options?.players ?? [{}]).map((override, index) => ({
     ...createEmptyPlayer(index),
@@ -47,6 +48,7 @@ function renderPlayerListField(options?: {
             tshirtSizes={[]}
             memberLabel={options?.memberLabel ?? null}
             nonMemberSurcharge={options?.nonMemberSurcharge ?? 0}
+            isExternal={options?.isExternal}
           />
           <button type="submit">제출</button>
         </form>
@@ -387,5 +389,68 @@ describe('PlayerListField - 외부 선수 추가금', () => {
     // 두 번째만 해제되고 첫 번째는 유지되어야 한다.
     expect(checkboxes[0].checked).toBe(true);
     expect(checkboxes[1].checked).toBe(false);
+  });
+});
+
+describe('PlayerListField - 외부 신청', () => {
+  it('외부 신청이면 소속 체크박스가 비활성화되고 해제 상태다', () => {
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+      isExternal: true,
+    });
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /당산클럽 소속/,
+    }) as HTMLInputElement;
+
+    expect(checkbox.disabled).toBe(true);
+    expect(checkbox.checked).toBe(false);
+  });
+
+  it('회원 신청이면 소속 체크박스를 조작할 수 있다', () => {
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+    });
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /당산클럽 소속/,
+    }) as HTMLInputElement;
+
+    expect(checkbox.disabled).toBe(false);
+  });
+
+  it('외부 신청 폼을 제출하면 isClubMember가 항상 false로 제출된다', async () => {
+    const onSubmit = jest.fn();
+    // 외부 신청 페이지(Task 10)는 defaultValues.isClubMember를 false로 둔다.
+    // disabled 체크박스는 register가 관리하는 값에서 빠지므로, 여기서
+    // isClubMember가 false로 "고정"되지 않고 그냥 register가 안 붙는 것뿐이라면
+    // 제출 값은 defaultValues인 false가 그대로 유지된다. 반대로 register가
+    // disabled 여부와 무관하게 값을 계속 관리하려 들면(예: 체크 안 된 채로
+    // value=false가 아니라 필드 자체가 undefined가 되는 구현이면) 이 값이
+    // undefined로 빠질 수 있다. 그런 회귀를 잡기 위한 테스트다.
+    renderPlayerListField({
+      memberLabel: '당산클럽 소속',
+      nonMemberSurcharge: 10000,
+      isExternal: true,
+      players: [
+        {
+          isClubMember: false,
+          name: '홍길동',
+          gender: '남',
+          birthDate: '1990-03-15',
+          phoneNumber: '010-1111-2222',
+        },
+      ],
+      onSubmit,
+    });
+
+    fireEvent.click(screen.getByText('제출'));
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+
+    const submitted = onSubmit.mock.calls[0][0] as EntryFormValues;
+    expect(submitted.players[0].isClubMember).toBe(false);
   });
 });
