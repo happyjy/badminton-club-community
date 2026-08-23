@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -36,6 +36,29 @@ function TournamentAdminPage() {
   const { data: entries, isLoading } = useAdminEntries(clubId, tournamentId);
   const updatePayment = useUpdatePaymentStatus(clubId, tournamentId);
   const deleteTournament = useDeleteTournament(clubId);
+
+  const [origin, setOrigin] = useState('');
+
+  // window.location.origin은 서버에 없으므로, 마운트 이후에만 채운다.
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const externalApplyUrl = origin
+    ? `${origin}/clubs/${clubId}/tournaments/${tournamentId}/external-apply`
+    : '';
+  const externalEntryUrl = origin
+    ? `${origin}/clubs/${clubId}/tournaments/${tournamentId}/external-entry`
+    : '';
+
+  const onClickCopyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('링크를 복사했습니다.');
+    } catch {
+      toast.error('링크 복사에 실패했습니다. 주소를 직접 복사해 주세요.');
+    }
+  };
 
   const filtered = useMemo(
     () =>
@@ -124,6 +147,49 @@ function TournamentAdminPage() {
           </button>
         </div>
       </header>
+
+      {detail?.tournament.allowExternalEntry && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <p className="text-sm font-medium text-blue-900">
+            외부 신청 링크가 열려 있습니다
+          </p>
+          <p className="mt-1 text-xs text-blue-800">
+            아래 주소를 아는 사람은 로그인 없이 신청할 수 있습니다.
+          </p>
+
+          <p className="mt-3 text-xs font-medium text-blue-900">신청 링크</p>
+          <div className="mt-1 flex items-center gap-2">
+            <code className="flex-1 overflow-x-auto rounded bg-white px-2 py-1 text-xs">
+              {externalApplyUrl}
+            </code>
+            <button
+              type="button"
+              onClick={() => onClickCopyLink(externalApplyUrl)}
+              disabled={!externalApplyUrl}
+              className="shrink-0 rounded-md bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+            >
+              복사
+            </button>
+          </div>
+
+          <p className="mt-3 text-xs font-medium text-blue-900">
+            신청 조회 링크
+          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <code className="flex-1 overflow-x-auto rounded bg-white px-2 py-1 text-xs">
+              {externalEntryUrl}
+            </code>
+            <button
+              type="button"
+              onClick={() => onClickCopyLink(externalEntryUrl)}
+              disabled={!externalEntryUrl}
+              className="shrink-0 rounded-md bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+            >
+              복사
+            </button>
+          </div>
+        </div>
+      )}
 
       {isDeleteOpen && detail && (
         <DeleteTournamentDialog
