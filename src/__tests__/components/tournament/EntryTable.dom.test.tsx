@@ -150,9 +150,18 @@ describe('EntryTable - 외부 신청 구분 배지', () => {
 
   it('clubMember가 없으면 contactName으로 신청자명을 대신 보여준다', () => {
     renderTable([
-      makeEntry({ isExternal: true, clubMember: null, contactName: '김철수' }),
+      makeEntry({
+        isExternal: true,
+        clubMember: null,
+        // 선수 명단에 없는 이름이어야 폴백이 유일한 출처가 된다
+        contactName: '박신청',
+        players: [
+          { name: '홍길동', isClubMember: false },
+          { name: '김철수', isClubMember: false },
+        ],
+      }),
     ]);
 
-    expect(screen.getAllByText('김철수').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('박신청')).toHaveLength(2);
   });
 });
