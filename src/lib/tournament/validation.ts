@@ -21,6 +21,15 @@ export type ValidatableTournament = {
 
 export type ValidationResult = { ok: true } | { ok: false; error: string };
 
+export type ValidateEntryOptions = {
+  /**
+   * 외부(비로그인) 신청 여부.
+   * 외부 신청서는 선수 전원이 비회원이므로 최소 소속 인원 검증을 면제한다.
+   * 면제하지 않으면 모든 외부 신청이 제출 불가가 된다.
+   */
+  isExternal?: boolean;
+};
+
 function fail(error: string): ValidationResult {
   return { ok: false, error };
 }
@@ -32,7 +41,8 @@ function fail(error: string): ValidationResult {
  */
 export function validateEntrySubmission(
   input: EntrySubmissionInput,
-  tournament: ValidatableTournament
+  tournament: ValidatableTournament,
+  options: ValidateEntryOptions = {}
 ): ValidationResult {
   if (!input.privacyAgreed) {
     return fail('개인정보 수집·이용에 동의해야 신청할 수 있습니다.');
@@ -63,7 +73,9 @@ export function validateEntrySubmission(
   // 대회가 급수를 쓰지 않으면 빈 문자열만 허용한다
   const usesLevel = tournament.levels.length > 0;
 
-  const minClubMembers = tournament.minClubMembersPerTeam ?? 0;
+  const minClubMembers = options.isExternal
+    ? 0
+    : (tournament.minClubMembersPerTeam ?? 0);
   const memberByKey = new Map(
     input.players.map((player) => [player.key, player.isClubMember])
   );

@@ -16,6 +16,9 @@ function makeEntry(
     id?: string;
     memberName?: string;
     players?: Array<{ name: string; isClubMember: boolean }>;
+    isExternal?: boolean;
+    clubMember?: { id: number; name: string } | null;
+    contactName?: string | null;
   } = {}
 ): EntryForAdmin {
   const players = (
@@ -29,13 +32,20 @@ function makeEntry(
     isClubMember: player.isClubMember,
   }));
 
+  const clubMember =
+    overrides.clubMember !== undefined
+      ? overrides.clubMember
+      : { id: 1, name: overrides.memberName ?? '홍길동' };
+
   return {
     id: overrides.id ?? 'e1',
     depositorName: '홍길동',
     teamName: null,
     paymentStatus: 'PENDING',
     totalFee: 60000,
-    clubMember: { id: 1, name: overrides.memberName ?? '홍길동' },
+    clubMember,
+    isExternal: overrides.isExternal ?? false,
+    contactName: overrides.contactName ?? null,
     players,
     entryEvents: [
       {
@@ -118,5 +128,40 @@ describe('EntryTable - 외부 선수 표시', () => {
 
     // 두 번째 신청서에만 외부가 있다.
     expect(screen.getAllByText('외부 1명')).toHaveLength(2);
+  });
+});
+
+describe('EntryTable - 외부 신청 구분 배지', () => {
+  it('외부 신청은 모바일 카드와 PC 표 양쪽에 외부 신청 배지를 보여준다', () => {
+    renderTable([
+      makeEntry({ isExternal: true, clubMember: null, contactName: '김철수' }),
+    ]);
+
+    expect(screen.getAllByText('외부 신청')).toHaveLength(2);
+  });
+
+  it('회원 신청에는 외부 신청 배지를 붙이지 않는다', () => {
+    renderTable([
+      makeEntry({ isExternal: false, clubMember: { id: 1, name: '홍길동' } }),
+    ]);
+
+    expect(screen.queryByText('외부 신청')).toBeNull();
+  });
+
+  it('clubMember가 없으면 contactName으로 신청자명을 대신 보여준다', () => {
+    renderTable([
+      makeEntry({
+        isExternal: true,
+        clubMember: null,
+        // 선수 명단에 없는 이름이어야 폴백이 유일한 출처가 된다
+        contactName: '박신청',
+        players: [
+          { name: '홍길동', isClubMember: false },
+          { name: '김철수', isClubMember: false },
+        ],
+      }),
+    ]);
+
+    expect(screen.getAllByText('박신청')).toHaveLength(2);
   });
 });

@@ -43,6 +43,8 @@ export const tournamentInputSchema = z
       .min(0, '최소 인원은 0명 이상이어야 합니다.')
       .max(2, '최소 인원은 2명을 넘을 수 없습니다.')
       .default(0),
+    allowExternalEntry: z.boolean().default(false),
+    surchargeUnit: z.enum(['PER_PLAYER', 'PER_TEAM']).default('PER_PLAYER'),
     ageGroups: z
       .array(z.string().trim().min(1))
       .min(1, '연령을 1개 이상 등록해주세요.'),
@@ -127,5 +129,29 @@ export const entrySubmissionSchema = z.object({
   events: z.array(entryEventSchema).min(1, '종목을 1개 이상 선택해주세요.'),
 });
 
+// 외부 신청은 계정이 없으므로 조회에 쓸 이름·연락처를 따로 받는다
+export const externalEntrySubmissionSchema = entrySubmissionSchema.extend({
+  contactName: z.string().trim().min(1, '신청자 이름을 입력해주세요.'),
+  contactPhone: z
+    .string()
+    .trim()
+    .min(1, '연락처를 입력해주세요.')
+    .refine(isValidPhoneNumber, '올바른 전화번호가 아닙니다.')
+    .transform(formatPhoneNumber),
+});
+
+// 이름 + 휴대폰 뒷 4자리로 본인 신청서를 찾는다
+export const externalLookupSchema = z.object({
+  contactName: z.string().trim().min(1, '신청자 이름을 입력해주세요.'),
+  phoneTail: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, '휴대폰 뒷 4자리를 입력해주세요.'),
+});
+
 export type TournamentInputParsed = z.infer<typeof tournamentInputSchema>;
 export type EntrySubmissionParsed = z.infer<typeof entrySubmissionSchema>;
+export type ExternalEntrySubmissionParsed = z.infer<
+  typeof externalEntrySubmissionSchema
+>;
+export type ExternalLookupParsed = z.infer<typeof externalLookupSchema>;

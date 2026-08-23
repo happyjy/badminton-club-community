@@ -25,6 +25,8 @@ const EMPTY_TOURNAMENT: TournamentInput = {
   memberLabel: '',
   nonMemberSurcharge: 0,
   minClubMembersPerTeam: 0,
+  allowExternalEntry: false,
+  surchargeUnit: 'PER_PLAYER',
   ageGroups: [],
   levels: [],
   eventTypes: [{ name: '', playerCount: 2, fee: 0, order: 0 }],

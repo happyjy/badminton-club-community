@@ -16,6 +16,8 @@ interface EventListFieldProps {
   memberLabel?: string | null;
   /** 팀당 최소 소속 인원. 0이면 제한 없음 */
   minClubMembersPerTeam?: number;
+  /** 외부(비로그인) 신청 폼인지. true면 최소 소속 인원 안내를 하지 않는다 */
+  isExternal?: boolean;
 }
 
 function EventListField({
@@ -24,6 +26,7 @@ function EventListField({
   levels,
   memberLabel,
   minClubMembersPerTeam = 0,
+  isExternal = false,
 }: EventListFieldProps) {
   const {
     control,
@@ -50,7 +53,8 @@ function EventListField({
    * 제출 후에야 알게 되면 늦으므로 배정하는 자리에서 바로 알린다.
    */
   const getShortfall = (playerKeys: string[]): number => {
-    if (minClubMembersPerTeam <= 0) return 0;
+    // 외부 신청은 최소 소속 인원 검증을 면제받으므로 안내도 하지 않는다
+    if (isExternal || minClubMembersPerTeam <= 0) return 0;
     // 아직 고르지 않은 자리는 세지 않는다. 채우는 중에 경고가 뜨면 방해가 된다.
     const chosen = playerKeys.filter(Boolean);
     if (chosen.length === 0) return 0;

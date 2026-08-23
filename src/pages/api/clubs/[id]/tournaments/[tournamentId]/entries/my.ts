@@ -29,8 +29,10 @@ export default withAuth(async function handler(
     await requireClubMember(req.user.id, clubId);
 
     // 본인 신청서이므로 민감정보를 포함해 반환한다
-    const entry = await prisma.tournamentEntry.findUnique({
-      where: { tournamentId_userId: { tournamentId, userId: req.user.id } },
+    // userId가 nullable이 되어 복합 유니크 키를 findUnique에 쓸 수 없다.
+    // 회원 신청서는 (tournamentId, userId)로 여전히 최대 1건이다.
+    const entry = await prisma.tournamentEntry.findFirst({
+      where: { tournamentId, userId: req.user.id },
       include: {
         players: { orderBy: { order: 'asc' } },
         entryEvents: {

@@ -20,11 +20,16 @@ export type SurchargeablePlayer = {
   isClubMember: boolean;
 };
 
+/** 추가금 부과 단위. Prisma의 SurchargeUnit enum과 값이 같아야 한다. */
+export type SurchargeUnitValue = 'PER_PLAYER' | 'PER_TEAM';
+
 export type EventFeeInput = {
   /** 종목에 정의된 기본 참가비 */
   baseFee: number;
-  /** 외부 선수 1인당 추가금. 0이면 추가금 미사용 */
+  /** 외부 선수에게 붙는 추가금. 0이면 추가금 미사용 */
   surcharge: number;
+  /** 부과 단위. 생략하면 기존 동작인 1인당 부과 */
+  unit?: SurchargeUnitValue;
   /** 이 종목에 배정된 선수 key 목록 */
   playerKeys: string[];
   /** 신청서 전체 선수 명단 */
@@ -34,13 +39,16 @@ export type EventFeeInput = {
 /**
  * 종목 1줄의 참가비를 계산한다.
  *
- * 규칙이 "팀당 60,000원, 소속이 아닌 경우 1인당 1만원 추가"이므로
- * 추가금은 그 종목에 배정된 외부 선수 수만큼 붙는다.
- * 한 선수가 여러 종목에 나가면 종목마다 각각 부과된다.
+ * 추가금 부과 단위는 대회마다 다르다.
+ * - PER_PLAYER: "소속이 아닌 경우 1인당 1만원 추가" — 외부 선수 수만큼 붙는다
+ * - PER_TEAM:   "외부 선수가 낀 팀은 1만원 추가" — 몇 명이든 종목당 1회만 붙는다
+ *
+ * 한 선수가 여러 종목에 나가면 어느 단위든 종목마다 각각 부과된다.
  */
 export function calculateEventFee({
   baseFee,
   surcharge,
+  unit = 'PER_PLAYER',
   playerKeys,
   players,
 }: EventFeeInput): number {
@@ -53,6 +61,10 @@ export function calculateEventFee({
   const externalCount = playerKeys.filter(
     (key) => memberByKey.get(key) === false
   ).length;
+
+  if (externalCount === 0) return baseFee;
+  // 팀당 부과는 외부 선수가 1명이라도 있으면 1회만 붙인다
+  if (unit === 'PER_TEAM') return baseFee + surcharge;
 
   return baseFee + externalCount * surcharge;
 }

@@ -64,6 +64,8 @@ export interface TournamentInput {
   memberLabel?: string | null;
   nonMemberSurcharge: number;
   minClubMembersPerTeam: number;
+  allowExternalEntry: boolean;
+  surchargeUnit: 'PER_PLAYER' | 'PER_TEAM';
   ageGroups: string[];
   levels: string[];
   eventTypes: EventTypeInput[];
@@ -105,7 +107,7 @@ export type EntryEventWithDetail = EntryEvent & {
 export type EntryForAdmin = TournamentEntry & {
   players: EntryPlayer[];
   entryEvents: EntryEventWithDetail[];
-  clubMember: { id: number; name: string | null };
+  clubMember: { id: number; name: string | null } | null;
 };
 
 export type TournamentWithOptions = Tournament & {

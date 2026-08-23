@@ -207,6 +207,7 @@ function TournamentApplyPage() {
             useTeamName={detail.tournament.useTeamName}
             bankAccount={detail.tournament.bankAccount}
             nonMemberSurcharge={detail.tournament.nonMemberSurcharge}
+            surchargeUnit={detail.tournament.surchargeUnit}
           />
 
           {/* 개별 필드 메시지가 화면 밖에 있으면 버튼이 먹통처럼 보인다.

@@ -224,6 +224,15 @@ export type EventFeeInput = {
 신규 `external/entries`.
 회원·외부 신청이 **같은 계산 함수를 공유**하므로 금액이 어긋날 수 없다.
 
+> ⚠️ **구현 시 실제로 놓쳤던 지점.** `calculateEventFee`의 `unit` 기본값이
+> `PER_PLAYER`라, 서버 호출부에서 `unit`을 빼먹어도 **타입 오류 없이 조용히
+> 1인당 계산으로 돌아간다.** 초기 구현에서 회원 경로 서버 2곳
+> (`entries/index.ts`, `entries/[entryId]/index.ts`)이 이걸 빠뜨려,
+> 클라이언트는 70,000원을 보여주고 서버는 80,000원을 저장하는 상태가 됐다.
+> `EntryEvent.fee`가 스냅샷이라 한번 저장되면 영구히 어긋난다.
+> 최종 리뷰에서 발견해 수정했다. 앞으로 이 함수의 호출부를 추가할 때는
+> **4곳 전부가 `unit`을 넘기는지 grep으로 확인**할 것.
+
 `EntryEvent.fee`는 계산 결과 스냅샷이므로, 관리자가 나중에 `surchargeUnit`을
 바꿔도 기존 신청서 금액은 흔들리지 않는다.
 
