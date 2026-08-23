@@ -149,7 +149,42 @@ export const externalLookupSchema = z.object({
     .regex(/^\d{4}$/, '휴대폰 뒷 4자리를 입력해주세요.'),
 });
 
+// 관리자가 외부 신청서의 선수 정보를 대신 고칠 때 쓴다.
+// 외부 신청자는 계정이 없어 스스로 수정할 수 없으므로 클럽에 요청하게 된다.
+//
+// isClubMember와 order는 의도적으로 없다.
+// - isClubMember를 바꾸면 참가비가 달라지는데, EntryEvent.fee는 신청 시점
+//   스냅샷이라 자동으로 따라오지 않는다. 금액을 건드리지 않는 것이
+//   "선수 정보만 수정"의 실질적 정의다.
+// - order를 바꾸면 종목 배정 표시 순서가 흔들린다.
+// 선수 추가·삭제도 없다. EntryEventPlayer 배정이 깨지기 때문이다.
+export const adminPlayerUpdateSchema = z.object({
+  players: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        name: z.string().trim().min(1, '선수 이름을 입력해주세요.'),
+        gender: z.string().trim().min(1, '성별을 선택해주세요.'),
+        birthDate: z
+          .string()
+          .trim()
+          .min(1, '생년월일을 입력해주세요.')
+          .transform(toIsoBirthDate)
+          .refine(isValidBirthDate, '올바른 생년월일이 아닙니다.'),
+        phoneNumber: z
+          .string()
+          .trim()
+          .min(1, '전화번호를 입력해주세요.')
+          .refine(isValidPhoneNumber, '올바른 전화번호가 아닙니다.')
+          .transform(formatPhoneNumber),
+        tshirtSize: z.string().trim().nullable().optional(),
+      })
+    )
+    .min(1, '선수를 1명 이상 보내주세요.'),
+});
+
 export type TournamentInputParsed = z.infer<typeof tournamentInputSchema>;
+export type AdminPlayerUpdateParsed = z.infer<typeof adminPlayerUpdateSchema>;
 export type EntrySubmissionParsed = z.infer<typeof entrySubmissionSchema>;
 export type ExternalEntrySubmissionParsed = z.infer<
   typeof externalEntrySubmissionSchema

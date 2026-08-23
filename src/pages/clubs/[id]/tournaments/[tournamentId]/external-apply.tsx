@@ -222,25 +222,11 @@ function ExternalTournamentApplyPage() {
       <h1 className="mb-1 text-xl font-bold">{tournament.title}</h1>
       <p className="mb-6 text-sm text-gray-500">참가 신청 (외부 신청)</p>
 
+      {/*
+        대회별 안내는 관리자가 대회 설정의 "신청 주의사항"에 직접 쓴다.
+        여기에 문구를 하드코딩하면 대회마다 다른 요강을 반영할 수 없다.
+      */}
       <ApplyNotice notice={tournament.applyNotice} />
-
-      <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        <p className="font-medium">신청 전 확인해주세요</p>
-        <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li>
-            협회 등록 여부는 &lsquo;배드민턴 대진표 BKPLAY&rsquo; 앱에서 조회할
-            수 있습니다.
-          </li>
-          <li>
-            타 지역 협회에 이미 등록된 선수끼리의 조합은 대회 규정상 출전이
-            불가능합니다.
-          </li>
-          <li>
-            신청 내용은 접수 후 담당자가 확인하며, 자격 미달 시 개별
-            안내드립니다.
-          </li>
-        </ul>
-      </div>
 
       <FormProvider {...methods}>
         <form onSubmit={onSubmitForm} className="space-y-8">
@@ -285,6 +271,7 @@ function ExternalTournamentApplyPage() {
             tshirtSizes={tournament.tshirtSizes}
             memberLabel={tournament.memberLabel}
             nonMemberSurcharge={tournament.nonMemberSurcharge}
+            surchargeUnit={tournament.surchargeUnit}
             isExternal
           />
           <EventListField

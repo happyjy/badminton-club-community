@@ -6,6 +6,8 @@ import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 
+import { type SurchargeUnitValue } from '@/lib/tournament/fee';
+
 import {
   getBirthDateError,
   toBirthDateDigits,
@@ -27,8 +29,10 @@ interface PlayerListFieldProps {
   tshirtSizes: string[];
   /** 소속 기준 라벨 (예: 당산클럽 소속). 추가금 미사용 대회면 null */
   memberLabel: string | null;
-  /** 외부 선수 1인당 추가금. 0이면 소속 여부를 묻지 않는다 */
+  /** 외부 선수에게 붙는 추가금. 0이면 소속 여부를 묻지 않는다 */
   nonMemberSurcharge: number;
+  /** 추가금 부과 단위. 생략하면 1인당 */
+  surchargeUnit?: SurchargeUnitValue;
   /** 외부(비로그인) 신청 폼인지. true면 소속 체크박스를 잠근다 */
   isExternal?: boolean;
 }
@@ -37,6 +41,7 @@ function PlayerListField({
   tshirtSizes,
   memberLabel,
   nonMemberSurcharge,
+  surchargeUnit,
   isExternal = false,
 }: PlayerListFieldProps) {
   const {
@@ -72,6 +77,18 @@ function PlayerListField({
   const useTshirt = tshirtSizes.length > 0;
   // 라벨이 있어야 무엇을 묻는지 알 수 있으므로 둘 다 있어야 노출한다
   const useSurcharge = nonMemberSurcharge > 0 && !!memberLabel;
+  // 추가금 안내 문구는 부과 단위에 따라 뜻이 완전히 달라진다.
+  // 팀당 부과인데 "1인당"처럼 읽히면 외부 2명 팀이 두 배를 낼 것처럼 보인다.
+  const surchargeAmount = nonMemberSurcharge.toLocaleString();
+  const perTeam = surchargeUnit === 'PER_TEAM';
+  // 회원 폼: 체크박스를 해제했을 때 무슨 일이 생기는지 설명한다.
+  const memberSurchargeNotice = perTeam
+    ? `해제한 선수가 있으면 참가 종목마다 ${surchargeAmount}원이 추가됩니다. (인원수와 무관하게 종목당 1회)`
+    : `해제하면 참가 종목마다 1인당 ${surchargeAmount}원이 추가됩니다.`;
+  // 외부 폼: 선택의 여지가 없으므로 확정된 사실로 알린다.
+  const externalSurchargeNotice = perTeam
+    ? `외부 신청이라 참가 종목마다 ${surchargeAmount}원이 추가됩니다. 신청 인원수와 무관하게 종목당 1회만 붙습니다.`
+    : `외부 신청이라 참가 종목마다 선수 1인당 ${surchargeAmount}원이 추가됩니다.`;
   const tshirtOptions = tshirtSizes.map((size) => ({
     value: size,
     label: size,
@@ -237,31 +254,32 @@ function PlayerListField({
               )}
             </div>
 
-            {useSurcharge && (
-              <label className="flex items-start gap-2 rounded-md bg-gray-50 p-3 text-sm">
-                <input
-                  type="checkbox"
-                  className="mt-0.5 h-4 w-4"
-                  // 외부 신청자는 정의상 비회원이므로 조작할 수 없다.
-                  // disabled만으로는 표시(checked)만 고정될 뿐 폼 상태의 실제
-                  // 값은 그대로 남는다. 제출값은 위 useEffect가 강제로 false로
-                  // 되돌리므로 여기서는 그 값을 그대로 반영해 보여주기만 한다.
-                  {...register(`players.${index}.isClubMember`)}
-                  disabled={isExternal}
-                  checked={isExternal ? false : players?.[index]?.isClubMember}
-                />
-                <span>
-                  <span className="font-medium text-gray-800">
-                    {memberLabel}
+            {useSurcharge &&
+              (isExternal ? (
+                // 외부 신청자는 정의상 비회원이라 선택의 여지가 없다.
+                // 조작할 수 없는 체크박스를 두면 무언가 고를 수 있는 것처럼
+                // 보여 오히려 혼란스러우므로, 확정된 사실만 알린다.
+                // 제출값은 위 useEffect가 항상 false로 고정한다.
+                <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
+                  {externalSurchargeNotice}
+                </p>
+              ) : (
+                <label className="flex items-start gap-2 rounded-md bg-gray-50 p-3 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4"
+                    {...register(`players.${index}.isClubMember`)}
+                  />
+                  <span>
+                    <span className="font-medium text-gray-800">
+                      {memberLabel}
+                    </span>
+                    <span className="ml-2 text-gray-500">
+                      {memberSurchargeNotice}
+                    </span>
                   </span>
-                  <span className="ml-2 text-gray-500">
-                    {isExternal
-                      ? `외부 신청은 참가 종목마다 ${nonMemberSurcharge.toLocaleString()}원이 추가됩니다.`
-                      : `해제하면 참가 종목마다 ${nonMemberSurcharge.toLocaleString()}원이 추가됩니다.`}
-                  </span>
-                </span>
-              </label>
-            )}
+                </label>
+              ))}
           </div>
         );
       })}

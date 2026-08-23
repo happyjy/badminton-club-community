@@ -5,12 +5,16 @@ import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 
 import DeleteTournamentDialog from '@/components/organisms/tournament/admin/DeleteTournamentDialog';
+import EditPlayersDialog, {
+  type EditablePlayer,
+} from '@/components/organisms/tournament/admin/EditPlayersDialog';
 import EntryTable from '@/components/organisms/tournament/admin/EntryTable';
 import EventGroupList from '@/components/organisms/tournament/admin/EventGroupList';
 
 import {
   useAdminEntries,
   useDeleteTournament,
+  useUpdateEntryPlayers,
   useUpdatePaymentStatus,
 } from '@/hooks/useTournamentAdmin';
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
@@ -28,6 +32,8 @@ function TournamentAdminPage() {
 
   const [viewMode, setViewMode] = useState<ViewMode>('entry');
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  // 선수 정보를 수정 중인 외부 신청서. null이면 창을 닫는다.
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<'ALL' | EntryPaymentStatus>(
     'ALL'
   );
@@ -35,6 +41,7 @@ function TournamentAdminPage() {
   const { data: detail } = useTournamentDetail(clubId, tournamentId);
   const { data: entries, isLoading } = useAdminEntries(clubId, tournamentId);
   const updatePayment = useUpdatePaymentStatus(clubId, tournamentId);
+  const updatePlayers = useUpdateEntryPlayers(clubId, tournamentId);
   const deleteTournament = useDeleteTournament(clubId);
 
   const [origin, setOrigin] = useState('');
@@ -78,6 +85,24 @@ function TournamentAdminPage() {
         .reduce((sum, entry) => sum + entry.totalFee, 0),
     [entries]
   );
+
+  // 목록이 갱신되면 창의 내용도 최신 값으로 따라온다
+  const editingEntry =
+    entries?.find((entry) => entry.id === editingEntryId) ?? null;
+
+  const onSavePlayers = async (players: EditablePlayer[]) => {
+    if (!editingEntryId) return;
+    try {
+      await updatePlayers.mutateAsync({ entryId: editingEntryId, players });
+      toast.success('선수 정보를 수정했습니다.');
+      setEditingEntryId(null);
+    } catch (error) {
+      const message =
+        (error as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error ?? '선수 정보 수정에 실패했습니다.';
+      toast.error(message);
+    }
+  };
 
   const onChangePaymentStatus = async (
     entryId: string,
@@ -191,6 +216,26 @@ function TournamentAdminPage() {
         </div>
       )}
 
+      {editingEntry && (
+        <EditPlayersDialog
+          applicantName={
+            editingEntry.clubMember?.name ?? editingEntry.contactName ?? '-'
+          }
+          players={editingEntry.players.map((player) => ({
+            id: player.id,
+            name: player.name,
+            gender: player.gender,
+            birthDate: player.birthDate,
+            phoneNumber: player.phoneNumber,
+            tshirtSize: player.tshirtSize,
+          }))}
+          tshirtSizes={detail?.tournament.tshirtSizes ?? []}
+          isSaving={updatePlayers.isPending}
+          onSave={onSavePlayers}
+          onCancel={() => setEditingEntryId(null)}
+        />
+      )}
+
       {isDeleteOpen && detail && (
         <DeleteTournamentDialog
           title={detail.tournament.title}
@@ -257,6 +302,7 @@ function TournamentAdminPage() {
         <EntryTable
           entries={filtered}
           onChangePaymentStatus={onChangePaymentStatus}
+          onEditPlayers={(entry) => setEditingEntryId(entry.id)}
         />
       ) : (
         <EventGroupList

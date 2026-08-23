@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { describe, expect, it, jest } from '@jest/globals';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import EntryTable from '@/components/organisms/tournament/admin/EntryTable';
 
@@ -59,9 +59,16 @@ function makeEntry(
   } as unknown as EntryForAdmin;
 }
 
-function renderTable(entries: EntryForAdmin[]) {
+function renderTable(
+  entries: EntryForAdmin[],
+  onEditPlayers?: (entry: EntryForAdmin) => void
+) {
   return render(
-    <EntryTable entries={entries} onChangePaymentStatus={jest.fn()} />
+    <EntryTable
+      entries={entries}
+      onChangePaymentStatus={jest.fn()}
+      onEditPlayers={onEditPlayers}
+    />
   );
 }
 
@@ -163,5 +170,52 @@ describe('EntryTable - 외부 신청 구분 배지', () => {
     ]);
 
     expect(screen.getAllByText('박신청')).toHaveLength(2);
+  });
+});
+
+describe('EntryTable - 선수 정보 수정 버튼', () => {
+  it('외부 신청서에만 수정 버튼을 보여준다', () => {
+    renderTable(
+      [
+        makeEntry({
+          isExternal: true,
+          clubMember: null,
+          contactName: '박신청',
+        }),
+      ],
+      jest.fn()
+    );
+
+    // 모바일 카드와 데스크탑 표 양쪽에 렌더된다
+    expect(screen.getAllByText('선수 정보 수정')).toHaveLength(2);
+  });
+
+  it('회원 신청서에는 수정 버튼이 없다', () => {
+    // 회원은 본인이 직접 고칠 수 있고, 기존 규칙상 임원은 수정할 수 없다
+    renderTable([makeEntry({ isExternal: false })], jest.fn());
+
+    expect(screen.queryByText('선수 정보 수정')).toBeNull();
+  });
+
+  it('콜백을 넘기지 않으면 버튼을 숨긴다', () => {
+    renderTable([
+      makeEntry({ isExternal: true, clubMember: null, contactName: '박신청' }),
+    ]);
+
+    expect(screen.queryByText('선수 정보 수정')).toBeNull();
+  });
+
+  it('버튼을 누르면 해당 신청서를 콜백으로 넘긴다', () => {
+    const onEditPlayers = jest.fn();
+    const entry = makeEntry({
+      isExternal: true,
+      clubMember: null,
+      contactName: '박신청',
+    });
+    renderTable([entry], onEditPlayers);
+
+    fireEvent.click(screen.getAllByText('선수 정보 수정')[0]);
+
+    expect(onEditPlayers).toHaveBeenCalledWith(entry);
   });
 });
