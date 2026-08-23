@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { consumeAttempt, getClientIp } from '@/lib/rateLimit';
 import {
   firstQueryValue,
   handleApiError,
@@ -34,6 +35,21 @@ export default async function handler(
   const tournamentId = firstQueryValue(req.query.tournamentId);
   if (!clubId || !tournamentId) {
     return res.status(400).json({ error: '잘못된 요청입니다.', status: 400 });
+  }
+
+  // 로그인 없이 이름·생년월일·전화번호를 받아 저장하는 공개 쓰기 endpoint다.
+  // 본문 파싱·DB 조회 전에 IP당 시도 횟수를 제한해 개인정보를 대량으로
+  // 쌓아 넣는 스크립트를 막는다. lookup.ts와 키 접두사를 분리해 서로
+  // 예산을 나눠 쓰지 않게 한다.
+  const ip = getClientIp({ 'x-forwarded-for': req.headers['x-forwarded-for'] });
+  const { allowed } = consumeAttempt(`external-entry:${tournamentId}:${ip}`, {
+    limit: 10,
+  });
+  if (!allowed) {
+    return res.status(429).json({
+      error: '신청 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.',
+      status: 429,
+    });
   }
 
   try {

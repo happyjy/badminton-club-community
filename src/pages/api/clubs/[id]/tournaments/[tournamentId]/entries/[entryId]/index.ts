@@ -86,6 +86,7 @@ export default withAuth(async function handler(
       calculateEventFee({
         baseFee: feeById.get(event.eventTypeId) ?? 0,
         surcharge: entry.tournament.nonMemberSurcharge,
+        unit: entry.tournament.surchargeUnit,
         playerKeys: event.playerKeys,
         players: surchargePlayers,
       })
