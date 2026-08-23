@@ -41,7 +41,8 @@ export default withAuth(async function handler(
         .status(404)
         .json({ error: '신청 내역을 찾을 수 없습니다.', status: 404 });
     }
-    if (entry.userId !== req.user.id) {
+    // 외부 신청서는 userId가 없다. 회원 세션으로는 접근할 수 없어야 한다.
+    if (entry.userId == null || entry.userId !== req.user.id) {
       return res.status(403).json({ error: '권한이 없습니다.', status: 403 });
     }
     if (!isAcceptingEntries(entry.tournament, new Date())) {

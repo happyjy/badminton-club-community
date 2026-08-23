@@ -64,6 +64,8 @@ export interface TournamentInput {
   memberLabel?: string | null;
   nonMemberSurcharge: number;
   minClubMembersPerTeam: number;
+  allowExternalEntry: boolean;
+  surchargeUnit: 'PER_PLAYER' | 'PER_TEAM';
   ageGroups: string[];
   levels: string[];
   eventTypes: EventTypeInput[];
