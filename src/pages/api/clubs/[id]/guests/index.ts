@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 import { GuestListResponse } from '@/types/guest.types';
+import { getTodayInKorea } from '@/utils/date';
 
 // 게스트 신청 목록 조회 API
 export default async function handler(
@@ -68,42 +69,81 @@ export default async function handler(
       ...(statusFilter && { status: statusFilter }),
     };
 
-    const [guests, total] = await Promise.all([
-      prisma.guestPost.findMany({
-        where,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        select: {
-          id: true,
-          name: true,
-          birthDate: true,
-          phoneNumber: true,
-          gender: true,
-          postType: true,
-          status: true,
-          intendToJoin: true,
-          visitDate: true,
-          message: true,
-          createdAt: true,
-          updatedAt: true,
-          userId: true,
-          clubId: true,
-          createdBy: true,
-          updatedBy: true,
-          localTournamentLevel: true,
-          nationalTournamentLevel: true,
-          lessonPeriod: true,
-          playingPeriod: true,
-          clubMember: {
-            select: { name: true },
-          },
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.guestPost.count({ where }),
+    // 방문 희망일 기준 정렬:
+    // 다가오는 방문일(오늘 포함)을 가까운 순으로 먼저 보여주고,
+    // 이미 지난 방문일은 그 뒤에 최근 순으로 붙인다.
+    // visitDate는 'YYYY-MM-DD' 문자열이라 사전순 비교가 곧 날짜순 비교다.
+    const today = getTodayInKorea();
+    const upcomingWhere = { ...where, visitDate: { gte: today } };
+    const pastWhere = { ...where, visitDate: { lt: today } };
+
+    const guestSelect = {
+      id: true,
+      name: true,
+      birthDate: true,
+      phoneNumber: true,
+      gender: true,
+      postType: true,
+      status: true,
+      intendToJoin: true,
+      visitDate: true,
+      message: true,
+      createdAt: true,
+      updatedAt: true,
+      userId: true,
+      clubId: true,
+      createdBy: true,
+      updatedBy: true,
+      localTournamentLevel: true,
+      nationalTournamentLevel: true,
+      lessonPeriod: true,
+      playingPeriod: true,
+      clubMember: {
+        select: { name: true },
+      },
+    } as const;
+
+    // 다가오는 건과 지난 건은 서로 겹치지 않으므로,
+    // "다가오는 목록 뒤에 지난 목록을 이어 붙인 하나의 목록"으로 보고 페이지를 자른다.
+    // 전체를 메모리에 올리지 않고 각 구간에서 필요한 만큼만 조회한다.
+    const [upcomingTotal, pastTotal] = await Promise.all([
+      prisma.guestPost.count({ where: upcomingWhere }),
+      prisma.guestPost.count({ where: pastWhere }),
     ]);
+
+    // 이번 페이지에서 다가오는 목록이 차지하는 구간
+    const upcomingSkip = Math.min(skip, upcomingTotal);
+    const upcomingTake = Math.max(
+      0,
+      Math.min(skip + limit, upcomingTotal) - upcomingSkip
+    );
+    // 남은 자리는 지난 목록으로 채운다
+    const pastSkip = Math.max(0, skip - upcomingTotal);
+    const pastTake = limit - upcomingTake;
+
+    const [upcomingGuests, pastGuests] = await Promise.all([
+      upcomingTake > 0
+        ? prisma.guestPost.findMany({
+            where: upcomingWhere,
+            orderBy: [{ visitDate: 'asc' }, { createdAt: 'desc' }],
+            select: guestSelect,
+            skip: upcomingSkip,
+            take: upcomingTake,
+          })
+        : [],
+      pastTake > 0
+        ? prisma.guestPost.findMany({
+            where: pastWhere,
+            orderBy: [{ visitDate: 'desc' }, { createdAt: 'desc' }],
+            select: guestSelect,
+            skip: pastSkip,
+            take: pastTake,
+          })
+        : [],
+    ]);
+
+    const guests = [...upcomingGuests, ...pastGuests];
+    const total = upcomingTotal + pastTotal;
 
     const response: GuestListResponse = {
       data: {
