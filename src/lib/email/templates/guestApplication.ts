@@ -1,5 +1,7 @@
 import { GuestPost } from '@prisma/client';
 
+import { getGuestPageStrategyByPostType } from '@/strategies/GuestPageStrategy';
+
 const formatDate = (date: Date | string | null) => {
   if (!date) return '미입력';
   if (date === '') return '미입력';
@@ -14,10 +16,14 @@ export const generateGuestApplicationEmailTemplate = (
   application: GuestPost,
   url: string
 ) => {
+  // 관리자는 이 메일만 보고 연락하므로 누구 번호인지 드러나야 한다.
+  // 게스트 신청은 회원이 남의 방문을 대신 신청해 번호 주인이 게스트가 아니다.
+  const strategy = getGuestPageStrategyByPostType(application.postType);
+
   const tableRows = [
     { label: '이름', value: application.name },
     { label: '생년월일', value: formatDate(application.birthDate) },
-    { label: '연락처', value: application.phoneNumber },
+    { label: strategy.getPhoneLabel(), value: application.phoneNumber },
     { label: '성별', value: application.gender || '미입력' },
     {
       label: '지역 대회 수준',
