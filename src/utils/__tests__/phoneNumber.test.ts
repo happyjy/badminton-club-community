@@ -4,6 +4,7 @@ import {
   formatPhoneNumber,
   getPhoneNumberError,
   isValidPhoneNumber,
+  toDisplayPhoneNumber,
   toPhoneDigits,
 } from '@/utils/phoneNumber';
 
@@ -90,5 +91,46 @@ describe('getPhoneNumberError', () => {
   it('유효한 번호에는 undefined를 돌려준다', () => {
     expect(getPhoneNumberError('010-1234-5678')).toBeUndefined();
     expect(getPhoneNumberError('01012345678')).toBeUndefined();
+  });
+});
+
+describe('toDisplayPhoneNumber', () => {
+  it('정상 번호를 하이픈 형식으로 보여준다', () => {
+    expect(toDisplayPhoneNumber('010-2743-9047')).toEqual({
+      text: '010-2743-9047',
+      isMalformed: false,
+    });
+  });
+
+  it('하이픈이 빠진 번호를 보정해서 보여준다', () => {
+    // 저장은 '01079366342'로 되어 있어도 화면에는 정규화해 보여준다.
+    expect(toDisplayPhoneNumber('01079366342')).toEqual({
+      text: '010-7936-6342',
+      isMalformed: false,
+    });
+  });
+
+  it('숫자가 11자리를 넘으면 원본을 그대로 두고 손상으로 표시한다', () => {
+    // '010-71347219-7219'은 숫자만 15자리다. 11자리로 자르면 근거 없는 추측이
+    // 정상 번호처럼 보이므로, 원본을 보존해 사람이 판단하게 한다.
+    expect(toDisplayPhoneNumber('010-71347219-7219')).toEqual({
+      text: '010-71347219-7219',
+      isMalformed: true,
+    });
+  });
+
+  it('휴대폰 형식이 아니면 원본을 그대로 두고 손상으로 표시한다', () => {
+    expect(toDisplayPhoneNumber('02-1234-5678')).toEqual({
+      text: '02-1234-5678',
+      isMalformed: true,
+    });
+  });
+
+  it('빈 값은 손상이 아닌 빈 문자열로 다룬다', () => {
+    expect(toDisplayPhoneNumber('')).toEqual({ text: '', isMalformed: false });
+    expect(toDisplayPhoneNumber(null)).toEqual({
+      text: '',
+      isMalformed: false,
+    });
   });
 });

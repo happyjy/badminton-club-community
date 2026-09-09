@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import PhoneNumberText from '@/components/molecules/form/PhoneNumberText';
 import { InfoItem } from '@/components/molecules/InfoItem';
 import { CommentInput } from '@/components/organisms/comment/CommentInput';
 import { CommentItem } from '@/components/organisms/comment/CommentItem';
@@ -428,7 +429,9 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
               {formatDateSimple(guestPost.birthDate)}
             </InfoItem>
             <InfoItem label="성별">{guestPost.gender}</InfoItem>
-            <InfoItem label="전화번호">{guestPost.phoneNumber}</InfoItem>
+            <InfoItem label="전화번호">
+              <PhoneNumberText value={guestPost.phoneNumber} />
+            </InfoItem>
             <InfoItem label="신청일">
               {formatDateSimple(guestPost.createdAt)}
             </InfoItem>

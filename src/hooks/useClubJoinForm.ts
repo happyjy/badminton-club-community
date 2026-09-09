@@ -4,13 +4,12 @@ import type { ChangeEvent } from 'react';
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { createInitialFormData } from '@/utils/clubForms';
-
-// 전화번호 부분별 타입 정의
-interface PhoneNumberParts {
-  first: string;
-  second: string;
-  third: string;
-}
+import {
+  clampPhonePart,
+  joinPhoneParts,
+  splitPhoneParts,
+  type PhoneNumberParts,
+} from '@/utils/phoneNumber';
 
 export const useClubJoinForm = (
   user: User,
@@ -46,28 +45,12 @@ export const useClubJoinForm = (
     };
   });
   // 전화번호 입력 필드 상태 관리
-  const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberParts>(() => {
-    if (initialValues?.phoneNumber) {
-      // phoneNumber 형식: "010-1234-5678"
-      const parts = initialValues.phoneNumber.split('-');
-      return {
-        first: parts[0] || '',
-        second: parts[1] || '',
-        third: parts[2] || '',
-      };
-    }
-    // 테스트용 코드
-    // return {
-    //   first: '010',
-    //   second: '6636',
-    //   third: '8962',
-    // };
-    return {
-      first: '',
-      second: '',
-      third: '',
-    };
-  });
+  // split('-')이 아니라 자리 수로 나눈다. 하이픈이 빠졌거나 이미 손상된 값이
+  // 들어와도 각 칸의 최대 길이를 넘지 않아, 편집할 때마다 손상이
+  // 되살아나던 문제가 생기지 않는다.
+  const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumberParts>(() =>
+    splitPhoneParts(initialValues?.phoneNumber)
+  );
 
   // 닉네임 변경 시 폼 데이터 업데이트
   useEffect(() => {
@@ -97,35 +80,24 @@ export const useClubJoinForm = (
     e: ChangeEvent<HTMLInputElement>,
     part: 'first' | 'second' | 'third'
   ) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
+    // 붙여넣기로 칸을 넘치게 들어와도 입력을 통째로 버리지 않고 잘라서 받는다.
+    const value = clampPhonePart(e.target.value, part);
     const maxLength = part === 'first' ? 3 : 4;
 
-    if (value.length > maxLength) return;
-
-    setPhoneNumbers((prev) => ({
+    // 다음 상태를 먼저 만들어 두 state에 함께 반영한다.
+    // 이전 코드는 phoneNumbers를 클로저에서 읽어 formData가 한 박자 밀렸다.
+    const nextParts = { ...phoneNumbers, [part]: value };
+    setPhoneNumbers(nextParts);
+    setFormData((prev) => ({
       ...prev,
-      [part]: value,
+      phoneNumber: joinPhoneParts(nextParts),
     }));
 
-    if (value.length === maxLength) {
-      const nextInput = {
-        first: 'second',
-        second: 'third',
-        third: 'third',
-      }[part];
-
+    if (value.length === maxLength && part !== 'third') {
+      const nextInput = part === 'first' ? 'second' : 'third';
       const nextElement = document.getElementById(`phone-${nextInput}`);
       nextElement?.focus();
     }
-
-    const fullPhoneNumber = `${part === 'first' ? value : phoneNumbers.first}-${
-      part === 'second' ? value : phoneNumbers.second
-    }-${part === 'third' ? value : phoneNumbers.third}`;
-
-    setFormData((prev) => ({
-      ...prev,
-      phoneNumber: fullPhoneNumber,
-    }));
   };
 
   // 입력 필드 변경 함수

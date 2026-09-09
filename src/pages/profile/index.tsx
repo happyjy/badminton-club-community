@@ -4,6 +4,11 @@ import Image from 'next/image';
 
 import { withAuth } from '@/lib/withAuth';
 import { User } from '@/types';
+import {
+  clampPhonePart,
+  joinPhoneParts,
+  splitPhoneParts,
+} from '@/utils/phoneNumber';
 
 interface ProfilePageProps {
   user: User | null;
@@ -59,8 +64,9 @@ function ProfilePage({ user }: ProfilePageProps) {
           }));
 
           // 전화번호 파싱
-          const [first, second, third] = memberInfo.phoneNumber.split('-');
-          setPhoneNumbers({ first, second, third });
+          // 하이픈 위치가 아니라 자리 수로 나눠, 형식이 어긋난 값이
+          // 들어와도 각 칸을 넘치지 않게 한다.
+          setPhoneNumbers(splitPhoneParts(memberInfo.phoneNumber));
         }
       } catch (error) {
         console.error('회원 정보 조회 오류:', error);
@@ -74,23 +80,15 @@ function ProfilePage({ user }: ProfilePageProps) {
     e: React.ChangeEvent<HTMLInputElement>,
     part: 'first' | 'second' | 'third'
   ) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    const maxLength = part === 'first' ? 3 : 4;
+    const value = clampPhonePart(e.target.value, part);
 
-    if (value.length > maxLength) return;
-
-    setPhoneNumbers((prev) => ({
-      ...prev,
-      [part]: value,
-    }));
-
-    const fullPhoneNumber = `${part === 'first' ? value : phoneNumbers.first}-${
-      part === 'second' ? value : phoneNumbers.second
-    }-${part === 'third' ? value : phoneNumbers.third}`;
-
+    // 다음 상태를 먼저 만들어 두 state에 함께 반영한다.
+    // 이전 코드는 phoneNumbers를 클로저에서 읽어 formData가 한 박자 밀렸다.
+    const nextParts = { ...phoneNumbers, [part]: value };
+    setPhoneNumbers(nextParts);
     setFormData((prev) => ({
       ...prev,
-      phoneNumber: fullPhoneNumber,
+      phoneNumber: joinPhoneParts(nextParts),
     }));
   };
 
