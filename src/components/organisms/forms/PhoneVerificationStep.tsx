@@ -6,6 +6,7 @@ import PhoneNumberDisplay from '@/components/molecules/form/PhoneNumberDisplay';
 import VerificationCodeInput from '@/components/molecules/form/VerificationCodeInput';
 
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
+import { formatPhoneNumber, getPhoneNumberError } from '@/utils/phoneNumber';
 
 interface PhoneVerificationStepProps {
   userPhoneNumber?: string;
@@ -87,9 +88,11 @@ function PhoneVerificationStep({
   }, [phoneVerificationError]);
 
   // 전화번호 입력 필드 변경 핸들러
-  // 입력 시 기존 에러 메시지를 제거
+  // 입력 시 하이픈을 붙여 저장 형식을 하나로 맞추고, 기존 에러 메시지를 제거
+  // 이 단계에서 정규화하지 않으면 하이픈 없는 번호가 User.phoneNumber에 남고,
+  // 게스트 신청까지 그대로 전파된다.
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhoneNumber(e.target.value);
+    setPhoneNumber(formatPhoneNumber(e.target.value));
     setError(null);
   };
 
@@ -98,8 +101,9 @@ function PhoneVerificationStep({
   // 2. SENT 단계로 변경 후 인증번호 발송
   // 3. 실패 시 FAILED 단계로 변경
   const handleSendCode = async () => {
-    if (!phoneNumber) {
-      setError('전화번호를 입력해주세요');
+    const phoneNumberError = getPhoneNumberError(phoneNumber);
+    if (phoneNumberError) {
+      setError(phoneNumberError);
       return;
     }
 

@@ -5,6 +5,7 @@ import { sendGuestApplicationEmail } from '@/lib/email';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { sendSMS, createGuestApplicationSMSMessage } from '@/lib/sms';
+import { formatPhoneNumber, isValidPhoneNumber } from '@/utils/phoneNumber';
 
 // 게스트 신청 처리(이메일 및 SMS 전송 기능 포함)
 export default withAuth(async function handler(
@@ -51,12 +52,29 @@ export default withAuth(async function handler(
       });
     }
 
+    // 전화번호 형식 검증
+    // 클라이언트를 우회한 요청으로 형식이 어긋난 번호가 저장되지 않도록 한다.
+    if (!isValidPhoneNumber(phoneNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: '올바른 전화번호가 아닙니다. (예: 010-1234-5678)',
+      });
+    }
+
+    // 저장 형식을 '010-1234-5678' 하나로 맞춘다.
+    const normalizedPhoneNumber = formatPhoneNumber(phoneNumber);
+
     // 전화번호 인증 상태 확인
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
     });
 
-    if (!user?.phoneVerifiedAt || user.phoneNumber !== phoneNumber) {
+    // 저장된 번호의 형식이 제각각일 수 있어, 양쪽을 정규화해 비교한다.
+    // 문자열을 그대로 비교하면 같은 번호인데도 형식이 달라 반려된다.
+    const isSamePhoneNumber =
+      formatPhoneNumber(user?.phoneNumber) === normalizedPhoneNumber;
+
+    if (!user?.phoneVerifiedAt || !isSamePhoneNumber) {
       return res.status(400).json({
         success: false,
         message:
@@ -98,7 +116,7 @@ export default withAuth(async function handler(
         // 게스트 일반 정보
         name,
         birthDate,
-        phoneNumber,
+        phoneNumber: normalizedPhoneNumber,
         gender,
         localTournamentLevel,
         nationalTournamentLevel,

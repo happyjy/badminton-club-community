@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
+import { formatPhoneNumber, isValidPhoneNumber } from '@/utils/phoneNumber';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -27,6 +28,18 @@ export default withAuth(async function handler(
       playingPeriod,
     } = req.body;
 
+    // 전화번호가 넘어온 경우에만 형식을 검증하고 정규화한다.
+    // 이 API는 프로필의 다른 항목만 고치는 데도 쓰여, 번호가 없을 수 있다.
+    if (phoneNumber !== undefined && !isValidPhoneNumber(phoneNumber)) {
+      return res.status(400).json({
+        error: '올바른 전화번호가 아닙니다. (예: 010-1234-5678)',
+        status: 400,
+      });
+    }
+
+    const normalizedPhoneNumber =
+      phoneNumber === undefined ? undefined : formatPhoneNumber(phoneNumber);
+
     // 트랜잭션으로 User와 ClubMember 테이블 동시 업데이트
     await prisma.$transaction(async (tx) => {
       // User 테이블 업데이트
@@ -44,7 +57,7 @@ export default withAuth(async function handler(
         data: {
           name,
           birthDate,
-          phoneNumber,
+          phoneNumber: normalizedPhoneNumber,
           localTournamentLevel,
           nationalTournamentLevel,
           lessonPeriod,

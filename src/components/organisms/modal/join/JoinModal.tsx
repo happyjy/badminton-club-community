@@ -6,6 +6,7 @@ import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
 import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { getVisitDate, TOURNAMENT_LEVELS } from '@/utils/clubForms';
+import { getPhoneNumberError, joinPhoneParts } from '@/utils/phoneNumber';
 
 import PhoneVerificationStep from '../../forms/PhoneVerificationStep';
 import PrivacyModal from '../PrivacyModal';
@@ -79,8 +80,7 @@ function JoinModal({
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
 
   // 전화번호 문자열 생성 함수
-  const getFullPhoneNumber = () =>
-    `${phoneNumbers.first}-${phoneNumbers.second}-${phoneNumbers.third}`;
+  const getFullPhoneNumber = () => joinPhoneParts(phoneNumbers);
 
   // 날짜 범위 설정
   const today = new Date();
@@ -103,10 +103,13 @@ function JoinModal({
   const onSubmitForm = (e: FormEvent) => {
     e.preventDefault();
 
-    // 전화번호가 입력되었는지 확인
+    // 전화번호가 올바른 형식으로 입력되었는지 확인
+    // 빈 값뿐 아니라 자리 수가 모자란 값도 여기서 걸러, 형식이 어긋난 번호가
+    // 저장되지 않도록 한다.
     const currentPhoneNumber = getFullPhoneNumber();
-    if (!currentPhoneNumber || currentPhoneNumber === '--') {
-      alert('전화번호를 입력해주세요.');
+    const phoneNumberError = getPhoneNumberError(currentPhoneNumber);
+    if (phoneNumberError) {
+      alert(phoneNumberError);
       return;
     }
 
