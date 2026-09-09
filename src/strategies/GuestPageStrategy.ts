@@ -1,4 +1,5 @@
 // GuestPageStrategy.ts - 게스트 페이지를 위한 전략 패턴 인터페이스와 구현
+import { GuestPostType } from '@prisma/client';
 
 // 전략 인터페이스 정의
 export interface GuestPageStrategy {
@@ -179,9 +180,10 @@ export const getGuestPageStrategy = (
  * 게스트 신청으로 보인다. 글의 postType은 신청 시점에 고정된 값이라 흔들리지 않는다.
  *
  * postType이 없는 예전 글은 게스트 신청으로 본다(스키마 기본값과 같다).
+ * 미사용 상태인 INQUIRY_REQUEST도 같은 이유로 게스트 신청으로 본다.
  */
 export const getGuestPageStrategyByPostType = (
-  postType: 'GUEST_REQUEST' | 'JOIN_INQUIRY_REQUEST' | undefined,
+  postType: GuestPostType | undefined,
   customDescription?: string
 ): GuestPageStrategy => {
   return getGuestPageStrategy(

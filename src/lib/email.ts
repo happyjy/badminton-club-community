@@ -4,6 +4,7 @@ import { createTransport } from 'nodemailer';
 
 import { getBaseUrl } from '@/constants/urls';
 import { prisma } from '@/lib/prisma';
+import { getGuestPageStrategyByPostType } from '@/strategies/GuestPageStrategy';
 
 import { generateGuestApplicationEmailTemplate } from './email/templates/guestApplication';
 
@@ -48,14 +49,19 @@ export async function sendGuestApplicationEmail({
 
   if (!recipients) return;
 
+  // 가입신청도 이 메일을 쓰므로 "게스트로 초대"라고 단정하면 안 된다.
+  const strategy = getGuestPageStrategyByPostType(application.postType);
+  const subjectBody =
+    application.postType === 'JOIN_INQUIRY_REQUEST'
+      ? `${application.name}님이 가입을 문의했습니다.`
+      : writer
+        ? `${writer}님이 ${application.name}님을 게스트로 초대합니다.`
+        : `${application.name}님을 게스트로 초대합니다.`;
+
   const mailOptions = {
     from: `"배드민턴 클럽 커뮤니티" <${fromEmail}>`,
     to: recipients.join(', '),
-    subject:
-      `배드민턴 클럽 게스트 신청: ` +
-      (writer
-        ? `${writer}님이 ${application.name}님을 게스트로 초대합니다.`
-        : `${application.name}님을 게스트로 초대합니다.`),
+    subject: `배드민턴 클럽 ${strategy.getPageTitle()}: ` + subjectBody,
     // 확실히 스레드가 끊어지도록 하기 위한 추가 헤더
     headers: {
       'X-Entity-Ref-ID': uniqueId,
