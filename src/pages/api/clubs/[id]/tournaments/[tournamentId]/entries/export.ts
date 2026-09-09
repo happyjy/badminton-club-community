@@ -68,6 +68,8 @@ export default withAuth(async function handler(
                   },
                 },
               },
+              // 선수1·선수2 열이 내려받을 때마다 뒤바뀌지 않도록 순서를 고정한다.
+              orderBy: { entryPlayer: { order: 'asc' } },
             },
           },
           orderBy: { eventType: { order: 'asc' } },

@@ -1,4 +1,5 @@
 // GuestPageStrategy.ts - 게스트 페이지를 위한 전략 패턴 인터페이스와 구현
+import { GuestPostType } from '@prisma/client';
 
 // 전략 인터페이스 정의
 export interface GuestPageStrategy {
@@ -19,6 +20,7 @@ export interface GuestPageStrategy {
   // 상세 페이지 관련
   getDetailPageTitle(): string;
   getDetailPageMessageTitle(): string;
+  getPhoneLabel(): string;
 }
 
 // 클럽 멤버를 위한 전략
@@ -81,6 +83,11 @@ export class MemberStrategy implements GuestPageStrategy {
 
   getDetailPageMessageTitle(): string {
     return '신청 메시지';
+  }
+
+  // 회원이 게스트를 대신 신청하므로 번호 주인은 게스트가 아니라 신청한 회원이다.
+  getPhoneLabel(): string {
+    return '신청자 연락처';
   }
 }
 
@@ -148,6 +155,11 @@ export class NonMemberStrategy implements GuestPageStrategy {
   getDetailPageMessageTitle(): string {
     return '가입신청 메시지';
   }
+
+  // 비회원은 본인이 직접 신청하므로 번호 주인이 곧 방문자다.
+  getPhoneLabel(): string {
+    return '전화번호';
+  }
 }
 
 // 전략 팩토리 함수
@@ -158,4 +170,24 @@ export const getGuestPageStrategy = (
   return isMember
     ? new MemberStrategy(customDescription)
     : new NonMemberStrategy(customDescription);
+};
+
+/**
+ * 이미 저장된 글의 종류로 전략을 고른다.
+ *
+ * 신청 폼은 "쓰는 사람이 회원인가"로 갈리지만, 상세 페이지는 그렇게 고르면 안 된다.
+ * 보는 사람 기준으로 고르면 관리자(회원)가 열 때 가입신청 글까지
+ * 게스트 신청으로 보인다. 글의 postType은 신청 시점에 고정된 값이라 흔들리지 않는다.
+ *
+ * postType이 없는 예전 글은 게스트 신청으로 본다(스키마 기본값과 같다).
+ * 미사용 상태인 INQUIRY_REQUEST도 같은 이유로 게스트 신청으로 본다.
+ */
+export const getGuestPageStrategyByPostType = (
+  postType: GuestPostType | undefined,
+  customDescription?: string
+): GuestPageStrategy => {
+  return getGuestPageStrategy(
+    postType !== 'JOIN_INQUIRY_REQUEST',
+    customDescription
+  );
 };

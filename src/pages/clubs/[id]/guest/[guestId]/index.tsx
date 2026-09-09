@@ -21,7 +21,7 @@ import { prisma } from '@/lib/prisma';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
-import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
+import { getGuestPageStrategyByPostType } from '@/strategies/GuestPageStrategy';
 import { ClubJoinFormData } from '@/types/club.types';
 import { isVisitDatePassed } from '@/utils/date';
 
@@ -42,6 +42,7 @@ interface GuestDetailPageProps extends AuthProps {
     name: string;
     birthDate: string;
     phoneNumber: string;
+    postType: 'GUEST_REQUEST' | 'JOIN_INQUIRY_REQUEST';
     gender: string;
     localTournamentLevel: string;
     nationalTournamentLevel: string;
@@ -68,8 +69,11 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember); // 현재 사용자의 클럽 멤버 정보
 
-  // 사용자 유형에 따른 전략 적용
-  const strategy = getGuestPageStrategy(!!clubMember);
+  // 글의 종류에 따른 전략 적용.
+  // 보는 사람(clubMember)이 아니라 글의 postType으로 골라야 한다.
+  // 보는 사람 기준으로 고르면 관리자가 열 때 가입신청 글도 게스트 신청으로 보인다.
+  const strategy = getGuestPageStrategyByPostType(guestPost.postType);
+  const isGuestRequest = guestPost.postType !== 'JOIN_INQUIRY_REQUEST';
 
   const isAdmin = clubMember?.role === 'ADMIN'; // 관리자 여부 확인
   const isMyPost = user?.id === guestPost.userId; // 본인 게시물인지 확인
@@ -429,7 +433,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
               {formatDateSimple(guestPost.birthDate)}
             </InfoItem>
             <InfoItem label="성별">{guestPost.gender}</InfoItem>
-            <InfoItem label="전화번호">
+            <InfoItem label={strategy.getPhoneLabel()}>
               <PhoneNumberText value={guestPost.phoneNumber} />
             </InfoItem>
             <InfoItem label="신청일">
@@ -524,8 +528,10 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
         </div>
       </div>
 
-      {/* 수정 모달 - 클럽 멤버 여부에 따라 다른 모달 사용 */}
-      {user && isMyPost && clubMember && (
+      {/* 수정 모달 - 글의 종류에 따라 다른 모달 사용.
+          비회원으로 가입신청한 뒤 회원이 된 경우, 보는 사람 기준으로 고르면
+          가입신청 글에 게스트 신청 폼이 뜬다. */}
+      {user && isMyPost && isGuestRequest && (
         <GuestApplicationModal
           user={user}
           clubId={clubId as string}
@@ -548,7 +554,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           }}
         />
       )}
-      {user && isMyPost && !clubMember && (
+      {user && isMyPost && !isGuestRequest && (
         <GuestInquiryModal
           user={user}
           clubId={clubId as string}
@@ -588,6 +594,8 @@ export const getServerSideProps = async (context: any) => {
         name: true,
         birthDate: true,
         phoneNumber: true,
+        // 상세 화면 문구를 글의 종류로 가르기 위해 필요하다.
+        postType: true,
         gender: true,
         localTournamentLevel: true,
         nationalTournamentLevel: true,

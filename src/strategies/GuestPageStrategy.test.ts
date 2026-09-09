@@ -3,6 +3,7 @@ import {
   MemberStrategy,
   NonMemberStrategy,
   getGuestPageStrategy,
+  getGuestPageStrategyByPostType,
 } from './GuestPageStrategy';
 
 // Jest 글로벌 함수를 TypeScript에게 알려줍니다
@@ -78,6 +79,11 @@ describe('GuestPageStrategy', () => {
     test('getDetailPageMessageTitle should return 신청 메시지', () => {
       expect(strategy.getDetailPageMessageTitle()).toBe('신청 메시지');
     });
+
+    // 게스트 신청은 회원이 남의 방문을 대신 신청하므로, 번호 주인이 게스트가 아니다.
+    test('getPhoneLabel should return 신청자 연락처', () => {
+      expect(strategy.getPhoneLabel()).toBe('신청자 연락처');
+    });
   });
 
   describe('NonMemberStrategy', () => {
@@ -87,38 +93,36 @@ describe('GuestPageStrategy', () => {
       strategy = new NonMemberStrategy();
     });
 
-    test('getNavMenuName should return 문의하기', () => {
-      expect(strategy.getNavMenuName()).toBe('문의하기');
+    test('getNavMenuName should return 가입신청', () => {
+      expect(strategy.getNavMenuName()).toBe('가입신청');
     });
 
-    test('getPageTitle should return 클럽 문의하기', () => {
-      expect(strategy.getPageTitle()).toBe('클럽 문의하기');
+    test('getPageTitle should return 클럽 가입신청', () => {
+      expect(strategy.getPageTitle()).toBe('클럽 가입신청');
     });
 
     test('getDescription should return correct text', () => {
-      expect(strategy.getDescription()).toContain(
-        '문의하거나 게스트로 참여하고 싶으시면'
-      );
+      expect(strategy.getDescription()).toContain('이 클럽에 대해 문의하거나');
     });
 
-    test('getButtonText should return 문의하기', () => {
-      expect(strategy.getButtonText()).toBe('문의하기');
+    test('getButtonText should return 가입신청', () => {
+      expect(strategy.getButtonText()).toBe('가입신청');
     });
 
-    test('getHistoryTitle should return 내 문의 내역', () => {
-      expect(strategy.getHistoryTitle()).toBe('내 문의 내역');
+    test('getHistoryTitle should return 내 가입신청 내역', () => {
+      expect(strategy.getHistoryTitle()).toBe('내 가입신청 내역');
     });
 
-    test('getModalTitle should return 클럽 문의하기 when not editing', () => {
-      expect(strategy.getModalTitle(false)).toBe('클럽 문의하기');
+    test('getModalTitle should return 클럽 가입신청 when not editing', () => {
+      expect(strategy.getModalTitle(false)).toBe('클럽 가입신청');
     });
 
-    test('getModalTitle should return 문의 내용 수정 when editing', () => {
-      expect(strategy.getModalTitle(true)).toBe('문의 내용 수정');
+    test('getModalTitle should return 가입신청 내용 수정 when editing', () => {
+      expect(strategy.getModalTitle(true)).toBe('가입신청 내용 수정');
     });
 
-    test('getModalSubmitText should return 문의하기 when not editing', () => {
-      expect(strategy.getModalSubmitText(false)).toBe('문의하기');
+    test('getModalSubmitText should return 가입신청 when not editing', () => {
+      expect(strategy.getModalSubmitText(false)).toBe('가입신청');
     });
 
     test('getModalSubmitText should return 수정하기 when editing', () => {
@@ -141,12 +145,17 @@ describe('GuestPageStrategy', () => {
       );
     });
 
-    test('getDetailPageTitle should return 클럽 문의 상세', () => {
-      expect(strategy.getDetailPageTitle()).toBe('클럽 문의 상세');
+    test('getDetailPageTitle should return 클럽 가입신청 상세', () => {
+      expect(strategy.getDetailPageTitle()).toBe('클럽 가입신청 상세');
     });
 
-    test('getDetailPageMessageTitle should return 문의 메시지', () => {
-      expect(strategy.getDetailPageMessageTitle()).toBe('문의 메시지');
+    test('getDetailPageMessageTitle should return 가입신청 메시지', () => {
+      expect(strategy.getDetailPageMessageTitle()).toBe('가입신청 메시지');
+    });
+
+    // 가입 문의는 본인이 직접 신청하므로 번호 주인이 곧 방문자다.
+    test('getPhoneLabel should return 전화번호', () => {
+      expect(strategy.getPhoneLabel()).toBe('전화번호');
     });
   });
 
@@ -159,6 +168,29 @@ describe('GuestPageStrategy', () => {
     test('should return NonMemberStrategy when user is not a member', () => {
       const strategy = getGuestPageStrategy(false);
       expect(strategy).toBeInstanceOf(NonMemberStrategy);
+    });
+  });
+
+  // 상세 페이지는 "지금 보는 사람"이 아니라 "그때 쓴 글의 종류"로 갈라야 한다.
+  // 보는 사람 기준으로 고르면 관리자가 열 때 가입신청이 게스트 신청으로 보인다.
+  describe('getGuestPageStrategyByPostType factory', () => {
+    test('should return MemberStrategy for GUEST_REQUEST', () => {
+      expect(getGuestPageStrategyByPostType('GUEST_REQUEST')).toBeInstanceOf(
+        MemberStrategy
+      );
+    });
+
+    test('should return NonMemberStrategy for JOIN_INQUIRY_REQUEST', () => {
+      expect(
+        getGuestPageStrategyByPostType('JOIN_INQUIRY_REQUEST')
+      ).toBeInstanceOf(NonMemberStrategy);
+    });
+
+    // 예전 글은 postType이 비어 있을 수 있다. 기본값은 게스트 신청이다.
+    test('should fall back to MemberStrategy when postType is missing', () => {
+      expect(getGuestPageStrategyByPostType(undefined)).toBeInstanceOf(
+        MemberStrategy
+      );
     });
   });
 });
