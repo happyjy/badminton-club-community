@@ -1,4 +1,4 @@
-import { ComponentType } from 'react';
+import { ComponentType, useEffect } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -29,19 +29,26 @@ export function withAuth<P extends AuthProps>(
     const { user, clubMember } = useSelector((state: RootState) => state.auth);
     const isAuthenticated = !!user;
 
-    if (!isAuthenticated && options.requireAuth) {
-      KakaoAuth.login(router);
-      return null;
-    }
+    const needsLogin = !isAuthenticated && !!options.requireAuth;
+    const isForbidden =
+      !!options.checkPermission &&
+      !!clubMember &&
+      !options.checkPermission(clubMember);
 
-    if (
-      options.checkPermission &&
-      clubMember &&
-      !options.checkPermission(clubMember)
-    ) {
-      router.push('/');
-      return null;
-    }
+    // 로그인·이동은 렌더링이 끝난 뒤에 시작한다. 렌더 도중에 부수효과를 내면
+    // React가 화면을 그리는 중에 상태가 바뀌어 경고나 중복 호출로 이어진다.
+    useEffect(() => {
+      if (needsLogin) {
+        KakaoAuth.login(router);
+        return;
+      }
+
+      if (isForbidden) {
+        router.push('/');
+      }
+    }, [needsLogin, isForbidden, router]);
+
+    if (needsLogin || isForbidden) return null;
 
     const componentProps = {
       ...props,
