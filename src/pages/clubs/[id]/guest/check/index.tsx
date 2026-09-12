@@ -5,6 +5,11 @@ import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
+import {
+  buildGuestListQuery,
+  parseGuestListQuery,
+  type GuestListQuery,
+} from '@/lib/guestListQuery';
 import { formatDateSimple } from '@/lib/utils';
 import {
   GuestPostWithClubMember,
@@ -17,9 +22,32 @@ const ITEMS_PER_PAGE = 10;
 export default function GuestCheckPage() {
   const router = useRouter();
   const { id: clubId } = router.query;
-  const [currentPage, setCurrentPage] = useState(1);
-  const [typeFilter, setTypeFilter] = useState<string>('ALL');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  // 페이지/필터는 useState가 아니라 URL이 들고 있다.
+  // 상세 화면에서 뒤로가기로 돌아오면 브라우저가 URL을 되돌려 주므로
+  // 보고 있던 페이지와 필터가 자연스럽게 복원된다.
+  const {
+    page: currentPage,
+    typeFilter,
+    statusFilter,
+  } = parseGuestListQuery(router.query);
+
+  const updateListQuery = (next: GuestListQuery) => {
+    if (!clubId) return;
+
+    router.push(
+      {
+        pathname: `/clubs/${clubId}/guest/check`,
+        query: buildGuestListQuery(next),
+      },
+      undefined,
+      { shallow: true }
+    );
+  };
+
+  const setCurrentPage = (page: number) => {
+    updateListQuery({ page, typeFilter, statusFilter });
+  };
 
   const { data: response, isLoading } = useQuery({
     queryKey: ['guestRequests', clubId, currentPage, typeFilter, statusFilter],
@@ -39,16 +67,14 @@ export default function GuestCheckPage() {
 
   const guestRequests = response?.data;
 
-  // 게시글 타입 변경
+  // 게시글 타입 변경 (필터가 바뀌면 첫 페이지로)
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTypeFilter(e.target.value);
-    setCurrentPage(1);
+    updateListQuery({ page: 1, typeFilter: e.target.value, statusFilter });
   };
 
-  // 신청 상태 변경
+  // 신청 상태 변경 (필터가 바뀌면 첫 페이지로)
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
-    setCurrentPage(1);
+    updateListQuery({ page: 1, typeFilter, statusFilter: e.target.value });
   };
 
   // 게스트 신청 상세 페이지로 이동
@@ -376,7 +402,7 @@ export default function GuestCheckPage() {
                         ? 'bg-white text-gray-700 cursor-default'
                         : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                   } 
-                  ${containerWidth < 640 ? 'px-2 py-1 text-xs' : 'px-4 py-2'}1
+                  ${containerWidth < 640 ? 'px-2 py-1 text-xs' : 'px-4 py-2'}
                   flex-1 justify-center min-w-[32px]`}
               >
                 {pageNum}
