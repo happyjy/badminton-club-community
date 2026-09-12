@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
+import { recalcParkingAssignments } from '@/lib/workout/parkingAssignment';
+import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
+import { notifyParkingPromotion } from '@/lib/workout/parkingSms';
 import { ApiResponse } from '@/types/common.types';
 import { Status } from '@/types/enums';
 
@@ -66,13 +69,62 @@ export default withAuth(async function handler(
         message: '운동에 참여했습니다',
       });
     } else {
-      await prisma.workoutParticipant.delete({
+      const workout = await prisma.workout.findUnique({
+        where: { id: Number(workoutId) },
+        select: { date: true, parkingCapacity: true },
+      });
+
+      const settings = await prisma.clubCustomSettings.findUnique({
+        where: { clubId: Number(clubId) },
+        select: {
+          parkingEnabled: true,
+          parkingWeekdayCapacity: true,
+          parkingWeekendCapacity: true,
+          parkingSmsEnabled: true,
+        },
+      });
+
+      const clubMember = await prisma.clubMember.findUnique({
         where: {
-          workoutId_userId: {
-            workoutId: Number(workoutId),
+          clubId_userId: {
+            clubId: Number(clubId),
             userId: Number(req.user.id),
           },
         },
+        select: { id: true },
+      });
+
+      const promoted = await prisma.$transaction(async (tx) => {
+        await tx.workoutParticipant.delete({
+          where: {
+            workoutId_userId: {
+              workoutId: Number(workoutId),
+              userId: Number(req.user.id),
+            },
+          },
+        });
+
+        // 운동 참여를 취소하면 주차 신청도 함께 사라진다.
+        // 참여하지 않는 사람이 자리를 차지하고 있으면 안 되기 때문이다.
+        if (!settings?.parkingEnabled || !workout || !clubMember) return [];
+
+        await tx.parkingRequest.deleteMany({
+          where: {
+            workoutId: Number(workoutId),
+            clubMemberId: clubMember.id,
+          },
+        });
+
+        const capacity = resolveParkingCapacity(workout, settings);
+        return recalcParkingAssignments(tx, Number(workoutId), capacity);
+      });
+
+      // 트랜잭션 커밋 후 발송한다. 외부 API 호출로 커넥션을 오래 붙잡지 않기 위함이며,
+      // 문자 발송 실패가 이미 유효한 배정을 되돌려서는 안 되기 때문이다.
+      await notifyParkingPromotion({
+        clubMemberIds: promoted,
+        workoutId: Number(workoutId),
+        smsEnabled: Boolean(settings?.parkingSmsEnabled),
       });
 
       return res.status(200).json({
