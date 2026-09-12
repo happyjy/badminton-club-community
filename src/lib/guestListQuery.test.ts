@@ -37,7 +37,10 @@ describe('parseGuestListQuery', () => {
 
   it('같은 키가 여러 번 오면 첫 값만 쓴다', () => {
     expect(
-      parseGuestListQuery({ page: ['2', '5'], status: ['APPROVED', 'REJECTED'] })
+      parseGuestListQuery({
+        page: ['2', '5'],
+        status: ['APPROVED', 'REJECTED'],
+      })
     ).toEqual({
       page: 2,
       typeFilter: 'ALL',
