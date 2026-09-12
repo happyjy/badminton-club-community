@@ -86,7 +86,7 @@ export default function GuestCheckPage() {
       case 'GUEST_REQUEST':
         return '게스트 신청';
       case 'JOIN_INQUIRY_REQUEST':
-        return '가입 신청';
+        return '가입 문의';
       default:
         return '-';
     }
@@ -218,7 +218,7 @@ export default function GuestCheckPage() {
         >
           <option value="ALL">전체 타입</option>
           <option value="GUEST_REQUEST">게스트 신청</option>
-          <option value="JOIN_INQUIRY_REQUEST">가입 신청</option>
+          <option value="JOIN_INQUIRY_REQUEST">가입 문의</option>
         </select>
 
         <select
