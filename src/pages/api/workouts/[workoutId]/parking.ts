@@ -208,10 +208,7 @@ export default withAuth(async function handler(
     // position 충돌이 재시도 횟수를 넘겨 소진된 경우. 같은 사람이 두 번 신청한 것이
     // 아니므로 위와 다른 메시지로 응답한다.
     if (isUniqueConstraintOn(error, ['position'])) {
-      console.error(
-        '주차 순번 충돌이 재시도 한도를 초과했습니다:',
-        error
-      );
+      console.error('주차 순번 충돌이 재시도 한도를 초과했습니다:', error);
       return res
         .status(409)
         .json({ error: '신청이 몰려 처리하지 못했습니다. 다시 시도해주세요' });
