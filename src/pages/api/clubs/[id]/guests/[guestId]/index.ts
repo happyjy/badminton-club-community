@@ -123,6 +123,13 @@ export default withAuth(async function handler(
             .json({ message: '본인의 게시물만 수정할 수 있습니다' });
         }
 
+        // 방문희망일이 지난(오늘 포함) 신청은 수정할 수 없음
+        if (isVisitDatePassed(guestPost.visitDate)) {
+          return res
+            .status(403)
+            .json({ message: '방문희망일이 지난 신청은 수정할 수 없습니다' });
+        }
+
         const {
           name,
           birthDate,
