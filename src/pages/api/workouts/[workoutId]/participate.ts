@@ -71,7 +71,7 @@ export default withAuth(async function handler(
     } else {
       const workout = await prisma.workout.findUnique({
         where: { id: Number(workoutId) },
-        select: { date: true, parkingCapacity: true },
+        select: { clubId: true, date: true, parkingCapacity: true },
       });
 
       const settings = await prisma.clubCustomSettings.findUnique({
@@ -106,7 +106,16 @@ export default withAuth(async function handler(
 
         // 운동 참여를 취소하면 주차 신청도 함께 사라진다.
         // 참여하지 않는 사람이 자리를 차지하고 있으면 안 되기 때문이다.
-        if (!settings?.parkingEnabled || !workout || !clubMember) return [];
+        // workout.clubId가 요청의 clubId와 다르면(다른 클럽 소속 운동이면)
+        // 그 클럽의 설정으로 이 운동의 정원을 재계산해서는 안 되므로 건너뛴다.
+        if (
+          !settings?.parkingEnabled ||
+          !workout ||
+          !clubMember ||
+          workout.clubId !== Number(clubId)
+        ) {
+          return [];
+        }
 
         await tx.parkingRequest.deleteMany({
           where: {

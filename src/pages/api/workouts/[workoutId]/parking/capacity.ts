@@ -41,6 +41,18 @@ export default withAuth(async function handler(
   try {
     await requireClubAdmin(req.user.id, clubId);
 
+    // clubId는 요청 본문에서 왔으므로, 이 workout이 실제로 그 클럽 소속인지
+    // 검증 후에만 갱신한다. 확인 전에 update부터 하면 다른 클럽의 운동 일정을
+    // 덮어쓸 수 있다.
+    const existing = await prisma.workout.findUnique({
+      where: { id: workoutId },
+      select: { clubId: true },
+    });
+
+    if (!existing || existing.clubId !== clubId) {
+      return res.status(404).json({ error: '운동 일정을 찾을 수 없습니다' });
+    }
+
     const settings = await prisma.clubCustomSettings.findUnique({
       where: { clubId },
       select: {
@@ -59,7 +71,7 @@ export default withAuth(async function handler(
 
     const promoted = await prisma.$transaction(async (tx) => {
       const workout = await tx.workout.update({
-        where: { id: workoutId },
+        where: { id: workoutId, clubId },
         data: { parkingCapacity: capacityOverride },
         select: { date: true, parkingCapacity: true },
       });

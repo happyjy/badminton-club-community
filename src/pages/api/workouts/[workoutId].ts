@@ -142,7 +142,7 @@ export default withAuth(async function handler(
             position: true,
             clubMember: { select: { name: true } },
           },
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
         })
       : [];
 

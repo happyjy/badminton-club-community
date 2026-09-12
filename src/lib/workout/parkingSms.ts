@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { sendSMS } from '@/lib/sms';
+import { PARKING_STATUS } from '@/lib/workout/parkingAssignment';
 
 /**
  * 주차 대기 → 확정 승격 문자.
@@ -90,8 +91,15 @@ export async function notifyParkingPromotion({
     });
     if (!workout) return;
 
+    // 조회 시점 사이에 관리자가 대수를 낮춰 강등시켰을 수 있으므로,
+    // 지금도 CONFIRMED인 신청만 문자를 보낸다. 강등되면 promotedSmsAt이
+    // null로 초기화되어 status 조건 없이는 승격 문자로 오인해 보낼 수 있다.
     const requests = await prisma.parkingRequest.findMany({
-      where: { workoutId, clubMemberId: { in: clubMemberIds } },
+      where: {
+        workoutId,
+        clubMemberId: { in: clubMemberIds },
+        status: PARKING_STATUS.CONFIRMED,
+      },
       select: {
         id: true,
         promotedSmsAt: true,

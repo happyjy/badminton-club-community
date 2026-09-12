@@ -138,7 +138,7 @@ export default async function handler(
               status: true,
               position: true,
             },
-            orderBy: { position: 'asc' },
+            orderBy: [{ position: 'asc' }, { id: 'asc' }],
           });
 
     const parkingByWorkoutId = parkingRequests.reduce<
