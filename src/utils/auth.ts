@@ -6,6 +6,10 @@ import '@/types/kakao.types';
 // 클라이언트 사이드에서만 실행되는지 확인하는 함수
 const isClient = () => typeof window !== 'undefined';
 
+// SDK 도착을 기다리는 중인지. withAuth가 리렌더링마다 login을 부르므로,
+// 이 표시가 없으면 대기 리스너가 쌓여 로그인이 여러 번 시작된다.
+let isWaitingForSdk = false;
+
 /**
  * 카카오 인증 관련 기능을 제공하는 네임스페이스
  */
@@ -51,14 +55,56 @@ export const KakaoAuth = {
     const returnUrl = router.asPath;
     const state = returnUrl ? returnUrl.toString() : '/clubs';
 
-    try {
-      window.Kakao.Auth.authorize({
-        redirectUri,
-        state: encodeURIComponent(state),
-      });
-    } catch (error) {
-      console.error('카카오 로그인 실패:', error);
+    const authorize = () => {
+      // 초기화 전에는 authorize가 동작하지 않으므로 먼저 초기화한다.
+      KakaoAuth.initialize();
+
+      // load 이벤트를 받고 들어와도 SDK가 없을 수 있다(스크립트 오류 등).
+      if (!window.Kakao?.Auth) {
+        console.error('카카오 SDK를 불러오지 못했습니다.');
+        return;
+      }
+
+      try {
+        window.Kakao.Auth.authorize({
+          redirectUri,
+          state: encodeURIComponent(state),
+        });
+      } catch (error) {
+        console.error('카카오 로그인 실패:', error);
+      }
+    };
+
+    // SDK는 async로 불러오므로 로그인을 시작할 때 아직 없을 수 있다.
+    // 특히 로그인하지 않은 사용자가 첫 접속에서 곧바로 이 경로를 탄다.
+    // 그대로 window.Kakao.Auth를 읽으면 화면 전체가 깨진다.
+    if (window.Kakao?.Auth) {
+      authorize();
+      return;
     }
+
+    // 이미 기다리는 중이면 리스너를 더 달지 않는다.
+    if (isWaitingForSdk) return;
+
+    const script = document.querySelector<HTMLScriptElement>(
+      'script[src*="kakao.min.js"]'
+    );
+
+    if (!script) {
+      console.error('카카오 SDK 스크립트를 찾을 수 없습니다.');
+      return;
+    }
+
+    // 도착을 기다렸다가 이어서 로그인한다.
+    isWaitingForSdk = true;
+    script.addEventListener(
+      'load',
+      () => {
+        isWaitingForSdk = false;
+        authorize();
+      },
+      { once: true }
+    );
   },
 
   /**

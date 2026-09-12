@@ -6,6 +6,10 @@ const common = {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }],
   },
   moduleNameMapper: {
+    // 정적 자산은 ts-jest가 변환하지 못하므로 스텁으로 바꿔치기한다.
+    // '@/' 별칭보다 먼저 와야 '@/icon/spinner.svg'가 여기서 걸린다.
+    '\\.(svg|png|jpg|jpeg|gif|webp|avif|ico|bmp)$':
+      '<rootDir>/__mocks__/fileMock.js',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transformIgnorePatterns: ['node_modules/(?!(@prisma/client)/)'],

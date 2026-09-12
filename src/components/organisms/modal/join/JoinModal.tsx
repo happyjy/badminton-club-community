@@ -1,4 +1,4 @@
-import { FormEvent, useState, ReactNode } from 'react';
+import { FormEvent, useEffect, useRef, useState, ReactNode } from 'react';
 
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
@@ -8,7 +8,6 @@ import { ClubJoinFormData } from '@/types/club.types';
 import { getVisitDate, TOURNAMENT_LEVELS } from '@/utils/clubForms';
 import { getPhoneNumberError, joinPhoneParts } from '@/utils/phoneNumber';
 
-import PhoneVerificationStep from '../../forms/PhoneVerificationStep';
 import PrivacyModal from '../PrivacyModal';
 
 // Sub-components
@@ -76,8 +75,21 @@ function JoinModal({
 
   // 개인정보 수집 및 이용 동의 모달
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
-  // 휴대폰 인증 관련 상태
-  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  // PhoneField가 알려주는 인증 완료 여부. 제출 버튼 활성 조건이다.
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+
+  // 인증 함수가 넘어오지 않는 화면에서는 인증을 요구할 수 없다.
+  const canVerifyPhone = !!sendPhoneVerificationCode && !!verifyPhoneCode;
+
+  // 모달을 열 때 계정에 인증된 번호가 있는지 받아온다.
+  // 이 값이 있어야 이미 인증한 사용자가 다시 인증하지 않고 바로 신청할 수 있다.
+  const loadVerificationStatus = useRef(checkPhoneVerificationStatus);
+  loadVerificationStatus.current = checkPhoneVerificationStatus;
+  useEffect(() => {
+    if (isOpen) {
+      loadVerificationStatus.current?.();
+    }
+  }, [isOpen]);
 
   // 전화번호 문자열 생성 함수
   const getFullPhoneNumber = () => joinPhoneParts(phoneNumbers);
@@ -100,54 +112,28 @@ function JoinModal({
   }));
 
   // 폼 제출 처리
+  // 전화번호 인증은 PhoneField 안에서 끝나므로, 여기서는 형식과 인증 여부만 본다.
   const onSubmitForm = (e: FormEvent) => {
     e.preventDefault();
 
     // 전화번호가 올바른 형식으로 입력되었는지 확인
     // 빈 값뿐 아니라 자리 수가 모자란 값도 여기서 걸러, 형식이 어긋난 번호가
     // 저장되지 않도록 한다.
-    const currentPhoneNumber = getFullPhoneNumber();
-    const phoneNumberError = getPhoneNumberError(currentPhoneNumber);
+    const phoneNumberError = getPhoneNumberError(getFullPhoneNumber());
     if (phoneNumberError) {
       alert(phoneNumberError);
       return;
     }
 
-    // 이미 인증된 전화번호인지 확인
-    if (
-      phoneVerificationStatus?.isVerified &&
-      phoneVerificationStatus.phoneNumber === currentPhoneNumber
-    ) {
-      // 이미 인증된 전화번호라면 바로 제출
-      onSubmit(formData);
-      initialFormData();
+    // 인증 기능을 쓸 수 있는 화면에서는 인증을 마쳐야 제출할 수 있다.
+    // 제출 버튼도 비활성이지만, 엔터 제출 같은 경로를 위해 여기서도 막는다.
+    if (canVerifyPhone && !isPhoneVerified) {
+      alert('전화번호 인증을 완료해주세요.');
       return;
     }
 
-    // 인증이 필요하거나 다른 전화번호라면 인증 모달 표시
-    setShowPhoneVerification(true);
-  };
-
-  // 인증 완료 처리
-  const handleVerificationComplete = async () => {
-    if (checkPhoneVerificationStatus) {
-      await checkPhoneVerificationStatus();
-    }
-    setShowPhoneVerification(false);
     onSubmit(formData);
     initialFormData();
-  };
-
-  // 인증 건너뛰기 처리
-  const handleSkipVerification = () => {
-    setShowPhoneVerification(false);
-    onSubmit(formData);
-    initialFormData();
-  };
-
-  // 인증 모달 닫기
-  const handleClosePhoneVerification = () => {
-    setShowPhoneVerification(false);
   };
 
   // 화면 렌더링
@@ -166,6 +152,9 @@ function JoinModal({
     checkPhoneVerificationStatus,
     sendPhoneVerificationCode,
     verifyPhoneCode,
+    onPhoneVerifiedChange: setIsPhoneVerified,
+    canVerifyPhone,
+    isPhoneVerified,
     minBirthDate,
     maxBirthDate,
     minVisitDate,
@@ -175,43 +164,11 @@ function JoinModal({
     setIsPrivacyModalOpen,
   };
 
-  // 휴대폰 인증 모달이 표시되는 경우
-  if (showPhoneVerification) {
-    if (
-      !checkPhoneVerificationStatus ||
-      !sendPhoneVerificationCode ||
-      !verifyPhoneCode
-    ) {
-      onSubmit(formData);
-      initialFormData();
-      setShowPhoneVerification(false);
-      return null;
-    }
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
-          <PhoneVerificationStep
-            userPhoneNumber={getFullPhoneNumber()}
-            onVerificationComplete={handleVerificationComplete}
-            onSkipVerification={handleSkipVerification}
-            onBack={handleClosePhoneVerification}
-            phoneVerificationStatus={phoneVerificationStatus || null}
-            phoneVerificationLoading={phoneVerificationLoading || false}
-            phoneVerificationError={phoneVerificationError || null}
-            checkPhoneVerificationStatus={checkPhoneVerificationStatus}
-            sendPhoneVerificationCode={sendPhoneVerificationCode}
-            verifyPhoneCode={verifyPhoneCode}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <JoinModalContext.Provider value={contextValue}>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto px-4">
+        {/* overflow-x-hidden: 안쪽 요소가 넘쳐도 모달에 가로 스크롤이 생기지 않게 한다. */}
+        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden my-4">
           <form onSubmit={onSubmitForm} className="space-y-4">
             {children}
           </form>

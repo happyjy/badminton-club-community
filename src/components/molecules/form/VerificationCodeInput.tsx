@@ -70,10 +70,14 @@ function VerificationCodeInput({
 
       <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="verification-code"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             인증번호 6자리
           </label>
           <Input
+            id="verification-code"
             type="text"
             value={code}
             onChange={handleCodeChange}
