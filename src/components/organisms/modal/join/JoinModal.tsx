@@ -166,8 +166,9 @@ function JoinModal({
 
   return (
     <JoinModalContext.Provider value={contextValue}>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto my-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto px-4">
+        {/* overflow-x-hidden: 안쪽 요소가 넘쳐도 모달에 가로 스크롤이 생기지 않게 한다. */}
+        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden my-4">
           <form onSubmit={onSubmitForm} className="space-y-4">
             {children}
           </form>

@@ -131,8 +131,9 @@ function PhoneField({
 
   return (
     <FormField label={label} required error={fieldError}>
-      <div className="flex items-start gap-2">
-        <div onBlur={onBlurPhoneNumber} className="flex-1">
+      {/* min-w-0이 없으면 flex 항목이 내용 폭 아래로 줄지 않아 버튼이 밀려난다. */}
+      <div className="flex min-w-0 items-start gap-2">
+        <div onBlur={onBlurPhoneNumber} className="min-w-0 flex-1">
           <PhoneInputGroup
             values={phoneNumbers}
             onChange={onChangePhoneNumber}
