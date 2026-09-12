@@ -8,6 +8,7 @@ import {
   recalcParkingAssignments,
 } from '@/lib/workout/parkingAssignment';
 import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
+import { notifyParkingPromotion } from '@/lib/workout/parkingSms';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -70,6 +71,7 @@ export default withAuth(async function handler(
           parkingEnabled: true,
           parkingWeekdayCapacity: true,
           parkingWeekendCapacity: true,
+          parkingSmsEnabled: true,
         },
       }),
     ]);
@@ -103,10 +105,11 @@ export default withAuth(async function handler(
       }
 
       let status: string = PARKING_STATUS.WAITLIST;
+      let promoted: number[] = [];
       let attempt = 0;
       for (;;) {
         try {
-          status = await prisma.$transaction(async (tx) => {
+          ({ status, promoted } = await prisma.$transaction(async (tx) => {
             const last = await tx.parkingRequest.findFirst({
               where: { workoutId },
               orderBy: { position: 'desc' },
@@ -123,14 +126,22 @@ export default withAuth(async function handler(
               select: { id: true },
             });
 
-            await recalcParkingAssignments(tx, workoutId, capacity);
+            const promotedIds = await recalcParkingAssignments(
+              tx,
+              workoutId,
+              capacity
+            );
 
             const saved = await tx.parkingRequest.findUnique({
               where: { id: created.id },
               select: { status: true },
             });
-            return saved?.status ?? PARKING_STATUS.WAITLIST;
-          });
+
+            return {
+              status: saved?.status ?? PARKING_STATUS.WAITLIST,
+              promoted: promotedIds,
+            };
+          }));
           break;
         } catch (error) {
           attempt++;
@@ -151,6 +162,14 @@ export default withAuth(async function handler(
         }
       }
 
+      // 트랜잭션 커밋 후 발송한다. 외부 API 호출로 커넥션을 오래 붙잡지 않기 위함이며,
+      // 문자 발송 실패가 이미 유효한 배정을 되돌려서는 안 되기 때문이다.
+      await notifyParkingPromotion({
+        clubMemberIds: promoted,
+        workoutId,
+        smsEnabled: settings.parkingSmsEnabled,
+      });
+
       return res.status(200).json({
         status,
         message:
@@ -161,11 +180,18 @@ export default withAuth(async function handler(
     }
 
     // DELETE
-    await prisma.$transaction(async (tx) => {
+    const promoted = await prisma.$transaction(async (tx) => {
       await tx.parkingRequest.deleteMany({
         where: { workoutId, clubMemberId: member.id },
       });
-      await recalcParkingAssignments(tx, workoutId, capacity);
+      return recalcParkingAssignments(tx, workoutId, capacity);
+    });
+
+    // 트랜잭션 커밋 후 발송한다 (POST 분기와 동일한 이유).
+    await notifyParkingPromotion({
+      clubMemberIds: promoted,
+      workoutId,
+      smsEnabled: settings.parkingSmsEnabled,
     });
 
     return res
