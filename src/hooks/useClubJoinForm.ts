@@ -5,7 +5,7 @@ import { User } from '@/types';
 import { ClubJoinFormData } from '@/types/club.types';
 import { createInitialFormData } from '@/utils/clubForms';
 import {
-  clampPhonePart,
+  fillPhoneParts,
   joinPhoneParts,
   splitPhoneParts,
   type PhoneNumberParts,
@@ -80,23 +80,29 @@ export const useClubJoinForm = (
     e: ChangeEvent<HTMLInputElement>,
     part: 'first' | 'second' | 'third'
   ) => {
-    // 붙여넣기로 칸을 넘치게 들어와도 입력을 통째로 버리지 않고 잘라서 받는다.
-    const value = clampPhonePart(e.target.value, part);
-    const maxLength = part === 'first' ? 3 : 4;
+    // 자동완성·붙여넣기는 한 칸에 번호 전체를 넣는다. 칸마다 제 몫만 자르면
+    // 나머지 자리가 버려지므로, 넘치는 값은 뒤 칸으로 밀어 담는다.
+    const nextParts = fillPhoneParts(phoneNumbers, part, e.target.value);
 
     // 다음 상태를 먼저 만들어 두 state에 함께 반영한다.
     // 이전 코드는 phoneNumbers를 클로저에서 읽어 formData가 한 박자 밀렸다.
-    const nextParts = { ...phoneNumbers, [part]: value };
     setPhoneNumbers(nextParts);
     setFormData((prev) => ({
       ...prev,
       phoneNumber: joinPhoneParts(nextParts),
     }));
 
-    if (value.length === maxLength && part !== 'third') {
-      const nextInput = part === 'first' ? 'second' : 'third';
-      const nextElement = document.getElementById(`phone-${nextInput}`);
-      nextElement?.focus();
+    // 한 칸을 채우면 다음 칸으로 넘어간다. 여러 칸이 한꺼번에 찬 자동완성은
+    // 이미 뒤 칸까지 채워졌으므로 마지막 칸으로 보낸다.
+    const maxLength = part === 'first' ? 3 : 4;
+    if (nextParts[part].length === maxLength && part !== 'third') {
+      const isFilledByAutofill = !!nextParts.third;
+      const nextInput = isFilledByAutofill
+        ? 'third'
+        : part === 'first'
+          ? 'second'
+          : 'third';
+      document.getElementById(`phone-${nextInput}`)?.focus();
     }
   };
 

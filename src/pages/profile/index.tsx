@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { withAuth } from '@/lib/withAuth';
 import { User } from '@/types';
 import {
-  clampPhonePart,
+  fillPhoneParts,
   joinPhoneParts,
   splitPhoneParts,
 } from '@/utils/phoneNumber';
@@ -80,11 +80,10 @@ function ProfilePage({ user }: ProfilePageProps) {
     e: React.ChangeEvent<HTMLInputElement>,
     part: 'first' | 'second' | 'third'
   ) => {
-    const value = clampPhonePart(e.target.value, part);
-
+    // 자동완성·붙여넣기는 한 칸에 번호 전체를 넣으므로 넘치는 값은 뒤 칸으로 민다.
     // 다음 상태를 먼저 만들어 두 state에 함께 반영한다.
     // 이전 코드는 phoneNumbers를 클로저에서 읽어 formData가 한 박자 밀렸다.
-    const nextParts = { ...phoneNumbers, [part]: value };
+    const nextParts = fillPhoneParts(phoneNumbers, part, e.target.value);
     setPhoneNumbers(nextParts);
     setFormData((prev) => ({
       ...prev,
@@ -189,30 +188,31 @@ function ProfilePage({ user }: ProfilePageProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             전화번호
           </label>
+          {/* maxLength를 두지 않는다. 자동완성이 한 칸에 채운 '+82 10-...'을
+              브라우저가 먼저 잘라 버리면 핸들러가 숫자를 되찾을 수 없다.
+              자리 수 제한은 onChange에서 처리한다. */}
           <div className="flex gap-2">
             <input
-              type="text"
+              type="tel"
+              autoComplete="tel"
               value={phoneNumbers.first}
               onChange={(e) => onChangePhoneNumber(e, 'first')}
-              maxLength={3}
               placeholder="010"
               className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
             />
             <span className="flex items-center">-</span>
             <input
-              type="text"
+              type="tel"
               value={phoneNumbers.second}
               onChange={(e) => onChangePhoneNumber(e, 'second')}
-              maxLength={4}
               placeholder="0000"
               className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
             />
             <span className="flex items-center">-</span>
             <input
-              type="text"
+              type="tel"
               value={phoneNumbers.third}
               onChange={(e) => onChangePhoneNumber(e, 'third')}
-              maxLength={4}
               placeholder="0000"
               className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
             />

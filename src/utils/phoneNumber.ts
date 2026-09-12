@@ -100,6 +100,73 @@ export const clampPhonePart = (
   part: keyof PhoneNumberParts
 ): string => value.replace(/\D/g, '').slice(0, PART_MAX_LENGTH[part]);
 
+/**
+ * 국가번호 '+82'를 국내 표기 '0'으로 되돌리는 함수
+ *
+ * 크롬 자동완성은 저장된 번호를 '+82 10-6636-8962'로 채운다. 숫자만 남기면
+ * '821066368962'가 되는데, 이걸 그대로 나눠 담으면 '821'로 시작하는 엉뚱한
+ * 번호가 된다.
+ *
+ * 국내 번호 길이(10~11자리)를 넘는 값만 손댄다. 짧은 값까지 고치면 아직
+ * 입력 중인 '82...'를 성급하게 바꿔 버린다.
+ *
+ * @param digits - 숫자만 남은 전화번호 문자열
+ * @returns 국가번호를 걷어낸 문자열
+ */
+export const stripKoreanCountryCode = (digits?: string | null): string => {
+  if (!digits) return '';
+
+  const cleaned = digits.replace(/\D/g, '');
+  if (!cleaned.startsWith('82') || cleaned.length < 11) return cleaned;
+
+  // '82' 다음이 이미 0이면 그 0을 살리고, 아니면 0을 붙여 국내 표기로 만든다.
+  const rest = cleaned.slice(2);
+  return rest.startsWith('0') ? rest : `0${rest}`;
+};
+
+/**
+ * 입력된 값을 세 칸에 나눠 담는 함수
+ *
+ * 자동완성과 붙여넣기는 세 칸 구조를 모르고 한 칸에 번호 전체를 넣는다.
+ * 칸마다 제 몫만 자르면 나머지 자리가 버려지므로, 칸을 넘치는 값은
+ * 뒤 칸으로 밀어 넣는다.
+ *
+ * @param parts - 현재 세 칸 상태
+ * @param part - 사용자가 입력한 칸
+ * @param value - 그 칸에 들어온 값 (하이픈·공백이 섞여 있어도 된다)
+ * @returns 새 세 칸 상태
+ */
+export const fillPhoneParts = (
+  parts: PhoneNumberParts,
+  part: keyof PhoneNumberParts,
+  value: string
+): PhoneNumberParts => {
+  const digits = stripKoreanCountryCode(value);
+
+  // 한 칸 분량을 넘지 않으면 그 칸만 바꾼다. 지우는 입력도 이 경로로 처리된다.
+  if (digits.length <= PART_MAX_LENGTH[part]) {
+    return { ...parts, [part]: digits };
+  }
+
+  // 번호 하나가 통째로 들어온 경우다. 자동완성은 어느 칸에든 채울 수 있으므로
+  // 입력된 칸과 무관하게 처음부터 나눠 담는다.
+  if (part === 'first' || isValidPhoneNumber(digits)) {
+    return splitPhoneParts(digits);
+  }
+
+  // 뒤쪽 칸에서 넘친 경우, 그 칸부터 차례로 채운다.
+  const order: (keyof PhoneNumberParts)[] = ['first', 'second', 'third'];
+  const next = { ...parts };
+  let rest = digits;
+
+  for (const key of order.slice(order.indexOf(part))) {
+    next[key] = rest.slice(0, PART_MAX_LENGTH[key]);
+    rest = rest.slice(PART_MAX_LENGTH[key]);
+  }
+
+  return next;
+};
+
 /** 화면에 전화번호를 어떻게 내보낼지 담는 결과. */
 export interface DisplayPhoneNumber {
   /** 실제로 화면에 찍을 문자열. */
