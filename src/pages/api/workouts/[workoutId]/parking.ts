@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 import { ClubAuthError, requireClubMember } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
@@ -8,6 +10,35 @@ import {
 import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
+
+/**
+ * position 중복(P2002) 재시도 최대 횟수.
+ * 동시 신청 두 건이 같은 position을 계산해 충돌하면, 순번을 다시 읽어
+ * 재계산한 뒤 다시 시도한다. 3회면 동시 경쟁이 몇 겹으로 겹쳐도 충분하다.
+ */
+const MAX_POSITION_RETRIES = 3;
+
+/** Prisma unique 제약 위반(P2002)에서 어떤 필드 조합이 충돌했는지 확인한다 */
+function isUniqueConstraintOn(
+  error: unknown,
+  fields: string[]
+): error is Prisma.PrismaClientKnownRequestError {
+  if (
+    !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+    error.code !== 'P2002'
+  ) {
+    return false;
+  }
+  const target = error.meta?.target;
+  const targetFields = Array.isArray(target)
+    ? target
+    : typeof target === 'string'
+      ? [target]
+      : [];
+  return fields.every((field) =>
+    targetFields.some((t) => String(t).includes(field))
+  );
+}
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
@@ -71,31 +102,54 @@ export default withAuth(async function handler(
           .json({ error: '운동에 먼저 참여해야 주차를 신청할 수 있습니다' });
       }
 
-      const status = await prisma.$transaction(async (tx) => {
-        const last = await tx.parkingRequest.findFirst({
-          where: { workoutId },
-          orderBy: { position: 'desc' },
-          select: { position: true },
-        });
+      let status: string = PARKING_STATUS.WAITLIST;
+      let attempt = 0;
+      for (;;) {
+        try {
+          status = await prisma.$transaction(async (tx) => {
+            const last = await tx.parkingRequest.findFirst({
+              where: { workoutId },
+              orderBy: { position: 'desc' },
+              select: { position: true },
+            });
 
-        const created = await tx.parkingRequest.create({
-          data: {
-            workoutId,
-            clubMemberId: member.id,
-            position: (last?.position ?? 0) + 1,
-            status: PARKING_STATUS.CONFIRMED,
-          },
-          select: { id: true },
-        });
+            const created = await tx.parkingRequest.create({
+              data: {
+                workoutId,
+                clubMemberId: member.id,
+                position: (last?.position ?? 0) + 1,
+                status: PARKING_STATUS.CONFIRMED,
+              },
+              select: { id: true },
+            });
 
-        await recalcParkingAssignments(tx, workoutId, capacity);
+            await recalcParkingAssignments(tx, workoutId, capacity);
 
-        const saved = await tx.parkingRequest.findUnique({
-          where: { id: created.id },
-          select: { status: true },
-        });
-        return saved?.status ?? PARKING_STATUS.WAITLIST;
-      });
+            const saved = await tx.parkingRequest.findUnique({
+              where: { id: created.id },
+              select: { status: true },
+            });
+            return saved?.status ?? PARKING_STATUS.WAITLIST;
+          });
+          break;
+        } catch (error) {
+          attempt++;
+          // 같은 사람의 중복 신청(workoutId, clubMemberId) 위반은 재시도 대상이 아니다.
+          // 즉시 바깥 catch로 던져 409로 응답한다.
+          if (isUniqueConstraintOn(error, ['clubMemberId'])) {
+            throw error;
+          }
+          // position 충돌(workoutId, position)은 동시 요청끼리의 경쟁일 뿐이므로
+          // 순번을 다시 읽어 재시도한다. 마지막 시도까지 실패하면 그대로 던진다.
+          if (
+            isUniqueConstraintOn(error, ['position']) &&
+            attempt < MAX_POSITION_RETRIES
+          ) {
+            continue;
+          }
+          throw error;
+        }
+      }
 
       return res.status(200).json({
         status,
@@ -121,14 +175,20 @@ export default withAuth(async function handler(
     if (error instanceof ClubAuthError) {
       return res.status(error.status).json({ error: error.message });
     }
-    // 중복 신청(unique 제약 위반)
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code: string }).code === 'P2002'
-    ) {
+    // 중복 신청: (workoutId, clubMemberId) unique 제약 위반
+    if (isUniqueConstraintOn(error, ['clubMemberId'])) {
       return res.status(409).json({ error: '이미 주차를 신청했습니다' });
+    }
+    // position 충돌이 재시도 횟수를 넘겨 소진된 경우. 같은 사람이 두 번 신청한 것이
+    // 아니므로 위와 다른 메시지로 응답한다.
+    if (isUniqueConstraintOn(error, ['position'])) {
+      console.error(
+        '주차 순번 충돌이 재시도 한도를 초과했습니다:',
+        error
+      );
+      return res
+        .status(409)
+        .json({ error: '신청이 몰려 처리하지 못했습니다. 다시 시도해주세요' });
     }
     console.error('주차 신청/취소 중 오류 발생:', error);
     return res.status(500).json({ error: '처리 중 오류가 발생했습니다' });

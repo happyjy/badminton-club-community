@@ -113,6 +113,23 @@ describe('assignParkingSlots', () => {
     expect(result.promotedClubMemberIds).toEqual([]);
   });
 
+  it('position이 같으면 id가 낮은 쪽을 더 이른 신청으로 취급한다', () => {
+    // 동시 신청 경합으로 두 행이 같은 position을 갖게 된 경우를 가정한다.
+    // id 5(먼저 생성됨)가 id 7보다 앞선 신청으로 간주되어 확정되어야 한다.
+    const result = assignParkingSlots(
+      [
+        row(7, 107, PARKING_STATUS.CONFIRMED, 3),
+        row(5, 105, PARKING_STATUS.CONFIRMED, 3),
+      ],
+      1
+    );
+
+    expect(result.updates).toEqual([
+      { id: 7, status: PARKING_STATUS.WAITLIST, clearPromotedSms: true },
+    ]);
+    expect(result.promotedClubMemberIds).toEqual([]);
+  });
+
   it('순번이 뒤섞여 들어와도 순번 오름차순으로 배정한다', () => {
     const result = assignParkingSlots(
       [

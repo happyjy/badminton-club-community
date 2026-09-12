@@ -42,7 +42,11 @@ export function assignParkingSlots(
   requests: ParkingRow[],
   capacity: number
 ): AssignmentResult {
-  const ordered = [...requests].sort((a, b) => a.position - b.position);
+  // position이 같을 수 있으므로(동시 신청 경합의 잔여 가능성) id를 2차 정렬키로 써서
+  // 항상 같은 순서로 정렬되게 한다. 낮은 id가 먼저 생성된 쪽이므로 더 이른 신청으로 취급한다.
+  const ordered = [...requests].sort(
+    (a, b) => a.position - b.position || a.id - b.id
+  );
 
   const updates: ParkingUpdate[] = [];
   const promotedClubMemberIds: number[] = [];
@@ -87,7 +91,7 @@ export async function recalcParkingAssignments(
   const requests = await tx.parkingRequest.findMany({
     where: { workoutId },
     select: { id: true, clubMemberId: true, status: true, position: true },
-    orderBy: { position: 'asc' },
+    orderBy: [{ position: 'asc' }, { id: 'asc' }],
   });
 
   const { updates, promotedClubMemberIds } = assignParkingSlots(

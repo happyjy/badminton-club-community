@@ -70,5 +70,5 @@ model ParkingRequest {
   clubMember    ClubMember @relation(fields: [clubMemberId], references: [id])
 
   @@unique([workoutId, clubMemberId])
-  @@index([workoutId, position])
+  @@unique([workoutId, position])
 } 
