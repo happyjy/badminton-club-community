@@ -71,7 +71,7 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
 
   // 글의 종류에 따른 전략 적용.
   // 보는 사람(clubMember)이 아니라 글의 postType으로 골라야 한다.
-  // 보는 사람 기준으로 고르면 관리자가 열 때 가입신청 글도 게스트 신청으로 보인다.
+  // 보는 사람 기준으로 고르면 관리자가 열 때 가입 문의 글도 게스트 신청으로 보인다.
   const strategy = getGuestPageStrategyByPostType(guestPost.postType);
   const isGuestRequest = guestPost.postType !== 'JOIN_INQUIRY_REQUEST';
 
@@ -533,8 +533,8 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       </div>
 
       {/* 수정 모달 - 글의 종류에 따라 다른 모달 사용.
-          비회원으로 가입신청한 뒤 회원이 된 경우, 보는 사람 기준으로 고르면
-          가입신청 글에 게스트 신청 폼이 뜬다. */}
+          비회원으로 가입 문의한 뒤 회원이 된 경우, 보는 사람 기준으로 고르면
+          가입 문의 글에 게스트 신청 폼이 뜬다. */}
       {user && isMyPost && isGuestRequest && (
         <GuestApplicationModal
           user={user}

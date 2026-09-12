@@ -32,7 +32,7 @@ describe('generateGuestApplicationEmailTemplate', () => {
     expect(html).toContain('신청자 연락처');
   });
 
-  test('가입신청은 연락처를 전화번호로 적는다', () => {
+  test('가입 문의는 연락처를 전화번호로 적는다', () => {
     const html = generateGuestApplicationEmailTemplate(
       { ...APPLICATION, postType: 'JOIN_INQUIRY_REQUEST' },
       URL

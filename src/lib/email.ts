@@ -49,7 +49,7 @@ export async function sendGuestApplicationEmail({
 
   if (!recipients) return;
 
-  // 가입신청도 이 메일을 쓰므로 "게스트로 초대"라고 단정하면 안 된다.
+  // 가입 문의도 이 메일을 쓰므로 "게스트로 초대"라고 단정하면 안 된다.
   const strategy = getGuestPageStrategyByPostType(application.postType);
   const subjectBody =
     application.postType === 'JOIN_INQUIRY_REQUEST'
