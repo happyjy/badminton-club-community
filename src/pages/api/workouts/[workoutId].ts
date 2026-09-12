@@ -1,4 +1,8 @@
-import { ClubAuthError, requireClubAdmin } from '@/lib/clubAuth';
+import {
+  ClubAuthError,
+  requireClubAdmin,
+  requireClubMember,
+} from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { toWorkoutDateTime } from '@/lib/workout/datetime';
@@ -78,6 +82,12 @@ export default withAuth(async function handler(
         error: '운동을 찾을 수 없습니다',
         status: 404,
       });
+    }
+
+    // 운동이 속한 클럽의 승인된 회원만 상세 정보를 볼 수 있다.
+    // clubId는 요청자가 아니라 조회된 workout에서 가져와야 권한 검사가 의미가 있다.
+    if (workout.clubId) {
+      await requireClubMember(req.user.id, workout.clubId);
     }
 
     // 운동 날짜 형식 변환 (YYYY-MM-DD 형식으로)
@@ -183,6 +193,12 @@ export default withAuth(async function handler(
       message: '운동 정보를 성공적으로 가져왔습니다',
     });
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res.status(error.status).json({
+        error: error.message,
+        status: error.status,
+      });
+    }
     console.error('운동 상세 정보 조회 중 오류 발생:', error);
     return res.status(500).json({
       error: '운동 정보를 가져오는데 실패했습니다',
