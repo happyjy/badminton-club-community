@@ -66,6 +66,27 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     }
   };
 
+  const handleParkingRequest = async (
+    workoutId: number,
+    isRequested: boolean
+  ) => {
+    try {
+      const response = await fetch(`/api/workouts/${workoutId}/parking`, {
+        method: isRequested ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clubId }),
+      });
+      if (response.ok) {
+        await fetchWorkouts();
+      } else {
+        const result = await response.json();
+        alert(result.error ?? '주차 신청에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('주차 신청/취소 실패:', error);
+    }
+  };
+
   const handleEditSubmit = async (values: WorkoutEditValues) => {
     if (!editTarget) return;
 
@@ -155,6 +176,7 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
               isAdmin={isAdmin}
               onEdit={setEditTarget}
               onDelete={setDeleteTarget}
+              onParkingRequest={handleParkingRequest}
             />
           ))
         ) : (

@@ -1,6 +1,7 @@
 import { HelperType } from '@prisma/client';
 
 import { MembershipStatus } from './membership.types';
+import { WorkoutParkingStatus } from './parking.types';
 import { User } from './user.types';
 
 export interface Exercise {
@@ -61,6 +62,7 @@ export interface Workout {
   WorkoutParticipant?: WorkoutParticipant[];
   guests?: Guest[];
   guestCount?: number;
+  parking?: WorkoutParkingStatus;
 }
 
 export interface WorkoutParticipant {
@@ -131,4 +133,5 @@ export interface WorkoutListItemProps {
   isAdmin?: boolean;
   onEdit?: (workout: Workout) => void;
   onDelete?: (workout: Workout) => void;
+  onParkingRequest?: (workoutId: number, isRequested: boolean) => void;
 }
