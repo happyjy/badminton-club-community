@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { Workout, ApiResponse } from '@/types';
+import { getAuthUser } from '@/lib/session';
+import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
+import { WorkoutParkingStatus } from '@/types/parking.types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -63,6 +66,28 @@ export default async function handler(
       ),
     ];
     const clubIdNum = Number(id);
+
+    // 로그인한 사용자만 본인의 주차 신청 상태를 확인한다 (비로그인 시 null)
+    const authUser = await getAuthUser(req);
+    const myClubMember = authUser
+      ? await prisma.clubMember.findUnique({
+          where: {
+            clubId_userId: { clubId: clubIdNum, userId: authUser.id },
+          },
+          select: { id: true },
+        })
+      : null;
+
+    // 클럽의 주차 기능 설정을 1회만 조회
+    const parkingSettings = await prisma.clubCustomSettings.findUnique({
+      where: { clubId: clubIdNum },
+      select: {
+        parkingEnabled: true,
+        parkingWeekdayCapacity: true,
+        parkingWeekendCapacity: true,
+      },
+    });
+
     const allGuests =
       visitDates.length === 0
         ? []
@@ -100,13 +125,68 @@ export default async function handler(
       return acc;
     }, {});
 
+    // 운동 ID 목록으로 주차 신청을 1회 쿼리로 조회 (게스트 조회와 동일하게 N+1 방지)
+    const workoutIds = workouts.map((w) => w.id);
+    const parkingRequests =
+      !parkingSettings?.parkingEnabled || workoutIds.length === 0
+        ? []
+        : await prisma.parkingRequest.findMany({
+            where: { workoutId: { in: workoutIds } },
+            select: {
+              workoutId: true,
+              clubMemberId: true,
+              status: true,
+              position: true,
+            },
+            orderBy: { position: 'asc' },
+          });
+
+    const parkingByWorkoutId = parkingRequests.reduce<
+      Record<number, typeof parkingRequests>
+    >((acc, request) => {
+      if (!acc[request.workoutId]) acc[request.workoutId] = [];
+      acc[request.workoutId].push(request);
+      return acc;
+    }, {});
+
     const workoutsWithGuests = workouts.map((workout) => {
       const workoutDate = new Date(workout.date).toISOString().split('T')[0];
       const guests = guestsByVisitDate[workoutDate] ?? [];
+
+      // 이 운동의 주차 신청을 확정/대기로 나누고, 로그인한 회원 본인의 상태를 계산한다
+      const requests = parkingByWorkoutId[workout.id] ?? [];
+      const confirmed = requests.filter((r) => r.status === 'CONFIRMED');
+      const waitlist = requests.filter((r) => r.status === 'WAITLIST');
+
+      const myConfirmedIndex = myClubMember
+        ? confirmed.findIndex((r) => r.clubMemberId === myClubMember.id)
+        : -1;
+      const myWaitlistIndex = myClubMember
+        ? waitlist.findIndex((r) => r.clubMemberId === myClubMember.id)
+        : -1;
+
+      const parking: WorkoutParkingStatus = {
+        enabled: Boolean(parkingSettings?.parkingEnabled),
+        capacity: parkingSettings
+          ? resolveParkingCapacity(workout, parkingSettings)
+          : 0,
+        confirmedCount: confirmed.length,
+        waitlistCount: waitlist.length,
+        overrideCapacity: workout.parkingCapacity,
+        myStatus:
+          myConfirmedIndex >= 0
+            ? ('CONFIRMED' as const)
+            : myWaitlistIndex >= 0
+              ? ('WAITLIST' as const)
+              : ('NONE' as const),
+        myWaitlistOrder: myWaitlistIndex >= 0 ? myWaitlistIndex + 1 : null,
+      };
+
       return {
         ...workout,
         guests,
         guestCount: guests.length,
+        parking,
       };
     });
 
