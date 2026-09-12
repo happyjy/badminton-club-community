@@ -2,8 +2,10 @@ import { ClubAuthError, requireClubAdmin } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { toWorkoutDateTime } from '@/lib/workout/datetime';
+import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
 import { validateWorkoutUpdate } from '@/lib/workout/validation';
 import { Workout, ApiResponse } from '@/types';
+import { ParkingRequestListItem } from '@/types/parking.types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -106,6 +108,63 @@ export default withAuth(async function handler(
       },
     });
 
+    // 클럽이 주차 신청을 쓰는지, 쓴다면 명단과 현황을 함께 내려준다
+    const parkingSettings = workout.clubId
+      ? await prisma.clubCustomSettings.findUnique({
+          where: { clubId: workout.clubId },
+          select: {
+            parkingEnabled: true,
+            parkingWeekdayCapacity: true,
+            parkingWeekendCapacity: true,
+          },
+        })
+      : null;
+
+    const parkingEnabled = Boolean(parkingSettings?.parkingEnabled);
+
+    const parkingRequests = parkingEnabled
+      ? await prisma.parkingRequest.findMany({
+          where: { workoutId: workoutIdNum },
+          select: {
+            id: true,
+            clubMemberId: true,
+            status: true,
+            position: true,
+            clubMember: { select: { name: true } },
+          },
+          orderBy: { position: 'asc' },
+        })
+      : [];
+
+    const formattedParkingRequests: ParkingRequestListItem[] =
+      parkingRequests.map((request) => ({
+        id: request.id,
+        clubMemberId: request.clubMemberId,
+        name: request.clubMember?.name ?? '이름 없음',
+        status: request.status as 'CONFIRMED' | 'WAITLIST',
+        position: request.position,
+      }));
+
+    const confirmedCount = formattedParkingRequests.filter(
+      (r) => r.status === 'CONFIRMED'
+    ).length;
+    const waitlistCount = formattedParkingRequests.filter(
+      (r) => r.status === 'WAITLIST'
+    ).length;
+
+    const parking = {
+      enabled: parkingEnabled,
+      capacity: parkingSettings
+        ? resolveParkingCapacity(workout, parkingSettings)
+        : 0,
+      confirmedCount,
+      waitlistCount,
+      overrideCapacity: workout.parkingCapacity,
+      // 이 API는 관리자 명단용이라 로그인 본인 상태는 계산하지 않는다 (목록 API가 담당)
+      myStatus: 'NONE' as const,
+      myWaitlistOrder: null,
+    };
+
     const formattedWorkout = {
       ...workout,
       WorkoutParticipant: workout.WorkoutParticipant.map((participant) => ({
@@ -114,6 +173,8 @@ export default withAuth(async function handler(
       })),
       guests,
       guestCount: guests.length,
+      parking,
+      parkingRequests: formattedParkingRequests,
     } as Workout;
 
     return res.status(200).json({

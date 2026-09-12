@@ -1,7 +1,7 @@
 import { HelperType } from '@prisma/client';
 
 import { MembershipStatus } from './membership.types';
-import { WorkoutParkingStatus } from './parking.types';
+import { ParkingRequestListItem, WorkoutParkingStatus } from './parking.types';
 import { User } from './user.types';
 
 export interface Exercise {
@@ -63,6 +63,8 @@ export interface Workout {
   guests?: Guest[];
   guestCount?: number;
   parking?: WorkoutParkingStatus;
+  /** 관리자 명단 화면용. position 오름차순으로 확정자 다음 대기자 순서다 */
+  parkingRequests?: ParkingRequestListItem[];
 }
 
 export interface WorkoutParticipant {
