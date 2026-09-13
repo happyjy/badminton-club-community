@@ -161,6 +161,7 @@ model ClubMember {
   membershipPaymentsAsMember    MembershipPayment[]   @relation("MembershipPaymentMember")
   membershipPaymentsAsConfirmer MembershipPayment[]   @relation("MembershipPaymentConfirmer")
   memberLeaves                  MemberLeave[]
+  parkingRequests               ParkingRequest[]
 
   @@unique([clubId, userId])
 } 
@@ -267,11 +268,13 @@ model Workout {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime
   clubId              Int?
-  
+  parkingCapacity     Int?                 // 그날 주차 대수. null이면 클럽 기본값
+
   // Relations
   club                Club?                @relation(fields: [clubId], references: [id])
   WorkoutParticipant  WorkoutParticipant[]
   helperStatuses      WorkoutHelperStatus[]
+  parkingRequests     ParkingRequest[]
 }
 
 model WorkoutParticipant {
@@ -307,6 +310,25 @@ model WorkoutHelperStatus {
   updatedBy    ClubMember @relation("HelperUpdater", fields: [updatedById], references: [id])
 
   @@unique([workoutId, clubMemberId, helperType])
+}
+
+// 운동 일정별 주차 신청
+model ParkingRequest {
+  id            Int       @id @default(autoincrement())
+  workoutId     Int
+  clubMemberId  Int
+  status        String    @default("CONFIRMED") // CONFIRMED | WAITLIST
+  position      Int       // 신청 순번(1부터). 승격/강등 판정 기준
+  promotedSmsAt DateTime? // 승격 문자 발송 시각. 중복 발송 방지용
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  workout       Workout    @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  clubMember    ClubMember @relation(fields: [clubMemberId], references: [id])
+
+  @@unique([workoutId, clubMemberId])
+  @@unique([workoutId, position])
 } 
 
 // 게스트 신청 게시글
@@ -586,7 +608,13 @@ model ClubCustomSettings {
   
   // 문자 발송 설정
   smsRecipients        String[] // 문자 수신자 목록 (JSON 배열로 저장)
-  
+
+  // 주차 신청 설정
+  parkingEnabled        Boolean  @default(false) // 주차 신청 기능 사용 여부
+  parkingWeekdayCapacity Int     @default(0)     // 평일(월~금) 기본 주차 대수
+  parkingWeekendCapacity Int     @default(0)     // 주말(토·일) 기본 주차 대수
+  parkingSmsEnabled     Boolean  @default(false) // 승격 시 문자 발송 여부
+
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

@@ -1,9 +1,15 @@
-import { ClubAuthError, requireClubAdmin } from '@/lib/clubAuth';
+import {
+  ClubAuthError,
+  requireClubAdmin,
+  requireClubMember,
+} from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { toWorkoutDateTime } from '@/lib/workout/datetime';
+import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
 import { validateWorkoutUpdate } from '@/lib/workout/validation';
 import { Workout, ApiResponse } from '@/types';
+import { ParkingRequestListItem } from '@/types/parking.types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -78,6 +84,12 @@ export default withAuth(async function handler(
       });
     }
 
+    // 운동이 속한 클럽의 승인된 회원만 상세 정보를 볼 수 있다.
+    // clubId는 요청자가 아니라 조회된 workout에서 가져와야 권한 검사가 의미가 있다.
+    if (workout.clubId) {
+      await requireClubMember(req.user.id, workout.clubId);
+    }
+
     // 운동 날짜 형식 변환 (YYYY-MM-DD 형식으로)
     const workoutDate = new Date(workout.date).toISOString().split('T')[0];
 
@@ -106,6 +118,63 @@ export default withAuth(async function handler(
       },
     });
 
+    // 클럽이 주차 신청을 쓰는지, 쓴다면 명단과 현황을 함께 내려준다
+    const parkingSettings = workout.clubId
+      ? await prisma.clubCustomSettings.findUnique({
+          where: { clubId: workout.clubId },
+          select: {
+            parkingEnabled: true,
+            parkingWeekdayCapacity: true,
+            parkingWeekendCapacity: true,
+          },
+        })
+      : null;
+
+    const parkingEnabled = Boolean(parkingSettings?.parkingEnabled);
+
+    const parkingRequests = parkingEnabled
+      ? await prisma.parkingRequest.findMany({
+          where: { workoutId: workoutIdNum },
+          select: {
+            id: true,
+            clubMemberId: true,
+            status: true,
+            position: true,
+            clubMember: { select: { name: true } },
+          },
+          orderBy: [{ position: 'asc' }, { id: 'asc' }],
+        })
+      : [];
+
+    const formattedParkingRequests: ParkingRequestListItem[] =
+      parkingRequests.map((request) => ({
+        id: request.id,
+        clubMemberId: request.clubMemberId,
+        name: request.clubMember?.name ?? '이름 없음',
+        status: request.status as 'CONFIRMED' | 'WAITLIST',
+        position: request.position,
+      }));
+
+    const confirmedCount = formattedParkingRequests.filter(
+      (r) => r.status === 'CONFIRMED'
+    ).length;
+    const waitlistCount = formattedParkingRequests.filter(
+      (r) => r.status === 'WAITLIST'
+    ).length;
+
+    const parking = {
+      enabled: parkingEnabled,
+      capacity: parkingSettings
+        ? resolveParkingCapacity(workout, parkingSettings)
+        : 0,
+      confirmedCount,
+      waitlistCount,
+      overrideCapacity: workout.parkingCapacity,
+      // 이 API는 관리자 명단용이라 로그인 본인 상태는 계산하지 않는다 (목록 API가 담당)
+      myStatus: 'NONE' as const,
+      myWaitlistOrder: null,
+    };
+
     const formattedWorkout = {
       ...workout,
       WorkoutParticipant: workout.WorkoutParticipant.map((participant) => ({
@@ -114,6 +183,8 @@ export default withAuth(async function handler(
       })),
       guests,
       guestCount: guests.length,
+      parking,
+      parkingRequests: formattedParkingRequests,
     } as Workout;
 
     return res.status(200).json({
@@ -122,6 +193,12 @@ export default withAuth(async function handler(
       message: '운동 정보를 성공적으로 가져왔습니다',
     });
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res.status(error.status).json({
+        error: error.message,
+        status: error.status,
+      });
+    }
     console.error('운동 상세 정보 조회 중 오류 발생:', error);
     return res.status(500).json({
       error: '운동 정보를 가져오는데 실패했습니다',

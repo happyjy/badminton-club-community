@@ -8,11 +8,13 @@ import { useSelector } from 'react-redux';
 import ClubHomeSettingsForm from '@/components/organisms/forms/ClubHomeSettingsForm';
 import EmailSettingsForm from '@/components/organisms/forms/EmailSettingsForm';
 import GuestPageSettingsForm from '@/components/organisms/forms/GuestPageSettingsForm';
+import ParkingSettingsForm from '@/components/organisms/forms/ParkingSettingsForm';
 import SmsSettingsForm from '@/components/organisms/forms/SmsSettingsForm';
 import WorkoutScheduleForm from '@/components/organisms/forms/WorkoutScheduleForm';
 
 import { RootState } from '@/store';
 import { Role } from '@/types/enums';
+import { ClubParkingSettingsResponse } from '@/types/parking.types';
 
 interface CustomSetting {
   id: string;
@@ -52,6 +54,11 @@ const customSettings: CustomSetting[] = [
     name: '운동 일정 생성',
     description: '정기적인 운동 일정을 자동으로 생성합니다.',
   },
+  {
+    id: 'parking',
+    name: '주차 신청',
+    description: '주차 신청 기능 사용 여부와 기본 주차 대수를 설정합니다.',
+  },
 ];
 
 function CustomSettingPage() {
@@ -81,6 +88,8 @@ function CustomSettingPage() {
     location: string;
     maxParticipants: number;
   } | null>(null);
+  const [parkingSettings, setParkingSettings] =
+    useState<ClubParkingSettingsResponse | null>(null);
 
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
   const isAdmin = clubMember?.role === Role.ADMIN;
@@ -173,6 +182,18 @@ function CustomSettingPage() {
     }
   }, [clubId, selectedSetting]);
 
+  // 주차 설정 불러오기
+  useEffect(() => {
+    if (clubId && selectedSetting === 'parking') {
+      axios
+        .get(`/api/clubs/${clubId}/custom/parking`)
+        .then(({ data }) => setParkingSettings(data))
+        .catch((error) =>
+          console.error('Error fetching parking settings:', error)
+        );
+    }
+  }, [clubId, selectedSetting]);
+
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -256,6 +277,21 @@ function CustomSettingPage() {
               <WorkoutScheduleForm
                 clubId={clubId as string}
                 initialData={workoutScheduleSettings}
+              />
+            </div>
+          )}
+          {selectedSetting === 'parking' && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">주차 신청 설정</h2>
+              <ParkingSettingsForm
+                settings={parkingSettings}
+                onSubmit={async (values) => {
+                  const { data } = await axios.put(
+                    `/api/clubs/${clubId}/custom/parking`,
+                    values
+                  );
+                  setParkingSettings(data);
+                }}
               />
             </div>
           )}
