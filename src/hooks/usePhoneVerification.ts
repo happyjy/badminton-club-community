@@ -43,10 +43,6 @@ function usePhoneVerification({
       const response = await axios.get(
         `/api/clubs/${clubId}/phone-verification/status`
       );
-      console.log(
-        `🌸 ~ usePhoneVerification ~ response.data.data:`,
-        response.data.data
-      );
       setStatus(response.data.data);
     } catch (err: any) {
       setError(err.response?.data?.message || '인증 상태 확인에 실패했습니다');

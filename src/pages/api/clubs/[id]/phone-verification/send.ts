@@ -54,10 +54,10 @@ export default withAuth(async function handler(
       return res.status(404).json({ message: 'Club not found' });
     }
 
-    // 기존 인증된 전화번호인지 확인
+    // 기존 인증된 전화번호인지 확인.
+    // 인증은 계정 단위라 clubId를 넘기지 않는다.
     const isPreviouslyVerified = await checkPreviouslyVerifiedPhone(
       user.id,
-      parseInt(clubId),
       phoneNumber
     );
 
@@ -82,7 +82,6 @@ export default withAuth(async function handler(
 
     // SMS 발송
     const message = `[배드민턴 클럽] 인증번호: ${verificationCode} (3분간 유효)`;
-    console.log(`🌸 ~ handler ~ phoneNumber:`, phoneNumber);
     const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
     await sendSMS(normalizedPhoneNumber, message);
 

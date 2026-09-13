@@ -85,7 +85,17 @@ function PhoneField({
 
     setError(null);
     try {
-      await sendPhoneVerificationCode(fullPhoneNumber);
+      const result = await sendPhoneVerificationCode(fullPhoneNumber);
+
+      // 서버는 이미 인증된 번호면 문자를 보내지 않고 canSkipVerification으로 알려준다.
+      // 이때 코드 입력칸을 열면 오지 않는 문자를 기다리게 된다.
+      if (result?.canSkipVerification) {
+        setVerifiedNumber(fullPhoneNumber);
+        setSentTo(null);
+        await checkPhoneVerificationStatus?.();
+        return;
+      }
+
       setSentTo(fullPhoneNumber);
     } catch (err) {
       setError(
