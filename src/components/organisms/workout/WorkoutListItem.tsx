@@ -186,7 +186,7 @@ export function WorkoutListItem({
                   }`}
                 >
                   {isParkingPending ? (
-                    <Spinner size="sm" color="text-gray-600" />
+                    <Spinner size="sm" />
                   ) : !isParticipating ? (
                     '운동 참여 후 신청 가능'
                   ) : workout.parking.myStatus === 'CONFIRMED' ? (
