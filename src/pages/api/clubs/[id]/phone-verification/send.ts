@@ -82,7 +82,6 @@ export default withAuth(async function handler(
 
     // SMS 발송
     const message = `[배드민턴 클럽] 인증번호: ${verificationCode} (3분간 유효)`;
-    console.log(`🌸 ~ handler ~ phoneNumber:`, phoneNumber);
     const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
     await sendSMS(normalizedPhoneNumber, message);
 

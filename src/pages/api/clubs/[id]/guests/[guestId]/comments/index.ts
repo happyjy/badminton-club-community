@@ -54,7 +54,6 @@ export default async function handler(
       // 댓글 생성 & SMS 전송
       case 'POST': {
         const { content, userId, clubMemberId, parentId } = req.body;
-        console.log(`🌸 ~ handler ~ req.body:`, req.body);
 
         if (!content) {
           return res.status(400).json({ message: 'Content is required' });
