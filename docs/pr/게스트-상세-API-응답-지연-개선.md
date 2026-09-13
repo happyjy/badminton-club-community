@@ -36,9 +36,10 @@
 
 ### 6. 문서
 
-- `docs/블로그/게스트-상세-500ms-지연-원인과-해결.md`: 원인 분석 및 해결 방법 정리.
 - `docs/검토/DB-쿼리-지연-요소-검토.md`: DB 쿼리 지연 가능 요소 검토.
-- `docs/블로그/getServerSideProps-vs-client-fetch.md`: getServerSideProps vs 클라이언트 fetch 차이 정리.
+- 원인 분석과 getServerSideProps 동작 정리는 Obsidian vault의 `지식정리_DEV/`로 옮겼다.
+  - `게스트 상세 getServerSideProps 간헐적 500ms 지연 - PrismaClient 매 요청 생성`
+  - `getServerSideProps가 서버에서만 도는 이유와 클라이언트 fetch와의 차이`
 
 ---
 
@@ -50,7 +51,7 @@
 | API  | `src/pages/api/clubs/[id]/workouts.ts`, `src/pages/api/clubs/[id]/guests/index.ts` |
 | lib  | `src/lib/email.ts`, `src/lib/sms-notification.ts`, `src/lib/sms-verification.ts`   |
 | 타입 | `src/types/guest.types.ts`                                                         |
-| 문서 | `docs/블로그/`, `docs/검토/` 내 문서                                               |
+| 문서 | `docs/검토/` 내 문서                                                               |
 
 ---
 
