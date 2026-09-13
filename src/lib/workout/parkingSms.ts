@@ -113,33 +113,36 @@ export async function notifyParkingPromotion({
       location: workout.location,
     });
 
-    for (const request of requests) {
-      const phoneNumber = normalizePhoneNumber(
-        request.clubMember?.phoneNumber ?? null
-      );
+    // 승격자가 여러 명이면 한 명씩 순차로 보내는 동안 응답이 그만큼 늦어진다.
+    // 서로 독립적인 발송이므로 동시에 보낸다. allSettled를 쓰므로 한 건이
+    // 실패해도 나머지는 그대로 진행된다(배정은 이미 유효하니 되돌리지 않는다).
+    await Promise.allSettled(
+      requests.map(async (request) => {
+        const phoneNumber = normalizePhoneNumber(
+          request.clubMember?.phoneNumber ?? null
+        );
 
-      if (
-        !shouldSendPromotionSms({
-          smsEnabled,
-          promotedSmsAt: request.promotedSmsAt,
-          phoneNumber,
-        })
-      ) {
-        continue;
-      }
+        if (
+          !shouldSendPromotionSms({
+            smsEnabled,
+            promotedSmsAt: request.promotedSmsAt,
+            phoneNumber,
+          })
+        ) {
+          return;
+        }
 
-      try {
-        await sendSMS(phoneNumber as string, message);
-        await prisma.parkingRequest.update({
-          where: { id: request.id },
-          data: { promotedSmsAt: new Date() },
-        });
-      } catch (error) {
-        // 한 건이 실패해도 나머지는 계속 보낸다.
-        // 배정은 이미 유효하므로 문자 실패로 되돌리지 않는다.
-        console.error('주차 승격 문자 발송 실패:', request.id, error);
-      }
-    }
+        try {
+          await sendSMS(phoneNumber as string, message);
+          await prisma.parkingRequest.update({
+            where: { id: request.id },
+            data: { promotedSmsAt: new Date() },
+          });
+        } catch (error) {
+          console.error('주차 승격 문자 발송 실패:', request.id, error);
+        }
+      })
+    );
   } catch (error) {
     console.error('주차 승격 문자 처리 중 오류 발생:', error);
   }

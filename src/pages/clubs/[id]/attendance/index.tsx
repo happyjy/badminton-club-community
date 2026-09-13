@@ -25,6 +25,28 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   const [editTarget, setEditTarget] = useState<Workout | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Workout | null>(null);
 
+  // 처리 중인 운동 ID를 카드별로 관리한다. 여러 카드를 동시에 누를 수 있으므로
+  // boolean 하나로는 부족하다. 버튼을 잠가 중복 요청을 물리적으로 막는다.
+  const [pendingParticipateIds, setPendingParticipateIds] = useState<
+    ReadonlySet<number>
+  >(new Set());
+  const [pendingParkingIds, setPendingParkingIds] = useState<
+    ReadonlySet<number>
+  >(new Set());
+
+  const markPending = (
+    setter: React.Dispatch<React.SetStateAction<ReadonlySet<number>>>,
+    workoutId: number,
+    pending: boolean
+  ) => {
+    setter((prev) => {
+      const next = new Set(prev);
+      if (pending) next.add(workoutId);
+      else next.delete(workoutId);
+      return next;
+    });
+  };
+
   const membershipStatus = useSelector(
     (state: RootState) => state.auth.membershipStatus
   );
@@ -48,6 +70,9 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     workoutId: number,
     isParticipating: boolean
   ) => {
+    if (pendingParticipateIds.has(workoutId)) return;
+    markPending(setPendingParticipateIds, workoutId, true);
+
     try {
       const response = await fetch(`/api/workouts/${workoutId}/participate`, {
         method: isParticipating ? 'DELETE' : 'POST',
@@ -59,10 +84,13 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
         }),
       });
       if (response.ok) {
+        // 참여 인원과 주차 연동까지 바뀌므로 목록을 다시 읽는다.
         await fetchWorkouts();
       }
     } catch (error) {
       console.error('운동 참여/취소 실패:', error);
+    } finally {
+      markPending(setPendingParticipateIds, workoutId, false);
     }
   };
 
@@ -70,20 +98,40 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     workoutId: number,
     isRequested: boolean
   ) => {
+    if (pendingParkingIds.has(workoutId)) return;
+    markPending(setPendingParkingIds, workoutId, true);
+
     try {
       const response = await fetch(`/api/workouts/${workoutId}/parking`, {
         method: isRequested ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clubId }),
       });
-      if (response.ok) {
-        await fetchWorkouts();
-      } else {
-        const result = await response.json();
+      const result = await response.json();
+
+      if (!response.ok) {
         alert(result.error ?? '주차 신청에 실패했습니다.');
+        return;
+      }
+
+      // 응답에 갱신된 주차 현황이 담겨 오므로 목록 전체를 다시 읽지 않고
+      // 해당 운동의 주차 영역만 교체한다. 왕복 한 번과 8일치 목록 조회가 줄어든다.
+      if (result.parking) {
+        setWorkouts((prev) =>
+          prev.map((workout) =>
+            workout.id === workoutId
+              ? { ...workout, parking: result.parking }
+              : workout
+          )
+        );
+      } else {
+        // 예상치 못한 응답 형태면 안전하게 전체를 다시 읽는다.
+        await fetchWorkouts();
       }
     } catch (error) {
       console.error('주차 신청/취소 실패:', error);
+    } finally {
+      markPending(setPendingParkingIds, workoutId, false);
     }
   };
 
@@ -177,6 +225,8 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
               onEdit={setEditTarget}
               onDelete={setDeleteTarget}
               onParkingRequest={handleParkingRequest}
+              isParticipatePending={pendingParticipateIds.has(workout.id)}
+              isParkingPending={pendingParkingIds.has(workout.id)}
             />
           ))
         ) : (

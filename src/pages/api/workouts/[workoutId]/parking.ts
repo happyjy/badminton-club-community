@@ -9,6 +9,8 @@ import {
 } from '@/lib/workout/parkingAssignment';
 import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
 import { notifyParkingPromotion } from '@/lib/workout/parkingSms';
+import { buildParkingStatus } from '@/lib/workout/parkingStatus';
+import { WorkoutParkingStatus } from '@/types/parking.types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -104,44 +106,60 @@ export default withAuth(async function handler(
           .json({ error: '운동에 먼저 참여해야 주차를 신청할 수 있습니다' });
       }
 
-      let status: string = PARKING_STATUS.WAITLIST;
+      let status: WorkoutParkingStatus['myStatus'] = 'NONE';
       let promoted: number[] = [];
+      let parking: WorkoutParkingStatus | null = null;
       let attempt = 0;
       for (;;) {
         try {
-          ({ status, promoted } = await prisma.$transaction(async (tx) => {
-            const last = await tx.parkingRequest.findFirst({
-              where: { workoutId },
-              orderBy: { position: 'desc' },
-              select: { position: true },
-            });
+          ({ status, promoted, parking } = await prisma.$transaction(
+            async (tx) => {
+              const last = await tx.parkingRequest.findFirst({
+                where: { workoutId },
+                orderBy: { position: 'desc' },
+                select: { position: true },
+              });
 
-            const created = await tx.parkingRequest.create({
-              data: {
+              await tx.parkingRequest.create({
+                data: {
+                  workoutId,
+                  clubMemberId: member.id,
+                  position: (last?.position ?? 0) + 1,
+                  status: PARKING_STATUS.CONFIRMED,
+                },
+                select: { id: true },
+              });
+
+              const promotedIds = await recalcParkingAssignments(
+                tx,
                 workoutId,
-                clubMemberId: member.id,
-                position: (last?.position ?? 0) + 1,
-                status: PARKING_STATUS.CONFIRMED,
-              },
-              select: { id: true },
-            });
+                capacity
+              );
 
-            const promotedIds = await recalcParkingAssignments(
-              tx,
-              workoutId,
-              capacity
-            );
+              // 재계산 직후의 전체 목록을 같은 트랜잭션에서 읽어, 응답에 담을
+              // 주차 현황을 만든다. 클라이언트가 운동 목록을 다시 조회하지 않아도
+              // 되도록 하기 위함이다. 본인 상태도 이 목록에서 구하므로
+              // 별도 findUnique가 필요 없다.
+              const rows = await tx.parkingRequest.findMany({
+                where: { workoutId },
+                select: { clubMemberId: true, status: true, position: true },
+                orderBy: [{ position: 'asc' }, { id: 'asc' }],
+              });
 
-            const saved = await tx.parkingRequest.findUnique({
-              where: { id: created.id },
-              select: { status: true },
-            });
+              const parkingStatus = buildParkingStatus({
+                requests: rows,
+                capacity,
+                overrideCapacity: workout.parkingCapacity,
+                myClubMemberId: member.id,
+              });
 
-            return {
-              status: saved?.status ?? PARKING_STATUS.WAITLIST,
-              promoted: promotedIds,
-            };
-          }));
+              return {
+                status: parkingStatus.myStatus,
+                promoted: promotedIds,
+                parking: parkingStatus,
+              };
+            }
+          ));
           break;
         } catch (error) {
           attempt++;
@@ -172,6 +190,7 @@ export default withAuth(async function handler(
 
       return res.status(200).json({
         status,
+        parking,
         message:
           status === PARKING_STATUS.CONFIRMED
             ? '주차가 확정되었습니다'
@@ -180,11 +199,34 @@ export default withAuth(async function handler(
     }
 
     // DELETE
-    const promoted = await prisma.$transaction(async (tx) => {
+    const { promoted, parking } = await prisma.$transaction(async (tx) => {
       await tx.parkingRequest.deleteMany({
         where: { workoutId, clubMemberId: member.id },
       });
-      return recalcParkingAssignments(tx, workoutId, capacity);
+
+      const promotedIds = await recalcParkingAssignments(
+        tx,
+        workoutId,
+        capacity
+      );
+
+      // POST 분기와 같은 이유로, 취소 직후 현황을 응답에 담아
+      // 클라이언트가 목록 전체를 다시 조회하지 않게 한다.
+      const rows = await tx.parkingRequest.findMany({
+        where: { workoutId },
+        select: { clubMemberId: true, status: true, position: true },
+        orderBy: [{ position: 'asc' }, { id: 'asc' }],
+      });
+
+      return {
+        promoted: promotedIds,
+        parking: buildParkingStatus({
+          requests: rows,
+          capacity,
+          overrideCapacity: workout.parkingCapacity,
+          myClubMemberId: member.id,
+        }),
+      };
     });
 
     // 트랜잭션 커밋 후 발송한다 (POST 분기와 동일한 이유).
@@ -194,9 +236,11 @@ export default withAuth(async function handler(
       smsEnabled: settings.parkingSmsEnabled,
     });
 
-    return res
-      .status(200)
-      .json({ status: 'cancelled', message: '주차 신청을 취소했습니다' });
+    return res.status(200).json({
+      status: 'cancelled',
+      parking,
+      message: '주차 신청을 취소했습니다',
+    });
   } catch (error) {
     if (error instanceof ClubAuthError) {
       return res.status(error.status).json({ error: error.message });
