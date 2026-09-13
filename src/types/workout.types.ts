@@ -136,4 +136,8 @@ export interface WorkoutListItemProps {
   onEdit?: (workout: Workout) => void;
   onDelete?: (workout: Workout) => void;
   onParkingRequest?: (workoutId: number, isRequested: boolean) => void;
+  /** 운동 참여/취소 요청 처리 중이면 버튼을 잠그고 스피너를 보여준다 */
+  isParticipatePending?: boolean;
+  /** 주차 신청/취소 요청 처리 중이면 버튼을 잠그고 스피너를 보여준다 */
+  isParkingPending?: boolean;
 }
