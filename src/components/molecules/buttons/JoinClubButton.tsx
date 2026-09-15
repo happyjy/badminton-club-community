@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 
 import { ClubJoinModal } from '@/components/organisms/modal/join';
 
+import usePhoneVerification from '@/hooks/usePhoneVerification';
+
 import { User, ClubJoinFormData, MembershipStatus } from '@/types';
 import { KakaoAuth } from '@/utils/auth';
 
@@ -28,6 +30,19 @@ export const JoinClubButton = ({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 전화번호 인증 훅
+  // 이 값들을 넘겨야 JoinModal이 인증을 요구한다(canVerifyPhone).
+  const {
+    // local state
+    phoneVerificationStatus,
+    phoneVerificationLoading,
+    phoneVerificationError,
+    // functions
+    checkPhoneVerificationStatus,
+    sendPhoneVerificationCode,
+    verifyPhoneCode,
+  } = usePhoneVerification({ clubId });
 
   // 이벤트 핸들러 함수들을 명시적으로 선언
   const onClickLogin = () => {
@@ -89,6 +104,12 @@ export const JoinClubButton = ({
           onClose={onCloseModal}
           onSubmit={onSubmitJoinForm}
           isSubmitting={isSubmitting}
+          phoneVerificationStatus={phoneVerificationStatus}
+          phoneVerificationLoading={phoneVerificationLoading}
+          phoneVerificationError={phoneVerificationError}
+          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+          sendPhoneVerificationCode={sendPhoneVerificationCode}
+          verifyPhoneCode={verifyPhoneCode}
         />
       </>
     );
