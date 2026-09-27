@@ -71,14 +71,16 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
 
   // 글의 종류에 따른 전략 적용.
   // 보는 사람(clubMember)이 아니라 글의 postType으로 골라야 한다.
-  // 보는 사람 기준으로 고르면 관리자가 열 때 가입신청 글도 게스트 신청으로 보인다.
+  // 보는 사람 기준으로 고르면 관리자가 열 때 가입 문의 글도 게스트 신청으로 보인다.
   const strategy = getGuestPageStrategyByPostType(guestPost.postType);
   const isGuestRequest = guestPost.postType !== 'JOIN_INQUIRY_REQUEST';
 
   const isAdmin = clubMember?.role === 'ADMIN'; // 관리자 여부 확인
   const isMyPost = user?.id === guestPost.userId; // 본인 게시물인지 확인
-  // 방문희망일이 지난(오늘 포함) 신청은 삭제할 수 없음
-  const isDeletable = !isVisitDatePassed(guestPost.visitDate);
+  // 방문희망일이 지난(오늘 포함) 신청은 수정·삭제할 수 없음
+  const isVisitDateOver = isVisitDatePassed(guestPost.visitDate);
+  const isDeletable = !isVisitDateOver;
+  const isEditable = !isVisitDateOver;
 
   const [comments, setComments] = useState<Comment[]>([]); // 댓글 목록
   const [isLoading, setIsLoading] = useState(false); // 댓글 목록 처음 불러오기 중인지 여부
@@ -396,13 +398,15 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   // 버튼 렌더링 변수: 내 게시물용
   const myPostButtons = isMyPost && (
     <>
-      <Button
-        onClick={onClickOpenEditModal}
-        disabled={isUpdating || isDeleting}
-        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors min-w-[60px]"
-      >
-        수정
-      </Button>
+      {isEditable && (
+        <Button
+          onClick={onClickOpenEditModal}
+          disabled={isUpdating || isDeleting}
+          className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors min-w-[60px]"
+        >
+          수정
+        </Button>
+      )}
     </>
   );
 
@@ -529,8 +533,8 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
       </div>
 
       {/* 수정 모달 - 글의 종류에 따라 다른 모달 사용.
-          비회원으로 가입신청한 뒤 회원이 된 경우, 보는 사람 기준으로 고르면
-          가입신청 글에 게스트 신청 폼이 뜬다. */}
+          비회원으로 가입 문의한 뒤 회원이 된 경우, 보는 사람 기준으로 고르면
+          가입 문의 글에 게스트 신청 폼이 뜬다. */}
       {user && isMyPost && isGuestRequest && (
         <GuestApplicationModal
           user={user}

@@ -11,7 +11,6 @@ import {
   GuestApplicationModal,
   GuestInquiryModal,
 } from '@/components/organisms/modal/join';
-import PhoneVerificationModal from '@/components/organisms/modal/PhoneVerificationModal';
 
 import { useGuestPageSettings } from '@/hooks/useCustomSettings';
 import usePhoneVerification from '@/hooks/usePhoneVerification';
@@ -39,13 +38,9 @@ function GuestPage({ user }: AuthProps) {
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isPhoneVerificationModalOpen, setIsPhoneVerificationModalOpen] =
-    useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [myApplications, setMyApplications] = useState<GuestPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingFormData, setPendingFormData] =
-    useState<ClubJoinFormData | null>(null);
 
   // 전화번호 인증 훅
   const {
@@ -104,17 +99,10 @@ function GuestPage({ user }: AuthProps) {
   const onSubmitGuestApplication = async (formData: ClubJoinFormData) => {
     if (!clubId) return;
 
-    // 전화번호 인증 상태 확인
-    if (
-      !phoneVerificationStatus?.isVerified ||
-      phoneVerificationStatus.phoneNumber !== formData.phoneNumber
-    ) {
-      // 인증되지 않은 경우 전화번호 인증 모달 열기
-      setPendingFormData(formData);
-      setIsPhoneVerificationModalOpen(true);
-      return;
-    }
-
+    // 전화번호 인증은 신청 폼(JoinModal.PhoneField) 안에서 끝난다.
+    // 인증 전에는 제출 버튼이 잠기고, 서버(guests/apply)가 계정 인증 번호와
+    // 대조해 한 번 더 막는다. 여기서 다시 검사하면 인증을 마친 뒤에도
+    // 별도 인증 모달이 열려 같은 과정을 두 번 요구하게 된다.
     setIsSubmitting(true);
     try {
       // API 연동 - 게스트 신청 요청
@@ -140,42 +128,6 @@ function GuestPage({ user }: AuthProps) {
       );
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // 전화번호 인증 완료 처리
-  const handlePhoneVerificationComplete = (phoneNumber: string) => {
-    if (pendingFormData) {
-      // 인증된 전화번호로 폼 데이터 업데이트
-      const updatedFormData = {
-        ...pendingFormData,
-        phoneNumber,
-      };
-
-      // 인증 모달 닫기
-      setIsPhoneVerificationModalOpen(false);
-      setPendingFormData(null);
-
-      // 게스트 신청 진행
-      onSubmitGuestApplication(updatedFormData);
-    }
-  };
-
-  // 기존 전화번호 사용 처리
-  const handleSkipVerification = (phoneNumber: string) => {
-    if (pendingFormData) {
-      // 기존 전화번호로 폼 데이터 업데이트
-      const updatedFormData = {
-        ...pendingFormData,
-        phoneNumber,
-      };
-
-      // 인증 모달 닫기
-      setIsPhoneVerificationModalOpen(false);
-      setPendingFormData(null);
-
-      // 게스트 신청 진행
-      onSubmitGuestApplication(updatedFormData);
     }
   };
 
@@ -345,29 +297,6 @@ function GuestPage({ user }: AuthProps) {
           phoneVerificationStatus={phoneVerificationStatus}
           phoneVerificationLoading={phoneVerificationLoading}
           phoneVerificationError={phoneVerificationError}
-          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
-          sendPhoneVerificationCode={sendPhoneVerificationCode}
-          verifyPhoneCode={verifyPhoneCode}
-        />
-      )}
-
-      {/* 전화번호 인증 모달 */}
-      {user && (
-        <PhoneVerificationModal
-          isOpen={isPhoneVerificationModalOpen}
-          onClose={() => {
-            setIsPhoneVerificationModalOpen(false);
-            setPendingFormData(null);
-          }}
-          userPhoneNumber={phoneVerificationStatus?.phoneNumber}
-          onVerificationComplete={handlePhoneVerificationComplete}
-          onSkipVerification={handleSkipVerification}
-          // 전화번호 인증 관련 props 전달
-          // phone verification state
-          phoneVerificationStatus={phoneVerificationStatus}
-          phoneVerificationLoading={phoneVerificationLoading}
-          phoneVerificationError={phoneVerificationError}
-          // phone verification functions
           checkPhoneVerificationStatus={checkPhoneVerificationStatus}
           sendPhoneVerificationCode={sendPhoneVerificationCode}
           verifyPhoneCode={verifyPhoneCode}

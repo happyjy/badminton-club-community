@@ -210,4 +210,57 @@ describe('PhoneField 인라인 인증', () => {
     expect(screen.getByRole('button', { name: '인증하기' })).toBeTruthy();
     expect(screen.queryByText('✓ 인증된 전화번호입니다')).toBeNull();
   });
+
+  // 서버는 이미 인증된 번호면 문자를 보내지 않고 canSkipVerification으로 알려준다.
+  // 응답을 보지 않고 코드 입력칸을 열면 오지 않는 문자를 기다리게 된다.
+  it('서버가 발송을 건너뛰면 코드 입력칸을 열지 않고 인증 완료로 처리한다', async () => {
+    const onPhoneVerifiedChange = jest.fn();
+    const sendPhoneVerificationCode = jest.fn<
+      (phoneNumber: string, force?: boolean) => Promise<unknown>
+    >(async () => ({
+      success: true,
+      message: '이미 인증된 전화번호입니다',
+      isPreviouslyVerified: true,
+      canSkipVerification: true,
+    }));
+
+    renderPhoneField({
+      phoneNumbers: { first: '010', second: '1234', third: '5678' },
+      getFullPhoneNumber: () => '010-1234-5678',
+      sendPhoneVerificationCode: sendPhoneVerificationCode as never,
+      onPhoneVerifiedChange,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '인증하기' }));
+
+    await waitFor(() => {
+      expect(sendPhoneVerificationCode).toHaveBeenCalledWith('010-1234-5678');
+    });
+
+    expect(await screen.findByText('✓ 인증 완료')).toBeTruthy();
+    expect(screen.queryByLabelText('인증번호 6자리')).toBeNull();
+    expect(onPhoneVerifiedChange).toHaveBeenCalledWith(true);
+  });
+
+  it('문자를 실제로 보냈으면 코드 입력칸을 연다', async () => {
+    const sendPhoneVerificationCode = jest.fn<
+      (phoneNumber: string, force?: boolean) => Promise<unknown>
+    >(async () => ({
+      success: true,
+      message: '인증번호가 발송되었습니다',
+      expiresIn: 180,
+      isPreviouslyVerified: false,
+    }));
+
+    renderPhoneField({
+      phoneNumbers: { first: '010', second: '1234', third: '5678' },
+      getFullPhoneNumber: () => '010-1234-5678',
+      sendPhoneVerificationCode: sendPhoneVerificationCode as never,
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '인증하기' }));
+
+    expect(await screen.findByLabelText('인증번호 6자리')).toBeTruthy();
+    expect(screen.queryByText('✓ 인증 완료')).toBeNull();
+  });
 });

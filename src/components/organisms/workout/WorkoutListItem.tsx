@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { Spinner } from '@/components/atoms/Spinner';
+
 import { WorkoutListItemProps } from '@/types';
 import { formatToKoreanTime } from '@/utils/date';
 
@@ -14,6 +16,9 @@ export function WorkoutListItem({
   isAdmin = false,
   onEdit,
   onDelete,
+  onParkingRequest,
+  isParticipatePending = false,
+  isParkingPending = false,
 }: WorkoutListItemProps) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -109,6 +114,14 @@ export function WorkoutListItem({
             👥 참여 인원: {currentParticipants}명
             {guestCount > 0 && ` + 게스트 ${guestCount}명`}
           </p>
+          {workout.parking?.enabled && (
+            <p>
+              🚗 주차: {workout.parking.confirmedCount}/
+              {workout.parking.capacity}
+              {workout.parking.waitlistCount > 0 &&
+                ` (대기 ${workout.parking.waitlistCount}명)`}
+            </p>
+          )}
           {/* <p>
             👥 참여 인원: {currentParticipants}/{workout.maxParticipants}명
             {currentParticipants >= workout.maxParticipants && (
@@ -120,26 +133,75 @@ export function WorkoutListItem({
       {isLoggedIn && (
         <div className="mt-4 pt-4 border-t">
           {membershipStatus.isMember ? (
-            <button
-              onClick={onClickParticipateClick}
-              disabled={
-                !isParticipating &&
-                currentParticipants >= workout.maxParticipants
-              }
-              className={`w-full py-2 px-4 rounded-lg ${
-                isParticipating
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : currentParticipants >= workout.maxParticipants
-                    ? 'bg-gray-400 cursor-not-allowed text-white'
-                    : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }`}
-            >
-              {isParticipating
-                ? '참여 취소'
-                : currentParticipants >= workout.maxParticipants
-                  ? '인원 마감'
-                  : '참여하기'}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={onClickParticipateClick}
+                disabled={
+                  isParticipatePending ||
+                  (!isParticipating &&
+                    currentParticipants >= workout.maxParticipants)
+                }
+                className={`w-full py-2 px-4 rounded-lg flex items-center justify-center gap-2 ${
+                  isParticipatePending
+                    ? 'bg-gray-400 cursor-wait text-white'
+                    : isParticipating
+                      ? 'bg-red-500 hover:bg-red-600 text-white'
+                      : currentParticipants >= workout.maxParticipants
+                        ? 'bg-gray-400 cursor-not-allowed text-white'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
+              >
+                {isParticipatePending ? (
+                  <Spinner size="sm" />
+                ) : isParticipating ? (
+                  '참여 취소'
+                ) : currentParticipants >= workout.maxParticipants ? (
+                  '인원 마감'
+                ) : (
+                  '참여하기'
+                )}
+              </button>
+              {workout.parking?.enabled && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onParkingRequest?.(
+                      workout.id,
+                      workout.parking!.myStatus !== 'NONE'
+                    );
+                  }}
+                  disabled={!isParticipating || isParkingPending}
+                  className={`w-full mt-2 py-2 px-4 rounded-lg flex items-center justify-center gap-2 ${
+                    isParkingPending
+                      ? 'bg-gray-300 cursor-wait text-gray-600'
+                      : !isParticipating
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : workout.parking.myStatus === 'CONFIRMED'
+                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          : workout.parking.myStatus === 'WAITLIST'
+                            ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                            : 'bg-white border border-blue-500 text-blue-600 hover:bg-blue-50'
+                  }`}
+                >
+                  {isParkingPending ? (
+                    <Spinner size="sm" />
+                  ) : !isParticipating ? (
+                    '운동 참여 후 신청 가능'
+                  ) : workout.parking.myStatus === 'CONFIRMED' ? (
+                    '주차 확정 · 취소하기'
+                  ) : workout.parking.myStatus === 'WAITLIST' ? (
+                    `대기 ${workout.parking.myWaitlistOrder ?? ''}번 · 취소하기`
+                  ) : workout.parking.confirmedCount >=
+                    workout.parking.capacity ? (
+                    '🚗 주차 대기 신청'
+                  ) : (
+                    '🚗 주차 신청'
+                  )}
+                </button>
+              )}
+            </>
           ) : (
             <button
               disabled

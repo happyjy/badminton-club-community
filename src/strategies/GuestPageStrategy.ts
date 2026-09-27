@@ -101,11 +101,11 @@ export class NonMemberStrategy implements GuestPageStrategy {
 
   // 네비게이션 및 페이지 관련
   getNavMenuName(): string {
-    return '가입신청';
+    return '가입 문의';
   }
 
   getPageTitle(): string {
-    return '클럽 가입신청';
+    return '클럽 가입 문의';
   }
 
   getDescription(): string {
@@ -119,20 +119,20 @@ export class NonMemberStrategy implements GuestPageStrategy {
   }
 
   getButtonText(): string {
-    return '가입신청';
+    return '가입 문의하기';
   }
 
   getHistoryTitle(): string {
-    return '내 가입신청 내역';
+    return '내 가입 문의 내역';
   }
 
   // 모달 관련
   getModalTitle(isEditing: boolean): string {
-    return isEditing ? '가입신청 내용 수정' : '클럽 가입신청';
+    return isEditing ? '가입 문의 내용 수정' : '클럽 가입 문의';
   }
 
   getModalSubmitText(isEditing: boolean): string {
-    return isEditing ? '수정하기' : '가입신청';
+    return isEditing ? '수정하기' : '문의하기';
   }
 
   getModalDescription(): string {
@@ -149,11 +149,11 @@ export class NonMemberStrategy implements GuestPageStrategy {
 
   // 상세 페이지 관련
   getDetailPageTitle(): string {
-    return '클럽 가입신청 상세';
+    return '클럽 가입 문의 상세';
   }
 
   getDetailPageMessageTitle(): string {
-    return '가입신청 메시지';
+    return '가입 문의 메시지';
   }
 
   // 비회원은 본인이 직접 신청하므로 번호 주인이 곧 방문자다.
@@ -176,7 +176,7 @@ export const getGuestPageStrategy = (
  * 이미 저장된 글의 종류로 전략을 고른다.
  *
  * 신청 폼은 "쓰는 사람이 회원인가"로 갈리지만, 상세 페이지는 그렇게 고르면 안 된다.
- * 보는 사람 기준으로 고르면 관리자(회원)가 열 때 가입신청 글까지
+ * 보는 사람 기준으로 고르면 관리자(회원)가 열 때 가입 문의 글까지
  * 게스트 신청으로 보인다. 글의 postType은 신청 시점에 고정된 값이라 흔들리지 않는다.
  *
  * postType이 없는 예전 글은 게스트 신청으로 본다(스키마 기본값과 같다).

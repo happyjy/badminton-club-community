@@ -180,8 +180,13 @@ export default withAuth(async function handler(
           }
         );
 
-        const smsResults = await Promise.allSettled(smsPromises);
-        console.log('SMS 전송 결과:', smsResults);
+        // 여기서 await하면 이메일이 끝나기를 기다리는 것과 직렬로 이어져
+        // 응답이 그만큼 늦어진다. 배열에 담아 아래에서 이메일과 함께 기다린다.
+        notificationPromises.push(
+          Promise.allSettled(smsPromises).then((smsResults) => {
+            console.log('SMS 전송 결과:', smsResults);
+          })
+        );
       } else {
         console.log('SMS 수신자가 설정되지 않았거나 클럽 정보가 없습니다.');
       }

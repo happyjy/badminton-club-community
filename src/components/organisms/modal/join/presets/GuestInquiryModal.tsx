@@ -46,8 +46,8 @@ function GuestInquiryModal({
   verifyPhoneCode,
 }: GuestInquiryModalProps) {
   const isEdit = !!initialValues;
-  const title = isEdit ? '가입신청 내용 수정' : '클럽 가입신청';
-  const submitText = isEdit ? '수정하기' : '가입신청';
+  const title = isEdit ? '가입 문의 내용 수정' : '클럽 가입 문의';
+  const submitText = isEdit ? '수정하기' : '문의하기';
 
   return (
     <JoinModal
