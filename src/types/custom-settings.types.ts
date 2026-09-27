@@ -17,9 +17,14 @@ export interface SmsSettings {
   smsRecipients: string[];
 }
 
+export interface MenuSettings {
+  tournamentMenuEnabled: boolean;
+}
+
 export interface ClubCustomSettings {
   clubHome: ClubHomeSettings;
   guestPage: GuestPageSettings;
   email: EmailSettings;
   sms: SmsSettings;
+  menu: MenuSettings;
 }

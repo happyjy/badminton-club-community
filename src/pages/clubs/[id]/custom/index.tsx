@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import ClubHomeSettingsForm from '@/components/organisms/forms/ClubHomeSettingsForm';
 import EmailSettingsForm from '@/components/organisms/forms/EmailSettingsForm';
 import GuestPageSettingsForm from '@/components/organisms/forms/GuestPageSettingsForm';
+import MenuSettingsForm from '@/components/organisms/forms/MenuSettingsForm';
 import SmsSettingsForm from '@/components/organisms/forms/SmsSettingsForm';
 import WorkoutScheduleForm from '@/components/organisms/forms/WorkoutScheduleForm';
 
@@ -51,6 +52,11 @@ const customSettings: CustomSetting[] = [
     id: 'workout-schedule',
     name: '운동 일정 생성',
     description: '정기적인 운동 일정을 자동으로 생성합니다.',
+  },
+  {
+    id: 'menu',
+    name: '메뉴 설정',
+    description: '클럽 메뉴에 보일 탭을 설정합니다.',
   },
 ];
 
@@ -257,6 +263,12 @@ function CustomSettingPage() {
                 clubId={clubId as string}
                 initialData={workoutScheduleSettings}
               />
+            </div>
+          )}
+          {selectedSetting === 'menu' && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">메뉴 설정</h2>
+              <MenuSettingsForm clubId={clubId as string} />
             </div>
           )}
         </div>

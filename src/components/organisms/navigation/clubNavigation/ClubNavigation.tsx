@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 // import { setInitClubMember } from '@/store/features/authSlice';
 import { useClubMember } from '@/hooks/useClubMember';
+import { useMenuSettings } from '@/hooks/useCustomSettings';
 
 import { cn } from '@/lib/utils';
 import { RootState } from '@/store';
@@ -24,6 +25,10 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
 
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
+
+  // 커스텀 설정에서 끈 메뉴는 숨긴다. 설정을 불러오기 전에는 켜진 것으로 본다.
+  const { data: menuSettings } = useMenuSettings(clubId);
+  const isTournamentMenuEnabled = menuSettings?.tournamentMenuEnabled ?? true;
 
   // 사용자 유형에 따른 전략 가져오기
   const strategy = getGuestPageStrategy(!!clubMember);
@@ -127,7 +132,9 @@ export function ClubNavigation({ clubId }: ClubNavigationProps) {
     if (clubMember) {
       items.splice(1, 0, attendanceItem);
       items.push(boardItem);
-      items.push(tournamentItem);
+      if (isTournamentMenuEnabled) {
+        items.push(tournamentItem);
+      }
     }
 
     // ADMIN인 경우 추가 메뉴 포함
