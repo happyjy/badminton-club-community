@@ -1,3 +1,4 @@
+import { ClubAuthError, requireActiveClubMember } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/session';
 import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
@@ -7,6 +8,7 @@ import { WorkoutParkingStatus } from '@/types/parking.types';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 // 출석목록 및 참석 인원 api
+// 회원 메뉴(출석체크)에서만 쓰므로 그 클럽의 활동 회원만 볼 수 있다.
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse<'workouts', Workout[]>>
@@ -19,8 +21,19 @@ export default async function handler(
   }
 
   const { id } = req.query;
+  const clubIdNum = Number(id);
+
+  const authUser = await getAuthUser(req);
+  if (!authUser) {
+    return res.status(401).json({
+      error: '로그인이 필요합니다',
+      status: 401,
+    });
+  }
 
   try {
+    const myClubMember = await requireActiveClubMember(authUser.id, clubIdNum);
+
     const today = new Date();
     // 아래 두 코드에 의해서 오늘 0시 부터 시작으로 세팅
     // 자정이 넘어가면 어제 일정은 없어짐
@@ -35,7 +48,7 @@ export default async function handler(
 
     const workouts = await prisma.workout.findMany({
       where: {
-        clubId: Number(id),
+        clubId: clubIdNum,
         startTime: {
           gte: today,
           lte: sevenDaysLater,
@@ -65,18 +78,6 @@ export default async function handler(
         workouts.map((w) => new Date(w.date).toISOString().split('T')[0])
       ),
     ];
-    const clubIdNum = Number(id);
-
-    // 로그인한 사용자만 본인의 주차 신청 상태를 확인한다 (비로그인 시 null)
-    const authUser = await getAuthUser(req);
-    const myClubMember = authUser
-      ? await prisma.clubMember.findUnique({
-          where: {
-            clubId_userId: { clubId: clubIdNum, userId: authUser.id },
-          },
-          select: { id: true },
-        })
-      : null;
 
     // 클럽의 주차 기능 설정을 1회만 조회
     const parkingSettings = await prisma.clubCustomSettings.findUnique({
@@ -88,6 +89,7 @@ export default async function handler(
       },
     });
 
+    // 출석 화면은 게스트 수만 보여 준다. 이름·생년월일 같은 개인정보는 조회하지 않는다.
     const allGuests =
       visitDates.length === 0
         ? []
@@ -99,31 +101,17 @@ export default async function handler(
             },
             select: {
               id: true,
-              name: true,
-              userId: true,
-              gender: true,
-              birthDate: true,
-              localTournamentLevel: true,
-              nationalTournamentLevel: true,
               visitDate: true,
-              user: {
-                select: {
-                  id: true,
-                  nickname: true,
-                  thumbnailImageUrl: true,
-                },
-              },
             },
           });
 
-    const guestsByVisitDate = allGuests.reduce<
-      Record<string, typeof allGuests>
-    >((acc, guest) => {
-      const d = guest.visitDate;
-      if (!acc[d]) acc[d] = [];
-      acc[d].push(guest);
-      return acc;
-    }, {});
+    const guestCountByVisitDate = allGuests.reduce<Record<string, number>>(
+      (acc, guest) => {
+        acc[guest.visitDate] = (acc[guest.visitDate] ?? 0) + 1;
+        return acc;
+      },
+      {}
+    );
 
     // 운동 ID 목록으로 주차 신청을 1회 쿼리로 조회 (게스트 조회와 동일하게 N+1 방지)
     const workoutIds = workouts.map((w) => w.id);
@@ -151,19 +139,19 @@ export default async function handler(
 
     const workoutsWithGuests = workouts.map((workout) => {
       const workoutDate = new Date(workout.date).toISOString().split('T')[0];
-      const guests = guestsByVisitDate[workoutDate] ?? [];
+      const guestCount = guestCountByVisitDate[workoutDate] ?? 0;
 
       // 이 운동의 주차 신청을 확정/대기로 나누고, 로그인한 회원 본인의 상태를 계산한다
       const requests = parkingByWorkoutId[workout.id] ?? [];
       const confirmed = requests.filter((r) => r.status === 'CONFIRMED');
       const waitlist = requests.filter((r) => r.status === 'WAITLIST');
 
-      const myConfirmedIndex = myClubMember
-        ? confirmed.findIndex((r) => r.clubMemberId === myClubMember.id)
-        : -1;
-      const myWaitlistIndex = myClubMember
-        ? waitlist.findIndex((r) => r.clubMemberId === myClubMember.id)
-        : -1;
+      const myConfirmedIndex = confirmed.findIndex(
+        (r) => r.clubMemberId === myClubMember.id
+      );
+      const myWaitlistIndex = waitlist.findIndex(
+        (r) => r.clubMemberId === myClubMember.id
+      );
 
       const parking: WorkoutParkingStatus = {
         enabled: Boolean(parkingSettings?.parkingEnabled),
@@ -184,8 +172,7 @@ export default async function handler(
 
       return {
         ...workout,
-        guests,
-        guestCount: guests.length,
+        guestCount,
         parking,
       };
     });
@@ -196,12 +183,15 @@ export default async function handler(
       message: '운동 목록을 성공적으로 가져왔습니다',
     });
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res
+        .status(error.status)
+        .json({ error: error.message, status: error.status });
+    }
     console.error('운동 목록 조회 중 오류 발생:', error);
     return res.status(500).json({
       error: '운동 목록을 가져오는데 실패했습니다',
       status: 500,
     });
-  } finally {
-    // no-op
   }
 }

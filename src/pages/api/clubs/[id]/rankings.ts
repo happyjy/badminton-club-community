@@ -1,3 +1,4 @@
+import { ClubAuthError, requireActiveClubMember } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
@@ -31,6 +32,9 @@ export default withAuth(async function handler(
   const clubId = Number(id);
 
   try {
+    // 회원 이름과 출석 횟수가 담기므로 그 클럽의 활동 회원만 볼 수 있다.
+    await requireActiveClubMember(req.user.id, clubId);
+
     // 현재 달의 시작과 끝 날짜 계산
     // const { startOfMonth, endOfMonth } = getMonthRange(new Date('2025-04-01'));
     const { startOfMonth, endOfMonth } = getMonthRange();
@@ -151,6 +155,11 @@ export default withAuth(async function handler(
       message: '랭킹 정보를 성공적으로 가져왔습니다',
     });
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res
+        .status(error.status)
+        .json({ error: error.message, status: error.status });
+    }
     console.error('랭킹 정보 조회 중 오류 발생:', error);
     return res.status(500).json({
       error: '랭킹 정보를 가져오는데 실패했습니다',
