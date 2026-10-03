@@ -1,4 +1,7 @@
-import { ACTIVE_MEMBER_STATUSES } from '@/constants/memberStatus';
+import {
+  ACTIVE_MEMBER_STATUSES,
+  isActiveMemberStatus,
+} from '@/constants/memberStatus';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/session';
 
@@ -43,14 +46,15 @@ async function findMember(
 }
 
 /**
- * 승인된 클럽 회원인지 확인한다. 아니면 ClubAuthError를 던진다.
+ * 회원 기능을 쓸 수 있는 클럽 회원(승인·휴가)인지 확인한다. 아니면 ClubAuthError를 던진다.
+ * 휴가 중인 회원도 대회 신청·운동 참여 같은 회원 기능은 그대로 쓴다.
  */
 export async function requireClubMember(
   userId: number,
   clubId: number
 ): Promise<ClubMemberContext> {
   const member = await findMember(userId, clubId);
-  if (!member || member.status !== 'APPROVED') {
+  if (!member || !isActiveMemberStatus(member.status)) {
     throw new ClubAuthError('클럽 회원만 이용할 수 있습니다.', 403);
   }
   return member;
@@ -58,13 +62,14 @@ export async function requireClubMember(
 
 /**
  * 클럽 임원(ADMIN)인지 확인한다. 아니면 ClubAuthError를 던진다.
+ * 임원 기능은 휴가 중에는 쓸 수 없고 승인 상태여야 한다.
  */
 export async function requireClubAdmin(
   userId: number,
   clubId: number
 ): Promise<ClubMemberContext> {
   const member = await requireClubMember(userId, clubId);
-  if (member.role !== 'ADMIN') {
+  if (member.role !== 'ADMIN' || member.status !== APPROVED_STATUS) {
     throw new ClubAuthError('권한이 없습니다.', 403);
   }
   return member;

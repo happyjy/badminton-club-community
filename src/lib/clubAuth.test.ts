@@ -43,6 +43,20 @@ describe('requireClubMember', () => {
     });
   });
 
+  it('휴가 중인 회원도 회원 기능을 쓸 수 있다', async () => {
+    findUnique.mockResolvedValue({ ...APPROVED_MEMBER, status: 'ON_LEAVE' });
+    await expect(requireClubMember(1, 2)).resolves.toMatchObject({
+      status: 'ON_LEAVE',
+    });
+  });
+
+  it.each(['REJECTED', 'LEFT'])('%s 회원이면 403', async (status) => {
+    findUnique.mockResolvedValue({ ...APPROVED_MEMBER, status });
+    await expect(requireClubMember(1, 2)).rejects.toMatchObject({
+      status: 403,
+    });
+  });
+
   it('승인 대기중이면 403', async () => {
     findUnique.mockResolvedValue({ ...APPROVED_MEMBER, status: 'PENDING' });
     await expect(requireClubMember(1, 2)).rejects.toMatchObject({
@@ -54,6 +68,15 @@ describe('requireClubMember', () => {
 describe('requireClubAdmin', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('휴가 중인 임원은 임원 기능을 쓸 수 없다', async () => {
+    findUnique.mockResolvedValue({
+      ...APPROVED_MEMBER,
+      role: 'ADMIN',
+      status: 'ON_LEAVE',
+    });
+    await expect(requireClubAdmin(1, 2)).rejects.toMatchObject({ status: 403 });
   });
 
   it('ADMIN이면 컨텍스트를 반환한다', async () => {

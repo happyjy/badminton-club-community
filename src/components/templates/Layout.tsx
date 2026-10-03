@@ -75,7 +75,8 @@ export function Layout({ children }: LayoutProps) {
         setMembershipStatus({
           // todo[refactoring]: jyoon - hard code 된 부분 수정하기
           isPending: memberStatus?.status === 'PENDING',
-          isMember: memberStatus?.status === 'APPROVED',
+          // 휴가 중인 회원도 회원으로 본다 (서버 requireClubMember와 같은 기준)
+          isMember: isActiveMemberStatus(memberStatus?.status),
         })
       );
     }
