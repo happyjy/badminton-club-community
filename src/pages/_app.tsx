@@ -11,6 +11,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Provider } from 'react-redux';
 
+import { ConfirmProvider } from '@/components/organisms/sheet/ConfirmProvider';
 import { Layout } from '@/components/templates/Layout';
 
 import { queryClient } from '@/lib/react-query';
@@ -109,9 +110,11 @@ export default function App({ Component, pageProps }: AppProps) {
 
         {/* http://locatorjs.com/ - 웹 화면의 컴포넌트를 클릭하면 해당 컴포넌트의 소스 코드 파일을 바로 IDE에서 열어줌 */}
         {/* <LocatorProvider> */}
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        <ConfirmProvider>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </ConfirmProvider>
         {/* </LocatorProvider> */}
         <Toaster
           position={
