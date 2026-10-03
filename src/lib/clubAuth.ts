@@ -10,6 +10,16 @@ export type ClubMemberContext = {
   name: string | null;
 };
 
+/**
+ * 회원 기능(게시판 등)을 쓸 수 있는 가입 상태.
+ * 가입 신청만 한 PENDING이나 REJECTED·LEFT는 회원으로 보지 않는다.
+ * 휴가 중(ON_LEAVE)인 회원은 계속 쓸 수 있다.
+ */
+export const ACTIVE_MEMBER_STATUS = { in: ['APPROVED', 'ON_LEAVE'] };
+
+/** 임원 기능은 승인된 상태에서만 쓸 수 있다. */
+export const APPROVED_STATUS = 'APPROVED';
+
 export class ClubAuthError extends Error {
   status: number;
 
