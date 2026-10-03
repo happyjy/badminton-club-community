@@ -24,11 +24,15 @@ const ADMIN = new Set([
   '/clubs/[id]/tournaments/[tournamentId]/edit',
 ]);
 
+const PREVIEWS = new Set([
+  '/dev/shell-preview',
+  '/dev/screen-preview',
+  '/dev/admin-preview',
+]);
+
 export function getLayoutVariant(pathname: string): LayoutVariant {
   // 개발용 미리보기는 화면 안에서 AppShell을 직접 그린다.
-  if (pathname === '/dev/shell-preview' || pathname === '/dev/screen-preview') {
-    return 'none';
-  }
+  if (PREVIEWS.has(pathname)) return 'none';
   if (BARE.has(pathname)) return 'bare';
   if (ADMIN.has(pathname)) return 'admin';
   return 'member';

@@ -130,30 +130,46 @@ export function MembersView({
     {
       key: 'status',
       header: '상태',
-      cell: (user) => <MemberStatusChip status={user.clubMember.status} />,
+      // 승인 버튼을 상태 옆에 둔다. 표가 좁아 가로로 밀려도 가려지지 않는다.
+      cell: (user) => (
+        <span className="flex items-center gap-2">
+          <MemberStatusChip status={user.clubMember.status} />
+          {user.clubMember.status === Status.PENDING &&
+            approveButton(user, 'sm')}
+        </span>
+      ),
     },
-    ...details({ clubMember: {} } as ClubMemberWithUser).map(
-      ({ label }, index): Column<ClubMemberWithUser> => ({
-        key: label,
-        header: label,
-        cell: (user) => details(user)[index].value,
-        className: 'whitespace-nowrap text-secondary',
-      })
-    ),
+    {
+      key: 'birthDate',
+      header: '생년월일',
+      cell: (user) => formatDay(user.clubMember.birthDate),
+      className: 'whitespace-nowrap text-secondary',
+    },
+    {
+      key: 'phoneNumber',
+      header: '전화번호',
+      cell: (user) => user.clubMember.phoneNumber || EMPTY,
+      className: 'whitespace-nowrap text-secondary',
+    },
+    {
+      key: 'level',
+      header: '전국 / 구대회',
+      cell: (user) =>
+        `${user.clubMember.nationalTournamentLevel || '-'} / ${user.clubMember.localTournamentLevel || '-'}`,
+      className: 'whitespace-nowrap text-secondary',
+    },
+    {
+      key: 'period',
+      header: '구력 / 레슨',
+      cell: (user) =>
+        `${user.clubMember.playingPeriod || '-'} / ${user.clubMember.lessonPeriod || '-'}`,
+      className: 'whitespace-nowrap text-secondary',
+    },
     {
       key: 'createdAt',
       header: '가입일',
       cell: (user) => formatDay(user.clubMember.createdAt),
       className: 'whitespace-nowrap text-secondary',
-    },
-    {
-      key: 'action',
-      header: '',
-      align: 'right',
-      cell: (user) =>
-        user.clubMember.status === Status.PENDING
-          ? approveButton(user, 'sm')
-          : null,
     },
   ];
 
