@@ -16,18 +16,21 @@ function IntendToJoinField({
   const { formData, onChangeInput } = useJoinModalContext();
 
   return (
-    <div className="flex items-center">
+    <label className="flex min-h-11 items-center text-body text-primary">
       <Checkbox
         name="intendToJoin"
         checked={forceChecked ? true : formData.intendToJoin}
         onChange={disabled ? undefined : onChangeInput}
         disabled={disabled}
+        readOnly={disabled}
       />
-      <span className="text-sm font-medium text-gray-700">
+      <span>
         클럽 가입 의사
-        {helpText && <span className="ml-1 text-blue-600">{helpText}</span>}
+        {helpText && (
+          <span className="ml-1 text-footnote text-secondary">{helpText}</span>
+        )}
       </span>
-    </div>
+    </label>
   );
 }
 

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { Check } from 'lucide-react';
+
 import { Button } from '@/components/atoms/buttons/Button';
 import { FormField } from '@/components/molecules/form/FormField';
 import { PhoneInputGroup } from '@/components/molecules/form/PhoneInputGroup';
@@ -165,11 +167,13 @@ function PhoneField({
       </div>
 
       {/* 안내 문구 */}
-      {helpText && <p className="mt-1 text-xs text-gray-500">{helpText}</p>}
+      {helpText && (
+        <p className="mt-1 text-footnote text-secondary">{helpText}</p>
+      )}
 
       {/* 인증번호 입력 */}
       {sentTo && !isVerified && (
-        <div className="mt-3 rounded-md border border-gray-200 p-3">
+        <div className="mt-3 rounded-md border border-border p-3">
           <VerificationCodeInput
             phoneNumber={sentTo}
             onVerify={handleVerifyCode}
@@ -181,12 +185,15 @@ function PhoneField({
       )}
 
       {/* 발송 전 단계에서 생긴 오류 */}
-      {error && !sentTo && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && !sentTo && (
+        <p className="mt-1 text-footnote text-negative">{error}</p>
+      )}
 
       {/* 인증 상태 표시 */}
       {showVerificationStatus && isVerified && (
-        <div className="mt-1 text-sm text-green-600">
-          {isJustVerified ? '✓ 인증 완료' : '✓ 인증된 전화번호입니다'}
+        <div className="mt-1 flex items-center gap-1 text-footnote font-medium text-positive">
+          <Check aria-hidden className="h-4 w-4" />
+          {isJustVerified ? '인증 완료' : '인증된 전화번호입니다'}
         </div>
       )}
     </FormField>

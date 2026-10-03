@@ -29,6 +29,19 @@ const MIGRATED = [
   'components/organisms/comment/CommentInput.tsx',
   'components/organisms/comment/CommentItem.tsx',
   'components/molecules/form/PhoneNumberText.tsx',
+  // 4단계 ② 게스트 신청 창
+  'components/organisms/modal/join/JoinModal.tsx',
+  'components/organisms/modal/join/components/Header.tsx',
+  'components/organisms/modal/join/components/Section.tsx',
+  'components/organisms/modal/join/components/Footer.tsx',
+  'components/organisms/modal/join/components/fields/PhoneField.tsx',
+  'components/organisms/modal/join/components/fields/IntendToJoinField.tsx',
+  'components/organisms/modal/join/components/fields/PrivacyAgreementField.tsx',
+  'components/organisms/modal/join/components/fields/GenderField.tsx',
+  'components/organisms/modal/join/components/fields/MessageField.tsx',
+  'components/organisms/modal/PrivacyModal.tsx',
+  'components/molecules/form/VerificationCodeInput.tsx',
+  'components/molecules/form/PhoneInputGroup.tsx',
 ];
 
 const COLOR_NAMES =

@@ -1,6 +1,15 @@
-import { FormEvent, useEffect, useRef, useState, ReactNode } from 'react';
+import {
+  Children,
+  FormEvent,
+  isValidElement,
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
-import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+import { Sheet } from '@/components/organisms/sheet/Sheet';
 
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
@@ -23,7 +32,7 @@ import PrivacyAgreementField from './components/fields/PrivacyAgreementField';
 import TournamentFields from './components/fields/TournamentFields';
 import VisitDateField from './components/fields/VisitDateField';
 import Footer from './components/Footer';
-import Header from './components/Header';
+import Header, { HeaderProps } from './components/Header';
 import Section from './components/Section';
 import JoinModalContext from './JoinModalContext';
 
@@ -79,6 +88,8 @@ function JoinModal({
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   // PhoneField가 알려주는 인증 완료 여부. 제출 버튼 활성 조건이다.
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  // 제출을 막은 이유. 브라우저 알림창 대신 제출 버튼 위에 보여 준다.
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // 인증 함수가 넘어오지 않는 화면에서는 인증을 요구할 수 없다.
   const canVerifyPhone = !!sendPhoneVerificationCode && !!verifyPhoneCode;
@@ -113,10 +124,9 @@ function JoinModal({
     label: level,
   }));
 
-  const confirm = useConfirm();
   // 폼 제출 처리
   // 전화번호 인증은 PhoneField 안에서 끝나므로, 여기서는 형식과 인증 여부만 본다.
-  const onSubmitForm = async (e: FormEvent) => {
+  const onSubmitForm = (e: FormEvent) => {
     e.preventDefault();
 
     // 전화번호가 올바른 형식으로 입력되었는지 확인
@@ -124,26 +134,27 @@ function JoinModal({
     // 저장되지 않도록 한다.
     const phoneNumberError = getPhoneNumberError(getFullPhoneNumber());
     if (phoneNumberError) {
-      await confirm({ title: phoneNumberError, hideCancel: true });
+      setSubmitError(phoneNumberError);
       return;
     }
 
     // 인증 기능을 쓸 수 있는 화면에서는 인증을 마쳐야 제출할 수 있다.
     // 제출 버튼도 비활성이지만, 엔터 제출 같은 경로를 위해 여기서도 막는다.
     if (canVerifyPhone && !isPhoneVerified) {
-      await confirm({
-        title: '전화번호 인증을 완료해주세요.',
-        hideCancel: true,
-      });
+      setSubmitError('전화번호 인증을 완료해주세요.');
       return;
     }
 
+    setSubmitError(null);
     onSubmit(formData);
     initialFormData();
   };
 
-  // 화면 렌더링
-  if (!isOpen) return null;
+  // 제목은 시트의 제목 줄에 그린다. 프리셋이 넘긴 <JoinModal.Header>에서 읽는다.
+  const header = Children.toArray(children).find(
+    (child): child is ReactElement<HeaderProps> =>
+      isValidElement(child) && child.type === Header
+  );
 
   // Context 값 생성
   const contextValue = {
@@ -168,24 +179,28 @@ function JoinModal({
     tournamentLevelOptions,
     isPrivacyModalOpen,
     setIsPrivacyModalOpen,
+    submitError,
   };
 
   return (
     <JoinModalContext.Provider value={contextValue}>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto px-4">
-        {/* overflow-x-hidden: 안쪽 요소가 넘쳐도 모달에 가로 스크롤이 생기지 않게 한다. */}
-        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden my-4">
-          <form onSubmit={onSubmitForm} className="space-y-4">
-            {children}
-          </form>
-        </div>
+      <Sheet
+        open={isOpen}
+        // 긴 폼이라 ESC·바깥 누르기로는 닫지 않는다. 취소 버튼으로만 닫는다.
+        onClose={() => {}}
+        title={header?.props.title ?? ''}
+        hideCloseButton
+      >
+        <form onSubmit={onSubmitForm} className="space-y-4">
+          {children}
+        </form>
 
-        {/* 개인정보 수집 및 이용 동의 모달 */}
+        {/* 개인정보 수집 및 이용 동의 창. 신청 창 안에 겹쳐 뜬다. */}
         <PrivacyModal
           isOpen={isPrivacyModalOpen}
           onClose={() => setIsPrivacyModalOpen(false)}
         />
-      </div>
+      </Sheet>
     </JoinModalContext.Provider>
   );
 }

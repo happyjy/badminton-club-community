@@ -60,6 +60,8 @@ export interface JoinModalContextType {
   // 개인정보 모달 관련
   isPrivacyModalOpen: boolean;
   setIsPrivacyModalOpen: (isOpen: boolean) => void;
+  /** 제출을 막은 이유 (전화번호 형식, 인증 미완료). 제출 버튼 위에 보여 준다 */
+  submitError?: string | null;
 }
 
 // Context 생성

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
+import { Label } from '@/components/atoms/labels/Label';
 
 interface VerificationCodeInputProps {
   phoneNumber: string;
@@ -62,20 +63,19 @@ function VerificationCodeInput({
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="mb-1 text-callout text-primary">
           {phoneNumber}로 인증번호를 발송했습니다
         </p>
-        <p className="text-xs text-gray-500">인증번호는 3분간 유효합니다</p>
+        <p className="text-footnote text-secondary">
+          인증번호는 3분간 유효합니다
+        </p>
       </div>
 
       <div className="space-y-3">
         <div>
-          <label
-            htmlFor="verification-code"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <Label htmlFor="verification-code" className="mb-1">
             인증번호 6자리
-          </label>
+          </Label>
           <Input
             id="verification-code"
             type="text"
@@ -89,13 +89,13 @@ function VerificationCodeInput({
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="text-sm">
+          <div className="text-footnote tabular-nums">
             {timeLeft > 0 ? (
-              <span className="text-red-600">
+              <span className="text-negative">
                 남은 시간: {formatTime(timeLeft)}
               </span>
             ) : (
-              <span className="text-gray-500">인증번호가 만료되었습니다</span>
+              <span className="text-secondary">인증번호가 만료되었습니다</span>
             )}
           </div>
 
@@ -109,7 +109,7 @@ function VerificationCodeInput({
           </Button>
         </div>
 
-        {error && <div className="text-red-600 text-sm">{error}</div>}
+        {error && <div className="text-footnote text-negative">{error}</div>}
 
         <Button
           onClick={handleVerify}

@@ -8,6 +8,7 @@ import {
   GuestApplicationItem,
   GuestApplicationList,
 } from '@/components/organisms/guest/GuestApplicationList';
+import { GuestApplicationModal } from '@/components/organisms/modal/join';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { SelectedIcon } from '@/components/organisms/workout/HelperSheet';
 import { WorkoutCard } from '@/components/organisms/workout/WorkoutCard';
@@ -222,6 +223,7 @@ export default function ScreenPreviewPage() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [sortOption, setSortOption] = useState<SortOption>('createdAt');
   const [helperMessage, setHelperMessage] = useState<string | null>(null);
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [icons, setIcons] = useState<Record<string, SelectedIcon[]>>({
     '1': ['net', 'key'],
     '3': ['mop'],
@@ -370,7 +372,11 @@ export default function ScreenPreviewPage() {
               <p className="whitespace-pre-wrap break-words text-body text-secondary">
                 {GUEST_DESCRIPTION}
               </p>
-              <Button type="button" className="w-full">
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => setIsGuestModalOpen(true)}
+              >
                 게스트 신청하기
               </Button>
             </div>
@@ -380,6 +386,17 @@ export default function ScreenPreviewPage() {
               hrefFor={() => '/dev/screen-preview?screen=guest'}
             />
           </div>
+          <GuestApplicationModal
+            user={ME}
+            clubId="1"
+            isOpen={isGuestModalOpen}
+            onClose={() => setIsGuestModalOpen(false)}
+            onSubmit={() => setIsGuestModalOpen(false)}
+            // 가짜 인증: 번호를 넣고 '인증하기'를 누르면 입력칸이 열린다.
+            sendPhoneVerificationCode={async () => ({})}
+            verifyPhoneCode={async () => ({})}
+            checkPhoneVerificationStatus={async () => {}}
+          />
         </>
       ) : (
         <WorkoutDetailView

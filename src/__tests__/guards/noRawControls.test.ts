@@ -48,8 +48,6 @@ function findRawControls(dir: string): string[] {
 // 다른 단계에서 Sheet로 옮기기로 한 것 (계획 문서의 "제외" 표)
 const OVERLAYS_MOVED_LATER = [
   'components/organisms/sheet/Sheet.tsx',
-  'components/organisms/modal/join/JoinModal.tsx', // 4단계 게스트 신청 화면
-  'components/organisms/modal/PrivacyModal.tsx', // 4단계 게스트 신청 화면
   'components/molecules/OptionBottomSheet.tsx', // 5단계 회원 관리
 ];
 
