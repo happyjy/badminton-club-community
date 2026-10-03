@@ -75,6 +75,12 @@ describe('isValidPhoneNumber', () => {
     expect(isValidPhoneNumber('')).toBe(false);
     expect(isValidPhoneNumber(null)).toBe(false);
   });
+
+  // 앞 11자리만 보고 통과시키면 뒤에 붙은 숫자가 조용히 버려진 채 저장된다.
+  it('11자리를 넘으면 거절한다', () => {
+    expect(isValidPhoneNumber('010-1234-5678999')).toBe(false);
+    expect(isValidPhoneNumber('010-71347219-7219')).toBe(false);
+  });
 });
 
 describe('getPhoneNumberError', () => {
@@ -84,6 +90,12 @@ describe('getPhoneNumberError', () => {
 
   it('형식이 어긋나면 예시를 담은 안내를 돌려준다', () => {
     expect(getPhoneNumberError('010-1234')).toBe(
+      '올바른 전화번호가 아닙니다. (예: 010-1234-5678)'
+    );
+  });
+
+  it('11자리를 넘는 값에도 안내를 돌려준다', () => {
+    expect(getPhoneNumberError('010-1234-5678999')).toBe(
       '올바른 전화번호가 아닙니다. (예: 010-1234-5678)'
     );
   });

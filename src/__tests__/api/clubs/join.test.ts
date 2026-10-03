@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { prisma } from '@/lib/prisma';
-
 import handler from '@/pages/api/clubs/[id]/join';
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 // 핸들러는 공유 싱글톤(@/lib/prisma)을 쓰므로 그 모듈을 바꿔치기한다.
 jest.mock('@/lib/prisma', () => ({
@@ -163,6 +162,21 @@ describe('POST /api/clubs/[id]/join 전화번호 인증 검증', () => {
 
     const res = buildRes();
     await handler(buildReq({ phoneNumber: '010-123' }), res);
+
+    expect(res.statusCode).toBe(400);
+    expect(mockPrisma.clubMember.create).not.toHaveBeenCalled();
+  });
+
+  // 앞 11자리가 인증한 번호와 같더라도, 잘라서 통과시키지 않는다.
+  it('11자리를 넘는 번호는 400으로 막는다', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: USER_ID,
+      phoneNumber: '010-1234-5678',
+      phoneVerifiedAt: new Date(),
+    });
+
+    const res = buildRes();
+    await handler(buildReq({ phoneNumber: '010-1234-5678999' }), res);
 
     expect(res.statusCode).toBe(400);
     expect(mockPrisma.clubMember.create).not.toHaveBeenCalled();

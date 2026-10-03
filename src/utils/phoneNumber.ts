@@ -40,11 +40,16 @@ export const formatPhoneNumber = (value?: string | null): string => {
 
 /**
  * 전화번호가 유효한지 검사하는 함수
+ *
+ * toPhoneDigits를 거치지 않고 원본의 숫자를 전부 본다. 11자리에서 잘라낸 뒤
+ * 검사하면 '010-1234-5678999' 같은 값이 통과하고, 뒤에 붙은 숫자는
+ * 조용히 버려진 채 저장된다.
+ *
  * @param value - 하이픈이 있든 없든 상관없는 전화번호 문자열
  * @returns 유효하면 true
  */
 export const isValidPhoneNumber = (value?: string | null): boolean =>
-  PHONE_NUMBER_PATTERN.test(toPhoneDigits(value));
+  PHONE_NUMBER_PATTERN.test((value ?? '').replace(/\D/g, ''));
 
 /**
  * 전화번호 입력값에 대한 오류 메시지를 돌려주는 함수
@@ -152,7 +157,8 @@ export const fillPhoneParts = (
 
   // 번호 하나가 통째로 들어온 경우다. 자동완성은 어느 칸에든 채울 수 있으므로
   // 입력된 칸과 무관하게 처음부터 나눠 담는다.
-  if (part === 'first' || isValidPhoneNumber(digits)) {
+  // 여기서는 저장이 아니라 칸 배분이 목적이라, 넘치는 자리는 버리고 앞 11자리로 판단한다.
+  if (part === 'first' || isValidPhoneNumber(toPhoneDigits(digits))) {
     return splitPhoneParts(digits);
   }
 
@@ -194,12 +200,7 @@ export const toDisplayPhoneNumber = (
 ): DisplayPhoneNumber => {
   if (!value) return { text: '', isMalformed: false };
 
-  // toPhoneDigits는 11자리에서 잘라내므로, 잘림 여부는 원본에서 직접 센다.
-  const rawDigits = value.replace(/\D/g, '');
-  if (rawDigits.length > MAX_PHONE_DIGITS) {
-    return { text: value, isMalformed: true };
-  }
-
+  // 11자리를 넘는 값도 isValidPhoneNumber가 걸러낸다.
   if (!isValidPhoneNumber(value)) {
     return { text: value, isMalformed: true };
   }
@@ -213,7 +214,7 @@ export const getPhoneNumberError = (
   const digits = toPhoneDigits(value);
 
   if (digits.length === 0) return '전화번호를 입력해주세요.';
-  if (!isValidPhoneNumber(digits))
+  if (!isValidPhoneNumber(value))
     return '올바른 전화번호가 아닙니다. (예: 010-1234-5678)';
 
   return undefined;
