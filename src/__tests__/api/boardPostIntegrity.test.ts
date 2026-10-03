@@ -104,6 +104,7 @@ import { prisma } from '@/lib/prisma';
 import commentLikeHandler from '@/pages/api/clubs/[id]/board/posts/[postId]/comments/[commentId]/like';
 import postHandler from '@/pages/api/clubs/[id]/board/posts/[postId]/index';
 import postLikeHandler from '@/pages/api/clubs/[id]/board/posts/[postId]/like';
+import pinHandler from '@/pages/api/clubs/[id]/board/posts/[postId]/pin';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -250,5 +251,25 @@ describe('좋아요 수는 0 아래로 내려가지 않는다', () => {
 
     expect(res.statusCode).toBe(200);
     expect(store.comment?.likeCount).toBe(2);
+  });
+});
+
+describe('게시글 고정 — 삭제된 글', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('삭제된 글은 임원도 고정할 수 없다 (404)', async () => {
+    store.post = makePost({ isDeleted: true });
+    (
+      prisma.clubMember.findFirst as unknown as jest.Mock<
+        () => Promise<unknown>
+      >
+    ).mockResolvedValueOnce({ id: 1, role: 'ADMIN', status: 'APPROVED' });
+
+    const res = await call(pinHandler, 'PATCH', POST_QUERY, { isPinned: true });
+
+    expect(res.statusCode).toBe(404);
+    expect(store.post?.isPinned).not.toBe(true);
   });
 });

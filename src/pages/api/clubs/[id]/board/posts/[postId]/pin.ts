@@ -53,11 +53,12 @@ export default withAuth(async function handler(
       });
     }
 
-    // 게시글 존재 확인
+    // 게시글 존재 확인 (삭제된 글은 고정할 수 없다)
     const post = await prisma.post.findFirst({
       where: {
         id: postId,
         clubId: clubIdNumber,
+        isDeleted: false,
       },
     });
 
