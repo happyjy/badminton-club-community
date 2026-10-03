@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ACTIVE_MEMBER_STATUS } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ClubMember } from '@/types';
@@ -34,6 +35,7 @@ export default withAuth(async function handler(
       where: {
         userId: req.user.id,
         clubId: clubIdNumber,
+        status: ACTIVE_MEMBER_STATUS,
       },
     });
 

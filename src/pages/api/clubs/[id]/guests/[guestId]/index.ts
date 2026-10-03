@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { APPROVED_STATUS } from '@/lib/clubAuth';
 import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
@@ -198,6 +199,7 @@ export default withAuth(async function handler(
             clubId: parseInt(clubId, 10),
             userId: req.user.id,
             role: Role.ADMIN,
+            status: APPROVED_STATUS,
           },
         });
 

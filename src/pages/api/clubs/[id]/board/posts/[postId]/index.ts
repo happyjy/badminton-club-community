@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { BOARD_AUTHOR_SELECT } from '@/lib/board/authorSelect';
+import { ACTIVE_MEMBER_STATUS } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -36,6 +37,7 @@ export default withAuth(async function handler(
       where: {
         userId: req.user.id,
         clubId: clubIdNumber,
+        status: ACTIVE_MEMBER_STATUS,
       },
     });
 

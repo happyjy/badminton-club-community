@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ACTIVE_MEMBER_STATUS } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
@@ -28,6 +29,7 @@ export default withAuth(async function handler(
     const updaterClubMember = await prisma.clubMember.findFirst({
       where: {
         userId: req.user.id,
+        status: ACTIVE_MEMBER_STATUS,
         club: {
           workouts: {
             some: {
