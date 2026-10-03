@@ -102,6 +102,9 @@ const MIGRATED = [
   'components/organisms/club/MembersView.tsx',
   'components/molecules/StatusFilter.tsx',
   'pages/clubs/[id]/members/index.tsx',
+  // 5단계 ② 게스트 확인
+  'components/organisms/guest/GuestCheckView.tsx',
+  'pages/clubs/[id]/guest/check/index.tsx',
 ];
 
 const COLOR_NAMES =
