@@ -143,6 +143,24 @@ describe('BottomTabBar', () => {
     expect(onOpenMore).toHaveBeenCalledTimes(1);
   });
 
+  it('꺼진 탭의 글자도 읽을 수 있는 색(secondary)이다', () => {
+    render(
+      <BottomTabBar
+        items={adminItems}
+        currentPath="/clubs/1"
+        onOpenMore={() => {}}
+      />
+    );
+
+    const inactive = screen
+      .getAllByRole('link')
+      .find((link) => !link.hasAttribute('aria-current')) as HTMLElement;
+    const classes = inactive.className.split(' ');
+    // tertiary(#8E8E93)는 대비 3.3:1이라 12px 글자에 쓸 수 없다 (설계 3-1).
+    expect(classes).toContain('text-secondary');
+    expect(classes).not.toContain('text-tertiary');
+  });
+
   it('비회원은 홈·가입 문의·더보기 세 칸이다', () => {
     render(
       <BottomTabBar

@@ -86,24 +86,35 @@ export function Layout({ children }: LayoutProps) {
   const activeClubId =
     isClubRoute && typeof clubId === 'string' ? clubId : undefined;
 
-  // 현재 클럽에서의 내 회원 정보를 스토어에 넣는다 (옛 ClubNavigation이 하던 일).
-  useSyncClubMember(activeClubId);
+  const currentClub = useSelector((state: RootState) => state.club.currentClub);
+
+  // 메뉴가 가리키는 클럽. 내 정보 화면은 클럽 밖이지만 클럽 메뉴에서 들어가는
+  // 화면이므로, 직전에 보던 클럽의 메뉴를 그대로 둬서 한 번에 돌아갈 수 있게 한다.
+  const lastClubId = currentClub?.id ? String(currentClub.id) : undefined;
+  const navClubId =
+    activeClubId ?? (router.pathname === '/profile' ? lastClubId : undefined);
+
+  // 그 클럽에서의 내 회원 정보를 스토어에 넣는다 (옛 ClubNavigation이 하던 일).
+  useSyncClubMember(navClubId);
   const clubMember = useSelector((state: RootState) => state.auth.clubMember);
 
   // 커스텀 설정에서 끈 메뉴는 숨긴다. 설정을 불러오기 전에는 켜진 것으로 본다.
-  const { data: menuSettings } = useMenuSettings(activeClubId ?? '');
+  const { data: menuSettings } = useMenuSettings(navClubId ?? '');
   const { login, logout } = useAuthActions();
 
-  const navItems = activeClubId
+  const navItems = navClubId
     ? getNavItems({
-        clubId: activeClubId,
+        clubId: navClubId,
         isMember: !!clubMember,
         isAdmin: clubMember?.role === 'ADMIN',
         tournamentMenuEnabled: menuSettings?.tournamentMenuEnabled ?? true,
       })
     : [];
 
-  const currentClub = useSelector((state: RootState) => state.club.currentClub);
+  // 다른 클럽으로 막 옮겨 왔을 때는 스토어에 이전 클럽이 남아 있다.
+  // 메뉴가 가리키는 클럽과 같을 때만 그 이름을 쓴다.
+  const clubName =
+    navClubId && navClubId === lastClubId ? currentClub.name : undefined;
 
   // 클럽 화면인데 주소의 클럽 id를 아직 못 읽었으면(라우터 준비 전) 본문을 그리지 않는다.
   const isWaitingForClubId = isClubRoute && !clubId;
@@ -111,9 +122,8 @@ export function Layout({ children }: LayoutProps) {
   return (
     <AppShell
       variant={getLayoutVariant(router.pathname)}
-      clubId={activeClubId}
-      // 클럽 밖에서는 이전 클럽의 이름이 남아 있어도 보여 주지 않는다.
-      clubName={activeClubId ? currentClub?.name : undefined}
+      clubId={navClubId}
+      clubName={clubName}
       items={navItems}
       currentPath={router.asPath}
       isAuthenticated={!!currentUser}

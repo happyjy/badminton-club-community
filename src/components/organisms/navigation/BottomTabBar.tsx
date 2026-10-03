@@ -16,7 +16,8 @@ const tabClass = (active: boolean) =>
   cn(
     'flex h-[var(--tabbar-h)] flex-1 flex-col items-center justify-center gap-0.5 text-caption',
     'transition-opacity duration-150 active:opacity-60',
-    active ? 'font-semibold text-primary' : 'text-tertiary'
+    // 꺼진 탭도 글자는 읽혀야 한다. tertiary는 12px 글자에 대비가 모자란다.
+    active ? 'font-semibold text-primary' : 'text-secondary'
   );
 
 /**
