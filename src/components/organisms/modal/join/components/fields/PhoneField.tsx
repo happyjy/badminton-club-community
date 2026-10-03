@@ -156,8 +156,8 @@ function PhoneField({
           <Button
             type="button"
             variant="secondary"
-            size="sm"
-            className="mt-1 shrink-0"
+            // 옆의 입력칸과 같은 높이(44). 좁은 화면을 위해 좌우 여백만 줄인다.
+            className="mt-1 shrink-0 px-3"
             onClick={handleSendCode}
             disabled={!canSendCode || phoneVerificationLoading}
           >

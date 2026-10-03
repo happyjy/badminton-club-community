@@ -263,4 +263,23 @@ describe('게스트 신청 창 (JoinModal)', () => {
         .some((el) => /전화번호/.test(el.textContent ?? ''))
     ).toBe(false);
   });
+
+  it('인증하기 버튼은 옆의 전화번호 입력칸과 높이가 같다', async () => {
+    await renderModal(
+      <GuestApplicationModal
+        {...base}
+        sendPhoneVerificationCode={async () => {}}
+        verifyPhoneCode={async () => {}}
+        phoneVerificationStatus={null}
+      />
+    );
+
+    const button = screen.getByRole('button', { name: '인증하기' });
+    const input = document.getElementById('phone-first') as HTMLElement;
+    const heightOf = (el: HTMLElement) =>
+      el.className.split(/\s+/).find((c) => /^h-\d+$/.test(c));
+
+    expect(heightOf(input)).toBe('h-11');
+    expect(heightOf(button)).toBe(heightOf(input));
+  });
 });
