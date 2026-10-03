@@ -30,7 +30,7 @@ export function BulkActionBar({
       aria-label="선택한 항목"
       className={cn(
         // 휴대폰에서는 탭바 위에, PC에서는 화면 아래에 붙는다.
-        'sticky bottom-[calc(var(--tabbar-h)+12px)] z-dropdown mt-3 flex flex-wrap items-center gap-2 rounded-md bg-surface px-4 py-2 shadow-overlay lg:bottom-4',
+        'sticky bottom-[calc(var(--tabbar-h)+12px)] z-dropdown mt-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 shadow-overlay lg:bottom-4',
         className
       )}
     >

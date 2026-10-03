@@ -50,7 +50,8 @@ function HelperImage({
     <img
       src={typeof option.icon === 'string' ? option.icon : option.icon.src}
       alt={decorative ? '' : option.label}
-      className={className}
+      // 그림이 검은색 svg라 다크모드에서는 색을 뒤집는다.
+      className={cn('dark:invert', className)}
     />
   );
 }

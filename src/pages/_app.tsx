@@ -128,6 +128,7 @@ export default function App({ Component, pageProps }: AppProps) {
             style: {
               background: 'var(--color-surface)',
               color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
             },
           }}
         />

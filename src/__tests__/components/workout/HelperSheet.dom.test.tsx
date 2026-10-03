@@ -158,4 +158,11 @@ describe('HelperSheet', () => {
       'min-h-11'
     );
   });
+
+  it('검은 그림이라 다크모드에서는 색을 뒤집어 보이게 한다', () => {
+    const { container } = render(<HelperIcons icons={['key', 'net']} />);
+    container.querySelectorAll('img').forEach((img) => {
+      expect(img.className.split(/\s+/)).toContain('dark:invert');
+    });
+  });
 });

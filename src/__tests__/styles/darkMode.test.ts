@@ -142,7 +142,11 @@ describe('다크모드 토큰', () => {
   });
 
   it('Select 화살표는 다크에서 밝은 색으로 바뀐다', () => {
-    const block = blockAfter(css, darkMedia);
+    // 화살표는 components 층에 있는 두 번째 다크 블록에 있다.
+    const block = blockAfter(
+      css,
+      css.lastIndexOf('@media (prefers-color-scheme: dark)')
+    );
     expect(block).toMatch(/\.select-chevron\s*\{[^}]*background-image/);
   });
 
@@ -153,5 +157,13 @@ describe('다크모드 토큰', () => {
     expect(luminance(light['--color-raised'])).toBeGreaterThan(
       luminance(light['--color-fill'])
     );
+  });
+
+  it('다크 값은 라이트 값과 같은 층(base)에서 라이트 뒤에 온다 (뒤에 와야 이긴다)', () => {
+    const lightAt = css.search(/^\s*:root\s*\{/m);
+    const componentsAt = css.indexOf('@layer components');
+    expect(lightAt).toBeGreaterThan(-1);
+    expect(darkMedia).toBeGreaterThan(lightAt);
+    expect(darkMedia).toBeLessThan(componentsAt);
   });
 });

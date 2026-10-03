@@ -71,4 +71,17 @@ describe('BulkActionBar', () => {
     fireEvent.click(screen.getByRole('button', { name: '선택 해제' }));
     expect(onClear).toHaveBeenCalledTimes(1);
   });
+
+  it('테두리가 있어 다크모드에서도 표와 구분된다 (그림자는 어두운 바탕에서 안 보인다)', () => {
+    render(
+      <BulkActionBar count={1} onClear={() => {}}>
+        x
+      </BulkActionBar>
+    );
+    const classes = screen
+      .getByRole('region', { name: '선택한 항목' })
+      .className.split(/\s+/);
+    expect(classes).toContain('border');
+    expect(classes).toContain('border-border');
+  });
 });
