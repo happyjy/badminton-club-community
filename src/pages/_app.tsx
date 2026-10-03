@@ -117,12 +117,12 @@ export default function App({ Component, pageProps }: AppProps) {
         </ConfirmProvider>
         {/* </LocatorProvider> */}
         <Toaster
-          position={
-            // 640: tailwind의 sm 브레이크 포인트 기준
-            typeof window !== 'undefined' && window.innerWidth < 640
-              ? 'bottom-center' // 모바일에서는 하단 중앙
-              : 'top-right' // 데스크탑에서는 우측 상단
-          }
+          position="top-center"
+          containerStyle={{
+            // 노치와 상단 바를 피한다.
+            top: 'calc(env(safe-area-inset-top) + 56px)',
+            zIndex: 60,
+          }}
         />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
       </Provider>

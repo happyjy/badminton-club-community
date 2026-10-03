@@ -3,8 +3,9 @@
  * - member: 회원이 쓰는 화면. 기본.
  * - admin: 운영진이 쓰는 관리 화면. PC에서 넓고 글자가 한 단계 작다.
  * - bare: 메뉴가 없는 화면. 로그인, 계정 없는 외부인이 쓰는 대회 신청.
+ * - none: 화면이 뼈대를 직접 그린다. 개발용 뼈대 미리보기만 쓴다.
  */
-export type LayoutVariant = 'member' | 'admin' | 'bare';
+export type LayoutVariant = 'member' | 'admin' | 'bare' | 'none';
 
 // Next의 router.pathname 꼴 ('/clubs/[id]/members')
 const BARE = new Set([
@@ -24,6 +25,8 @@ const ADMIN = new Set([
 ]);
 
 export function getLayoutVariant(pathname: string): LayoutVariant {
+  // 개발용 뼈대 미리보기는 화면 안에서 AppShell을 직접 그린다.
+  if (pathname === '/dev/shell-preview') return 'none';
   if (BARE.has(pathname)) return 'bare';
   if (ADMIN.has(pathname)) return 'admin';
   return 'member';

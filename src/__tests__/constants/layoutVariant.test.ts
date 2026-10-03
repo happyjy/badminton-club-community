@@ -13,6 +13,10 @@ describe('getLayoutVariant', () => {
     ).toBe('bare');
   });
 
+  it('뼈대 미리보기 화면은 자기 뼈대를 직접 그리므로 바깥 뼈대가 없다(none)', () => {
+    expect(getLayoutVariant('/dev/shell-preview')).toBe('none');
+  });
+
   it('운영진이 쓰는 관리 화면은 admin이다', () => {
     for (const pathname of [
       '/clubs/[id]/members',

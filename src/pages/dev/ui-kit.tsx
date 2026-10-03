@@ -16,6 +16,7 @@ import { FormField } from '@/components/molecules/form/FormField';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
 import { ListRow } from '@/components/molecules/list/ListRow';
 import { SegmentedControl } from '@/components/molecules/SegmentedControl';
+import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 import { Sheet } from '@/components/organisms/sheet/Sheet';
 
@@ -56,11 +57,11 @@ export default function UiKitPage() {
       className="mx-auto max-w-2xl space-y-6 py-6"
     >
       <header>
-        <h1 className="text-large-title text-primary">부품 미리보기</h1>
-        <p className="mt-1 text-footnote text-secondary">
-          개발 서버에서만 보이는 화면입니다.
-        </p>
-        <label className="mt-3 flex items-center text-callout text-primary">
+        <PageHeader
+          title="부품 미리보기"
+          subtitle="개발 서버에서만 보이는 화면입니다."
+        />
+        <label className="flex items-center text-callout text-primary">
           <Checkbox
             checked={compact}
             onChange={(event) => setCompact(event.target.checked)}
