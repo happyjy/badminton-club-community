@@ -11,6 +11,7 @@ import ApplyNotice from '@/components/organisms/tournament/entry/ApplyNotice';
 import {
   createEmptyPlayer,
   type EntryFormValues,
+  toEntryGender,
 } from '@/components/organisms/tournament/entry/entryFormTypes';
 import EntrySummary from '@/components/organisms/tournament/entry/EntrySummary';
 import EventListField from '@/components/organisms/tournament/entry/EventListField';
@@ -88,7 +89,7 @@ function TournamentApplyPage() {
   useEffect(() => {
     if (myEntry || !clubMember) return;
     methods.setValue('players.0.name', clubMember.name ?? '');
-    methods.setValue('players.0.gender', clubMember.gender ?? '');
+    methods.setValue('players.0.gender', toEntryGender(clubMember.gender));
     methods.setValue('players.0.birthDate', clubMember.birthDate ?? '');
     methods.setValue('depositorName', clubMember.name ?? '');
   }, [myEntry, clubMember, methods]);

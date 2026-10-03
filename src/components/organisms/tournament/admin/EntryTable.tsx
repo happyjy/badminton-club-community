@@ -194,7 +194,7 @@ function EntryTable({
               <th className="py-2">신청자</th>
               <th className="py-2">입금자명</th>
               <th className="py-2">종목</th>
-              <th className="py-2 text-right">청구액</th>
+              <th className="py-2 pr-4 text-right">청구액</th>
               <th className="py-2">입금 상태</th>
             </tr>
           </thead>
@@ -242,7 +242,7 @@ function EntryTable({
                       </span>
                     )}
                   </td>
-                  <td className="py-3 text-right font-medium">
+                  <td className="py-3 pr-4 text-right font-medium">
                     {formatFee(entry.totalFee)}
                   </td>
                   <td className="py-3">
