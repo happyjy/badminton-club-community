@@ -51,11 +51,12 @@ export default withAuth(async function handler(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const typedClubMember = clubMember as unknown as ClubMember;
 
-    // 게시글 존재 확인
+    // 게시글 존재 확인. 삭제(isDeleted)된 글은 목록처럼 없는 글로 본다.
     const post = await prisma.post.findFirst({
       where: {
         id: postId,
         clubId: clubIdNumber,
+        isDeleted: false,
       },
       include: {
         category: true,
