@@ -119,6 +119,22 @@ describe('인증번호 발송 횟수 제한', () => {
     expect(mockSendSMS).toHaveBeenCalledTimes(1);
   });
 
+  it('번호를 고쳐 다른 번호로 바로 다시 보내면 허용한다', async () => {
+    await send('010-1234-5679');
+    const res = await send('010-1234-5678');
+    expect(res.statusCode).toBe(200);
+    expect(mockSendSMS).toHaveBeenCalledTimes(2);
+  });
+
+  it('문자 발송이 실패하면 횟수를 쓰지 않아 바로 다시 보낼 수 있다', async () => {
+    mockSendSMS.mockRejectedValueOnce(new Error('SENS 장애'));
+    const failed = await send('010-1234-5678');
+    expect(failed.statusCode).toBe(500);
+
+    const retry = await send('010-1234-5678');
+    expect(retry.statusCode).toBe(200);
+  });
+
   it('이미 인증된 번호라 문자를 안 보내는 경우는 횟수를 쓰지 않는다', async () => {
     mockFindUser.mockResolvedValue({
       id: 1,

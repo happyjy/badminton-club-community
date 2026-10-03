@@ -19,13 +19,34 @@ describe('checkSendLimit', () => {
   });
 
   it('처음 보내는 요청은 허용한다', () => {
-    expect(checkSendLimit(1, '010-1234-5678', 0)).toEqual({ allowed: true });
+    expect(checkSendLimit(1, '010-1234-5678', 0).allowed).toBe(true);
   });
 
-  it('같은 사용자가 쿨다운 안에 다시 보내면 막는다', () => {
+  it('번호를 잘못 넣었다가 고쳐서 바로 다른 번호로 보내는 것은 허용한다', () => {
     checkSendLimit(1, '01012345678', 0);
-    const result = checkSendLimit(1, '01099998888', SEND_COOLDOWN_MS - 1);
-    expect(result.allowed).toBe(false);
+    const result = checkSendLimit(1, '01099998888', 1000);
+    expect(result.allowed).toBe(true);
+  });
+
+  it('번호 쪽 제한에 걸려 거절되면 사용자 횟수는 줄지 않는다', () => {
+    checkSendLimit(1, '01012345678', 0);
+    // 사용자 2가 쿨다운 중인 번호로 여러 번 시도해도
+    for (let i = 0; i < 20; i += 1) {
+      expect(checkSendLimit(2, '01012345678', 1000 + i).allowed).toBe(false);
+    }
+    // 사용자 2의 시간당 한도는 그대로 남아 있다
+    for (let i = 0; i < SEND_HOURLY_LIMIT_PER_USER; i += 1) {
+      const phone = `0105555${String(i).padStart(4, '0')}`;
+      expect(checkSendLimit(2, phone, 2000 + i).allowed).toBe(true);
+    }
+  });
+
+  it('release하면 차감한 횟수를 되돌려 바로 다시 보낼 수 있다', () => {
+    const first = checkSendLimit(1, '01012345678', 0);
+    expect(first.allowed).toBe(true);
+    if (first.allowed) first.release();
+
+    expect(checkSendLimit(1, '01012345678', 1000).allowed).toBe(true);
   });
 
   it('다른 사용자라도 같은 번호로 쿨다운 안에 보내면 막는다 (형식이 달라도 같은 번호)', () => {
@@ -45,8 +66,8 @@ describe('checkSendLimit', () => {
     for (let i = 0; i < SEND_HOURLY_LIMIT_PER_PHONE; i += 1) {
       // 사용자를 바꿔 가며 쿨다운을 피해도 번호 기준 상한에 걸린다
       expect(
-        checkSendLimit(100 + i, '01012345678', i * SEND_COOLDOWN_MS)
-      ).toEqual({ allowed: true });
+        checkSendLimit(100 + i, '01012345678', i * SEND_COOLDOWN_MS).allowed
+      ).toBe(true);
     }
     const blocked = checkSendLimit(
       999,

@@ -81,21 +81,27 @@ export default withAuth(async function handler(
       return res.status(429).json({ message: sendLimit.message });
     }
 
-    // 인증번호 생성 및 저장
-    const verificationCode = generateVerificationCode();
-    await saveVerificationCode(
-      user.id,
-      parseInt(clubId),
-      phoneNumber,
-      verificationCode
-    );
-    // 새 번호가 나갔으니 확인 기회도 새로 준다
-    resetVerifyAttempts(user.id, parseInt(clubId), phoneNumber);
+    try {
+      // 인증번호 생성 및 저장
+      const verificationCode = generateVerificationCode();
+      await saveVerificationCode(
+        user.id,
+        parseInt(clubId),
+        phoneNumber,
+        verificationCode
+      );
+      // 새 번호가 나갔으니 확인 기회도 새로 준다
+      resetVerifyAttempts(user.id, parseInt(clubId), phoneNumber);
 
-    // SMS 발송
-    const message = `[배드민턴 클럽] 인증번호: ${verificationCode} (3분간 유효)`;
-    const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
-    await sendSMS(normalizedPhoneNumber, message);
+      // SMS 발송
+      const message = `[배드민턴 클럽] 인증번호: ${verificationCode} (3분간 유효)`;
+      const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
+      await sendSMS(normalizedPhoneNumber, message);
+    } catch (error) {
+      // 문자가 나가지 않았으니 이번 요청은 횟수에서 빼 준다
+      sendLimit.release();
+      throw error;
+    }
 
     return res.status(200).json({
       success: true,

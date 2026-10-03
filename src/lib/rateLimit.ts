@@ -58,6 +58,24 @@ export function consumeAttempt(
   return { allowed: true, remaining: limit - existing.count };
 }
 
+/**
+ * 시도 1회를 소비할 수 있는지만 본다. 카운터는 바꾸지 않는다.
+ * 여러 제한을 함께 걸 때, 하나라도 막히면 나머지를 소비하지 않기 위해 쓴다.
+ */
+export function canConsume(key: string, options: ConsumeOptions = {}): boolean {
+  const limit = options.limit ?? DEFAULT_LIMIT;
+  const now = options.now ?? Date.now();
+  const existing = buckets.get(key);
+  if (!existing || existing.expiresAt <= now) return true;
+  return existing.count < limit;
+}
+
+/** 소비한 시도 1회를 되돌린다. 작업이 실패해 횟수를 쓰지 않은 것으로 칠 때 쓴다. */
+export function refundAttempt(key: string): void {
+  const existing = buckets.get(key);
+  if (existing && existing.count > 0) existing.count -= 1;
+}
+
 /** 카운터를 지운다. 테스트에서 쓴다. */
 export function resetAttempts(key: string): void {
   buckets.delete(key);
