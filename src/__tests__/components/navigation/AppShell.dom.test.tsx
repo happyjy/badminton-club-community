@@ -160,4 +160,20 @@ describe('AppShell', () => {
 
     expect(screen.getByRole('navigation', { name: '주 메뉴' })).toBeTruthy();
   });
+
+  it('회원용 화면의 본문은 PC에서도 좁게(max-w-2xl), 관리 화면은 넓게 둔다', () => {
+    const { rerender } = render(
+      <AppShell {...base} variant="member">
+        본문
+      </AppShell>
+    );
+    expect(screen.getByRole('main').className).toContain('max-w-2xl');
+
+    rerender(
+      <AppShell {...base} variant="admin">
+        본문
+      </AppShell>
+    );
+    expect(screen.getByRole('main').className).toContain('max-w-6xl');
+  });
 });

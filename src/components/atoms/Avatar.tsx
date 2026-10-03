@@ -66,6 +66,7 @@ export function Avatar({ name, src, seed, size = 36, className }: AvatarProps) {
         ref={imgRef}
         src={src}
         alt={name}
+        loading="lazy"
         onError={() => setFailedSrc(src)}
         className={cn(base, 'object-cover')}
       />

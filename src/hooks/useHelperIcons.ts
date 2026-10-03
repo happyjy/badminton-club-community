@@ -91,7 +91,10 @@ export function useHelperIcons(workoutId: string | string[] | undefined) {
         setIcons({
           ...iconsRef.current,
           [userId]: isSelected
-            ? [...latest, icon]
+            ? // 그 사이 새로 받은 목록에 이미 들어 있으면 두 번 넣지 않는다.
+              latest.includes(icon)
+              ? latest
+              : [...latest, icon]
             : latest.filter((value) => value !== icon),
         });
       } catch (error) {

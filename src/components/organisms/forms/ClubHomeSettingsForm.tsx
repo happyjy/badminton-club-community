@@ -67,7 +67,7 @@ function ClubHomeSettingsForm({
           <Textarea
             id="clubOperatingTime"
             {...register('clubOperatingTime')}
-            rows={3}
+            minRows={3}
             placeholder="예시:&#10;평일: 18:00 - 22:00&#10;주말: 10:00 - 18:00"
           />
         </FormField>
@@ -80,7 +80,7 @@ function ClubHomeSettingsForm({
           <Textarea
             id="clubDescription"
             {...register('clubDescription')}
-            rows={4}
+            minRows={4}
           />
         </FormField>
       </div>

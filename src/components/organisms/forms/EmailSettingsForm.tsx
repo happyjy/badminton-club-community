@@ -62,7 +62,7 @@ function EmailSettingsForm({ clubId, initialData }: EmailSettingsFormProps) {
         <Textarea
           id="emailRecipients"
           {...register('emailRecipients')}
-          rows={4}
+          minRows={4}
           placeholder="이메일 주소를 쉼표로 구분하여 입력하세요"
         />
       </FormField>

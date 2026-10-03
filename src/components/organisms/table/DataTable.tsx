@@ -258,7 +258,7 @@ export function DataTable<T>({
                   className={cn(
                     'transition-colors duration-150',
                     onRowClick &&
-                      'cursor-pointer hover:bg-bg focus-visible:bg-bg focus-visible:outline-none',
+                      'cursor-pointer hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent',
                     isSelected && 'bg-bg'
                   )}
                 >

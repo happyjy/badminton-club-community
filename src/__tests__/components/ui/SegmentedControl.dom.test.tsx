@@ -93,4 +93,48 @@ describe('SegmentedControl', () => {
       'bg-surface'
     );
   });
+
+  it('방향키로 옆 항목을 고르고 초점을 옮긴다 (끝에서는 반대쪽으로 돈다)', () => {
+    const onChange = jest.fn();
+    render(
+      <SegmentedControl
+        aria-label="보기"
+        options={[
+          { value: 'a', label: '가' },
+          { value: 'b', label: '나' },
+          { value: 'c', label: '다' },
+        ]}
+        value="a"
+        onChange={onChange}
+      />
+    );
+    const radios = screen.getAllByRole('radio');
+
+    fireEvent.keyDown(radios[0], { key: 'ArrowRight' });
+    expect(onChange).toHaveBeenLastCalledWith('b');
+    expect(document.activeElement).toBe(radios[1]);
+
+    fireEvent.keyDown(radios[0], { key: 'ArrowLeft' });
+    expect(onChange).toHaveBeenLastCalledWith('c');
+    expect(document.activeElement).toBe(radios[2]);
+  });
+
+  it('고른 항목만 탭으로 닿는다', () => {
+    render(
+      <SegmentedControl
+        aria-label="보기"
+        options={[
+          { value: 'a', label: '가' },
+          { value: 'b', label: '나' },
+        ]}
+        value="b"
+        onChange={() => {}}
+      />
+    );
+    expect(
+      screen
+        .getAllByRole('radio')
+        .map((radio) => radio.getAttribute('tabindex'))
+    ).toEqual(['-1', '0']);
+  });
 });

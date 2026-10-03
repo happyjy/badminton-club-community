@@ -217,4 +217,17 @@ describe('useHelperIcons', () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result.current.message).toBeNull();
   });
+
+  it('저장이 끝나기 전에 목록을 새로 받아 이미 들어 있으면 두 번 넣지 않는다', async () => {
+    const { result } = renderHook(() => useHelperIcons('3'));
+
+    act(() => {
+      result.current.toggle(1, 10, 'net');
+    });
+    // 저장 응답보다 먼저 새로 받은 목록에 이미 반영돼 있다.
+    act(() => result.current.setIcons({ 1: ['net'] }));
+
+    await finish();
+    expect(result.current.icons[1]).toEqual(['net']);
+  });
 });

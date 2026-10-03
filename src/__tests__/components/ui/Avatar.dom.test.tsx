@@ -20,6 +20,11 @@ describe('Avatar', () => {
     expect(img.getAttribute('src')).toBe('https://example.com/a.jpg');
   });
 
+  it('사진은 화면에 보일 때 불러온다 (회원 목록에서 수백 장을 한꺼번에 받지 않게)', () => {
+    render(<Avatar name="홍길동" src="https://example.com/a.png" />);
+    expect(screen.getByRole('img').getAttribute('loading')).toBe('lazy');
+  });
+
   it('사진을 못 불러오면 첫 글자로 바꾼다', () => {
     render(<Avatar name="김민수" src="https://example.com/expired.jpg" />);
 

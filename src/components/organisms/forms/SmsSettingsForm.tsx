@@ -63,7 +63,7 @@ function SmsSettingsForm({ clubId, initialData }: SmsSettingsFormProps) {
           <Textarea
             id="smsRecipients"
             {...register('smsRecipients')}
-            rows={4}
+            minRows={4}
             placeholder="전화번호를 쉼표로 구분하여 입력하세요 (예: 010-1234-5678, 010-8765-4321)"
           />
         </FormField>

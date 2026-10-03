@@ -152,6 +152,16 @@ function PostDetail({ post }: PostDetailProps) {
               <Eye aria-hidden className="h-3.5 w-3.5" />
               {post.viewCount}
             </span>
+            {/* 회원은 아래 좋아요 버튼에서 수를 본다. 버튼이 없는 사람에게만 여기에 보인다. */}
+            {!clubMember && (
+              <span
+                aria-label={`좋아요 ${post.likeCount}`}
+                className="flex items-center gap-1 tabular-nums"
+              >
+                <Heart aria-hidden className="h-3.5 w-3.5" />
+                {post.likeCount}
+              </span>
+            )}
             <span className="flex items-center gap-1 tabular-nums">
               <MessageCircle aria-hidden className="h-3.5 w-3.5" />
               {post._count?.comments || 0}

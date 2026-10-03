@@ -102,6 +102,9 @@ function JoinModal({
   useEffect(() => {
     if (isOpen) {
       loadVerificationStatus.current?.();
+    } else {
+      // 닫을 때 지난 오류를 지운다. 이 컴포넌트는 닫혀도 남아 있다.
+      setSubmitError(null);
     }
   }, [isOpen]);
 

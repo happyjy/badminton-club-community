@@ -41,4 +41,11 @@ describe('Skeleton', () => {
     expect(el.className).toContain('h-5');
     expect(el.getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('움직임을 줄이도록 설정한 사람에게는 깜빡이지 않는다', () => {
+    const { container } = render(<Skeleton className="h-5 w-32" />);
+    expect((container.firstChild as HTMLElement).className).toContain(
+      'motion-reduce:animate-none'
+    );
+  });
 });

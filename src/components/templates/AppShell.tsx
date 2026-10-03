@@ -75,7 +75,8 @@ export function AppShell({
         className={cn(
           'mx-auto px-4 pt-3 lg:px-6 lg:pb-10 lg:pt-6',
           'pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom)+24px)]',
-          variant === 'admin' ? 'max-w-6xl' : 'max-w-4xl'
+          // 회원용 화면은 PC에서도 휴대폰과 같은 좁은 본문, 관리 화면은 넓은 본문
+          variant === 'admin' ? 'max-w-6xl' : 'max-w-2xl'
         )}
       >
         {children}

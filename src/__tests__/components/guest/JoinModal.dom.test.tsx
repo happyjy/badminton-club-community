@@ -237,4 +237,30 @@ describe('게스트 신청 창 (JoinModal)', () => {
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
+
+  it('닫았다가 다시 열면 지난번 오류 문구가 남아 있지 않다', async () => {
+    let view: ReturnType<typeof render> | undefined;
+    const props = {
+      ...base,
+      initialValues: { ...filled, phoneNumber: '010-12' },
+    };
+    await act(async () => {
+      view = render(<GuestApplicationModal {...props} />);
+    });
+    await submitForm();
+    expect(screen.getAllByRole('alert').length).toBeGreaterThan(0);
+
+    await act(async () => {
+      view?.rerender(<GuestApplicationModal {...props} isOpen={false} />);
+    });
+    await act(async () => {
+      view?.rerender(<GuestApplicationModal {...props} isOpen />);
+    });
+
+    expect(
+      screen
+        .queryAllByRole('alert')
+        .some((el) => /전화번호/.test(el.textContent ?? ''))
+    ).toBe(false);
+  });
 });

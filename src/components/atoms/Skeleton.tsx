@@ -10,7 +10,10 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <span
       aria-hidden="true"
-      className={cn('block animate-pulse rounded-sm bg-fill', className)}
+      className={cn(
+        'block animate-pulse rounded-sm bg-fill motion-reduce:animate-none',
+        className
+      )}
     />
   );
 }
