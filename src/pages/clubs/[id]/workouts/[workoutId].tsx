@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 
 import { Spinner } from '@/components/atoms/Spinner';
@@ -30,7 +31,12 @@ function ClubWorkoutDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // 도움 기록: 저장 중 중복 요청 방지, 한 사람 3개 한도, 실패 안내를 훅이 맡는다.
-  const helper = useHelperIcons(workoutId);
+  const queryClient = useQueryClient();
+  const helper = useHelperIcons(workoutId, {
+    // 이름 옆의 "도움 N"은 랭킹에서 오므로, 기록을 바꾸면 랭킹을 다시 불러온다.
+    onSaved: () =>
+      queryClient.invalidateQueries({ queryKey: ['clubRankings'] }),
+  });
   const { setIcons: setParticipantIcons } = helper;
   const [initialParticipants, setInitialParticipants] = useState<
     WorkoutParticipant[]

@@ -18,7 +18,17 @@ const keyOf = (userId: number, icon: SelectedIcon) => `${userId}:${icon}`;
  *   (연달아 두 번 누르면 화면과 서버가 어긋나던 문제를 막는다.)
  * - 한 사람에 HELPER_LIMIT개가 차면 더 고르지 못하게 하고 이유를 알린다.
  */
-export function useHelperIcons(workoutId: string | string[] | undefined) {
+export function useHelperIcons(
+  workoutId: string | string[] | undefined,
+  options: {
+    /** 저장에 성공할 때마다 불린다. 도움 횟수처럼 따로 불러오는 값을 새로 받을 때 쓴다 */
+    onSaved?: () => void;
+  } = {}
+) {
+  // 호출부가 매번 새 함수를 넘겨도 toggle이 다시 만들어지지 않게 ref로 든다.
+  const onSavedRef = useRef(options.onSaved);
+  onSavedRef.current = options.onSaved;
+
   const [icons, setIconsState] = useState<ParticipantIcons>({});
   const [message, setMessage] = useState<string | null>(null);
   const [pendingKeys, setPendingKeys] = useState<ReadonlySet<string>>(
@@ -97,6 +107,7 @@ export function useHelperIcons(workoutId: string | string[] | undefined) {
               : [...latest, icon]
             : latest.filter((value) => value !== icon),
         });
+        onSavedRef.current?.();
       } catch (error) {
         console.error('Failed to update helper status:', error);
         setMessage(

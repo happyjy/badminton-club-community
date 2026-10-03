@@ -230,4 +230,22 @@ describe('useHelperIcons', () => {
     await finish();
     expect(result.current.icons[1]).toEqual(['net']);
   });
+
+  it('저장에 성공하면 알려 준다 (도움 횟수를 다시 불러올 수 있게), 실패하면 알리지 않는다', async () => {
+    const onSaved = jest.fn();
+    const { result } = renderHook(() => useHelperIcons('3', { onSaved }));
+
+    act(() => {
+      result.current.toggle(1, 10, 'net');
+    });
+    expect(onSaved).not.toHaveBeenCalled();
+    await finish();
+    expect(onSaved).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      result.current.toggle(1, 10, 'key');
+    });
+    await finish(false);
+    expect(onSaved).toHaveBeenCalledTimes(1);
+  });
 });
