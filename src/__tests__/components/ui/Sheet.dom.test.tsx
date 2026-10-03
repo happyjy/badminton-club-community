@@ -97,4 +97,15 @@ describe('Sheet', () => {
     expect(body.className).toContain('overflow-y-auto');
     expect(body.parentElement?.className).toContain('max-h-[90dvh]');
   });
+
+  it('본문은 가로로 스크롤되지 않는다 (안의 요소가 삐져나와도 시트가 좌우로 밀리지 않게)', async () => {
+    await renderSheet(
+      <Sheet open onClose={() => {}} title="게스트 신청">
+        <p>내용</p>
+      </Sheet>
+    );
+
+    const body = screen.getByText('내용').parentElement as HTMLElement;
+    expect(body.className.split(/\s+/)).toContain('overflow-x-hidden');
+  });
 });

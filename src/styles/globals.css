@@ -123,6 +123,24 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* 아이폰 Safari는 날짜·시간 입력칸을 기본 모양으로 두면 width: 100%를 무시하고
+     고유 폭으로 그린다. 그러면 다른 입력칸과 폭이 달라지고 옆으로 삐져나온다.
+     (PC 브라우저의 휴대폰 흉내로는 재현되지 않는다.) */
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* 아이폰은 날짜 글자를 가운데에 두고, 값이 비면 높이가 줄어든다. */
+  input::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 1.5em;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,

@@ -72,7 +72,8 @@ export function Sheet({
 
           <div
             className={cn(
-              'min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-2',
+              // 안의 요소가 삐져나와도 시트가 좌우로 밀리지 않게 가로 스크롤은 막는다.
+              'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pt-2',
               // footer가 없으면 본문이 홈 인디케이터 여백을 맡는다.
               footer ? 'pb-4' : 'pb-[calc(16px+env(safe-area-inset-bottom))]'
             )}
