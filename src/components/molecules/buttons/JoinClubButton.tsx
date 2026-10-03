@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { ClubJoinModal } from '@/components/organisms/modal/join';
 
 import usePhoneVerification from '@/hooks/usePhoneVerification';
@@ -68,35 +69,26 @@ export const JoinClubButton = ({
 
   if (!user) {
     return (
-      <button
-        onClick={onClickLogin}
-        className="text-blue-500 hover:text-blue-700 text-sm"
-      >
+      <Button type="button" variant="plain" size="sm" onClick={onClickLogin}>
         로그인이 필요합니다
-      </button>
+      </Button>
     );
   }
 
   if (membershipStatus.isPending) {
     return (
-      <button
-        disabled
-        className="bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed"
-      >
+      <Button type="button" variant="secondary" size="sm" disabled>
         가입 승인 대기중
-      </button>
+      </Button>
     );
   }
 
   if (canJoinClub) {
     return (
       <>
-        <button
-          onClick={onClickJoinButton}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-        >
+        <Button type="button" size="sm" onClick={onClickJoinButton}>
           모임 가입하기
-        </button>
+        </Button>
         <ClubJoinModal
           user={user}
           clubId={clubId}

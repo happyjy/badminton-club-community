@@ -83,6 +83,17 @@ const MIGRATED = [
   'pages/clubs/[id]/tournaments/index.tsx',
   'pages/clubs/[id]/tournaments/new.tsx',
   'lib/tournament/display.ts',
+  // 4단계 ⑤ 내 정보 · 로그인 · 클럽 목록 · 클럽 홈
+  'pages/profile/index.tsx',
+  'pages/auth/login.tsx',
+  'pages/clubs/index.tsx',
+  'pages/clubs/[id]/index.tsx',
+  'pages/clubs/[id]/photos/index.tsx',
+  'components/organisms/ClubDetailContent.tsx',
+  'components/molecules/ClubInfoSection.tsx',
+  'components/molecules/RankingTable.tsx',
+  'components/molecules/buttons/JoinClubButton.tsx',
+  'components/organisms/navigation/clubNavigation/ClubListItem.tsx',
 ];
 
 const COLOR_NAMES =

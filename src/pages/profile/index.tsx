@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 
-import Image from 'next/image';
-
+import { Avatar } from '@/components/atoms/Avatar';
+import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { Label } from '@/components/atoms/labels/Label';
+import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { withAuth } from '@/lib/withAuth';
@@ -126,25 +127,24 @@ function ProfilePage({ user }: ProfilePageProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">회원 정보</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex justify-center mb-6">
-          {formData.thumbnailImageUrl && (
-            <Image
-              src={formData.thumbnailImageUrl}
-              alt="프로필 이미지"
-              width={100}
-              height={100}
-              className="rounded-full"
-            />
-          )}
+    <div>
+      <PageHeader title="내 정보" />
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 rounded-md bg-surface p-4"
+      >
+        <div className="flex justify-center">
+          <Avatar
+            name={formData.name || formData.nickname || ''}
+            src={formData.thumbnailImageUrl}
+            className="h-24 w-24 text-large-title"
+          />
         </div>
 
         <div>
           <Label className="mb-2">이메일</Label>
           <Input type="email" value={formData.email} disabled />
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-footnote text-secondary">
             이메일은 카카오 계정과 연동되어 있어 변경할 수 없습니다
           </p>
         </div>
@@ -267,14 +267,9 @@ function ProfilePage({ user }: ProfilePageProps) {
           />
         </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            저장하기
-          </button>
-        </div>
+        <Button type="submit" size="lg" className="w-full">
+          저장하기
+        </Button>
       </form>
     </div>
   );

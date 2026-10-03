@@ -9,9 +9,11 @@ export function ClubInfoSection({ title, content }: ClubInfoSectionProps) {
   if (!content) return null;
 
   return (
-    <div className="mb-6">
-      <h2 className="text-xl font-semibold mb-2">{title}</h2>
-      <p className="text-gray-700 whitespace-pre-wrap break-words">{content}</p>
-    </div>
+    <section>
+      <h2 className="px-4 pb-2 text-footnote text-secondary">{title}</h2>
+      <p className="whitespace-pre-wrap break-words rounded-md bg-surface p-4 text-body text-primary">
+        {content}
+      </p>
+    </section>
   );
 }
