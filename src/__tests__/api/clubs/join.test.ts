@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { prisma } from '@/lib/prisma';
 
-import handler from './join';
+import handler from '@/pages/api/clubs/[id]/join';
 
 // 핸들러는 공유 싱글톤(@/lib/prisma)을 쓰므로 그 모듈을 바꿔치기한다.
 jest.mock('@/lib/prisma', () => ({
