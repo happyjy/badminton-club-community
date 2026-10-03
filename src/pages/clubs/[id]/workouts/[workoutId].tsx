@@ -387,7 +387,6 @@ function WorkoutDetailContent({
                         participant?.clubMember?.name ||
                         participant.User.nickname
                       }
-                      initial={participant.User.nickname.charAt(0)}
                       gender={participant.clubMember?.gender}
                       birthDate={participant.clubMember?.birthDate}
                       thumbnailImageUrl={participant.User.thumbnailImageUrl}

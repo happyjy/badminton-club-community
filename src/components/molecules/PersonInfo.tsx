@@ -1,9 +1,8 @@
 import { ReactNode } from 'react';
 
-import Image from 'next/image';
+import { Avatar } from '@/components/atoms/Avatar';
 
-import GuestAvatar from '@/components/atoms/GuestAvatar';
-
+import { cn } from '@/lib/utils';
 import { calculateAgeGroup } from '@/utils/age';
 
 type Gender = 'MALE' | 'FEMALE' | string;
@@ -19,7 +18,6 @@ interface PersonInfoProps {
   name: string;
   /** 이름 앞에 표시할 순번 (예: 1, 2, 3) */
   number?: number;
-  initial?: string;
   gender?: Gender | null;
   birthDate?: string | null;
   guestRequestName?: string | null;
@@ -48,7 +46,6 @@ function PersonInfo({
   // 기본 인적 정보
   name,
   number: numberProp,
-  initial,
   gender,
   birthDate,
   guestRequestName,
@@ -68,8 +65,6 @@ function PersonInfo({
   contentClassName = '',
   badgeContainerClassName = 'flex items-center gap-1 mt-1',
 }: PersonInfoProps) {
-  // 실제 사용할 이니셜 계산
-  const displayInitial = initial || name.charAt(0);
   // 성별 표시 텍스트 결정
   const displayGender = gender ? GENDER_DISPLAY[gender] || gender : null;
 
@@ -106,33 +101,15 @@ function PersonInfo({
   };
 
   // 아바타 렌더링 함수
-  const renderAvatar = () => {
-    if (guestId) {
-      return (
-        <GuestAvatar id={guestId} className={avatarClassName} name={name} />
-      );
-    }
-
-    if (thumbnailImageUrl) {
-      return (
-        <Image
-          src={thumbnailImageUrl}
-          alt={name}
-          width={40}
-          height={40}
-          className={`w-10 h-10 rounded-full flex-shrink-0 ${avatarClassName}`}
-        />
-      );
-    }
-
-    return (
-      <div
-        className={`flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 ${avatarClassName}`}
-      >
-        {displayInitial}
-      </div>
-    );
-  };
+  const renderAvatar = () => (
+    <Avatar
+      name={name}
+      src={thumbnailImageUrl}
+      // 게스트는 이름이 같아도 색이 달라지도록 id로 색을 고른다.
+      seed={guestId}
+      className={cn('h-10 w-10 text-callout', avatarClassName)}
+    />
+  );
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
