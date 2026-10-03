@@ -45,7 +45,15 @@ export function SegmentedControl<T extends string>({
                   : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
                     ? -1
                     : 0;
-              if (step === 0) return;
+              // Alt+←(뒤로 가기) 같은 브라우저 단축키는 가로채지 않는다.
+              if (
+                step === 0 ||
+                event.altKey ||
+                event.metaKey ||
+                event.ctrlKey
+              ) {
+                return;
+              }
 
               event.preventDefault();
               const next = (index + step + options.length) % options.length;

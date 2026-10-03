@@ -154,11 +154,9 @@ function PostDetail({ post }: PostDetailProps) {
             </span>
             {/* 회원은 아래 좋아요 버튼에서 수를 본다. 버튼이 없는 사람에게만 여기에 보인다. */}
             {!clubMember && (
-              <span
-                aria-label={`좋아요 ${post.likeCount}`}
-                className="flex items-center gap-1 tabular-nums"
-              >
+              <span className="flex items-center gap-1 tabular-nums">
                 <Heart aria-hidden className="h-3.5 w-3.5" />
+                <span className="sr-only">좋아요</span>
                 {post.likeCount}
               </span>
             )}

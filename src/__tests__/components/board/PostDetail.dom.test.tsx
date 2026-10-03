@@ -52,6 +52,8 @@ describe('게시글 상세', () => {
     );
 
     expect(screen.queryByRole('button', { name: /좋아요/ })).toBeNull();
-    expect(screen.getByLabelText('좋아요 7')).toBeTruthy();
+    expect(screen.getByText('좋아요').parentElement?.textContent).toBe(
+      '좋아요7'
+    );
   });
 });

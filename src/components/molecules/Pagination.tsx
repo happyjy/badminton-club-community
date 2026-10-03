@@ -31,7 +31,7 @@ export function Pagination({
         aria-label="이전 쪽"
         disabled={page <= 1}
         onClick={() => onChange(page - 1)}
-        className="h-9 w-9"
+        className="relative h-9 w-9 after:absolute after:-inset-1 after:content-['']"
       >
         <ChevronLeft aria-hidden className="h-5 w-5" />
       </IconButton>
@@ -73,7 +73,7 @@ export function Pagination({
         aria-label="다음 쪽"
         disabled={page >= totalPages}
         onClick={() => onChange(page + 1)}
-        className="h-9 w-9"
+        className="relative h-9 w-9 after:absolute after:-inset-1 after:content-['']"
       >
         <ChevronRight aria-hidden className="h-5 w-5" />
       </IconButton>

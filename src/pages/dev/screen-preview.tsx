@@ -392,7 +392,7 @@ export default function ScreenPreviewPage() {
       {screen === 'attendance' ? (
         <>
           <PageHeader title="출석체크" />
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             {workouts.map((workout) => (
               <WorkoutCard
                 key={workout.id}

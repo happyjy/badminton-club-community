@@ -219,13 +219,13 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
       <PageHeader title="출석체크" />
 
       {isLoadingWorkouts ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           {[0, 1, 2].map((index) => (
             <Skeleton key={index} className="h-56 rounded-md" />
           ))}
         </div>
       ) : workouts.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           {workouts.map((workout) => (
             <WorkoutCard
               key={workout.id}
