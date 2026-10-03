@@ -26,6 +26,7 @@ function PhoneField({
     phoneNumbers,
     onChangePhoneNumber,
     getFullPhoneNumber,
+    savedPhoneNumber,
     phoneVerificationStatus,
     phoneVerificationLoading,
     checkPhoneVerificationStatus,
@@ -61,12 +62,21 @@ function PhoneField({
   const isVerified =
     !formatError && (isAccountVerifiedNumber || isJustVerified);
 
+  // 수정 화면에서 저장돼 있던 번호를 그대로 둔 경우. 서버도 번호를 바꿀 때만
+  // 인증을 대조하므로, 다른 항목만 고치는 사람에게 다시 인증을 요구하지 않는다.
+  // 계정으로 인증한 번호라는 뜻은 아니어서 '인증됨' 표시는 띄우지 않는다.
+  const isSavedNumber =
+    !!savedPhoneNumber && toPhoneDigits(savedPhoneNumber) === inputDigits;
+
+  // 제출해도 되는 번호인지. 인증을 마쳤거나, 인증이 필요 없는 경우다.
+  const isCleared = isVerified || (!formatError && isSavedNumber);
+
   // 번호가 바뀌면 인증이 풀리므로 상위(제출 버튼)에도 알린다.
   const notifyVerified = useRef(onPhoneVerifiedChange);
   notifyVerified.current = onPhoneVerifiedChange;
   useEffect(() => {
-    notifyVerified.current?.(!!isVerified);
-  }, [isVerified]);
+    notifyVerified.current?.(!!isCleared);
+  }, [isCleared]);
 
   // 발송한 번호에서 벗어나면 코드 입력칸을 닫는다.
   useEffect(() => {
@@ -152,7 +162,7 @@ function PhoneField({
             required
           />
         </div>
-        {!isVerified && sendPhoneVerificationCode && (
+        {!isCleared && sendPhoneVerificationCode && (
           <Button
             type="button"
             variant="secondary"
@@ -172,7 +182,7 @@ function PhoneField({
       )}
 
       {/* 인증번호 입력 */}
-      {sentTo && !isVerified && (
+      {sentTo && !isCleared && (
         <div className="mt-3 rounded-md border border-border p-3">
           <VerificationCodeInput
             phoneNumber={sentTo}

@@ -4,8 +4,10 @@ import { APPROVED_STATUS } from '@/lib/clubAuth';
 import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
+import { checkPreviouslyVerifiedPhone } from '@/lib/sms-verification';
 import { Role } from '@/types/enums';
 import { isVisitDatePassed } from '@/utils/date';
+import { formatPhoneNumber, isValidPhoneNumber } from '@/utils/phoneNumber';
 
 // 게스트 신청 게시글 조회, 생성, 수정, 삭제 API
 export default withAuth(async function handler(
@@ -154,6 +156,38 @@ export default withAuth(async function handler(
           postType,
         } = req.body;
 
+        // 번호를 바꿀 때만 신청(guests/apply)과 같은 기준으로 검사한다.
+        // 안 바꾼 번호까지 검사하면, 계정의 인증 번호를 나중에 바꾼 사람이
+        // 메시지 같은 다른 항목조차 고치지 못한다.
+        // 잘라내지 않은 숫자로 비교해야 11자리를 넘는 값이 '같은 번호'로 넘어가지 않는다.
+        const onlyDigits = (value: string) => value.replace(/\D/g, '');
+        const isPhoneNumberChanged =
+          typeof phoneNumber === 'string' &&
+          phoneNumber !== '' &&
+          onlyDigits(phoneNumber) !== onlyDigits(guestPost.phoneNumber);
+
+        let nextPhoneNumber = guestPost.phoneNumber;
+
+        if (isPhoneNumberChanged) {
+          if (!isValidPhoneNumber(phoneNumber)) {
+            return res.status(400).json({
+              message: '올바른 전화번호가 아닙니다. (예: 010-1234-5678)',
+            });
+          }
+
+          // 저장 형식을 '010-1234-5678' 하나로 맞춘다.
+          nextPhoneNumber = formatPhoneNumber(phoneNumber);
+
+          if (
+            !(await checkPreviouslyVerifiedPhone(req.user.id, nextPhoneNumber))
+          ) {
+            return res.status(400).json({
+              message:
+                '전화번호 인증이 필요합니다. 인증되지 않은 전화번호로는 수정할 수 없습니다.',
+            });
+          }
+        }
+
         const updatedGuestPost = await prisma.guestPost.update({
           where: {
             id: guestId,
@@ -161,7 +195,7 @@ export default withAuth(async function handler(
           data: {
             name: name || guestPost.name,
             birthDate: birthDate || guestPost.birthDate,
-            phoneNumber: phoneNumber || guestPost.phoneNumber,
+            phoneNumber: nextPhoneNumber,
             gender: gender || guestPost.gender,
             localTournamentLevel:
               localTournamentLevel || guestPost.localTournamentLevel,

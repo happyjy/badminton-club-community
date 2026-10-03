@@ -20,6 +20,8 @@ import {
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
+import usePhoneVerification from '@/hooks/usePhoneVerification';
+
 import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/session';
@@ -92,6 +94,19 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   const [isCommenting, setIsCommenting] = useState(false); // 댓글 작성/수정/삭제 중인지 여부
   const [isUpdating, setIsUpdating] = useState(false); // 상태 업데이트 중인지 여부를 관리
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // 게스트 수정 모달 상태 관리
+
+  // 전화번호 인증 훅
+  // 이 값들을 넘겨야 수정 모달이 바뀐 번호에 인증을 요구한다(canVerifyPhone).
+  const {
+    // local state
+    phoneVerificationStatus,
+    phoneVerificationLoading,
+    phoneVerificationError,
+    // functions
+    checkPhoneVerificationStatus,
+    sendPhoneVerificationCode,
+    verifyPhoneCode,
+  } = usePhoneVerification({ clubId: clubId as string });
   const [isDeleting, setIsDeleting] = useState(false); // 삭제 중인지 여부를 관리
   const [status, setStatus] = useState(guestPost.status); // 게스트 상태를 로컬 상태로 관리하여 optimistic update 구현
 
@@ -538,6 +553,12 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           onClose={onCloseEditModal}
           onSubmit={onSubmitEditGuestApplication}
           isSubmitting={isUpdating}
+          phoneVerificationStatus={phoneVerificationStatus}
+          phoneVerificationLoading={phoneVerificationLoading}
+          phoneVerificationError={phoneVerificationError}
+          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+          sendPhoneVerificationCode={sendPhoneVerificationCode}
+          verifyPhoneCode={verifyPhoneCode}
           initialValues={{
             name: guestPost.name,
             birthDate: guestPost.birthDate,
@@ -561,6 +582,12 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
           onClose={onCloseEditModal}
           onSubmit={onSubmitEditGuestApplication}
           isSubmitting={isUpdating}
+          phoneVerificationStatus={phoneVerificationStatus}
+          phoneVerificationLoading={phoneVerificationLoading}
+          phoneVerificationError={phoneVerificationError}
+          checkPhoneVerificationStatus={checkPhoneVerificationStatus}
+          sendPhoneVerificationCode={sendPhoneVerificationCode}
+          verifyPhoneCode={verifyPhoneCode}
           initialValues={{
             name: guestPost.name,
             birthDate: guestPost.birthDate,

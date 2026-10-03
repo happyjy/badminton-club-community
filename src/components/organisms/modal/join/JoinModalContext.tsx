@@ -28,6 +28,8 @@ export interface JoinModalContextType {
 
   // 전화번호 관련
   getFullPhoneNumber: () => string;
+  // 수정 화면에서 이미 저장돼 있던 번호. 이 번호 그대로면 다시 인증하지 않는다.
+  savedPhoneNumber?: string;
 
   // 전화번호 인증 관련 (optional)
   phoneVerificationStatus?: PhoneVerificationStatus | null;
