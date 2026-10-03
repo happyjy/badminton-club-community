@@ -17,6 +17,10 @@
     --color-accent: #1c1c1e;
     --color-on-accent: #ffffff;
     --color-scrim: rgba(0, 0, 0, 0.4);
+    /* 탭바·상단 바의 반투명 바탕 (뒤가 비치는 유리 질감) */
+    --color-tabbar: rgba(249, 249, 249, 0.94);
+    /* 하단 탭바 높이. 화면 아래에 붙는 요소가 이 값만큼 위로 올라간다. */
+    --tabbar-h: 56px;
 
     /* 상태색 — soft는 칩 배경, 이름만 있는 쪽은 글자 */
     --color-positive: #176b34;

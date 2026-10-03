@@ -33,6 +33,7 @@ const config: Config = {
         accent: 'var(--color-accent)',
         'on-accent': 'var(--color-on-accent)',
         scrim: 'var(--color-scrim)',
+        tabbar: 'var(--color-tabbar)',
         positive: {
           DEFAULT: 'var(--color-positive)',
           soft: 'var(--color-positive-soft)',

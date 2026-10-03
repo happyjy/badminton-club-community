@@ -17,6 +17,8 @@ interface ListRowProps {
   href?: string;
   /** href 없이 이것만 있으면 버튼이 된다 */
   onClick?: () => void;
+  /** 지금 있는 화면의 메뉴일 때 'page' */
+  'aria-current'?: 'page';
   className?: string;
 }
 
@@ -28,6 +30,7 @@ export function ListRow({
   trailing,
   href,
   onClick,
+  'aria-current': ariaCurrent,
   className,
 }: ListRowProps) {
   const interactive = Boolean(href || onClick);
@@ -60,7 +63,12 @@ export function ListRow({
 
   if (href) {
     return (
-      <Link href={href} onClick={onClick} className={rowClass}>
+      <Link
+        href={href}
+        onClick={onClick}
+        aria-current={ariaCurrent}
+        className={rowClass}
+      >
         {content}
       </Link>
     );
@@ -68,13 +76,22 @@ export function ListRow({
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={rowClass}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-current={ariaCurrent}
+        className={rowClass}
+      >
         {content}
       </button>
     );
   }
 
-  return <div className={rowClass}>{content}</div>;
+  return (
+    <div aria-current={ariaCurrent} className={rowClass}>
+      {content}
+    </div>
+  );
 }
 
 export default ListRow;
