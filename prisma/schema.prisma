@@ -615,6 +615,9 @@ model ClubCustomSettings {
   parkingWeekendCapacity Int     @default(0)     // 주말(토·일) 기본 주차 대수
   parkingSmsEnabled     Boolean  @default(false) // 승격 시 문자 발송 여부
 
+  // 메뉴 노출 설정
+  tournamentMenuEnabled Boolean @default(true) // 대회 신청 메뉴 노출 여부
+
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
