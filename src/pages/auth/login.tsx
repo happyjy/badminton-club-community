@@ -49,7 +49,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={onClickKakaoAccountLogin}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-kakao text-body font-semibold text-primary transition-opacity duration-150 active:opacity-70"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-kakao text-body font-semibold text-on-kakao transition-opacity duration-150 active:opacity-70"
           >
             <Image src="/kakao.svg" alt="" width={20} height={20} />
             카카오 계정으로 계속하기

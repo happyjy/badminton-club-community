@@ -87,10 +87,10 @@ describe('SegmentedControl', () => {
     );
 
     expect(screen.getByRole('radio', { name: '전체' }).className).toContain(
-      'bg-surface'
+      'bg-raised'
     );
     expect(screen.getByRole('radio', { name: '활동' }).className).not.toContain(
-      'bg-surface'
+      'bg-raised'
     );
   });
 

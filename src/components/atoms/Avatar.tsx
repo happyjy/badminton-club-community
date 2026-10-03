@@ -52,7 +52,7 @@ export function Avatar({ name, src, seed, size = 36, className }: AvatarProps) {
   }, [src]);
 
   const base = cn(
-    'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-on-accent',
+    'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-on-avatar',
     SIZE_CLASS[size],
     className
   );

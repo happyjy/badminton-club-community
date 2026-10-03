@@ -4,11 +4,16 @@
 
 @layer base {
   :root {
-    /* 색 — 역할 이름. 다크모드를 넣을 때는 이 블록의 값만 바꾼다. */
+    /* 브라우저 기본 부품(날짜 입력, 스크롤바, 선택 목록)도 시스템 설정을 따른다. */
+    color-scheme: light dark;
+
+    /* 색 — 역할 이름. 다크 값은 아래 prefers-color-scheme 블록에 있다. */
     --color-bg: #f2f2f7;
     --color-surface: #ffffff;
     --color-surface-muted: #fafafb;
     --color-fill: #e5e5ea;
+    /* fill 위에 떠 있는 것: 구분 버튼에서 고른 칸 */
+    --color-raised: #ffffff;
     --color-text: #1c1c1e;
     --color-text-secondary: #636366;
     --color-text-tertiary: #8e8e93;
@@ -17,8 +22,9 @@
     --color-accent: #1c1c1e;
     --color-on-accent: #ffffff;
     --color-scrim: rgba(0, 0, 0, 0.4);
-    /* 카카오 로그인 버튼. 카카오의 브랜드 색이라 다크모드에서도 바꾸지 않는다. */
+    /* 카카오 로그인 버튼과 그 위의 글자. 카카오의 브랜드 색이라 다크모드에서도 바꾸지 않는다. */
     --color-kakao: #fee500;
+    --color-on-kakao: #191919;
     /* 탭바·상단 바의 반투명 바탕 (뒤가 비치는 유리 질감) */
     --color-tabbar: rgba(249, 249, 249, 0.94);
     /* 하단 탭바 높이. 화면 아래에 붙는 요소가 이 값만큼 위로 올라간다. */
@@ -43,6 +49,8 @@
     --color-avatar-4: #96605b;
     --color-avatar-5: #4e7a96;
     --color-avatar-6: #857040;
+    /* 아바타 첫 글자. 바탕이 늘 짙은 색이라 다크모드에서도 흰색이다. */
+    --color-on-avatar: #ffffff;
 
     /* 글자 크기 / 줄 높이 — 휴대폰 기준 */
     --fs-large-title: 28px;
@@ -95,11 +103,48 @@
 
 @layer components {
   /* Select의 화살표. data URI 안에서는 CSS 변수를 쓸 수 없어 색(#636366 =
-     --color-text-secondary)을 직접 적었다. 다크모드를 넣을 때 함께 바꾼다. */
+     --color-text-secondary)을 직접 적었다. 다크용은 아래에 따로 있다. */
   .select-chevron {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23636366' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 16px 16px;
+  }
+
+  /* 다크모드 — 시스템 설정을 따른다. 역할 이름은 그대로 두고 값만 바꾼다.
+     여기에 없는 색(카카오, 아바타)은 라이트 값을 그대로 쓴다. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #000000;
+      --color-surface: #1c1c1e;
+      --color-surface-muted: #161618;
+      --color-fill: #2c2c2e;
+      --color-raised: #636366;
+      --color-text: #f5f5f7;
+      --color-text-secondary: #aeaeb2;
+      --color-text-tertiary: #8e8e93;
+      --color-separator: #38383a;
+      --color-border: #38383a;
+      --color-accent: #f5f5f7;
+      --color-on-accent: #1c1c1e;
+      --color-scrim: rgba(0, 0, 0, 0.6);
+      --color-tabbar: rgba(28, 28, 30, 0.94);
+
+      /* 상태색 — 어두운 바탕에서는 글자를 밝게, soft 바탕을 어둡게 뒤집는다. */
+      --color-positive: #5fd47e;
+      --color-positive-soft: #12301b;
+      --color-warning: #f2bd4b;
+      --color-warning-soft: #3a2a06;
+      --color-negative: #ff7b72;
+      --color-negative-soft: #3d1614;
+      --color-neutral: #aeaeb2;
+      --color-neutral-soft: #2c2c2e;
+    }
+
+    /* data URI 안에서는 CSS 변수를 쓸 수 없어 밝은 화살표를 따로 둔다
+       (#aeaeb2 = 다크의 --color-text-secondary). */
+    .select-chevron {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aeaeb2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    }
   }
 }

@@ -72,7 +72,7 @@ export function SegmentedControl<T extends string>({
               "relative flex-1 whitespace-nowrap rounded-[6px] px-3 text-footnote after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']",
               'transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
               selected
-                ? 'bg-surface font-semibold text-primary'
+                ? 'bg-raised font-semibold text-primary'
                 : 'font-medium text-secondary'
             )}
           >

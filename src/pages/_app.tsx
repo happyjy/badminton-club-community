@@ -123,6 +123,13 @@ export default function App({ Component, pageProps }: AppProps) {
             top: 'calc(env(safe-area-inset-top) + 56px)',
             zIndex: 60,
           }}
+          toastOptions={{
+            // 다크모드에서도 읽히도록 토큰 색을 쓴다.
+            style: {
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
+            },
+          }}
         />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
       </Provider>
