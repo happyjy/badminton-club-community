@@ -69,4 +69,18 @@ describe('디자인 토큰', () => {
     const compact = css.slice(css.indexOf("[data-density='compact']"));
     expect(compact).toMatch(/--radius-md:\s*8px/);
   });
+
+  it('날짜·시간 입력칸은 아이폰에서도 다른 입력칸과 폭이 같다 (고유 폭으로 삐져나오지 않는다)', () => {
+    const rule = /input\[type='date'\][^{]*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(css).toMatch(/input\[type='time'\]/);
+    expect(css).toMatch(/input\[type='datetime-local'\]/);
+    // 아이폰 Safari는 기본 모양일 때 width: 100%를 무시한다.
+    expect(rule).toMatch(/-webkit-appearance:\s*none/);
+    expect(rule).toMatch(/min-width:\s*0/);
+    expect(rule).toMatch(/max-width:\s*100%/);
+    // 아이폰은 날짜 글자를 가운데에 둔다. 다른 칸처럼 왼쪽에 맞춘다.
+    expect(css).toMatch(
+      /::-webkit-date-and-time-value\s*\{[^}]*text-align:\s*left/
+    );
+  });
 });
