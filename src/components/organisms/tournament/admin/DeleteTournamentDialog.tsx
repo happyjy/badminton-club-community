@@ -1,5 +1,10 @@
 import { useState } from 'react';
 
+import { Button } from '@/components/atoms/buttons/Button';
+import { Input } from '@/components/atoms/inputs/Input';
+import { FormField } from '@/components/molecules/form/FormField';
+import { Sheet } from '@/components/organisms/sheet/Sheet';
+
 interface DeleteTournamentDialogProps {
   title: string;
   entryCount: number;
@@ -24,22 +29,41 @@ function DeleteTournamentDialog({
   const canDelete = confirmText.trim() === title.trim();
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="delete-tournament-title"
+    <Sheet
+      open
+      // 삭제가 진행되는 동안에는 ESC·바깥 누르기로 닫히지 않게 한다.
+      onClose={isDeleting ? () => {} : onCancel}
+      title="대회를 삭제할까요?"
+      hideCloseButton
+      footer={
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            className="flex-1"
+            disabled={isDeleting}
+            onClick={onCancel}
+          >
+            취소
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="flex-1"
+            disabled={!canDelete}
+            pending={isDeleting}
+            pendingText="삭제 중..."
+            pendingPosition="left"
+            onClick={onConfirm}
+          >
+            삭제
+          </Button>
+        </div>
+      }
     >
-      <div className="w-full max-w-md space-y-4 rounded-lg bg-white p-5">
-        <h2
-          id="delete-tournament-title"
-          className="text-lg font-semibold text-gray-900"
-        >
-          대회를 삭제할까요?
-        </h2>
-
-        <div className="space-y-2 rounded-md bg-red-50 p-3 text-sm text-red-700">
-          <p className="font-medium">{title}</p>
+      <div className="space-y-4">
+        <div className="space-y-1 rounded-md bg-negative-soft p-3 text-callout text-negative">
+          <p className="font-semibold">{title}</p>
           {entryCount > 0 ? (
             <p>
               신청 <b>{entryCount}건</b>과 등록된 선수 정보가 함께 삭제됩니다.
@@ -50,44 +74,17 @@ function DeleteTournamentDialog({
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="delete-confirm-input"
-            className="mb-1 block text-sm text-gray-700"
-          >
-            삭제하려면 대회명을 그대로 입력하세요.
-          </label>
-          <input
-            id="delete-confirm-input"
+        <FormField label="삭제하려면 대회명을 그대로 입력하세요.">
+          <Input
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder={title}
             autoComplete="off"
-            className="w-full rounded-md border-gray-300 text-sm"
           />
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isDeleting}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={!canDelete || isDeleting}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white disabled:bg-gray-300"
-          >
-            {isDeleting ? '삭제 중...' : '삭제'}
-          </button>
-        </div>
+        </FormField>
       </div>
-    </div>
+    </Sheet>
   );
 }
 

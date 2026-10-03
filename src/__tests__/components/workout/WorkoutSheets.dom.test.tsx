@@ -4,7 +4,10 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import { WorkoutDeleteSheet } from '@/components/organisms/workout/WorkoutDeleteSheet';
-import { WorkoutEditSheet } from '@/components/organisms/workout/WorkoutEditSheet';
+import {
+  WorkoutEditSheet,
+  WorkoutEditValues,
+} from '@/components/organisms/workout/WorkoutEditSheet';
 
 import { Workout } from '@/types';
 
@@ -186,7 +189,9 @@ describe('WorkoutEditSheet', () => {
   });
 
   it('고친 값으로 onSubmit이 불린다', async () => {
-    const onSubmit = jest.fn(async () => {});
+    const onSubmit = jest.fn<(values: WorkoutEditValues) => Promise<void>>(
+      async () => {}
+    );
     await renderSheet(
       <WorkoutEditSheet
         workout={workout}
@@ -215,7 +220,9 @@ describe('WorkoutEditSheet', () => {
   });
 
   it('최대 인원을 비우면 0이 되고, 최소 1명 조건에 걸려 저장되지 않는다', async () => {
-    const onSubmit = jest.fn(async () => {});
+    const onSubmit = jest.fn<(values: WorkoutEditValues) => Promise<void>>(
+      async () => {}
+    );
     await renderSheet(
       <WorkoutEditSheet
         workout={workout}

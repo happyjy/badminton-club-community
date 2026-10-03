@@ -1,5 +1,10 @@
 import { useState } from 'react';
 
+import { Button } from '@/components/atoms/buttons/Button';
+import { Input } from '@/components/atoms/inputs/Input';
+import { Select } from '@/components/atoms/inputs/Select';
+import { FormField } from '@/components/molecules/form/FormField';
+import { Sheet } from '@/components/organisms/sheet/Sheet';
 import { GENDER_OPTIONS } from '@/components/organisms/tournament/entry/entryFormTypes';
 
 import {
@@ -67,152 +72,31 @@ function EditPlayersDialog({
   );
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-players-title"
-    >
-      <div className="max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto rounded-lg bg-white p-5">
-        <div>
-          <h2
-            id="edit-players-title"
-            className="text-lg font-semibold text-gray-900"
-          >
-            선수 정보 수정
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            {applicantName} 님의 외부 신청서입니다. 참가비와 신청 종목은 바뀌지
-            않습니다.
-          </p>
-        </div>
-
-        {draft.map((player, index) => (
-          <div
-            key={player.id}
-            className="space-y-3 rounded-lg border border-gray-200 p-3"
-          >
-            <p className="text-sm font-medium text-gray-700">
-              선수 {index + 1}
-            </p>
-
-            <div>
-              <label className="mb-1 block text-sm text-gray-700">이름</label>
-              <input
-                type="text"
-                value={player.name}
-                onChange={(e) => update(index, { name: e.target.value })}
-                className="w-full rounded-md border-gray-300 text-sm"
-              />
-              {errors[index].name && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors[index].name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm text-gray-700">성별</label>
-              <select
-                value={player.gender}
-                onChange={(e) => update(index, { gender: e.target.value })}
-                className="w-full rounded-md border-gray-300 text-sm"
-              >
-                <option value="">선택</option>
-                {GENDER_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              {errors[index].gender && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors[index].gender}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm text-gray-700">
-                생년월일
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={toBirthDateDigits(player.birthDate)}
-                onChange={(e) =>
-                  update(index, {
-                    birthDate: toBirthDateDigits(e.target.value),
-                  })
-                }
-                placeholder="예: 19900315"
-                className="w-full rounded-md border-gray-300 text-sm"
-              />
-              {errors[index].birthDate && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors[index].birthDate}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm text-gray-700">
-                전화번호
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={formatPhoneNumber(player.phoneNumber)}
-                onChange={(e) =>
-                  update(index, {
-                    phoneNumber: toPhoneDigits(e.target.value),
-                  })
-                }
-                placeholder="010-1234-5678"
-                className="w-full rounded-md border-gray-300 text-sm"
-              />
-              {errors[index].phoneNumber && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors[index].phoneNumber}
-                </p>
-              )}
-            </div>
-
-            {useTshirt && (
-              <div>
-                <label className="mb-1 block text-sm text-gray-700">
-                  티셔츠
-                </label>
-                <select
-                  value={player.tshirtSize ?? ''}
-                  onChange={(e) =>
-                    update(index, { tshirtSize: e.target.value || null })
-                  }
-                  className="w-full rounded-md border-gray-300 text-sm"
-                >
-                  <option value="">선택 안 함</option>
-                  {tshirtSizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-        ))}
-
-        <div className="flex justify-end gap-2">
-          <button
+    <Sheet
+      open
+      // 저장이 진행되는 동안에는 ESC·바깥 누르기로 닫히지 않게 한다.
+      onClose={isSaving ? () => {} : onCancel}
+      title="선수 정보 수정"
+      hideCloseButton
+      className="md:max-w-lg"
+      footer={
+        <div className="flex gap-2">
+          <Button
             type="button"
-            onClick={onCancel}
+            variant="secondary"
+            className="flex-1"
             disabled={isSaving}
-            className="rounded-md px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+            onClick={onCancel}
           >
             취소
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            className="flex-1"
+            disabled={hasError}
+            pending={isSaving}
+            pendingText="저장 중..."
+            pendingPosition="left"
             onClick={() =>
               onSave(
                 // 저장 포맷으로 맞춰 보낸다. 서버도 같은 정규화를 한 번 더 한다.
@@ -223,14 +107,91 @@ function EditPlayersDialog({
                 }))
               )
             }
-            disabled={isSaving || hasError}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white disabled:bg-gray-300"
           >
-            {isSaving ? '저장 중...' : '저장'}
-          </button>
+            저장
+          </Button>
         </div>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-callout text-secondary">
+          {applicantName} 님의 외부 신청서입니다. 참가비와 신청 종목은 바뀌지
+          않습니다.
+        </p>
+
+        {draft.map((player, index) => (
+          <div
+            key={player.id}
+            className="space-y-3 rounded-md border border-border p-3"
+          >
+            <p className="text-callout font-semibold text-primary">
+              선수 {index + 1}
+            </p>
+
+            <FormField label="이름" error={errors[index].name}>
+              <Input
+                type="text"
+                value={player.name}
+                onChange={(e) => update(index, { name: e.target.value })}
+              />
+            </FormField>
+
+            <FormField label="성별" error={errors[index].gender}>
+              <Select
+                placeholder="선택"
+                options={GENDER_OPTIONS}
+                value={player.gender}
+                onChange={(e) => update(index, { gender: e.target.value })}
+              />
+            </FormField>
+
+            <FormField label="생년월일" error={errors[index].birthDate}>
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={toBirthDateDigits(player.birthDate)}
+                onChange={(e) =>
+                  update(index, {
+                    birthDate: toBirthDateDigits(e.target.value),
+                  })
+                }
+                placeholder="예: 19900315"
+              />
+            </FormField>
+
+            <FormField label="전화번호" error={errors[index].phoneNumber}>
+              <Input
+                type="text"
+                inputMode="numeric"
+                value={formatPhoneNumber(player.phoneNumber)}
+                onChange={(e) =>
+                  update(index, {
+                    phoneNumber: toPhoneDigits(e.target.value),
+                  })
+                }
+                placeholder="010-1234-5678"
+              />
+            </FormField>
+
+            {useTshirt && (
+              <FormField label="티셔츠">
+                <Select
+                  placeholder="선택 안 함"
+                  options={tshirtSizes.map((size) => ({
+                    value: size,
+                    label: size,
+                  }))}
+                  value={player.tshirtSize ?? ''}
+                  onChange={(e) =>
+                    update(index, { tshirtSize: e.target.value || null })
+                  }
+                />
+              </FormField>
+            )}
+          </div>
+        ))}
       </div>
-    </div>
+    </Sheet>
   );
 }
 
