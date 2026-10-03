@@ -110,6 +110,17 @@ export default withAuth(async function handler(
           .filter(Boolean) as string[]
       );
 
+      // 종목 수정은 id만으로 update하므로, 다른 대회(다른 클럽 포함)의 종목 id가
+      // 섞여 들어오면 그 종목이 바뀐다. 종목 id는 외부 신청 API로 공개되어 있다.
+      // 조용히 무시하면 폼이 꼬였을 때 원인을 알 수 없으므로 요청 전체를 거절한다.
+      const ownIds = new Set(existing.eventTypes.map((e) => e.id));
+      if ([...keptIds].some((id) => !ownIds.has(id))) {
+        return res.status(400).json({
+          error: '이 대회의 종목이 아닌 항목이 포함되어 있습니다.',
+          status: 400,
+        });
+      }
+
       // 신청이 있는 종목의 인원수 변경은 차단한다 (기존 배정이 무효화됨)
       for (const eventType of input.eventTypes) {
         if (!eventType.id) continue;

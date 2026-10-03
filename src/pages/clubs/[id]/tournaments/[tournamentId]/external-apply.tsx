@@ -40,13 +40,8 @@ type ExternalEntryFormValues = EntryFormValues & {
  * TournamentWithOptions와 별도로 최소한만 선언한다.
  */
 interface ExternalTournament {
-  id: string;
   title: string;
-  hostName: string | null;
-  description: string | null;
   applyNotice: string | null;
-  tournamentDate: string;
-  location: string | null;
   applyStartAt: string | null;
   applyDeadline: string;
   status: 'DRAFT' | 'OPEN' | 'CLOSED';

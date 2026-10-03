@@ -4,6 +4,7 @@ import {
   handleApiError,
   parseClubId,
 } from '@/lib/tournament/apiHelpers';
+import { resolveTournamentStatus } from '@/lib/tournament/status';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -31,14 +32,11 @@ export default async function handler(
   try {
     const tournament = await prisma.tournament.findFirst({
       where: { id: tournamentId, clubId, allowExternalEntry: true },
+      // 외부 신청 화면(external-apply.tsx)이 쓰는 필드만 고른다.
+      // 계좌는 입금 안내에 필요하므로 포함한다.
       select: {
-        id: true,
         title: true,
-        hostName: true,
-        description: true,
         applyNotice: true,
-        tournamentDate: true,
-        location: true,
         applyStartAt: true,
         applyDeadline: true,
         status: true,
@@ -58,8 +56,12 @@ export default async function handler(
       },
     });
 
-    // 외부 신청을 열지 않은 대회는 존재 자체를 알리지 않는다
-    if (!tournament) {
+    // 외부 신청을 열지 않은 대회와 아직 공개하지 않은 DRAFT 대회는
+    // 존재 자체를 알리지 않는다. 회원에게도 숨기는 DRAFT를 외부에 보이면 안 된다.
+    if (
+      !tournament ||
+      resolveTournamentStatus(tournament, new Date()) === 'DRAFT'
+    ) {
       return res
         .status(404)
         .json({ error: '대회를 찾을 수 없습니다.', status: 404 });
