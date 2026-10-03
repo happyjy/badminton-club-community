@@ -2,10 +2,12 @@ import { useState, useCallback } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { Lock, MessageSquareWarning } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { EmptyState } from '@/components/molecules/EmptyState';
 import BoardCategoryTabs from '@/components/organisms/board/BoardCategoryTabs';
 import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 import PostList from '@/components/organisms/board/PostList';
@@ -14,6 +16,7 @@ import { PageHeader } from '@/components/organisms/PageHeader';
 import { useBoardCategories } from '@/hooks/useBoardCategories';
 import { useBoardPosts } from '@/hooks/useBoardPosts';
 
+import { isActiveMemberStatus } from '@/constants/memberStatus';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
@@ -22,6 +25,14 @@ import {
   canCreatePostInCategory,
   canManageCategory,
 } from '@/utils/boardPermissions';
+
+/** 서버가 회원이 아니라고 거절(403)한 응답인가 */
+function isForbiddenError(error: unknown): boolean {
+  return (
+    (error as { response?: { status?: number } } | null)?.response?.status ===
+    403
+  );
+}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function BoardPage(_props: AuthProps) {
@@ -36,7 +47,11 @@ function BoardPage(_props: AuthProps) {
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  const { data: postsData, isLoading: postsLoading } = useBoardPosts({
+  const {
+    data: postsData,
+    isLoading: postsLoading,
+    error: postsError,
+  } = useBoardPosts({
     clubId: clubId as string | undefined,
     categoryId: selectedCategoryId,
     page,
@@ -44,9 +59,11 @@ function BoardPage(_props: AuthProps) {
     sort,
   });
 
-  const { data: categories, isLoading: categoriesLoading } = useBoardCategories(
-    clubId as string | undefined
-  );
+  const {
+    data: categories,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+  } = useBoardCategories(clubId as string | undefined);
 
   const onClickWrite = useCallback(() => {
     if (!clubMember) {
@@ -91,6 +108,45 @@ function BoardPage(_props: AuthProps) {
     setSort(nextSort);
     setPage(1); // 정렬 변경 시 첫 페이지로
   }, []);
+
+  // 탈퇴·거절·가입 대기 회원은 회원 기록이 있어도 서버가 403을 준다.
+  // 메뉴에는 안 보이지만 주소로 바로 들어올 수 있으니, 카테고리 안내 대신
+  // 회원 전용이라고 알린다. 회원 정보를 아직 못 받았을 때는 서버 응답으로 판단한다.
+  const isNotActiveMember =
+    (!!clubMember && !isActiveMemberStatus(clubMember.status)) ||
+    isForbiddenError(categoriesError) ||
+    isForbiddenError(postsError);
+
+  if (isNotActiveMember) {
+    return (
+      <>
+        <PageHeader title="게시판" />
+        <div className="rounded-md bg-surface">
+          <EmptyState
+            icon={Lock}
+            title="클럽 회원만 볼 수 있는 게시판입니다"
+            description="가입이 승인된 회원에게 열려요."
+          />
+        </div>
+      </>
+    );
+  }
+
+  // 카테고리를 불러오지 못했으면 "카테고리가 없다"고 하지 않는다.
+  if (categoriesError) {
+    return (
+      <>
+        <PageHeader title="게시판" />
+        <div className="rounded-md bg-surface">
+          <EmptyState
+            icon={MessageSquareWarning}
+            title="게시판을 불러올 수 없습니다"
+            description="잠시 후 다시 시도해 주세요."
+          />
+        </div>
+      </>
+    );
+  }
 
   // 카테고리가 없을 때 관리자에게 안내
   if (!categoriesLoading && (!categories || categories.length === 0)) {

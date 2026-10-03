@@ -14,7 +14,7 @@ let mockRouter = {
 let mockState = {
   auth: {
     user: { id: 7 } as { id: number } | null,
-    clubMember: null as { role: string } | null,
+    clubMember: null as { role: string; status?: string } | null,
   },
   club: { currentClub: { id: 1, name: '당산 배드민턴 클럽' } },
 };
@@ -80,7 +80,10 @@ describe('Layout — 실제 데이터를 메뉴에 넘기기', () => {
       query: { id: '1' },
     };
     mockState = {
-      auth: { user: { id: 7 }, clubMember: { role: 'MEMBER' } },
+      auth: {
+        user: { id: 7 },
+        clubMember: { role: 'MEMBER', status: 'APPROVED' },
+      },
       club: { currentClub: { id: 1, name: '당산 배드민턴 클럽' } },
     };
     mockMenuSettings = undefined;
@@ -137,8 +140,42 @@ describe('Layout — 실제 데이터를 메뉴에 넘기기', () => {
     ]);
   });
 
+  it.each(['LEFT', 'REJECTED', 'PENDING'])(
+    '회원 기록이 있어도 %s 상태면 비회원 메뉴(홈·가입 문의)만 보여 준다',
+    (status) => {
+      mockState.auth.clubMember = { role: 'MEMBER', status };
+      renderLayout();
+
+      expect(sidebarLabels()).toEqual([
+        '당산 배드민턴 클럽',
+        '홈',
+        '가입 문의',
+        '내 정보',
+        '클럽 목록',
+      ]);
+    }
+  );
+
+  it('휴가 중(ON_LEAVE)인 회원은 회원 메뉴를 그대로 본다', () => {
+    mockState.auth.clubMember = { role: 'MEMBER', status: 'ON_LEAVE' };
+    renderLayout();
+
+    expect(sidebarLabels()).toEqual(
+      expect.arrayContaining(['출석체크', '게스트', '게시판', '대회'])
+    );
+  });
+
+  it('탈퇴한 운영진에게는 관리 메뉴도 회원 메뉴도 없다', () => {
+    mockState.auth.clubMember = { role: 'ADMIN', status: 'LEFT' };
+    renderLayout();
+
+    expect(within(sidebar()).queryByText('관리')).toBeNull();
+    expect(sidebarLabels()).not.toContain('게시판');
+    expect(sidebarLabels()).not.toContain('회원');
+  });
+
   it('운영진이면 관리 메뉴가 더해진다', () => {
-    mockState.auth.clubMember = { role: 'ADMIN' };
+    mockState.auth.clubMember = { role: 'ADMIN', status: 'APPROVED' };
     renderLayout();
 
     expect(within(sidebar()).getByText('관리')).toBeTruthy();

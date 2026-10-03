@@ -1,3 +1,4 @@
+import { ACTIVE_MEMBER_STATUSES } from '@/constants/memberStatus';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/session';
 
@@ -14,8 +15,9 @@ export type ClubMemberContext = {
  * 회원 기능(게시판 등)을 쓸 수 있는 가입 상태.
  * 가입 신청만 한 PENDING이나 REJECTED·LEFT는 회원으로 보지 않는다.
  * 휴가 중(ON_LEAVE)인 회원은 계속 쓸 수 있다.
+ * 메뉴도 같은 목록으로 회원 여부를 정한다 (`ACTIVE_MEMBER_STATUSES`).
  */
-export const ACTIVE_MEMBER_STATUS = { in: ['APPROVED', 'ON_LEAVE'] };
+export const ACTIVE_MEMBER_STATUS = { in: [...ACTIVE_MEMBER_STATUSES] };
 
 /** 임원 기능은 승인된 상태에서만 쓸 수 있다. */
 export const APPROVED_STATUS = 'APPROVED';
