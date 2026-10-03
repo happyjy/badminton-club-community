@@ -6,8 +6,8 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
-import { Select } from '@/components/atoms/inputs/Select';
 import BoardCategoryTabs from '@/components/organisms/board/BoardCategoryTabs';
+import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 import PostList from '@/components/organisms/board/PostList';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
@@ -86,13 +86,10 @@ function BoardPage(_props: AuthProps) {
     setPage(1); // 카테고리 변경 시 첫 페이지로
   }, []);
 
-  const onChangeSort = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setSort(e.target.value as PostSortOption);
-      setPage(1); // 정렬 변경 시 첫 페이지로
-    },
-    []
-  );
+  const onChangeSort = useCallback((nextSort: PostSortOption) => {
+    setSort(nextSort);
+    setPage(1); // 정렬 변경 시 첫 페이지로
+  }, []);
 
   // 카테고리가 없을 때 관리자에게 안내
   if (!categoriesLoading && (!categories || categories.length === 0)) {
@@ -123,34 +120,14 @@ function BoardPage(_props: AuthProps) {
       />
 
       {/* 정렬 및 작성 버튼 */}
-      <div className="flex justify-between items-center gap-3 bg-white rounded-lg shadow p-4">
-        <div className="flex items-center gap-2">
-          <label htmlFor="sort" className="text-sm font-medium text-gray-700">
-            정렬:
-          </label>
-          <Select
-            id="sort"
-            placeholder={null}
-            fullWidth={false}
-            value={sort}
-            onChange={onChangeSort}
-          >
-            <option value="latest">최신순</option>
-            <option value="views">조회수순</option>
-            <option value="likes">좋아요순</option>
-            <option value="comments">댓글순</option>
-          </Select>
-        </div>
-
-        <div className="flex gap-2">
-          {clubMember && canManageCategory(clubMember) && (
-            <Button variant="plain" onClick={onClickManageCategories}>
-              카테고리 관리
-            </Button>
-          )}
-          {clubMember && <Button onClick={onClickWrite}>작성하기</Button>}
-        </div>
-      </div>
+      <BoardToolbar
+        sort={sort}
+        onChangeSort={onChangeSort}
+        canWrite={!!clubMember}
+        canManageCategories={!!clubMember && canManageCategory(clubMember)}
+        onClickWrite={onClickWrite}
+        onClickManageCategories={onClickManageCategories}
+      />
 
       {/* 게시글 목록 */}
       {postsLoading ? (

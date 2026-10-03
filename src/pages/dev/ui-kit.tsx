@@ -16,6 +16,7 @@ import { FormField } from '@/components/molecules/form/FormField';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
 import { ListRow } from '@/components/molecules/list/ListRow';
 import { SegmentedControl } from '@/components/molecules/SegmentedControl';
+import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 import { Sheet } from '@/components/organisms/sheet/Sheet';
@@ -199,6 +200,20 @@ export default function UiKitPage() {
           </label>
         </div>
       </ListGroup>
+
+      <section>
+        <h3 className="px-4 pb-2 text-footnote text-secondary">
+          게시판 도구줄 (좁은 화면에서 넘치지 않아야 해요)
+        </h3>
+        <BoardToolbar
+          sort="latest"
+          onChangeSort={() => {}}
+          canWrite
+          canManageCategories
+          onClickWrite={() => {}}
+          onClickManageCategories={() => {}}
+        />
+      </section>
 
       <ListGroup label="세그먼트">
         <div className="px-4 py-4">
