@@ -17,7 +17,9 @@ import {
   GuestInquiryModal,
 } from '@/components/organisms/modal/join';
 
+import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/session';
 import { formatDateSimple } from '@/lib/utils';
 import { AuthProps, withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
@@ -585,16 +587,34 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
   );
 }
 
-export default withAuth(GuestDetailPage);
+type GuestDetailGateProps = Omit<GuestDetailPageProps, 'guestPost'> & {
+  guestPost: GuestDetailPageProps['guestPost'] | null;
+};
+
+// 로그인하지 않은 요청에는 서버가 신청서를 내려주지 않는다.
+// 그 사이 화면은 비워 두고, 로그인 이동은 withAuth가 맡는다.
+function GuestDetailGate({ guestPost, ...rest }: GuestDetailGateProps) {
+  if (!guestPost) return null;
+  return <GuestDetailPage {...rest} guestPost={guestPost} />;
+}
+
+export default withAuth(GuestDetailGate);
 
 export const getServerSideProps = async (context: any) => {
-  const { guestId } = context.params;
+  const { id: clubId, guestId } = context.params;
+
+  // 신청서에는 전화번호·생년월일이 있어 HTML에 실리기 전에 볼 권한을 확인한다.
+  const authUser = await getAuthUser(context.req);
+  if (!authUser) {
+    return { props: { guestPost: null } };
+  }
 
   try {
     const guestPost = await prisma.guestPost.findUnique({
       where: { id: guestId },
       select: {
         id: true,
+        clubId: true,
         name: true,
         birthDate: true,
         phoneNumber: true,
@@ -617,7 +637,12 @@ export const getServerSideProps = async (context: any) => {
         },
       },
     });
-    if (!guestPost) {
+    // 다른 클럽 신청서이거나 작성자·임원이 아니면 있는지조차 알리지 않는다.
+    if (
+      !guestPost ||
+      guestPost.clubId !== Number(clubId) ||
+      !(await canViewGuestPost(authUser.id, guestPost))
+    ) {
       return {
         notFound: true,
       };

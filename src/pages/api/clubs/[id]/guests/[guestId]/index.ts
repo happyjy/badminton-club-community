@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { Role } from '@/types/enums';
@@ -28,7 +29,8 @@ export default withAuth(async function handler(
     },
   });
 
-  if (!guestPost) {
+  // 다른 클럽의 신청서를 이 클럽 경로로 다루지 못하게 한다.
+  if (!guestPost || guestPost.clubId !== Number(clubId)) {
     return res.status(404).json({ message: '게스트 신청을 찾을 수 없습니다' });
   }
 
@@ -37,6 +39,12 @@ export default withAuth(async function handler(
     // 게스트 신청 게시글 조회
     case 'GET':
       try {
+        if (!(await canViewGuestPost(req.user.id, guestPost))) {
+          return res
+            .status(403)
+            .json({ message: '게스트 신청을 볼 권한이 없습니다' });
+        }
+
         // 게스트 신청과 댓글 목록을 함께 조회
         const [guestPostWithDetails, comments] = await Promise.all([
           prisma.guestPost.findUnique({

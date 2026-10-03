@@ -24,8 +24,15 @@ export default async function handler(
       },
       include: {
         // 클럽 멤버 정보 조회
+        // 비로그인 방문자도 받는 응답이라 연락처·생년월일 같은 개인정보는 싣지 않는다.
+        // 레이아웃이 내 가입 상태(userId·status)를 판단하는 데 필요한 필드만 고른다.
         members: {
-          include: {
+          select: {
+            id: true,
+            clubId: true,
+            userId: true,
+            role: true,
+            status: true,
             user: {
               select: {
                 id: true,

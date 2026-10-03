@@ -13,10 +13,16 @@ export interface PostCategoryWithRelations extends PostCategory {
   };
 }
 
+// 게시글 작성자 (src/lib/board/authorSelect.ts의 BOARD_AUTHOR_SELECT와 맞춘다)
+export type BoardAuthor = Pick<
+  ClubMember,
+  'id' | 'clubId' | 'userId' | 'name' | 'role' | 'status'
+>;
+
 // Post with relations
 export interface PostWithRelations extends Post {
   category: PostCategory;
-  author: ClubMember;
+  author: BoardAuthor;
   _count?: {
     comments: number;
   };
