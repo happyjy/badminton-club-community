@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import CategoryManageForm from '@/components/organisms/board/CategoryManageForm';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
 
@@ -36,9 +37,16 @@ function CategoryManagePage({ user }: AuthProps) {
     clubId as string | undefined
   );
 
+  const confirm = useConfirm();
   const onDeleteCategory = useCallback(
     async (categoryId: number) => {
-      if (!confirm('정말 이 카테고리를 삭제하시겠습니까?')) {
+      if (
+        !(await confirm({
+          title: '정말 이 카테고리를 삭제하시겠습니까?',
+          confirmLabel: '삭제',
+          destructive: true,
+        }))
+      ) {
         return;
       }
 
@@ -57,7 +65,7 @@ function CategoryManagePage({ user }: AuthProps) {
         );
       }
     },
-    [clubId, queryClient]
+    [clubId, queryClient, confirm]
   );
 
   const onSuccess = useCallback(() => {

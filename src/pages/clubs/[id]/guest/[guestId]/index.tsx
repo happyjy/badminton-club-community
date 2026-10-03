@@ -16,6 +16,7 @@ import {
   GuestApplicationModal,
   GuestInquiryModal,
 } from '@/components/organisms/modal/join';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
@@ -199,14 +200,18 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
     }
   };
   // 게스트 신청 삭제
+  const confirm = useConfirm();
   const onClickDeleteGuest = async () => {
     if (!clubId || !guestId || isDeleting) return;
 
     // 확인 메시지
     if (
-      !confirm(
-        '정말로 이 게스트 신청을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
-      )
+      !(await confirm({
+        title: '정말로 이 게스트 신청을 삭제하시겠습니까?',
+        message: '이 작업은 되돌릴 수 없습니다.',
+        confirmLabel: '삭제',
+        destructive: true,
+      }))
     ) {
       return;
     }

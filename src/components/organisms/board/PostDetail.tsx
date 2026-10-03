@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { formatDate } from '@/lib/utils';
 import { RootState } from '@/store';
@@ -89,8 +90,15 @@ function PostDetail({ post }: PostDetailProps) {
     router.push(`/clubs/${clubId}/board/${postId}/edit`);
   };
 
-  const onClickDelete = () => {
-    if (confirm('정말 삭제하시겠습니까?')) {
+  const confirm = useConfirm();
+  const onClickDelete = async () => {
+    if (
+      await confirm({
+        title: '정말 삭제하시겠습니까?',
+        confirmLabel: '삭제',
+        destructive: true,
+      })
+    ) {
       deleteMutation.mutate();
     }
   };

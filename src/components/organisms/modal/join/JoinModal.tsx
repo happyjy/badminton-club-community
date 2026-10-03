@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useRef, useState, ReactNode } from 'react';
 
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
 
@@ -111,9 +113,10 @@ function JoinModal({
     label: level,
   }));
 
+  const confirm = useConfirm();
   // 폼 제출 처리
   // 전화번호 인증은 PhoneField 안에서 끝나므로, 여기서는 형식과 인증 여부만 본다.
-  const onSubmitForm = (e: FormEvent) => {
+  const onSubmitForm = async (e: FormEvent) => {
     e.preventDefault();
 
     // 전화번호가 올바른 형식으로 입력되었는지 확인
@@ -121,14 +124,17 @@ function JoinModal({
     // 저장되지 않도록 한다.
     const phoneNumberError = getPhoneNumberError(getFullPhoneNumber());
     if (phoneNumberError) {
-      alert(phoneNumberError);
+      await confirm({ title: phoneNumberError, hideCancel: true });
       return;
     }
 
     // 인증 기능을 쓸 수 있는 화면에서는 인증을 마쳐야 제출할 수 있다.
     // 제출 버튼도 비활성이지만, 엔터 제출 같은 경로를 위해 여기서도 막는다.
     if (canVerifyPhone && !isPhoneVerified) {
-      alert('전화번호 인증을 완료해주세요.');
+      await confirm({
+        title: '전화번호 인증을 완료해주세요.',
+        hideCancel: true,
+      });
       return;
     }
 

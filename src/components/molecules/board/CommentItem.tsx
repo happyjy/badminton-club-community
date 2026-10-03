@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Textarea } from '@/components/atoms/Textarea';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { formatDate } from '@/lib/utils';
 import { RootState } from '@/store';
@@ -134,8 +135,15 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
     updateMutation.mutate(editContent.trim());
   };
 
-  const onClickDelete = () => {
-    if (confirm('정말 삭제하시겠습니까?')) {
+  const confirm = useConfirm();
+  const onClickDelete = async () => {
+    if (
+      await confirm({
+        title: '정말 삭제하시겠습니까?',
+        confirmLabel: '삭제',
+        destructive: true,
+      })
+    ) {
       deleteMutation.mutate();
     }
   };

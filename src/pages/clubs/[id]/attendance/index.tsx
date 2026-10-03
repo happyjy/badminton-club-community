@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 import { WorkoutDeleteSheet } from '@/components/organisms/workout/WorkoutDeleteSheet';
 import {
   WorkoutEditSheet,
@@ -94,6 +95,7 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     }
   };
 
+  const confirm = useConfirm();
   const handleParkingRequest = async (
     workoutId: number,
     isRequested: boolean
@@ -110,7 +112,10 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        alert(result.error ?? '주차 신청에 실패했습니다.');
+        await confirm({
+          title: result.error ?? '주차 신청에 실패했습니다.',
+          hideCancel: true,
+        });
         return;
       }
 

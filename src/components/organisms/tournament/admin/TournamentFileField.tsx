@@ -3,6 +3,8 @@ import { useRef, useState } from 'react';
 import { Loader2, Trash2, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+
 import {
   useDeleteTournamentFile,
   useTournamentFiles,
@@ -37,6 +39,7 @@ function TournamentFileField({
   const { data: files, isLoading } = useTournamentFiles(clubId, tournamentId);
   const uploadFile = useUploadTournamentFile(clubId, tournamentId);
   const deleteFile = useDeleteTournamentFile(clubId, tournamentId);
+  const confirm = useConfirm();
 
   // 대회를 저장하기 전에는 붙일 대상이 없다.
   if (!tournamentId) {
@@ -73,7 +76,15 @@ function TournamentFileField({
   };
 
   const handleDelete = async (fileId: string, fileName: string) => {
-    if (!window.confirm(`'${fileName}'을(를) 삭제할까요?`)) return;
+    if (
+      !(await confirm({
+        title: `'${fileName}'을(를) 삭제할까요?`,
+        confirmLabel: '삭제',
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
 
     setDeletingId(fileId);
     try {

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 
 import Image from 'next/image';
 
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+
 import { withAuth } from '@/lib/withAuth';
 import { User } from '@/types';
 import {
@@ -91,6 +93,7 @@ function ProfilePage({ user }: ProfilePageProps) {
     }));
   };
 
+  const confirm = useConfirm();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -106,10 +109,16 @@ function ProfilePage({ user }: ProfilePageProps) {
         throw new Error('프로필 업데이트에 실패했습니다');
       }
 
-      alert('프로필이 성공적으로 업데이트되었습니다');
+      await confirm({
+        title: '프로필이 성공적으로 업데이트되었습니다',
+        hideCancel: true,
+      });
     } catch (error) {
       console.error('프로필 업데이트 오류:', error);
-      alert('프로필 업데이트 중 오류가 발생했습니다');
+      await confirm({
+        title: '프로필 업데이트 중 오류가 발생했습니다',
+        hideCancel: true,
+      });
     }
   };
 

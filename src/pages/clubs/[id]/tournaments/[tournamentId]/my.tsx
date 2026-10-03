@@ -2,6 +2,8 @@ import { useRouter } from 'next/router';
 
 import toast from 'react-hot-toast';
 
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+
 import { useCancelEntryEvent, useMyEntry } from '@/hooks/useMyEntry';
 import { useTournamentDetail } from '@/hooks/useTournamentDetail';
 
@@ -23,9 +25,19 @@ function MyEntryPage() {
 
   const isOpen = detail?.effectiveStatus === 'OPEN';
 
+  const confirm = useConfirm();
   const onClickCancelEvent = async (entryEventId: string, label: string) => {
     if (!myEntry) return;
-    if (!window.confirm(`'${label}' 종목 신청을 취소할까요?`)) return;
+    if (
+      !(await confirm({
+        title: `'${label}' 종목 신청을 취소할까요?`,
+        confirmLabel: '신청 취소',
+        cancelLabel: '닫기',
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
 
     try {
       const result = await cancelEvent.mutateAsync({
