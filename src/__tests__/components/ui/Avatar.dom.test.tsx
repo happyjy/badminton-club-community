@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { Avatar, avatarColorClass } from '@/components/atoms/Avatar';
@@ -28,6 +28,26 @@ describe('Avatar', () => {
     const avatar = screen.getByRole('img', { name: '김민수' });
     expect(avatar.tagName).toBe('SPAN');
     expect(avatar.textContent).toBe('김');
+  });
+
+  it('화면이 준비되기 전에 이미 사진 불러오기가 실패해 있었으면 첫 글자로 바꾼다', () => {
+    // 서버가 그린 <img>는 React가 붙기 전에 실패할 수 있고, 그때는 onError가
+    // 불리지 않는다. 브라우저는 그런 그림을 complete=true, naturalWidth=0으로 둔다.
+    const complete = jest
+      .spyOn(HTMLImageElement.prototype, 'complete', 'get')
+      .mockReturnValue(true);
+    const naturalWidth = jest
+      .spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get')
+      .mockReturnValue(0);
+
+    render(<Avatar name="김민수" src="https://example.com/expired.jpg" />);
+
+    const avatar = screen.getByRole('img', { name: '김민수' });
+    expect(avatar.tagName).toBe('SPAN');
+    expect(avatar.textContent).toBe('김');
+
+    complete.mockRestore();
+    naturalWidth.mockRestore();
   });
 
   it('사진 주소가 바뀌면 다시 사진을 시도한다', () => {

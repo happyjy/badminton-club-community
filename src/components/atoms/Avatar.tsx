@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -40,6 +40,16 @@ export function avatarColorClass(seed: string): string {
 export function Avatar({ name, src, seed, size = 36, className }: AvatarProps) {
   // 실패한 주소를 기억해 둔다. 주소가 바뀌면 다시 시도하게 된다.
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // 서버가 그린 <img>는 React가 붙기 전에 실패할 수 있고, 그러면 onError가
+  // 불리지 않는다. 이미 끝났는데 크기가 0이면 실패한 것으로 본다.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (src && img && img.complete && img.naturalWidth === 0) {
+      setFailedSrc(src);
+    }
+  }, [src]);
 
   const base = cn(
     'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-on-accent',
@@ -53,6 +63,7 @@ export function Avatar({ name, src, seed, size = 36, className }: AvatarProps) {
       // 관리하기 어렵고, 크기가 작아 최적화 이득도 없다.
       // eslint-disable-next-line @next/next/no-img-element
       <img
+        ref={imgRef}
         src={src}
         alt={name}
         onError={() => setFailedSrc(src)}
