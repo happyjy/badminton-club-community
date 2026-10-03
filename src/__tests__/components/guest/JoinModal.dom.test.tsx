@@ -148,6 +148,13 @@ describe('게스트 신청 창 (JoinModal)', () => {
       />
     );
 
+    // 수정 화면은 저장된 번호 그대로면 인증을 요구하지 않으므로, 번호를 바꿔 본다.
+    await act(async () => {
+      fireEvent.change(screen.getAllByPlaceholderText('0000')[1], {
+        target: { value: '9999' },
+      });
+    });
+
     expect(
       (screen.getByRole('button', { name: '수정하기' }) as HTMLButtonElement)
         .disabled
@@ -164,6 +171,30 @@ describe('게스트 신청 창 (JoinModal)', () => {
         .getAllByRole('alert')
         .some((el) => el.textContent === '전화번호 인증을 완료해주세요.')
     ).toBe(true);
+  });
+
+  // 메시지만 고치려는 사람에게까지 문자 인증을 다시 시키지 않는다.
+  it('수정할 때 저장된 번호를 그대로 두면 인증 없이 제출된다', async () => {
+    const onSubmit = jest.fn();
+    await renderModal(
+      <GuestApplicationModal
+        {...base}
+        initialValues={filled}
+        onSubmit={onSubmit}
+        sendPhoneVerificationCode={async () => {}}
+        verifyPhoneCode={async () => {}}
+        phoneVerificationStatus={null}
+      />
+    );
+
+    expect(
+      (screen.getByRole('button', { name: '수정하기' }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+
+    await submitForm();
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
   it('개인정보 "내용 보기"를 누르면 안내 창이 뜨고, 확인을 누르면 닫히되 신청 창은 남는다', async () => {

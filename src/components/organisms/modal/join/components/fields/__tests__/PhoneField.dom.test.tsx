@@ -264,3 +264,51 @@ describe('PhoneField 인라인 인증', () => {
     expect(screen.queryByText('인증 완료')).toBeNull();
   });
 });
+
+/**
+ * 수정 화면은 이미 저장된 번호를 채운 채 열린다. 번호를 그대로 두고
+ * 다른 항목만 고치는 사람에게까지 다시 인증을 요구하지 않는다.
+ */
+describe('PhoneField 수정 모드', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('저장된 번호 그대로면 인증 없이 제출할 수 있다', () => {
+    const onPhoneVerifiedChange = jest.fn();
+    renderPhoneField({
+      phoneNumbers: { first: '010', second: '1234', third: '5678' },
+      getFullPhoneNumber: () => '010-1234-5678',
+      savedPhoneNumber: '01012345678',
+      onPhoneVerifiedChange,
+    });
+
+    expect(screen.queryByRole('button', { name: '인증하기' })).toBeNull();
+    expect(onPhoneVerifiedChange).toHaveBeenLastCalledWith(true);
+  });
+
+  // 계정으로 인증한 번호가 아니므로 인증됐다고 표시하지는 않는다.
+  it('저장된 번호 그대로여도 인증된 번호라고 표시하지 않는다', () => {
+    renderPhoneField({
+      phoneNumbers: { first: '010', second: '1234', third: '5678' },
+      getFullPhoneNumber: () => '010-1234-5678',
+      savedPhoneNumber: '010-1234-5678',
+    });
+
+    expect(screen.queryByText('인증된 전화번호입니다')).toBeNull();
+    expect(screen.queryByText('인증 완료')).toBeNull();
+  });
+
+  it('저장된 번호에서 바꾸면 인증을 요구한다', () => {
+    const onPhoneVerifiedChange = jest.fn();
+    renderPhoneField({
+      phoneNumbers: { first: '010', second: '9999', third: '8888' },
+      getFullPhoneNumber: () => '010-9999-8888',
+      savedPhoneNumber: '010-1234-5678',
+      onPhoneVerifiedChange,
+    });
+
+    expect(screen.getByRole('button', { name: '인증하기' })).toBeTruthy();
+    expect(onPhoneVerifiedChange).toHaveBeenLastCalledWith(false);
+  });
+});

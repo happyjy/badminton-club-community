@@ -174,6 +174,8 @@ function JoinModal({
     onChangeInput,
     onChangePhoneNumber,
     getFullPhoneNumber,
+    // initialValues는 수정 화면에서만 넘어온다.
+    savedPhoneNumber: initialValues?.phoneNumber,
     phoneVerificationStatus,
     phoneVerificationLoading,
     phoneVerificationError,
