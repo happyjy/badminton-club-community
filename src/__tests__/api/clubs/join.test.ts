@@ -167,6 +167,21 @@ describe('POST /api/clubs/[id]/join 전화번호 인증 검증', () => {
     expect(mockPrisma.clubMember.create).not.toHaveBeenCalled();
   });
 
+  // 앞 11자리가 인증한 번호와 같더라도, 잘라서 통과시키지 않는다.
+  it('11자리를 넘는 번호는 400으로 막는다', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: USER_ID,
+      phoneNumber: '010-1234-5678',
+      phoneVerifiedAt: new Date(),
+    });
+
+    const res = buildRes();
+    await handler(buildReq({ phoneNumber: '010-1234-5678999' }), res);
+
+    expect(res.statusCode).toBe(400);
+    expect(mockPrisma.clubMember.create).not.toHaveBeenCalled();
+  });
+
   // 저장 형식을 '010-1234-5678' 하나로 맞춘다.
   it('저장할 때 번호를 정규화한다', async () => {
     mockPrisma.user.findUnique.mockResolvedValue({
