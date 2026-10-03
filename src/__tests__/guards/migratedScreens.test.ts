@@ -153,6 +153,12 @@ const FORBIDDEN: Array<{ what: string; pattern: RegExp }> = [
       'u'
     ),
   },
+  {
+    // 색을 한 줄씩 기계로 바꾸다 생긴 조합. 직접 만든 버튼 대신 Button 부품을 쓴다.
+    what: '안 보이는 글자 조합',
+    pattern:
+      /\btext-on-accent\b.*\bdisabled:bg-fill\b|\bdisabled:bg-fill\b.*\btext-on-accent\b|\btext-primary\b.*\bhover:text-on-accent\b/,
+  },
 ];
 
 const violations = (line: string) =>
@@ -176,6 +182,8 @@ describe('지킴이의 규칙 자체', () => {
     ['📅 날짜', '이모지'],
     ['🚗 주차', '이모지'],
     ['⭐', '이모지'],
+    ['bg-accent text-on-accent disabled:bg-fill', '안 보이는 글자 조합'],
+    ['px-1 text-primary hover:text-on-accent', '안 보이는 글자 조합'],
   ])('%s 를 잡는다', (line, what) => {
     expect(violations(line)).toContain(what);
   });
@@ -187,6 +195,7 @@ describe('지킴이의 규칙 자체', () => {
     'bg-surface text-primary border-border',
     'divide-y-[0.5px] divide-separator',
     'text-large-title',
+    'bg-accent text-on-accent disabled:opacity-40',
     '// 10월 4일 토요일 · 오후 7:00 – 10:00',
     'href={`/clubs/${clubId}/workouts/${workout.id}`}',
   ])('%s 는 잡지 않는다', (line) => {

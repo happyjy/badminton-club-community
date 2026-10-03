@@ -6,6 +6,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import ApplyNotice from '@/components/organisms/tournament/entry/ApplyNotice';
 import {
   createEmptyPlayer,
@@ -222,17 +223,18 @@ function TournamentApplyPage() {
             </p>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={submitEntry.isPending}
-            className="w-full rounded-md bg-accent py-3 font-medium text-on-accent disabled:bg-fill"
+            size="lg"
+            className="w-full"
           >
             {submitEntry.isPending
               ? '처리 중...'
               : myEntry
                 ? '수정하기'
                 : '신청하기'}
-          </button>
+          </Button>
         </form>
       </FormProvider>
     </div>

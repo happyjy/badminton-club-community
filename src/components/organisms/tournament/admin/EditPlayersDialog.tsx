@@ -121,7 +121,7 @@ function EditPlayersDialog({
         </p>
 
         {draft.map((player, index) => (
-          <div key={player.id} className="space-y-3 rounded-md p-3 bg-surface">
+          <div key={player.id} className="space-y-3 rounded-md bg-bg p-3">
             <p className="text-callout font-semibold text-primary">
               선수 {index + 1}
             </p>

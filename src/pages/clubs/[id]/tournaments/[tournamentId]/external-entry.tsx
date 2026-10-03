@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
@@ -106,13 +107,9 @@ function ExternalEntryLookupPage() {
             })}
           />
         </FormField>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-md bg-accent py-2 text-on-accent disabled:bg-fill"
-        >
+        <Button type="submit" disabled={isLoading} size="md" className="w-full">
           {isLoading ? '조회 중...' : '조회하기'}
-        </button>
+        </Button>
       </form>
 
       {entry && (

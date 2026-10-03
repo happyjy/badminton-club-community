@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
@@ -334,13 +335,14 @@ function TournamentForm({
           </div>
         </section>
 
-        <button
+        <Button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md bg-accent py-3 font-medium text-on-accent disabled:bg-fill"
+          size="lg"
+          className="w-full"
         >
           {isSubmitting ? '저장 중...' : submitLabel}
-        </button>
+        </Button>
       </form>
     </FormProvider>
   );

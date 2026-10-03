@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 import ApplyNotice from '@/components/organisms/tournament/entry/ApplyNotice';
@@ -298,13 +299,14 @@ function ExternalTournamentApplyPage() {
             </p>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-accent py-3 font-medium text-on-accent disabled:bg-fill"
+            size="lg"
+            className="w-full"
           >
             {isSubmitting ? '처리 중...' : '신청하기'}
-          </button>
+          </Button>
         </form>
       </FormProvider>
     </div>
