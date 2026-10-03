@@ -1,7 +1,16 @@
+import { ArrowUpDown } from 'lucide-react';
+
 import { Button } from '@/components/atoms/buttons/Button';
-import { Select } from '@/components/atoms/inputs/Select';
+import { OptionPicker } from '@/components/molecules/OptionPicker';
 
 import { PostSortOption } from '@/types/board.types';
+
+const SORT_OPTIONS: Array<{ value: PostSortOption; label: string }> = [
+  { value: 'latest', label: '최신순' },
+  { value: 'views', label: '조회수순' },
+  { value: 'likes', label: '좋아요순' },
+  { value: 'comments', label: '댓글순' },
+];
 
 interface BoardToolbarProps {
   sort: PostSortOption;
@@ -28,18 +37,13 @@ export function BoardToolbar({
 }: BoardToolbarProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-surface p-3">
-      <Select
-        placeholder={null}
-        fullWidth={false}
+      <OptionPicker<PostSortOption>
         aria-label="정렬"
+        icon={ArrowUpDown}
+        options={SORT_OPTIONS}
         value={sort}
-        onChange={(e) => onChangeSort(e.target.value as PostSortOption)}
-      >
-        <option value="latest">최신순</option>
-        <option value="views">조회수순</option>
-        <option value="likes">좋아요순</option>
-        <option value="comments">댓글순</option>
-      </Select>
+        onChange={onChangeSort}
+      />
 
       {(canWrite || canManageCategories) && (
         <div className="ml-auto flex items-center gap-1">

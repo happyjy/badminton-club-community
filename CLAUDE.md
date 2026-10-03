@@ -75,11 +75,13 @@ npx prisma generate
 2. **부품을 먼저 찾는다.** 버튼·입력·칩·리스트·시트·표는 `src/components`에 있다.
    원시 `<input>`·`<select>`·`<textarea>`, `confirm()`·`alert()`, 직접 만든 `fixed inset-0` 막을 쓰지 않는다.
    맞는 부품이 없으면 `atoms`/`molecules`에 만든 뒤 쓴다.
-3. **화면 틀을 따른다.** 회원용은 `PageHeader` + `ListGroup`, 관리용은 `Toolbar` + `DataTable`(+ 상세 `Sheet`).
+3. **고르는 부품을 구분한다.** 폼에 저장되는 값은 `Select`, 정렬·필터처럼 화면을 보는 방식은 `OptionPicker`
+   (휴대폰은 아래 시트, PC는 메뉴), 2–4개를 펼쳐 보일 때는 `SegmentedControl`.
+4. **화면 틀을 따른다.** 회원용은 `PageHeader` + `ListGroup`, 관리용은 `Toolbar` + `DataTable`(+ 상세 `Sheet`).
    탭바·사이드바·바깥 여백은 `Layout`이 그리므로 화면에서 다시 주지 않는다.
-4. **상태 색은 `statusTone.ts`에서만 정한다.** 화면에서 조건문으로 색을 고르지 않고 `StatusChip`에 `domain`·`status`를 넘긴다.
-5. **이모지를 아이콘으로 쓰지 않는다.** `lucide-react`를 쓴다.
-6. **새 색은 라이트·다크를 함께 정한다.** `globals.css`에 더하고 `darkMode.test.ts`의 대비 검사에 넣는다.
+5. **상태 색은 `statusTone.ts`에서만 정한다.** 화면에서 조건문으로 색을 고르지 않고 `StatusChip`에 `domain`·`status`를 넘긴다.
+6. **이모지를 아이콘으로 쓰지 않는다.** `lucide-react`를 쓴다.
+7. **새 색은 라이트·다크를 함께 정한다.** `globals.css`에 더하고 `darkMode.test.ts`의 대비 검사에 넣는다.
 
 ### 확인
 

@@ -1,11 +1,17 @@
 import { ReactNode, useState } from 'react';
 
-import { Clock, type LucideIcon, MapPin, Users } from 'lucide-react';
+import {
+  ArrowUpDown,
+  Clock,
+  type LucideIcon,
+  MapPin,
+  Users,
+} from 'lucide-react';
 
-import { Select } from '@/components/atoms/inputs/Select';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
+import { OptionPicker } from '@/components/molecules/OptionPicker';
 import PersonInfo from '@/components/molecules/PersonInfo';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import {
@@ -47,6 +53,14 @@ interface WorkoutDetailViewProps {
   /** 도움 기록 시트를 닫을 때 (안내를 지울 수 있게) */
   onCloseHelper?: () => void;
 }
+
+const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
+  { value: 'createdAt', label: '참여순서' },
+  { value: 'name', label: '이름순' },
+  { value: 'gender', label: '성별' },
+  { value: 'localLevel', label: '지역대회 급수' },
+  { value: 'nationalLevel', label: '전국대회 급수' },
+];
 
 function InfoRow({
   icon: Icon,
@@ -152,19 +166,15 @@ export function WorkoutDetailView({
             <h2 className="text-footnote text-secondary">
               참여자 {participantCount}명
             </h2>
-            <Select
-              placeholder={null}
-              fullWidth={false}
+            <OptionPicker<SortOption>
               aria-label="정렬"
+              icon={ArrowUpDown}
+              align="right"
+              options={SORT_OPTIONS}
               value={sortOption}
-              onChange={(e) => onChangeSort(e.target.value as SortOption)}
-            >
-              <option value="createdAt">참여순서</option>
-              <option value="name">이름순</option>
-              <option value="gender">성별</option>
-              <option value="localLevel">지역대회 급수</option>
-              <option value="nationalLevel">전국대회 급수</option>
-            </Select>
+              onChange={onChangeSort}
+              className="-my-2"
+            />
           </div>
 
           {participants.length === 0 ? (

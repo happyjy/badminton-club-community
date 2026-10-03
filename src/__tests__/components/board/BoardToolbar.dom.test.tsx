@@ -3,6 +3,12 @@ import { fireEvent, render, screen } from '@testing-library/react';
 
 import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 
+import {
+  openPicker,
+  pickerValue,
+  pickOption,
+} from '@/__tests__/helpers/optionPicker';
+
 const base = {
   sort: 'latest' as const,
   onChangeSort: () => {},
@@ -13,30 +19,23 @@ const base = {
 };
 
 describe('BoardToolbar', () => {
-  it('정렬 선택칸에 네 가지 항목이 있고 고른 값을 보여 준다', () => {
+  it('정렬 버튼이 고른 값을 보여 주고, 누르면 네 가지 항목이 나온다', async () => {
     render(<BoardToolbar {...base} sort="likes" />);
 
-    const select = screen.getByRole('combobox', {
-      name: '정렬',
-    }) as HTMLSelectElement;
-    expect(select.value).toBe('likes');
-    expect(
-      [...select.options].map((option) => [option.value, option.textContent])
-    ).toEqual([
-      ['latest', '최신순'],
-      ['views', '조회수순'],
-      ['likes', '좋아요순'],
-      ['comments', '댓글순'],
+    expect(pickerValue('정렬')).toBe('좋아요순');
+    expect(await openPicker('정렬')).toEqual([
+      '최신순',
+      '조회수순',
+      '좋아요순',
+      '댓글순',
     ]);
   });
 
-  it('정렬을 바꾸면 그 값으로 알린다', () => {
+  it('정렬을 바꾸면 그 값으로 알린다', async () => {
     const onChangeSort = jest.fn();
     render(<BoardToolbar {...base} onChangeSort={onChangeSort} />);
 
-    fireEvent.change(screen.getByRole('combobox', { name: '정렬' }), {
-      target: { value: 'views' },
-    });
+    await pickOption('정렬', '조회수순');
     expect(onChangeSort).toHaveBeenCalledWith('views');
   });
 
@@ -67,7 +66,10 @@ describe('BoardToolbar', () => {
     rerender(
       <BoardToolbar {...base} canWrite={false} canManageCategories={false} />
     );
-    expect(screen.queryByRole('button')).toBeNull();
+    // 정렬 버튼만 남는다.
+    expect(
+      screen.getAllByRole('button').map((button) => button.textContent)
+    ).toEqual(['최신순']);
   });
 
   it('좁은 화면에서 넘치지 않도록 줄바꿈하고, 글자가 세로로 꺾이지 않는다', () => {

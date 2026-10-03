@@ -5,6 +5,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 
 import { GuestCheckView } from '@/components/organisms/guest/GuestCheckView';
 
+import { pickerValue, pickOption } from '@/__tests__/helpers/optionPicker';
 import { GuestPostForList } from '@/types/guest.types';
 
 const guest = (id: string, extra: Record<string, unknown> = {}) =>
@@ -90,7 +91,7 @@ describe('게스트 확인 화면', () => {
     expect(onOpen).toHaveBeenCalledWith('c');
   });
 
-  it('종류·상태 필터는 바뀐 값을 알려 준다', () => {
+  it('종류·상태 필터는 바뀐 값을 알려 준다', async () => {
     const onChangeType = jest.fn();
     const onChangeStatus = jest.fn();
     render(
@@ -101,12 +102,8 @@ describe('게스트 확인 화면', () => {
       />
     );
 
-    fireEvent.change(screen.getByLabelText('신청 종류'), {
-      target: { value: 'JOIN_INQUIRY_REQUEST' },
-    });
-    fireEvent.change(screen.getByLabelText('처리 상태'), {
-      target: { value: 'APPROVED' },
-    });
+    await pickOption('신청 종류', '가입 문의');
+    await pickOption('처리 상태', '승인됨');
     expect(onChangeType).toHaveBeenCalledWith('JOIN_INQUIRY_REQUEST');
     expect(onChangeStatus).toHaveBeenCalledWith('APPROVED');
   });
@@ -119,12 +116,8 @@ describe('게스트 확인 화면', () => {
         statusFilter="REJECTED"
       />
     );
-    expect(
-      (screen.getByLabelText('신청 종류') as HTMLSelectElement).value
-    ).toBe('GUEST_REQUEST');
-    expect(
-      (screen.getByLabelText('처리 상태') as HTMLSelectElement).value
-    ).toBe('REJECTED');
+    expect(pickerValue('신청 종류')).toBe('게스트 신청');
+    expect(pickerValue('처리 상태')).toBe('거절됨');
   });
 
   it('쪽이 여러 개면 쪽 번호를 보여 주고, 누르면 알려 준다', () => {

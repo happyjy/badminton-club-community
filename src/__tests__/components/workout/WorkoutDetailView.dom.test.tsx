@@ -12,6 +12,11 @@ import {
 
 import { WorkoutDetailView } from '@/components/organisms/workout/WorkoutDetailView';
 
+import {
+  openPicker,
+  pickerValue,
+  pickOption,
+} from '@/__tests__/helpers/optionPicker';
 import { Guest, Workout, WorkoutParticipant } from '@/types';
 
 jest.mock('next/link', () => ({
@@ -289,7 +294,7 @@ describe('WorkoutDetailView — 참여자', () => {
 });
 
 describe('WorkoutDetailView — 정렬', () => {
-  it('고른 정렬을 보여 주고, 바꾸면 알린다', () => {
+  it('고른 정렬을 보여 주고, 바꾸면 알린다', async () => {
     const onChangeSort = jest.fn();
     render(
       <WorkoutDetailView
@@ -300,30 +305,21 @@ describe('WorkoutDetailView — 정렬', () => {
       />
     );
 
-    const select = screen.getByRole('combobox', {
-      name: '정렬',
-    }) as HTMLSelectElement;
-    expect(select.value).toBe('name');
+    expect(pickerValue('정렬')).toBe('이름순');
 
-    fireEvent.change(select, { target: { value: 'localLevel' } });
+    await pickOption('정렬', '지역대회 급수');
     expect(onChangeSort).toHaveBeenCalledWith('localLevel');
   });
 
-  it('정렬 항목과 값이 지금과 같다', () => {
+  it('정렬 항목이 지금과 같다', async () => {
     render(<WorkoutDetailView {...base} workout={workout()} />);
 
-    const select = screen.getByRole('combobox', { name: '정렬' });
-    expect(
-      [...select.querySelectorAll('option')].map((option) => [
-        option.value,
-        option.textContent,
-      ])
-    ).toEqual([
-      ['createdAt', '참여순서'],
-      ['name', '이름순'],
-      ['gender', '성별'],
-      ['localLevel', '지역대회 급수'],
-      ['nationalLevel', '전국대회 급수'],
+    expect(await openPicker('정렬')).toEqual([
+      '참여순서',
+      '이름순',
+      '성별',
+      '지역대회 급수',
+      '전국대회 급수',
     ]);
   });
 });
