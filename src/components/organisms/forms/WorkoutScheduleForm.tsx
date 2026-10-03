@@ -105,7 +105,7 @@ function WorkoutScheduleForm({
               id="startDate"
               type="date"
               {...register('startDate')}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
             {errors.startDate && (
               <p className="mt-1 text-sm text-red-600">
@@ -125,7 +125,7 @@ function WorkoutScheduleForm({
               id="endDate"
               type="date"
               {...register('endDate')}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
             {errors.endDate && (
               <p className="mt-1 text-sm text-red-600">
@@ -152,7 +152,7 @@ function WorkoutScheduleForm({
                 id="weekdayStartTime"
                 type="time"
                 {...register('weekdayStartTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               {errors.weekdayStartTime && (
                 <p className="mt-1 text-sm text-red-600">
@@ -172,7 +172,7 @@ function WorkoutScheduleForm({
                 id="weekdayEndTime"
                 type="time"
                 {...register('weekdayEndTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               {errors.weekdayEndTime && (
                 <p className="mt-1 text-sm text-red-600">
@@ -200,7 +200,7 @@ function WorkoutScheduleForm({
                 id="weekendStartTime"
                 type="time"
                 {...register('weekendStartTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               {errors.weekendStartTime && (
                 <p className="mt-1 text-sm text-red-600">
@@ -220,7 +220,7 @@ function WorkoutScheduleForm({
                 id="weekendEndTime"
                 type="time"
                 {...register('weekendEndTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               {errors.weekendEndTime && (
                 <p className="mt-1 text-sm text-red-600">
@@ -244,7 +244,7 @@ function WorkoutScheduleForm({
               <Input
                 id="location"
                 {...register('location')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="예: 서울체육관 1코트"
               />
               {errors.location && (
@@ -266,7 +266,7 @@ function WorkoutScheduleForm({
                 type="number"
                 min="1"
                 {...register('maxParticipants', { valueAsNumber: true })}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
               {errors.maxParticipants && (
                 <p className="mt-1 text-sm text-red-600">

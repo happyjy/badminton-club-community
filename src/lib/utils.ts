@@ -1,5 +1,27 @@
 import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
+
+// tailwind.config.ts의 fontSize 토큰 이름. text-body를 글자색이 아니라
+// 글자 크기로 알려 줘야 text-secondary 같은 색 토큰과 함께 남는다.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      'font-size': [
+        {
+          text: [
+            'large-title',
+            'title',
+            'headline',
+            'body',
+            'callout',
+            'footnote',
+            'caption',
+          ],
+        },
+      ],
+    },
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
