@@ -50,6 +50,7 @@ import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/session';
 import rankingsHandler from '@/pages/api/clubs/[id]/rankings';
 import clubWorkoutsHandler from '@/pages/api/clubs/[id]/workouts';
+import workoutDetailHandler from '@/pages/api/workouts/[workoutId]';
 import helperStatusHandler from '@/pages/api/workouts/[workoutId]/helper-status';
 import participateHandler from '@/pages/api/workouts/[workoutId]/participate';
 
@@ -406,5 +407,28 @@ describe('클럽 랭킹 GET', () => {
     loginAs(1, { 2: memberRow(status) });
     const res = await call(rankingsHandler, 'GET', query);
     expect(res.statusCode).toBe(200);
+  });
+});
+
+describe('운동 상세 GET', () => {
+  it('클럽이 없는 운동은 404이고 게스트를 조회하지 않는다', async () => {
+    // 클럽이 없으면 게스트 조회 조건이 모든 클럽으로 넓어지므로 막아야 한다.
+    loginAs(1, { 1: memberRow('APPROVED') });
+    mockFindWorkout.mockResolvedValue({ ...OTHER_CLUB_WORKOUT, clubId: null });
+
+    const res = await call(workoutDetailHandler, 'GET', { workoutId: '100' });
+
+    expect(res.statusCode).toBe(404);
+    expect(mockFindGuests).not.toHaveBeenCalled();
+  });
+
+  it('다른 클럽 운동은 403', async () => {
+    loginAs(1, { 1: memberRow('APPROVED') });
+    mockFindWorkout.mockResolvedValue(OTHER_CLUB_WORKOUT);
+
+    const res = await call(workoutDetailHandler, 'GET', { workoutId: '100' });
+
+    expect(res.statusCode).toBe(403);
+    expect(mockFindGuests).not.toHaveBeenCalled();
   });
 });

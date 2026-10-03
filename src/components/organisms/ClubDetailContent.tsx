@@ -17,12 +17,15 @@ interface ClubDetailContentProps {
     helper: RankingMember[];
   };
   isRankingLoading: boolean;
+  // 랭킹은 클럽 회원 전용이라 비회원에게는 영역 자체를 그리지 않는다.
+  showRankings: boolean;
 }
 
 function ClubDetailContent({
   clubHomeSettings,
   rankings,
   isRankingLoading,
+  showRankings,
 }: ClubDetailContentProps) {
   return (
     <div className="space-y-6">
@@ -39,17 +42,18 @@ function ClubDetailContent({
         content={clubHomeSettings.clubLocation ?? ''}
       />
 
-      {isRankingLoading ? (
-        <section>
-          <h2 className="px-4 pb-2 text-footnote text-secondary">랭킹</h2>
-          <Skeleton className="h-48 rounded-md" />
-        </section>
-      ) : (
-        <RankingTable
-          attendanceRanking={rankings.attendance}
-          helperRanking={rankings.helper}
-        />
-      )}
+      {showRankings &&
+        (isRankingLoading ? (
+          <section>
+            <h2 className="px-4 pb-2 text-footnote text-secondary">랭킹</h2>
+            <Skeleton className="h-48 rounded-md" />
+          </section>
+        ) : (
+          <RankingTable
+            attendanceRanking={rankings.attendance}
+            helperRanking={rankings.helper}
+          />
+        ))}
     </div>
   );
 }

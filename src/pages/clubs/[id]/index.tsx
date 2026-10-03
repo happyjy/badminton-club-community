@@ -35,7 +35,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   const {
     data: rankings = { attendance: [], helper: [] },
     isLoading: isRankingLoading,
-  } = useClubRankings(clubId as string);
+  } = useClubRankings(clubId as string, membershipStatus.isMember);
 
   const onJoinClub = async (formData: ClubJoinFormData) => {
     try {
@@ -84,6 +84,7 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
         }
         rankings={rankings}
         isRankingLoading={isRankingLoading}
+        showRankings={membershipStatus.isMember}
       />
     </>
   );

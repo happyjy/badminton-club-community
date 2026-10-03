@@ -84,7 +84,9 @@ export default withAuth(async function handler(
       },
     });
 
-    if (!workout) {
+    // 클럽이 없는 운동은 권한을 판단할 기준이 없고, 아래 게스트 조회가
+    // 모든 클럽으로 넓어지므로 없는 운동으로 취급한다.
+    if (!workout || !workout.clubId) {
       return res.status(404).json({
         error: '운동을 찾을 수 없습니다',
         status: 404,
@@ -93,9 +95,7 @@ export default withAuth(async function handler(
 
     // 운동이 속한 클럽의 승인된 회원만 상세 정보를 볼 수 있다.
     // clubId는 요청자가 아니라 조회된 workout에서 가져와야 권한 검사가 의미가 있다.
-    if (workout.clubId) {
-      await requireClubMember(req.user.id, workout.clubId);
-    }
+    await requireClubMember(req.user.id, workout.clubId);
 
     // 운동 날짜 형식 변환 (YYYY-MM-DD 형식으로)
     const workoutDate = new Date(workout.date).toISOString().split('T')[0];

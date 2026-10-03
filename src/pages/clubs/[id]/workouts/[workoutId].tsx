@@ -154,8 +154,10 @@ function WorkoutDetailContent({
 
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
+  // 이 화면은 상세 API가 클럽 회원에게만 열어 주므로 여기까지 왔다면 회원이다.
   const { data: rankings = { attendance: [], helper: [] } } = useClubRankings(
-    workout.clubId?.toString()
+    workout.clubId?.toString(),
+    true
   );
 
   // 헬퍼 활동 횟수를 매핑하는 함수
