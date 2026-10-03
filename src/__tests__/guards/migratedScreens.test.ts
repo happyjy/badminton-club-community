@@ -94,6 +94,14 @@ const MIGRATED = [
   'components/molecules/RankingTable.tsx',
   'components/molecules/buttons/JoinClubButton.tsx',
   'components/organisms/navigation/clubNavigation/ClubListItem.tsx',
+  // 5단계 ① 표 부품 · 회원 관리
+  'components/molecules/Pagination.tsx',
+  'components/organisms/table/DataTable.tsx',
+  'components/organisms/table/Toolbar.tsx',
+  'components/organisms/table/BulkActionBar.tsx',
+  'components/organisms/club/MembersView.tsx',
+  'components/molecules/StatusFilter.tsx',
+  'pages/clubs/[id]/members/index.tsx',
 ];
 
 const COLOR_NAMES =

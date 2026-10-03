@@ -46,10 +46,7 @@ function findRawControls(dir: string): string[] {
 }
 
 // 다른 단계에서 Sheet로 옮기기로 한 것 (계획 문서의 "제외" 표)
-const OVERLAYS_MOVED_LATER = [
-  'components/organisms/sheet/Sheet.tsx',
-  'components/molecules/OptionBottomSheet.tsx', // 5단계 회원 관리
-];
+const OVERLAYS_MOVED_LATER = ['components/organisms/sheet/Sheet.tsx'];
 
 /** Sheet를 쓰지 않고 화면 전체를 덮는 막을 직접 만든 파일 */
 function findHandMadeOverlays(dir: string): string[] {

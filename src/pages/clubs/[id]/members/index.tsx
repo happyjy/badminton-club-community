@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 
-import { Select } from '@/components/atoms/inputs/Select';
+import { toast } from 'react-hot-toast';
+
+import { Skeleton } from '@/components/atoms/Skeleton';
 import { StatusFilter } from '@/components/molecules/StatusFilter';
-import { ClubMemberCard } from '@/components/organisms/club/ClubMemberCard';
+import { MembersView } from '@/components/organisms/club/MembersView';
+import { PageHeader } from '@/components/organisms/PageHeader';
 
 import {
   ParticipantSortProvider,
@@ -16,9 +18,8 @@ import {
   useStatusFilter,
 } from '@/contexts/StatusFilterContext';
 import { withAuth } from '@/lib/withAuth';
-import { ClubResponse, User } from '@/types';
+import { User } from '@/types';
 import { Role, Status } from '@/types/enums';
-import { SortOption } from '@/types/participantSort';
 import { SortableItem } from '@/types/sortable';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
@@ -42,14 +43,13 @@ export interface ClubMemberWithUser extends User {
   };
 }
 
-interface UsersPageContentProps {
-  userClubs: ClubResponse[];
-}
-
-function UsersPageContent({ userClubs }: UsersPageContentProps) {
+function UsersPageContent() {
   const { sortOption, participants, onChangeSort } =
     useParticipantSortContext();
   const { statusFilters } = useStatusFilter();
+  const [search, setSearch] = useState('');
+  const [approvingUserId, setApprovingUserId] = useState<number | null>(null);
+  const keyword = search.trim().toLowerCase();
 
   // 필터링된 참가자 목록 계산
   const filteredParticipants = participants.filter((user) => {
@@ -68,10 +68,21 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
       return false;
     }
 
+    // 이름 검색
+    if (
+      keyword &&
+      !((user as ClubMemberWithUser).clubMember.name || '')
+        .toLowerCase()
+        .includes(keyword)
+    ) {
+      return false;
+    }
+
     return true;
   });
 
   const handleApprove = async (userId: number, clubId: number) => {
+    setApprovingUserId(userId);
     try {
       const response = await fetch(
         `/api/clubs/${clubId}/members/${userId}/approve`,
@@ -104,9 +115,12 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
 
       // 정렬 옵션을 다시 적용하여 목록 업데이트
       onChangeSort(sortOption, updatedParticipants as SortableItem[]);
+      toast.success('승인했어요');
     } catch (err) {
       console.error('승인 처리 중 오류가 발생했습니다', err);
-      throw err;
+      toast.error('승인 처리에 실패했습니다');
+    } finally {
+      setApprovingUserId(null);
     }
   };
 
@@ -156,114 +170,32 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
       console.error('상태 변경 중 오류가 발생했습니다:', error);
       // 실패 시 이전 상태로 복원
       onChangeSort(sortOption, previousParticipants as SortableItem[]);
-      // TODO: 에러 처리 (예: 토스트 메시지 표시)
+      toast.error('상태 변경에 실패했습니다');
     }
   };
 
-  const renderUserCard = (idx: number, user: ClubMemberWithUser) => {
-    return (
-      <div
-        key={user.id}
-        className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
-      >
-        <div className="flex items-center gap-3 mb-2">
-          {user.thumbnailImageUrl && (
-            <Image
-              src={user.thumbnailImageUrl}
-              alt={user.nickname}
-              className="w-10 h-10 rounded-full"
-              width={40}
-              height={40}
-            />
-          )}
-          <h2 className="font-semibold text-lg">
-            {idx + 1}. {user.clubMember.name || '이름 없음'}
-          </h2>
-        </div>
-        <p className="text-gray-600 text-sm mb-2">{user.email}</p>
-        <ClubMemberCard
-          key={user.id}
-          member={user.clubMember}
-          userId={user.id}
-          userClubs={userClubs}
-          onApprove={handleApprove}
-          onStatusChange={handleStatusChange}
-        />
-        <p className="text-gray-500 text-xs mt-2">
-          가입일:{' '}
-          {new Date(user.clubMember.createdAt).toLocaleDateString('ko-KR')}
-        </p>
-      </div>
-    );
-  };
+  const isFiltered =
+    keyword.length > 0 ||
+    statusFilters.included.length > 0 ||
+    statusFilters.excluded.length > 0;
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">클럽 멤버 관리</h1>
-
-      {/* 필터 섹션 추가 */}
-      <div className="mb-6">
-        <StatusFilter />
-      </div>
-
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 md:mb-6 gap-3 md:gap-0">
-        <div className="flex flex-col md:flex-row md:items-center mb-2 md:mb-0 w-full md:w-auto">
-          <h2 className="text-base md:text-lg font-semibold mr-0 md:mr-2 mb-1 md:mb-0">
-            관리중인 클럽:
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {userClubs.map((club) => (
-              <span
-                key={club.clubId}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm mb-1"
-              >
-                {club.club?.name || `클럽 ${club.clubId}`}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 w-full md:w-auto">
-          <div className="text-gray-600 text-sm md:text-base">
-            {statusFilters.included.length > 0 ||
-            statusFilters.excluded.length > 0
-              ? '표시 중: '
-              : '총 회원 수: '}
-            <span className="font-semibold text-gray-900">
-              {filteredParticipants.length}명
-            </span>
-          </div>
-          <div className="relative w-full md:w-auto">
-            <Select
-              placeholder={null}
-              aria-label="정렬"
-              value={sortOption}
-              onChange={(e) => onChangeSort(e.target.value as SortOption)}
-              className="md:w-auto"
-            >
-              <option value="name">이름순</option>
-              <option value="localLevel">지역대회 급수</option>
-              <option value="nationalLevel">전국대회 급수</option>
-              <option value="birthDate">생년월일</option>
-              <option value="createdAt">가입순서</option>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredParticipants.length > 0 ? (
-          filteredParticipants.map((user, idx) =>
-            renderUserCard(idx, user as ClubMemberWithUser)
-          )
-        ) : (
-          <p className="col-span-full text-center text-gray-500">
-            {participants.length > 0
-              ? '선택한 필터에 맞는 멤버가 없습니다.'
-              : '등록된 멤버가 없습니다.'}
-          </p>
-        )}
-      </div>
-    </div>
+    <>
+      <PageHeader title="클럽 멤버 관리" />
+      <MembersView
+        members={filteredParticipants as ClubMemberWithUser[]}
+        totalCount={participants.length}
+        isFiltered={isFiltered}
+        search={search}
+        onChangeSearch={setSearch}
+        sortOption={sortOption}
+        onChangeSort={onChangeSort}
+        filter={<StatusFilter />}
+        onApprove={handleApprove}
+        onStatusChange={handleStatusChange}
+        approvingUserId={approvingUserId}
+      />
+    </>
   );
 }
 
@@ -273,7 +205,6 @@ function UsersPage() {
   const [users, setUsers] = useState<ClubMemberWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userClubs, setUserClubs] = useState<ClubResponse[]>([]);
 
   // 사용자가 admin권한을 가졌는지 확인
   useEffect(() => {
@@ -287,7 +218,6 @@ function UsersPage() {
         const adminClubs = clubs.filter(
           (club: { role: string }) => club.role === Role.ADMIN
         );
-        setUserClubs(adminClubs);
 
         // ADMIN 권한이 없는 경우
         if (adminClubs.length === 0) {
@@ -331,17 +261,27 @@ function UsersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
-      </div>
+      <>
+        <PageHeader title="클럽 멤버 관리" />
+        <div aria-busy="true" className="space-y-2">
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500 bg-red-50 p-4 rounded-lg">{error}</div>
-      </div>
+      <>
+        <PageHeader title="클럽 멤버 관리" />
+        <p
+          role="alert"
+          className="rounded-md bg-negative-soft px-4 py-3 text-callout text-negative"
+        >
+          {error}
+        </p>
+      </>
     );
   }
 
@@ -351,7 +291,7 @@ function UsersPage() {
         initialParticipants={users}
         initialSortOption="name"
       >
-        <UsersPageContent userClubs={userClubs} />
+        <UsersPageContent />
       </ParticipantSortProvider>
     </StatusFilterProvider>
   );
