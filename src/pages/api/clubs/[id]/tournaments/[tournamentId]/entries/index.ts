@@ -85,6 +85,11 @@ export default withAuth(async function handler(
       const feeById = new Map(
         tournament.eventTypes.map((eventType) => [eventType.id, eventType.fee])
       );
+      // 소속 여부(isClubMember)는 신청자가 선수별로 직접 체크한 자기 신고 값이다.
+      // 선수는 이름·연락처를 직접 입력할 뿐 클럽 회원 계정과 연결되지 않고,
+      // memberLabel(예: 당산클럽 소속)도 주최측 기준이라 앱 회원 여부와 같다는
+      // 보장이 없다. 그래서 서버가 판정하지 않고, 관리자가 신청 현황의
+      // "{memberLabel} 아님" 표시로 확인한다.
       // 추가금을 쓰지 않는 대회면 모든 선수를 회원으로 취급해 추가금을 0으로 만든다
       const useSurcharge = tournament.nonMemberSurcharge > 0;
       const surchargePlayers = input.players.map((player) => ({

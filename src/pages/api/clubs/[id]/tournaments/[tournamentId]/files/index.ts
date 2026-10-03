@@ -16,6 +16,7 @@ import {
   buildStoragePath,
   validateTournamentFile,
 } from '@/lib/tournament/fileValidation';
+import { resolveTournamentStatus } from '@/lib/tournament/status';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -44,13 +45,23 @@ export default withAuth(async function handler(
 
   try {
     if (req.method === 'GET') {
-      await requireClubMember(req.user.id, clubId);
+      const member = await requireClubMember(req.user.id, clubId);
 
       const tournament = await prisma.tournament.findFirst({
         where: { id: tournamentId, clubId },
-        select: { id: true },
+        select: {
+          id: true,
+          status: true,
+          applyStartAt: true,
+          applyDeadline: true,
+        },
       });
-      if (!tournament) {
+      // DRAFT는 ADMIN만 볼 수 있다. 대회 상세 API와 같은 규칙이다.
+      if (
+        !tournament ||
+        (resolveTournamentStatus(tournament, new Date()) === 'DRAFT' &&
+          member.role !== 'ADMIN')
+      ) {
         return res
           .status(404)
           .json({ error: '대회를 찾을 수 없습니다.', status: 404 });
