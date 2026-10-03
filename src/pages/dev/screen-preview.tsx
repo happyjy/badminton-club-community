@@ -2,7 +2,12 @@ import { useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { SegmentedControl } from '@/components/molecules/SegmentedControl';
+import {
+  GuestApplicationItem,
+  GuestApplicationList,
+} from '@/components/organisms/guest/GuestApplicationList';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { SelectedIcon } from '@/components/organisms/workout/HelperSheet';
 import { WorkoutCard } from '@/components/organisms/workout/WorkoutCard';
@@ -25,7 +30,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
   return { props: {} };
 };
 
-type Screen = 'attendance' | 'workout';
+type Screen = 'attendance' | 'workout' | 'guest';
 
 const ME = { id: 7, nickname: '나' } as User;
 const NAMES = [
@@ -133,6 +138,61 @@ const INITIAL_WORKOUTS: Workout[] = [
   },
 ];
 
+const GUEST_DESCRIPTION = `◦ 이 클럽에 게스트로 초대 하고 싶은 분이 있으시다면 아래 버튼을 클릭하여 신청서를 작성해주세요.
+◦ 게스트 참여 당일 참여 인원수가 많으면 제한 될 수 있습니다.
+◦ 방문 신청은 최소 이틀 전에 하시기 바랍니다.`;
+
+const GUEST_APPLICATIONS: GuestApplicationItem[] = [
+  {
+    id: 'a',
+    name: '신유빈',
+    status: 'PENDING',
+    visitDate: '2026-10-10',
+    createdAt: '2026-10-02T03:00:00.000Z',
+    intendToJoin: true,
+  },
+  {
+    id: 'b',
+    name: 'test',
+    status: 'REJECTED',
+    visitDate: '2026-09-13',
+    createdAt: '2026-09-12T03:00:00.000Z',
+    intendToJoin: false,
+  },
+  {
+    id: 'c',
+    name: '류승환',
+    status: 'APPROVED',
+    visitDate: '2026-07-09',
+    createdAt: '2026-07-09T03:00:00.000Z',
+    intendToJoin: true,
+  },
+  {
+    id: 'd',
+    name: '조윤미(코치님게스트)',
+    status: 'APPROVED',
+    visitDate: '2026-07-02',
+    createdAt: '2026-07-02T03:00:00.000Z',
+    intendToJoin: false,
+  },
+  {
+    id: 'e',
+    name: '아주아주 긴 이름을 가진 게스트(외부 클럽 소속 코치님 초대)',
+    status: 'APPROVED',
+    visitDate: '2025-12-30',
+    createdAt: '2025-12-28T03:00:00.000Z',
+    intendToJoin: true,
+  },
+  {
+    id: 'f',
+    name: '유효한',
+    status: 'APPROVED',
+    visitDate: '',
+    createdAt: '2026-07-06T03:00:00.000Z',
+    intendToJoin: false,
+  },
+];
+
 const GUESTS = [
   {
     id: 'g1',
@@ -152,8 +212,11 @@ const GUESTS = [
  */
 export default function ScreenPreviewPage() {
   const router = useRouter();
+  const queryScreen = router.query.screen;
   const screen: Screen =
-    router.query.screen === 'workout' ? 'workout' : 'attendance';
+    queryScreen === 'workout' || queryScreen === 'guest'
+      ? queryScreen
+      : 'attendance';
 
   const [workouts, setWorkouts] = useState(INITIAL_WORKOUTS);
   const [isAdmin, setIsAdmin] = useState(true);
@@ -260,6 +323,7 @@ export default function ScreenPreviewPage() {
           options={[
             { value: 'attendance', label: '출석체크' },
             { value: 'workout', label: '운동 상세' },
+            { value: 'guest', label: '게스트' },
           ]}
           value={screen}
           onChange={(next) =>
@@ -296,6 +360,25 @@ export default function ScreenPreviewPage() {
                 detailHref="/dev/screen-preview?screen=workout"
               />
             ))}
+          </div>
+        </>
+      ) : screen === 'guest' ? (
+        <>
+          <PageHeader title="게스트 신청" />
+          <div className="space-y-6">
+            <div className="space-y-4 rounded-md bg-surface p-4">
+              <p className="whitespace-pre-wrap break-words text-body text-secondary">
+                {GUEST_DESCRIPTION}
+              </p>
+              <Button type="button" className="w-full">
+                게스트 신청하기
+              </Button>
+            </div>
+            <GuestApplicationList
+              label="내 게스트 신청 내역"
+              applications={GUEST_APPLICATIONS}
+              hrefFor={() => '/dev/screen-preview?screen=guest'}
+            />
           </div>
         </>
       ) : (

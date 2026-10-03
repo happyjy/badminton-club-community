@@ -20,6 +20,9 @@ const MIGRATED = [
   'components/organisms/workout/HelperSheet.tsx',
   'components/molecules/PersonInfo.tsx',
   'pages/clubs/[id]/workouts/[workoutId].tsx',
+  // 4단계 ② 게스트 신청 목록
+  'components/organisms/guest/GuestApplicationList.tsx',
+  'pages/clubs/[id]/guest/index.tsx',
 ];
 
 const COLOR_NAMES =
