@@ -15,6 +15,11 @@ const MIGRATED = [
   'components/organisms/workout/WorkoutEditSheet.tsx',
   'components/organisms/workout/WorkoutDeleteSheet.tsx',
   'pages/clubs/[id]/attendance/index.tsx',
+  'components/organisms/workout/WorkoutDetailView.tsx',
+  'components/organisms/workout/WorkoutParkingSection.tsx',
+  'components/organisms/workout/HelperSheet.tsx',
+  'components/molecules/PersonInfo.tsx',
+  'pages/clubs/[id]/workouts/[workoutId].tsx',
 ];
 
 const COLOR_NAMES =

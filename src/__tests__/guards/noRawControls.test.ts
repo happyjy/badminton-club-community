@@ -51,7 +51,6 @@ const OVERLAYS_MOVED_LATER = [
   'components/organisms/modal/join/JoinModal.tsx', // 4단계 게스트 신청 화면
   'components/organisms/modal/PrivacyModal.tsx', // 4단계 게스트 신청 화면
   'components/molecules/OptionBottomSheet.tsx', // 5단계 회원 관리
-  'components/molecules/CircleMenu.tsx', // 4단계 운동 상세
 ];
 
 /** Sheet를 쓰지 않고 화면 전체를 덮는 막을 직접 만든 파일 */

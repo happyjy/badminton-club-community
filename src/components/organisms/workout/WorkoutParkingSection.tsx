@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 
@@ -79,66 +80,71 @@ export function WorkoutParkingSection({
   };
 
   return (
-    <section className="mt-6 p-4 border rounded-lg bg-white">
-      <h3 className="font-semibold text-lg mb-3">🚗 주차 명단</h3>
+    <section>
+      <h2 className="px-4 pb-2 text-footnote text-secondary">주차 명단</h2>
 
-      {isAdmin && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-2">
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={useDefault}
-              onChange={(e) => setUseDefault(e.target.checked)}
-              className="mr-0"
-            />
-            클럽 기본값 사용
-          </label>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              min={0}
-              fullWidth={false}
-              aria-label="주차 대수"
-              disabled={useDefault}
-              value={useDefault ? capacity : value}
-              onChange={(e) => setValue(e.target.value)}
-              className="w-24"
-            />
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving || !canSave}
-              className="px-3 py-1 rounded bg-blue-500 text-white text-sm disabled:bg-gray-400"
-            >
-              {isSaving ? '저장 중...' : '대수 변경'}
-            </button>
+      <div className="space-y-4 rounded-md bg-surface p-4">
+        {isAdmin && (
+          <div className="space-y-2 rounded-md bg-bg p-3">
+            <label className="flex min-h-11 items-center gap-2 text-callout text-primary">
+              <Checkbox
+                checked={useDefault}
+                onChange={(e) => setUseDefault(e.target.checked)}
+                className="mr-0"
+              />
+              클럽 기본값 사용
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min={0}
+                fullWidth={false}
+                aria-label="주차 대수"
+                disabled={useDefault}
+                value={useDefault ? capacity : value}
+                onChange={(e) => setValue(e.target.value)}
+                className="w-24"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleSave}
+                disabled={!canSave}
+                pending={isSaving}
+                pendingText="저장 중..."
+                pendingPosition="left"
+              >
+                대수 변경
+              </Button>
+            </div>
+            {!useDefault && isValueEmpty && (
+              <p className="text-footnote text-negative">
+                주차 대수를 입력해야 저장할 수 있습니다.
+              </p>
+            )}
+            {!useDefault && !isValueEmpty && isValueInvalid && (
+              <p className="text-footnote text-negative">
+                주차 대수는 0 이상의 숫자여야 합니다.
+              </p>
+            )}
+            <p className="text-footnote text-secondary">
+              대수를 줄이면 뒷순번 확정자가 대기로 내려갑니다.
+            </p>
           </div>
-          {!useDefault && isValueEmpty && (
-            <p className="text-xs text-red-500">
-              주차 대수를 입력해야 저장할 수 있습니다.
-            </p>
-          )}
-          {!useDefault && !isValueEmpty && isValueInvalid && (
-            <p className="text-xs text-red-500">
-              주차 대수는 0 이상의 숫자여야 합니다.
-            </p>
-          )}
-          <p className="text-xs text-gray-500">
-            대수를 줄이면 뒷순번 확정자가 대기로 내려갑니다.
-          </p>
-        </div>
-      )}
+        )}
 
-      <div className="space-y-3 text-sm">
         <div>
-          <p className="font-medium text-gray-700 mb-1">
+          <p className="mb-1 text-callout font-semibold text-primary">
             확정 {confirmed.length}/{capacity}
           </p>
           {confirmed.length === 0 ? (
-            <p className="text-gray-400">아직 신청자가 없습니다.</p>
+            <p className="text-callout text-secondary">
+              아직 신청자가 없습니다.
+            </p>
           ) : (
             <ol className="space-y-1">
               {confirmed.map((request, index) => (
-                <li key={request.id} className="text-gray-800">
+                <li key={request.id} className="text-body text-primary">
                   {index + 1}. {request.name}
                 </li>
               ))}
@@ -148,12 +154,12 @@ export function WorkoutParkingSection({
 
         {waitlist.length > 0 && (
           <div>
-            <p className="font-medium text-gray-700 mb-1">
+            <p className="mb-1 text-callout font-semibold text-primary">
               대기 {waitlist.length}명
             </p>
             <ol className="space-y-1">
               {waitlist.map((request, index) => (
-                <li key={request.id} className="text-gray-500">
+                <li key={request.id} className="text-body text-secondary">
                   대기 {index + 1}번. {request.name}
                 </li>
               ))}
