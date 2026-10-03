@@ -62,6 +62,33 @@ npx prisma generate
 비대화형 셸이라 실제 삭제로 이어지지는 않았지만, 확인 프롬프트가 뜨는 환경이었다면
 데이터가 사라졌을 수 있다. 이 사고로 `db-guard.sh` 훅과 위 규칙이 생겼다.
 
+## UI 작업 규칙
+
+화면을 만들거나 고치기 전에 **[docs/가이드/디자인-시스템.md](docs/가이드/디자인-시스템.md)를 먼저 읽는다.**
+토큰 이름, 부품 목록, 화면 틀의 예시 코드가 있다. 결정의 이유는
+`docs/superpowers/specs/2026-10-03-design-system-design.md`에 있다.
+
+### 반드시 지킬 것
+
+1. **색·크기는 토큰만 쓴다.** `bg-blue-500`, `bg-white`, `#hex`, `text-sm`, `shadow-md`를 쓰지 않는다.
+   `bg-surface`, `text-secondary`, `text-footnote`, `rounded-md` 같은 역할 이름을 쓴다.
+2. **부품을 먼저 찾는다.** 버튼·입력·칩·리스트·시트·표는 `src/components`에 있다.
+   원시 `<input>`·`<select>`·`<textarea>`, `confirm()`·`alert()`, 직접 만든 `fixed inset-0` 막을 쓰지 않는다.
+   맞는 부품이 없으면 `atoms`/`molecules`에 만든 뒤 쓴다.
+3. **화면 틀을 따른다.** 회원용은 `PageHeader` + `ListGroup`, 관리용은 `Toolbar` + `DataTable`(+ 상세 `Sheet`).
+   탭바·사이드바·바깥 여백은 `Layout`이 그리므로 화면에서 다시 주지 않는다.
+4. **상태 색은 `statusTone.ts`에서만 정한다.** 화면에서 조건문으로 색을 고르지 않고 `StatusChip`에 `domain`·`status`를 넘긴다.
+5. **이모지를 아이콘으로 쓰지 않는다.** `lucide-react`를 쓴다.
+6. **새 색은 라이트·다크를 함께 정한다.** `globals.css`에 더하고 `darkMode.test.ts`의 대비 검사에 넣는다.
+
+### 확인
+
+- 지킴이 테스트가 위 규칙의 대부분을 검사한다: `npx jest src/__tests__/guards src/__tests__/styles`
+- 화면을 바꾸면 휴대폰(390)·PC(1280), 라이트·다크 네 가지로 본다.
+  로그인이 필요한 화면은 그리는 부분을 `…View` 부품으로 떼어 `/dev/screen-preview`나
+  `/dev/admin-preview`에 가짜 데이터로 올려서 본다(운영에서는 404).
+- 사용자가 보는 문구는 요청 없이 바꾸지 않는다. 바꿨으면 보고한다.
+
 ## 커밋
 
 커밋 메시지에 `Co-Authored-By: Claude ...` 트레일러를 넣지 않는다.
