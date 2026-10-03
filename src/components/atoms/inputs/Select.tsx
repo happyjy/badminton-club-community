@@ -1,5 +1,9 @@
 import { forwardRef } from 'react';
 
+import { inputClassName } from '@/components/atoms/inputs/Input';
+
+import { cn } from '@/lib/utils';
+
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   options: Array<{ value: string; label: string }>;
   fullWidth?: boolean;
@@ -7,14 +11,18 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 // react-hook-form의 register()가 ref를 전달하므로 forwardRef가 필요하다.
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  function Select(
-    { options, fullWidth = true, className = '', ...props },
-    ref
-  ) {
+  function Select({ options, fullWidth = true, className, ...props }, ref) {
     return (
       <select
         ref={ref}
-        className={`mt-1 block ${fullWidth ? 'w-full' : ''} rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 ${className}`}
+        // select-chevron: 기본 화살표를 지우고 직접 그린다 (globals.css).
+        className={cn(
+          inputClassName,
+          'select-chevron appearance-none pr-10',
+          fullWidth && 'w-full',
+          className,
+          'text-body'
+        )}
         {...props}
       >
         <option value="">선택해주세요</option>
