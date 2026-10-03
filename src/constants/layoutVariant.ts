@@ -25,8 +25,10 @@ const ADMIN = new Set([
 ]);
 
 export function getLayoutVariant(pathname: string): LayoutVariant {
-  // 개발용 뼈대 미리보기는 화면 안에서 AppShell을 직접 그린다.
-  if (pathname === '/dev/shell-preview') return 'none';
+  // 개발용 미리보기는 화면 안에서 AppShell을 직접 그린다.
+  if (pathname === '/dev/shell-preview' || pathname === '/dev/screen-preview') {
+    return 'none';
+  }
   if (BARE.has(pathname)) return 'bare';
   if (ADMIN.has(pathname)) return 'admin';
   return 'member';
