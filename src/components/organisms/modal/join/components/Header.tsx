@@ -1,17 +1,15 @@
 import { ReactNode } from 'react';
 
-interface HeaderProps {
+export interface HeaderProps {
+  /** 창의 제목. JoinModal이 읽어 시트의 제목 줄에 그린다 */
   title: string;
   description?: string | ReactNode;
 }
 
-function Header({ title, description }: HeaderProps) {
-  return (
-    <div className="mb-4">
-      <h2 className="text-xl font-bold mb-2">{title}</h2>
-      {description && <p className="text-gray-600 text-sm">{description}</p>}
-    </div>
-  );
+/** 신청 창 맨 위의 설명. 제목은 시트가 그리므로 여기서는 설명만 그린다. */
+function Header({ description }: HeaderProps) {
+  if (!description) return null;
+  return <p className="text-callout text-secondary">{description}</p>;
 }
 
 export default Header;

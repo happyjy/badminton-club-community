@@ -6,3 +6,19 @@
 // 6.9.1의 매처 타입이 @jest/expect의 Matchers<R>(타입 인자 1개)를 확장하는데
 // Jest 30의 Matchers는 <R, T> 2개라 선언 병합이 되지 않아 tsc가 실패한다.
 // 표준 assertion(.value, .getAttribute(), toBeTruthy)으로 동일하게 검증한다.
+
+// @headlessui/react가 쓰는 브라우저 API 중 jsdom에 없는 것을 채운다.
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+if (
+  typeof Element !== 'undefined' &&
+  typeof Element.prototype.getAnimations !== 'function'
+) {
+  // 진행 중인 애니메이션이 없다고 답하면 headlessui가 전환을 바로 끝낸다.
+  Element.prototype.getAnimations = () => [];
+}

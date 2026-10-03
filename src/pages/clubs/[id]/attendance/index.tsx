@@ -2,14 +2,19 @@ import { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 
 import { useRouter } from 'next/router';
 
+import { CalendarX } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
+import { Skeleton } from '@/components/atoms/Skeleton';
+import { EmptyState } from '@/components/molecules/EmptyState';
+import { PageHeader } from '@/components/organisms/PageHeader';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+import { WorkoutCard } from '@/components/organisms/workout/WorkoutCard';
 import { WorkoutDeleteSheet } from '@/components/organisms/workout/WorkoutDeleteSheet';
 import {
   WorkoutEditSheet,
   WorkoutEditValues,
 } from '@/components/organisms/workout/WorkoutEditSheet';
-import { WorkoutListItem } from '@/components/organisms/workout/WorkoutListItem';
 
 import { withAuth } from '@/lib/withAuth';
 import { RootState } from '@/store';
@@ -94,6 +99,7 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     }
   };
 
+  const confirm = useConfirm();
   const handleParkingRequest = async (
     workoutId: number,
     isRequested: boolean
@@ -110,7 +116,10 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        alert(result.error ?? '주차 신청에 실패했습니다.');
+        await confirm({
+          title: result.error ?? '주차 신청에 실패했습니다.',
+          hideCancel: true,
+        });
         return;
       }
 
@@ -207,14 +216,18 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
 
   return (
     <>
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {isLoadingWorkouts ? (
-          <div className="col-span-full flex justify-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
-          </div>
-        ) : workouts.length > 0 ? (
-          workouts.map((workout) => (
-            <WorkoutListItem
+      <PageHeader title="출석체크" />
+
+      {isLoadingWorkouts ? (
+        <div className="grid gap-4">
+          {[0, 1, 2].map((index) => (
+            <Skeleton key={index} className="h-56 rounded-md" />
+          ))}
+        </div>
+      ) : workouts.length > 0 ? (
+        <div className="grid gap-4">
+          {workouts.map((workout) => (
+            <WorkoutCard
               key={workout.id}
               workout={workout}
               user={user}
@@ -227,14 +240,17 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
               onParkingRequest={handleParkingRequest}
               isParticipatePending={pendingParticipateIds.has(workout.id)}
               isParkingPending={pendingParkingIds.has(workout.id)}
+              detailHref={`/clubs/${clubId}/workouts/${workout.id}`}
             />
-          ))
-        ) : (
-          <p className="col-span-full text-center text-gray-500 py-10">
-            등록된 운동이 없습니다.
-          </p>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon={CalendarX}
+          title="등록된 운동이 아직 없어요"
+          description="일정이 올라오면 여기에 보여요"
+        />
+      )}
 
       {editTarget && (
         <WorkoutEditSheet

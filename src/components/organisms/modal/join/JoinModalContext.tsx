@@ -40,6 +40,9 @@ export interface JoinModalContextType {
   ) => Promise<any>;
   verifyPhoneCode?: (phoneNumber: string, code: string) => Promise<any>;
 
+  // 폼의 id. 제출 버튼이 폼 밖(시트의 아래 고정 영역)에 있어 이 값으로 잇는다.
+  formId?: string;
+
   // 전화번호 인증이 끝났는지를 상위(제출 버튼)에 알리는 콜백
   onPhoneVerifiedChange?: (isVerified: boolean) => void;
   // 제출 버튼이 인증 완료를 기다려야 하는지, 그리고 인증이 끝났는지
@@ -60,6 +63,8 @@ export interface JoinModalContextType {
   // 개인정보 모달 관련
   isPrivacyModalOpen: boolean;
   setIsPrivacyModalOpen: (isOpen: boolean) => void;
+  /** 제출을 막은 이유 (전화번호 형식, 인증 미완료). 제출 버튼 위에 보여 준다 */
+  submitError?: string | null;
 }
 
 // Context 생성

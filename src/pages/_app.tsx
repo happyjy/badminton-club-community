@@ -1,3 +1,4 @@
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import '@/styles/globals.css';
 import { useEffect } from 'react';
 
@@ -10,6 +11,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { Provider } from 'react-redux';
 
+import { ConfirmProvider } from '@/components/organisms/sheet/ConfirmProvider';
 import { Layout } from '@/components/templates/Layout';
 
 import { queryClient } from '@/lib/react-query';
@@ -108,17 +110,27 @@ export default function App({ Component, pageProps }: AppProps) {
 
         {/* http://locatorjs.com/ - 웹 화면의 컴포넌트를 클릭하면 해당 컴포넌트의 소스 코드 파일을 바로 IDE에서 열어줌 */}
         {/* <LocatorProvider> */}
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        <ConfirmProvider>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </ConfirmProvider>
         {/* </LocatorProvider> */}
         <Toaster
-          position={
-            // 640: tailwind의 sm 브레이크 포인트 기준
-            typeof window !== 'undefined' && window.innerWidth < 640
-              ? 'bottom-center' // 모바일에서는 하단 중앙
-              : 'top-right' // 데스크탑에서는 우측 상단
-          }
+          position="top-center"
+          containerStyle={{
+            // 노치와 상단 바를 피한다.
+            top: 'calc(env(safe-area-inset-top) + 56px)',
+            zIndex: 60,
+          }}
+          toastOptions={{
+            // 다크모드에서도 읽히도록 토큰 색을 쓴다.
+            style: {
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
+            },
+          }}
         />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || ''} />
       </Provider>

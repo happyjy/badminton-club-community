@@ -4,7 +4,14 @@ module.exports = {
     process.env.SITE_URL || 'https://badminton-club-community.vercel.app', // 실제 도메인으로 변경 필요
   generateRobotsTxt: true,
   generateIndexSitemap: false,
-  exclude: ['/server-sitemap.xml', '/admin/*', '/api/*', '/404', '/500'],
+  exclude: [
+    '/server-sitemap.xml',
+    '/admin/*',
+    '/dev/*',
+    '/api/*',
+    '/404',
+    '/500',
+  ],
   robotsTxtOptions: {
     policies: [
       {

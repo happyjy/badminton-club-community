@@ -3,8 +3,10 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
+import { Spinner } from '@/components/atoms/Spinner';
 import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
 import ClubDetailContent from '@/components/organisms/ClubDetailContent';
+import { PageHeader } from '@/components/organisms/PageHeader';
 
 import { useClubRankings } from '@/hooks/useClubRankings';
 import { useClubHomeSettings } from '@/hooks/useCustomSettings';
@@ -48,23 +50,30 @@ function ClubDetailPage({ user }: ClubDetailPageProps) {
   };
 
   if (clubHomeSettingsLoading) {
-    return <div>로딩 중...</div>;
+    return (
+      <div className="flex justify-center py-10">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   return (
     <>
-      {isAbleJoinclubButton && (
-        <div className="flex justify-end">
-          <JoinClubButton
-            user={user}
-            clubId={clubId as string}
-            isLoading={isLoading}
-            membershipStatus={membershipStatus}
-            canJoinClub={canJoinClub}
-            onJoin={onJoinClub}
-          />
-        </div>
-      )}
+      <PageHeader
+        title="홈"
+        action={
+          isAbleJoinclubButton && (
+            <JoinClubButton
+              user={user}
+              clubId={clubId as string}
+              isLoading={isLoading}
+              membershipStatus={membershipStatus}
+              canJoinClub={canJoinClub}
+              onJoin={onJoinClub}
+            />
+          )
+        }
+      />
       <ClubDetailContent
         clubHomeSettings={
           clubHomeSettings ?? {

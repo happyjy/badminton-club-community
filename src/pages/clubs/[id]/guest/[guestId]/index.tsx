@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { StatusChip } from '@/components/atoms/StatusChip';
 import PhoneNumberText from '@/components/molecules/form/PhoneNumberText';
 import { InfoItem } from '@/components/molecules/InfoItem';
 import { CommentInput } from '@/components/organisms/comment/CommentInput';
@@ -16,6 +17,8 @@ import {
   GuestApplicationModal,
   GuestInquiryModal,
 } from '@/components/organisms/modal/join';
+import { PageHeader } from '@/components/organisms/PageHeader';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
@@ -199,14 +202,18 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
     }
   };
   // 게스트 신청 삭제
+  const confirm = useConfirm();
   const onClickDeleteGuest = async () => {
     if (!clubId || !guestId || isDeleting) return;
 
     // 확인 메시지
     if (
-      !confirm(
-        '정말로 이 게스트 신청을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'
-      )
+      !(await confirm({
+        title: '정말로 이 게스트 신청을 삭제하시겠습니까?',
+        message: '이 작업은 되돌릴 수 없습니다.',
+        confirmLabel: '삭제',
+        destructive: true,
+      }))
     ) {
       return;
     }
@@ -342,17 +349,6 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
     setIsEditModalOpen(false);
   };
 
-  // 상태에 따른 배지 색상
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'bg-green-100 text-green-800';
-      case 'REJECTED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
   // 상태 텍스트
   const getStatusText = (status: string) => {
     switch (status) {
@@ -365,173 +361,170 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
     }
   };
 
-  // 버튼 렌더링 변수: 관리자용
-  const adminButtons = isAdmin && (
-    <>
-      <Button
-        onClick={handleApprove}
-        pending={isUpdating}
-        disabled={isUpdating}
-        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 transition-colors min-w-[60px]"
-      >
-        승인
-      </Button>
-      <Button
-        onClick={handleReject}
-        pending={isUpdating}
-        disabled={isUpdating}
-        className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors min-w-[60px]"
-      >
-        거절
-      </Button>
-      {isDeletable && (
-        <Button
-          onClick={onClickDeleteGuest}
-          pending={isDeleting}
-          disabled={isUpdating || isDeleting}
-          className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 transition-colors min-w-[60px]"
-        >
-          삭제
-        </Button>
-      )}
-    </>
-  );
-
-  // 버튼 렌더링 변수: 내 게시물용
-  const myPostButtons = isMyPost && (
-    <>
-      {isEditable && (
-        <Button
-          onClick={onClickOpenEditModal}
-          disabled={isUpdating || isDeleting}
-          className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 transition-colors min-w-[60px]"
-        >
-          수정
-        </Button>
-      )}
-    </>
-  );
+  const hasActions = isAdmin || (isMyPost && isEditable);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      <div className="mb-6">
-        <div className="title-wrapper flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-2 border-b-2 border-gray-200">
-          <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-0">
-            {strategy.getDetailPageTitle()}
-          </h1>
-          <div className="flex gap-2 flex-wrap">
-            {adminButtons}
-            {myPostButtons}
-          </div>
-        </div>
-        <div className="space-y-4">
-          {/* 작성자 */}
-          <InfoSection title="작성자">
-            <InfoItem label="이름">
-              {guestPost.author?.name || '미지정'}
-            </InfoItem>
-          </InfoSection>
+    <div>
+      <PageHeader
+        title={strategy.getDetailPageTitle()}
+        backHref={`/clubs/${clubId}/guest`}
+        action={
+          // 모르는 상태값은 지금까지처럼 검토중(주의)으로 보여 준다.
+          <StatusChip
+            tone={
+              status === 'APPROVED'
+                ? 'positive'
+                : status === 'REJECTED'
+                  ? 'negative'
+                  : 'warning'
+            }
+          >
+            {getStatusText(status)}
+          </StatusChip>
+        }
+      />
 
-          {/* 기본 정보 섹션 */}
-          <InfoSection title="기본 정보">
-            <InfoItem label="이름">{guestPost.name}</InfoItem>
-            <InfoItem label="생년월일">
-              {formatDateSimple(guestPost.birthDate)}
-            </InfoItem>
-            <InfoItem label="성별">{guestPost.gender}</InfoItem>
-            <InfoItem label={strategy.getPhoneLabel()}>
-              <PhoneNumberText value={guestPost.phoneNumber} />
-            </InfoItem>
-            <InfoItem label="신청일">
-              {formatDateSimple(guestPost.createdAt)}
-            </InfoItem>
-          </InfoSection>
-
-          {/* 방문 정보 섹션 */}
-          <InfoSection title="방문 정보">
-            <InfoItem label="방문희망일">
-              {formatDateSimple(guestPost.visitDate)}
-            </InfoItem>
-            <InfoItem label="클럽 가입 의향">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={guestPost.intendToJoin}
-                  readOnly
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
-                />
-                <span className="ml-2">
-                  {guestPost.intendToJoin ? '있음' : '없음'}
-                </span>
-              </div>
-            </InfoItem>
-            <InfoItem label="처리 상태">
-              <span
-                className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getStatusBadgeColor(status)}`}
+      <div className="space-y-6">
+        {hasActions && (
+          <div className="flex flex-wrap gap-2">
+            {isAdmin && (
+              <>
+                <Button
+                  type="button"
+                  className="flex-1"
+                  onClick={handleApprove}
+                  pending={isUpdating}
+                >
+                  승인
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={handleReject}
+                  pending={isUpdating}
+                >
+                  거절
+                </Button>
+                {isDeletable && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={onClickDeleteGuest}
+                    pending={isDeleting}
+                    disabled={isUpdating}
+                  >
+                    삭제
+                  </Button>
+                )}
+              </>
+            )}
+            {isMyPost && isEditable && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex-1"
+                onClick={onClickOpenEditModal}
+                disabled={isUpdating || isDeleting}
               >
-                {getStatusText(status)}
-              </span>
-            </InfoItem>
-          </InfoSection>
+                수정
+              </Button>
+            )}
+          </div>
+        )}
 
-          {/* 배드민턴 경력 섹션 */}
-          <InfoSection title="배드민턴 경력">
-            <InfoItem label="구대회 신청 가능 급수">
-              {guestPost.localTournamentLevel}
-            </InfoItem>
-            <InfoItem label="전국대회 신청 가능 급수">
-              {guestPost.nationalTournamentLevel}
-            </InfoItem>
-            <InfoItem label="레슨 받은 기간">{guestPost.lessonPeriod}</InfoItem>
-            <InfoItem label="구력">{guestPost.playingPeriod}</InfoItem>
-          </InfoSection>
+        {/* 작성자 */}
+        <InfoSection title="작성자">
+          <InfoItem label="이름">{guestPost.author?.name || '미지정'}</InfoItem>
+        </InfoSection>
 
-          {/* 신청 메시지 섹션 */}
-          <InfoSection title={strategy.getDetailPageMessageTitle()} fullWidth>
-            <div className="bg-white p-3 rounded-md">
-              <p className="text-gray-700 whitespace-pre-wrap break-words">
-                {guestPost.message || '작성된 메시지가 없습니다.'}
+        {/* 기본 정보 섹션 */}
+        <InfoSection title="기본 정보">
+          <InfoItem label="이름">{guestPost.name}</InfoItem>
+          <InfoItem label="생년월일">
+            {formatDateSimple(guestPost.birthDate)}
+          </InfoItem>
+          <InfoItem label="성별">{guestPost.gender}</InfoItem>
+          <InfoItem label={strategy.getPhoneLabel()}>
+            <PhoneNumberText value={guestPost.phoneNumber} />
+          </InfoItem>
+          <InfoItem label="신청일">
+            {formatDateSimple(guestPost.createdAt)}
+          </InfoItem>
+        </InfoSection>
+
+        {/* 방문 정보 섹션 */}
+        <InfoSection title="방문 정보">
+          <InfoItem label="방문희망일">
+            {formatDateSimple(guestPost.visitDate)}
+          </InfoItem>
+          <InfoItem label="클럽 가입 의향">
+            {guestPost.intendToJoin ? (
+              <StatusChip tone="positive">있음</StatusChip>
+            ) : (
+              '없음'
+            )}
+          </InfoItem>
+        </InfoSection>
+
+        {/* 배드민턴 경력 섹션 */}
+        <InfoSection title="배드민턴 경력">
+          <InfoItem label="구대회 신청 가능 급수">
+            {guestPost.localTournamentLevel}
+          </InfoItem>
+          <InfoItem label="전국대회 신청 가능 급수">
+            {guestPost.nationalTournamentLevel}
+          </InfoItem>
+          <InfoItem label="레슨 받은 기간">{guestPost.lessonPeriod}</InfoItem>
+          <InfoItem label="구력">{guestPost.playingPeriod}</InfoItem>
+        </InfoSection>
+
+        {/* 신청 메시지 섹션 */}
+        <InfoSection title={strategy.getDetailPageMessageTitle()} fullWidth>
+          <p className="whitespace-pre-wrap break-words text-body text-primary">
+            {guestPost.message || '작성된 메시지가 없습니다.'}
+          </p>
+        </InfoSection>
+
+        {/* 댓글 섹션 */}
+        <InfoSection title="댓글" fullWidth>
+          <div className="space-y-4">
+            {/* 댓글 목록 영역 */}
+            {isLoading ? (
+              <p className="text-callout text-secondary">
+                댓글을 불러오는 중...
               </p>
-            </div>
-          </InfoSection>
-
-          {/* 댓글 섹션 */}
-          <InfoSection title="댓글" fullWidth>
-            <div className="space-y-4">
-              {/* 댓글 목록 영역 */}
-              {isLoading ? (
-                <p className="text-gray-500">댓글을 불러오는 중...</p>
-              ) : (
-                <div className="space-y-3">
-                  {comments
-                    .filter((comment) => !comment.isDeleted && comment.author)
-                    .sort(
-                      (a, b) =>
-                        new Date(a.createdAt).getTime() -
-                        new Date(b.createdAt).getTime()
-                    )
-                    .map((comment) => (
-                      <CommentItem
-                        key={comment.id}
-                        id={comment.id}
-                        content={comment.content}
-                        author={comment.author}
-                        createdAt={comment.createdAt}
-                        isEditable={user?.id === comment.author?.id}
-                        onUpdate={handleCommentUpdate}
-                        onDelete={handleCommentDelete}
-                      />
-                    ))}
-                </div>
-              )}
-              {/* 댓글 입력 영역 */}
-              <CommentInput
-                onSubmit={handleCommentSubmit}
-                isSubmitting={isCommenting}
-              />
-            </div>
-          </InfoSection>
-        </div>
+            ) : (
+              <div className="space-y-2">
+                {comments
+                  .filter((comment) => !comment.isDeleted && comment.author)
+                  .sort(
+                    (a, b) =>
+                      new Date(a.createdAt).getTime() -
+                      new Date(b.createdAt).getTime()
+                  )
+                  .map((comment) => (
+                    <CommentItem
+                      key={comment.id}
+                      id={comment.id}
+                      content={comment.content}
+                      author={comment.author}
+                      createdAt={comment.createdAt}
+                      isEditable={user?.id === comment.author?.id}
+                      onUpdate={handleCommentUpdate}
+                      onDelete={handleCommentDelete}
+                    />
+                  ))}
+              </div>
+            )}
+            {/* 댓글 입력 영역 */}
+            <CommentInput
+              onSubmit={handleCommentSubmit}
+              isSubmitting={isCommenting}
+            />
+          </div>
+        </InfoSection>
       </div>
 
       {/* 수정 모달 - 글의 종류에 따라 다른 모달 사용.

@@ -1,11 +1,15 @@
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { ChevronLeft, Eye, Heart, MessageCircle, Pin } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { StatusChip } from '@/components/atoms/StatusChip';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { formatDate } from '@/lib/utils';
 import { RootState } from '@/store';
@@ -89,8 +93,15 @@ function PostDetail({ post }: PostDetailProps) {
     router.push(`/clubs/${clubId}/board/${postId}/edit`);
   };
 
-  const onClickDelete = () => {
-    if (confirm('정말 삭제하시겠습니까?')) {
+  const confirm = useConfirm();
+  const onClickDelete = async () => {
+    if (
+      await confirm({
+        title: '정말 삭제하시겠습니까?',
+        confirmLabel: '삭제',
+        destructive: true,
+      })
+    ) {
       deleteMutation.mutate();
     }
   };
@@ -108,84 +119,106 @@ function PostDetail({ post }: PostDetailProps) {
     pinMutation.mutate(!post.isPinned);
   };
 
-  const onClickBack = () => {
-    router.push(`/clubs/${clubId}/board`);
-  };
-
   return (
-    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      {/* 헤더 */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-2">
+    <article>
+      <Link
+        href={`/clubs/${clubId}/board`}
+        className="-ml-2 inline-flex h-11 items-center pr-3 text-callout text-secondary"
+      >
+        <ChevronLeft aria-hidden className="h-5 w-5" />
+        목록
+      </Link>
+
+      <div className="space-y-4 rounded-md bg-surface p-4">
+        {/* 헤더 */}
+        <header>
+          <div className="flex items-start gap-1.5">
             {post.isPinned && (
-              <span className="shrink-0 text-blue-500" title="고정 게시글">
-                📌
-              </span>
+              <Pin
+                aria-label="고정 게시글"
+                className="mt-1.5 h-5 w-5 shrink-0 text-secondary"
+              />
             )}
-            <h1 className="min-w-0 break-words text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="min-w-0 break-words text-title text-primary">
               {post.title}
             </h1>
           </div>
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-500">
-            <span className="px-2 py-1 bg-gray-100 rounded">
-              {post.category.name}
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-footnote text-secondary">
+            <StatusChip tone="neutral">{post.category.name}</StatusChip>
+            <span>
+              {post.author.name || '알 수 없음'} · {formatDate(post.createdAt)}
             </span>
-            <span>{post.author.name || '알 수 없음'}</span>
-            <span>{formatDate(post.createdAt)}</span>
-            <span>👁️ {post.viewCount}</span>
-            <span>❤️ {post.likeCount}</span>
-            <span>💬 {post._count?.comments || 0}</span>
+            <span className="flex items-center gap-1 tabular-nums">
+              <Eye aria-hidden className="h-3.5 w-3.5" />
+              {post.viewCount}
+            </span>
+            {/* 회원은 아래 좋아요 버튼에서 수를 본다. 버튼이 없는 사람에게만 여기에 보인다. */}
+            {!clubMember && (
+              <span className="flex items-center gap-1 tabular-nums">
+                <Heart aria-hidden className="h-3.5 w-3.5" />
+                <span className="sr-only">좋아요</span>
+                {post.likeCount}
+              </span>
+            )}
+            <span className="flex items-center gap-1 tabular-nums">
+              <MessageCircle aria-hidden className="h-3.5 w-3.5" />
+              {post._count?.comments || 0}
+            </span>
           </div>
-        </div>
-      </div>
+        </header>
 
-      {/* 내용 */}
-      <div className="prose max-w-none mb-6">
-        <div className="whitespace-pre-wrap break-words text-gray-700">
+        {/* 내용 */}
+        <div className="whitespace-pre-wrap break-words text-body text-primary">
           {renderContentWithLinks(post.content)}
         </div>
-      </div>
 
-      {/* 액션 버튼 */}
-      <div className="flex flex-wrap items-center gap-2 pt-4 border-t">
-        <Button variant="ghost" onClick={onClickBack}>
-          목록
-        </Button>
-        {clubMember && (
-          <Button
-            variant="ghost"
-            onClick={onClickLike}
-            disabled={likeMutation.isPending}
-          >
-            ❤️ 좋아요 ({post.likeCount})
-          </Button>
-        )}
-        {isEditable && (
-          <>
-            <Button variant="ghost" onClick={onClickEdit}>
-              수정
-            </Button>
+        {/* 액션 버튼 */}
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+          {clubMember && (
             <Button
-              variant="ghost"
-              onClick={onClickDelete}
-              disabled={deleteMutation.isPending}
+              type="button"
+              variant="secondary"
+              onClick={onClickLike}
+              disabled={likeMutation.isPending}
             >
-              삭제
+              <Heart aria-hidden className="mr-1.5 h-4 w-4" />
+              좋아요 {post.likeCount}
             </Button>
-          </>
-        )}
-        {canPin && (
-          <Button
-            variant="ghost"
-            onClick={onClickPin}
-            disabled={pinMutation.isPending}
-          >
-            {post.isPinned ? '📌 고정 해제' : '📌 고정'}
-          </Button>
-        )}
+          )}
+          {canPin && (
+            <Button
+              type="button"
+              variant="plain"
+              onClick={onClickPin}
+              disabled={pinMutation.isPending}
+            >
+              {post.isPinned ? '고정 해제' : '고정'}
+            </Button>
+          )}
+          {isEditable && (
+            <>
+              <Button
+                type="button"
+                variant="plain"
+                className="ml-auto"
+                onClick={onClickEdit}
+              >
+                수정
+              </Button>
+              <Button
+                type="button"
+                variant="plain"
+                className="text-negative"
+                onClick={onClickDelete}
+                disabled={deleteMutation.isPending}
+              >
+                삭제
+              </Button>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
 

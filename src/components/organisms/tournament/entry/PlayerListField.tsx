@@ -2,12 +2,12 @@ import { useEffect } from 'react';
 
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 
 import { type SurchargeUnitValue } from '@/lib/tournament/fee';
-
 import {
   getBirthDateError,
   toBirthDateDigits,
@@ -106,16 +106,16 @@ function PlayerListField({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">① 선수 명단</h2>
+        <h2 className="text-headline font-semibold">① 선수 명단</h2>
         <button
           type="button"
           onClick={onClickAddPlayer}
-          className="rounded-md bg-blue-50 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100"
+          className="rounded-md bg-fill px-3 py-1.5 text-callout text-primary"
         >
           + 선수 추가
         </button>
       </div>
-      <p className="text-sm text-gray-500">
+      <p className="text-callout text-secondary">
         같은 선수가 여러 종목에 나가도 한 번만 등록하세요.
       </p>
 
@@ -125,19 +125,16 @@ function PlayerListField({
         const playerErrors = errors.players?.[index];
 
         return (
-          <div
-            key={field.id}
-            className="space-y-3 rounded-lg border border-gray-200 p-4"
-          >
+          <div key={field.id} className="space-y-3 rounded-md p-4 bg-surface">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-callout font-medium text-primary">
                 선수 {index + 1}
               </span>
               <button
                 type="button"
                 onClick={() => remove(index)}
                 disabled={isAssigned}
-                className="text-sm text-red-500 disabled:text-gray-300"
+                className="text-callout text-negative disabled:text-tertiary"
                 title={
                   isAssigned ? '종목에 배정된 선수는 삭제할 수 없습니다' : ''
                 }
@@ -260,21 +257,20 @@ function PlayerListField({
                 // 조작할 수 없는 체크박스를 두면 무언가 고를 수 있는 것처럼
                 // 보여 오히려 혼란스러우므로, 확정된 사실만 알린다.
                 // 제출값은 위 useEffect가 항상 false로 고정한다.
-                <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
+                <p className="rounded-md bg-fill p-3 text-callout text-secondary">
                   {externalSurchargeNotice}
                 </p>
               ) : (
-                <label className="flex items-start gap-2 rounded-md bg-gray-50 p-3 text-sm">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5 h-4 w-4"
+                <label className="flex items-start gap-2 rounded-md bg-fill p-3 text-callout">
+                  <Checkbox
+                    className="mr-0 mt-0.5"
                     {...register(`players.${index}.isClubMember`)}
                   />
                   <span>
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-primary">
                       {memberLabel}
                     </span>
-                    <span className="ml-2 text-gray-500">
+                    <span className="ml-2 text-secondary">
                       {memberSurchargeNotice}
                     </span>
                   </span>

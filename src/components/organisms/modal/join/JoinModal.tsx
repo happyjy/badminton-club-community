@@ -1,4 +1,16 @@
-import { FormEvent, useEffect, useRef, useState, ReactNode } from 'react';
+import {
+  Children,
+  FormEvent,
+  isValidElement,
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
+
+import { Sheet } from '@/components/organisms/sheet/Sheet';
 
 import { useClubJoinForm } from '@/hooks/useClubJoinForm';
 import { PhoneVerificationStatus } from '@/hooks/usePhoneVerification';
@@ -21,7 +33,7 @@ import PrivacyAgreementField from './components/fields/PrivacyAgreementField';
 import TournamentFields from './components/fields/TournamentFields';
 import VisitDateField from './components/fields/VisitDateField';
 import Footer from './components/Footer';
-import Header from './components/Header';
+import Header, { HeaderProps } from './components/Header';
 import Section from './components/Section';
 import JoinModalContext from './JoinModalContext';
 
@@ -77,6 +89,8 @@ function JoinModal({
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   // PhoneField가 알려주는 인증 완료 여부. 제출 버튼 활성 조건이다.
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  // 제출을 막은 이유. 브라우저 알림창 대신 제출 버튼 위에 보여 준다.
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // 인증 함수가 넘어오지 않는 화면에서는 인증을 요구할 수 없다.
   const canVerifyPhone = !!sendPhoneVerificationCode && !!verifyPhoneCode;
@@ -88,6 +102,9 @@ function JoinModal({
   useEffect(() => {
     if (isOpen) {
       loadVerificationStatus.current?.();
+    } else {
+      // 닫을 때 지난 오류를 지운다. 이 컴포넌트는 닫혀도 남아 있다.
+      setSubmitError(null);
     }
   }, [isOpen]);
 
@@ -121,23 +138,34 @@ function JoinModal({
     // 저장되지 않도록 한다.
     const phoneNumberError = getPhoneNumberError(getFullPhoneNumber());
     if (phoneNumberError) {
-      alert(phoneNumberError);
+      setSubmitError(phoneNumberError);
       return;
     }
 
     // 인증 기능을 쓸 수 있는 화면에서는 인증을 마쳐야 제출할 수 있다.
     // 제출 버튼도 비활성이지만, 엔터 제출 같은 경로를 위해 여기서도 막는다.
     if (canVerifyPhone && !isPhoneVerified) {
-      alert('전화번호 인증을 완료해주세요.');
+      setSubmitError('전화번호 인증을 완료해주세요.');
       return;
     }
 
+    setSubmitError(null);
     onSubmit(formData);
     initialFormData();
   };
 
-  // 화면 렌더링
-  if (!isOpen) return null;
+  // 제목은 시트의 제목 줄에 그린다. 프리셋이 넘긴 <JoinModal.Header>에서 읽는다.
+  const childList = Children.toArray(children);
+  const header = childList.find(
+    (child): child is ReactElement<HeaderProps> =>
+      isValidElement(child) && child.type === Header
+  );
+  // 제출 버튼은 시트의 아래 고정 영역에 그린다. 폼 안에 두고 sticky로 붙이면
+  // 홈 인디케이터 여백을 맞출 수 없다.
+  const isFooter = (child: ReactNode) =>
+    isValidElement(child) && child.type === Footer;
+  const footer = childList.find(isFooter);
+  const formId = useId();
 
   // Context 값 생성
   const contextValue = {
@@ -162,24 +190,30 @@ function JoinModal({
     tournamentLevelOptions,
     isPrivacyModalOpen,
     setIsPrivacyModalOpen,
+    submitError,
+    formId,
   };
 
   return (
     <JoinModalContext.Provider value={contextValue}>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto px-4">
-        {/* overflow-x-hidden: 안쪽 요소가 넘쳐도 모달에 가로 스크롤이 생기지 않게 한다. */}
-        <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden my-4">
-          <form onSubmit={onSubmitForm} className="space-y-4">
-            {children}
-          </form>
-        </div>
+      <Sheet
+        open={isOpen}
+        // 긴 폼이라 ESC·바깥 누르기로는 닫지 않는다. 취소 버튼으로만 닫는다.
+        onClose={() => {}}
+        title={header?.props.title ?? ''}
+        hideCloseButton
+        footer={footer}
+      >
+        <form id={formId} onSubmit={onSubmitForm} className="space-y-4">
+          {childList.filter((child) => !isFooter(child))}
+        </form>
 
-        {/* 개인정보 수집 및 이용 동의 모달 */}
+        {/* 개인정보 수집 및 이용 동의 창. 신청 창 안에 겹쳐 뜬다. */}
         <PrivacyModal
           isOpen={isPrivacyModalOpen}
           onClose={() => setIsPrivacyModalOpen(false)}
         />
-      </div>
+      </Sheet>
     </JoinModalContext.Provider>
   );
 }

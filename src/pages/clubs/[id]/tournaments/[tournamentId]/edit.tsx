@@ -40,11 +40,11 @@ function EditTournamentPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <div className="p-6 text-center text-secondary">불러오는 중...</div>;
   }
   if (!detail) {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center text-secondary">
         대회를 찾을 수 없습니다.
       </div>
     );
@@ -85,8 +85,8 @@ function EditTournamentPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-6">
-      <h1 className="mb-6 text-xl font-bold">대회 수정</h1>
+    <div>
+      <h1 className="mb-6 text-large-title text-primary">대회 수정</h1>
       <TournamentForm
         defaultValues={defaultValues}
         submitLabel="수정 저장"

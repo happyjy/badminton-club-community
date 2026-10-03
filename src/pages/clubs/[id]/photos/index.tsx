@@ -1,14 +1,16 @@
-// import { useRouter } from 'next/router';
+import { Image as ImageIcon } from 'lucide-react';
+
+import { EmptyState } from '@/components/molecules/EmptyState';
+import { PageHeader } from '@/components/organisms/PageHeader';
+
 import { withAuth } from '@/lib/withAuth';
 
 function PhotosPage() {
-  // const router = useRouter();
-  // const { id: clubId } = router.query;
-
   return (
     <>
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-500">사진첩 기능이 곧 제공될 예정입니다.</p>
+      <PageHeader title="사진첩" />
+      <div className="rounded-md bg-surface">
+        <EmptyState icon={ImageIcon} title="사진첩은 곧 열려요" />
       </div>
     </>
   );

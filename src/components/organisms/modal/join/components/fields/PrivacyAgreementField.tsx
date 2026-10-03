@@ -1,3 +1,4 @@
+import { Button } from '@/components/atoms/buttons/Button';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 
 import { useJoinModalContext } from '../../JoinModalContext';
@@ -7,28 +8,29 @@ function PrivacyAgreementField() {
     useJoinModalContext();
 
   return (
-    <div className="mt-4">
-      <div className="flex items-center">
+    <div className="flex items-center justify-between gap-2">
+      {/* 줄 전체가 label이라 글자를 눌러도 체크된다. */}
+      <label className="flex min-h-11 items-center text-body text-primary">
         <Checkbox
           name="privacyAgreement"
           checked={formData.privacyAgreement || false}
           onChange={onChangeInput}
           required
         />
-        <div className="ml-2">
-          <span className="text-sm font-medium text-gray-700">
-            개인정보 수집 및 이용에 동의합니다.
-            <span className="text-red-500">*</span>
-          </span>
-          <button
-            type="button"
-            className="ml-2 text-sm text-blue-600 underline"
-            onClick={() => setIsPrivacyModalOpen(true)}
-          >
-            내용 보기
-          </button>
-        </div>
-      </div>
+        <span>
+          개인정보 수집 및 이용에 동의합니다.
+          <span className="text-negative">*</span>
+        </span>
+      </label>
+      <Button
+        type="button"
+        variant="plain"
+        size="sm"
+        className="shrink-0 underline"
+        onClick={() => setIsPrivacyModalOpen(true)}
+      >
+        내용 보기
+      </Button>
     </div>
   );
 }

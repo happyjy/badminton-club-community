@@ -50,14 +50,14 @@ function MenuSettingsForm({ clubId }: MenuSettingsFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="flex items-center text-sm font-medium text-gray-700">
+        <label className="flex min-h-11 items-center text-callout font-medium text-primary">
           <Checkbox
             checked={tournamentMenuEnabled}
             onChange={(e) => setTournamentMenuEnabled(e.target.checked)}
           />
           대회 신청 메뉴 보이기
         </label>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-footnote text-secondary">
           끄면 클럽 메뉴에서 대회 신청 탭이 사라집니다. 이미 공유한 대회 링크는
           그대로 열립니다.
         </p>

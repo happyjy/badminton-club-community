@@ -29,3 +29,16 @@ export function toTimeInput(value: Date | string): string {
   const date = new Date(value);
   return `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
 }
+
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+/**
+ * 저장된 Date → 화면에 보여 줄 날짜 이름 ('10월 4일 토요일').
+ * 벽시계 시각이 UTC 칸에 담겨 있으므로 UTC 값으로 읽는다. 잘못된 값이면 빈 글자.
+ */
+export function formatWorkoutDateLabel(value: Date | string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return `${date.getUTCMonth() + 1}월 ${date.getUTCDate()}일 ${WEEKDAYS[date.getUTCDay()]}요일`;
+}

@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Textarea } from '@/components/atoms/Textarea';
+import { FormField } from '@/components/molecules/form/FormField';
 
 // 폼 데이터 스키마 정의
 const guestPageSettingsSchema = z.object({
@@ -70,49 +71,31 @@ function GuestPageSettingsForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="inquiryDescription"
-            className="block text-sm font-medium text-gray-700"
-          >
-            문의하기 설명
-          </label>
+        <FormField
+          label="문의하기 설명"
+          error={errors.inquiryDescription?.message}
+        >
           <Textarea
             id="inquiryDescription"
             {...register('inquiryDescription')}
             placeholder="클럽 문의하기 페이지에 표시될 설명을 입력해주세요"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             minRows={3}
             maxRows={10}
           />
-          {errors.inquiryDescription && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.inquiryDescription.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
-        <div>
-          <label
-            htmlFor="guestDescription"
-            className="block text-sm font-medium text-gray-700"
-          >
-            게스트 신청 설명
-          </label>
+        <FormField
+          label="게스트 신청 설명"
+          error={errors.guestDescription?.message}
+        >
           <Textarea
             id="guestDescription"
             {...register('guestDescription')}
             placeholder="게스트 신청 페이지에 표시될 설명을 입력해주세요"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             minRows={3}
             maxRows={10}
           />
-          {errors.guestDescription && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.guestDescription.message}
-            </p>
-          )}
-        </div>
+        </FormField>
       </div>
 
       <div className="flex justify-end">

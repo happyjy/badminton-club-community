@@ -1,7 +1,12 @@
 import { useRouter } from 'next/router';
 
+import { Trophy } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
+import { Button } from '@/components/atoms/buttons/Button';
+import { Spinner } from '@/components/atoms/Spinner';
+import { EmptyState } from '@/components/molecules/EmptyState';
+import { PageHeader } from '@/components/organisms/PageHeader';
 import TournamentCard from '@/components/organisms/tournament/TournamentCard';
 
 import { useTournaments } from '@/hooks/useTournaments';
@@ -18,28 +23,35 @@ function TournamentListPage() {
   const isAdmin = clubMember?.role === Role.ADMIN;
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return (
+      <div className="flex justify-center py-10">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 sm:p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">대회 참가 신청</h1>
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => router.push(`/clubs/${clubId}/tournaments/new`)}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white"
-          >
-            대회 만들기
-          </button>
-        )}
-      </div>
+    <div>
+      <PageHeader
+        title="대회"
+        action={
+          isAdmin && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => router.push(`/clubs/${clubId}/tournaments/new`)}
+            >
+              대회 만들기
+            </Button>
+          )
+        }
+      />
 
       {tournaments && tournaments.length > 0 ? (
         <div className="space-y-3">
           {tournaments.map((tournament) => (
-            <div key={tournament.id} className="space-y-1">
+            <div key={tournament.id}>
               <TournamentCard
                 tournament={tournament}
                 onClick={() =>
@@ -47,25 +59,27 @@ function TournamentListPage() {
                 }
               />
               {isAdmin && (
-                <button
+                <Button
                   type="button"
+                  variant="plain"
+                  size="sm"
+                  className="text-secondary"
                   onClick={() =>
                     router.push(
                       `/clubs/${clubId}/tournaments/new?copyFrom=${tournament.id}`
                     )
                   }
-                  className="text-xs text-gray-400 hover:text-blue-600"
                 >
                   이 대회 복사해서 새로 만들기
-                </button>
+                </Button>
               )}
             </div>
           ))}
         </div>
       ) : (
-        <p className="rounded-md bg-gray-50 p-6 text-center text-sm text-gray-500">
-          등록된 대회가 없습니다.
-        </p>
+        <div className="rounded-md bg-surface">
+          <EmptyState icon={Trophy} title="등록된 대회가 아직 없어요" />
+        </div>
       )}
     </div>
   );

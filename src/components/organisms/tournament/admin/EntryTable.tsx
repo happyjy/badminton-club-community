@@ -1,9 +1,12 @@
+import { Select } from '@/components/atoms/inputs/Select';
+
 import {
   formatEventLabel,
   formatFee,
   PAYMENT_CLASS,
   PAYMENT_LABEL,
 } from '@/lib/tournament/display';
+import { cn } from '@/lib/utils';
 import type {
   EntryForAdmin,
   EntryPaymentStatus,
@@ -55,8 +58,8 @@ function ExternalPlayers({ names }: { names: string[] }) {
 
   // 좁은 화면에서 배지가 찌그러지지 않도록 배지와 이름을 각각 접는다.
   return (
-    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-amber-700">
-      <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 font-medium">
+    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-footnote text-warning">
+      <span className="shrink-0 rounded-sm bg-warning-soft px-1.5 py-0.5 font-medium">
         외부 {names.length}명
       </span>
       <span className="min-w-0 break-words">{names.join(' · ')}</span>
@@ -72,19 +75,25 @@ function PaymentStatusSelect({
   onChangePaymentStatus: EntryTableProps['onChangePaymentStatus'];
 }) {
   return (
-    <select
+    <Select
+      placeholder={null}
+      fullWidth={false}
+      aria-label="입금 상태"
       value={entry.paymentStatus}
       onChange={(e) =>
         onChangePaymentStatus(entry.id, e.target.value as EntryPaymentStatus)
       }
-      className={`rounded border-none px-2 py-1 text-xs font-medium ${PAYMENT_CLASS[entry.paymentStatus]}`}
+      className={cn(
+        'h-9 border-none pl-2 font-medium',
+        PAYMENT_CLASS[entry.paymentStatus]
+      )}
     >
       {PAYMENT_STATUSES.map((status) => (
         <option key={status} value={status}>
           {PAYMENT_LABEL[status]}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }
 
@@ -96,7 +105,7 @@ function EntryTable({
 }: EntryTableProps) {
   if (entries.length === 0) {
     return (
-      <p className="rounded-md bg-gray-50 p-6 text-center text-sm text-gray-500">
+      <p className="rounded-md bg-fill p-6 text-center text-callout text-secondary">
         신청 내역이 없습니다.
       </p>
     );
@@ -112,7 +121,7 @@ function EntryTable({
           return (
             <li
               key={entry.id}
-              className="rounded-lg border border-gray-200 p-3 text-sm"
+              className="rounded-md p-3 text-callout bg-surface"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -121,20 +130,22 @@ function EntryTable({
                       {entry.clubMember?.name ?? entry.contactName ?? '-'}
                     </span>
                     {entry.isExternal && (
-                      <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-normal text-amber-800">
+                      <span className="shrink-0 rounded-full bg-warning-soft px-2 py-0.5 text-footnote font-normal text-warning">
                         외부 신청
                       </span>
                     )}
                   </p>
                   {entry.teamName && (
-                    <p className="text-xs text-gray-400">{entry.teamName}</p>
+                    <p className="text-footnote text-secondary">
+                      {entry.teamName}
+                    </p>
                   )}
                   <ExternalPlayers names={getExternalPlayers(entry)} />
                   {entry.isExternal && onEditPlayers && (
                     <button
                       type="button"
                       onClick={() => onEditPlayers(entry)}
-                      className="mt-1 text-xs text-blue-600 underline"
+                      className="mt-1 text-footnote text-primary underline"
                     >
                       선수 정보 수정
                     </button>
@@ -146,26 +157,26 @@ function EntryTable({
                 />
               </div>
 
-              <dl className="mt-2 space-y-1 text-xs text-gray-600">
+              <dl className="mt-2 space-y-1 text-footnote text-secondary">
                 <div className="flex gap-2">
-                  <dt className="w-14 shrink-0 text-gray-400">입금자명</dt>
+                  <dt className="w-14 shrink-0 text-secondary">입금자명</dt>
                   <dd className="min-w-0 break-words">{entry.depositorName}</dd>
                 </div>
                 <div className="flex gap-2">
-                  <dt className="w-14 shrink-0 text-gray-400">종목</dt>
+                  <dt className="w-14 shrink-0 text-secondary">종목</dt>
                   <dd className="min-w-0">
                     {activeEvents.length > 0 ? (
                       activeEvents.map((event) => (
                         <p key={event.id}>{event.label}</p>
                       ))
                     ) : (
-                      <span className="text-gray-400">전체 취소됨</span>
+                      <span className="text-secondary">전체 취소됨</span>
                     )}
                   </dd>
                 </div>
                 <div className="flex gap-2">
-                  <dt className="w-14 shrink-0 text-gray-400">청구액</dt>
-                  <dd className="font-medium text-gray-900">
+                  <dt className="w-14 shrink-0 text-secondary">청구액</dt>
+                  <dd className="font-medium text-primary">
                     {formatFee(entry.totalFee)}
                   </dd>
                 </div>
@@ -177,13 +188,13 @@ function EntryTable({
 
       {/* PC: 표 */}
       <div className="hidden overflow-x-auto sm:block">
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[640px] text-callout">
           <thead>
-            <tr className="border-b text-left text-gray-500">
+            <tr className="border-b text-left text-secondary">
               <th className="py-2">신청자</th>
               <th className="py-2">입금자명</th>
               <th className="py-2">종목</th>
-              <th className="py-2 text-right">청구액</th>
+              <th className="py-2 pr-4 text-right">청구액</th>
               <th className="py-2">입금 상태</th>
             </tr>
           </thead>
@@ -197,20 +208,22 @@ function EntryTable({
                     <span className="inline-flex items-center gap-2">
                       {entry.clubMember?.name ?? entry.contactName ?? '-'}
                       {entry.isExternal && (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+                        <span className="rounded-full bg-warning-soft px-2 py-0.5 text-footnote text-warning">
                           외부 신청
                         </span>
                       )}
                     </span>
                     {entry.teamName && (
-                      <p className="text-xs text-gray-400">{entry.teamName}</p>
+                      <p className="text-footnote text-secondary">
+                        {entry.teamName}
+                      </p>
                     )}
                     <ExternalPlayers names={getExternalPlayers(entry)} />
                     {entry.isExternal && onEditPlayers && (
                       <button
                         type="button"
                         onClick={() => onEditPlayers(entry)}
-                        className="mt-1 block text-xs text-blue-600 underline"
+                        className="mt-1 block text-footnote text-primary underline"
                       >
                         선수 정보 수정
                       </button>
@@ -219,15 +232,17 @@ function EntryTable({
                   <td className="py-3">{entry.depositorName}</td>
                   <td className="py-3">
                     {activeEvents.map((event) => (
-                      <p key={event.id} className="text-xs">
+                      <p key={event.id} className="text-footnote">
                         {event.label}
                       </p>
                     ))}
                     {activeEvents.length === 0 && (
-                      <span className="text-xs text-gray-400">전체 취소됨</span>
+                      <span className="text-footnote text-secondary">
+                        전체 취소됨
+                      </span>
                     )}
                   </td>
-                  <td className="py-3 text-right font-medium">
+                  <td className="py-3 pr-4 text-right font-medium">
                     {formatFee(entry.totalFee)}
                   </td>
                   <td className="py-3">

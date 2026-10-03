@@ -40,11 +40,11 @@ export function CommentInput({
         value={content}
         onChange={handleChange}
         placeholder={placeholder}
-        className="min-h-[100px] resize-none"
+        minRows={3}
         disabled={isSubmitting}
       />
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">
+        <span className="text-footnote tabular-nums text-secondary">
           {charCount}/{maxLength}자
         </span>
         <Button

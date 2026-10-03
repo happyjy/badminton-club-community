@@ -7,7 +7,9 @@ import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import BoardCategoryTabs from '@/components/organisms/board/BoardCategoryTabs';
+import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 import PostList from '@/components/organisms/board/PostList';
+import { PageHeader } from '@/components/organisms/PageHeader';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
 import { useBoardPosts } from '@/hooks/useBoardPosts';
@@ -85,13 +87,10 @@ function BoardPage(_props: AuthProps) {
     setPage(1); // 카테고리 변경 시 첫 페이지로
   }, []);
 
-  const onChangeSort = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setSort(e.target.value as PostSortOption);
-      setPage(1); // 정렬 변경 시 첫 페이지로
-    },
-    []
-  );
+  const onChangeSort = useCallback((nextSort: PostSortOption) => {
+    setSort(nextSort);
+    setPage(1); // 정렬 변경 시 첫 페이지로
+  }, []);
 
   // 카테고리가 없을 때 관리자에게 안내
   if (!categoriesLoading && (!categories || categories.length === 0)) {
@@ -99,8 +98,8 @@ function BoardPage(_props: AuthProps) {
 
     return (
       <div className="space-y-4">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <p className="text-gray-700 mb-4">
+        <div className="rounded-md bg-warning-soft p-6 text-center">
+          <p className="mb-4 text-body text-primary">
             {isAdmin
               ? '게시판을 사용하려면 먼저 카테고리를 생성해주세요.'
               : '카테고리가 없어 게시글을 작성할 수 없습니다. 관리자에게 문의해주세요.'}
@@ -115,6 +114,8 @@ function BoardPage(_props: AuthProps) {
 
   return (
     <div className="space-y-4">
+      <PageHeader title="게시판" className="mb-0" />
+
       {/* 카테고리 탭 */}
       <BoardCategoryTabs
         selectedCategoryId={selectedCategoryId}
@@ -122,44 +123,27 @@ function BoardPage(_props: AuthProps) {
       />
 
       {/* 정렬 및 작성 버튼 */}
-      <div className="flex justify-between items-center gap-3 bg-white rounded-lg shadow p-4">
-        <div className="flex items-center gap-2">
-          <label htmlFor="sort" className="text-sm font-medium text-gray-700">
-            정렬:
-          </label>
-          <select
-            id="sort"
-            value={sort}
-            onChange={onChangeSort}
-            className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="latest">최신순</option>
-            <option value="views">조회수순</option>
-            <option value="likes">좋아요순</option>
-            <option value="comments">댓글순</option>
-          </select>
-        </div>
-
-        <div className="flex gap-2">
-          {clubMember && canManageCategory(clubMember) && (
-            <Button variant="ghost" onClick={onClickManageCategories}>
-              카테고리 관리
-            </Button>
-          )}
-          {clubMember && <Button onClick={onClickWrite}>작성하기</Button>}
-        </div>
-      </div>
+      <BoardToolbar
+        sort={sort}
+        onChangeSort={onChangeSort}
+        canWrite={!!clubMember}
+        canManageCategories={!!clubMember && canManageCategory(clubMember)}
+        onClickWrite={onClickWrite}
+        onClickManageCategories={onClickManageCategories}
+      />
 
       {/* 게시글 목록 */}
       {postsLoading ? (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">로딩 중...</p>
+        <div className="rounded-md bg-surface p-6 text-center">
+          <p className="text-callout text-secondary">로딩 중...</p>
         </div>
       ) : postsData ? (
         <PostList posts={postsData.items} />
       ) : (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">게시글을 불러올 수 없습니다.</p>
+        <div className="rounded-md bg-surface p-6 text-center">
+          <p className="text-callout text-secondary">
+            게시글을 불러올 수 없습니다.
+          </p>
         </div>
       )}
     </div>

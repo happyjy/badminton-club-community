@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Skeleton } from '@/components/atoms/Skeleton';
 import { ClubInfoSection } from '@/components/molecules/ClubInfoSection';
 import RankingTable, {
   RankingMember,
@@ -24,7 +25,7 @@ function ClubDetailContent({
   isRankingLoading,
 }: ClubDetailContentProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <ClubInfoSection
         title="클럽 소개"
         content={clubHomeSettings.clubDescription ?? ''}
@@ -39,10 +40,10 @@ function ClubDetailContent({
       />
 
       {isRankingLoading ? (
-        <div className="mt-8">
-          <h3 className="font-bold mb-4">랭킹</h3>
-          <p className="text-gray-500">랭킹 데이터를 불러오는 중...</p>
-        </div>
+        <section>
+          <h2 className="px-4 pb-2 text-footnote text-secondary">랭킹</h2>
+          <Skeleton className="h-48 rounded-md" />
+        </section>
       ) : (
         <RankingTable
           attendanceRanking={rankings.attendance}

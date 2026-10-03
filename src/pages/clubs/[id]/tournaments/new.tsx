@@ -58,7 +58,7 @@ function NewTournamentPage() {
   };
 
   if (copyFrom && isLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <div className="p-6 text-center text-secondary">불러오는 중...</div>;
   }
 
   // 복사: 종목 구성·티셔츠·폼 설정만 가져오고 날짜와 제목은 비운다.
@@ -87,10 +87,10 @@ function NewTournamentPage() {
     : EMPTY_TOURNAMENT;
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-6">
-      <h1 className="mb-2 text-xl font-bold">대회 만들기</h1>
+    <div>
+      <h1 className="mb-2 text-large-title text-primary">대회 만들기</h1>
       {source && (
-        <p className="mb-6 rounded-md bg-blue-50 p-3 text-sm text-blue-700">
+        <p className="mb-6 rounded-md bg-fill p-3 text-callout text-primary">
           &lsquo;{source.tournament.title}&rsquo;의 종목 구성을 가져왔습니다.
           대회명과 일정을 새로 입력해주세요.
         </p>

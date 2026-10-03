@@ -6,7 +6,9 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as z from 'zod';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Textarea } from '@/components/atoms/Textarea';
+import { FormField } from '@/components/molecules/form/FormField';
 
 const emailSettingsSchema = z.object({
   emailRecipients: z.string().min(1, '이메일 수신자를 입력해주세요'),
@@ -56,35 +58,19 @@ function EmailSettingsForm({ clubId, initialData }: EmailSettingsFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div>
-        <label
-          htmlFor="emailRecipients"
-          className="block text-sm font-medium text-gray-700"
-        >
-          이메일 수신자
-        </label>
+      <FormField label="이메일 수신자" error={errors.emailRecipients?.message}>
         <Textarea
           id="emailRecipients"
           {...register('emailRecipients')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          rows={4}
+          minRows={4}
           placeholder="이메일 주소를 쉼표로 구분하여 입력하세요"
         />
-        {errors.emailRecipients && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.emailRecipients.message}
-          </p>
-        )}
-      </div>
+      </FormField>
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? '저장 중...' : '저장하기'}
-        </button>
+        </Button>
       </div>
     </form>
   );

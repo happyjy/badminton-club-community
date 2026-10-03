@@ -2,177 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
-}
+@layer base {
+  :root {
+    /* 브라우저 기본 부품(날짜 입력, 스크롤바, 선택 목록)도 시스템 설정을 따른다. */
+    color-scheme: light dark;
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-}
+    /* 색 — 역할 이름. 다크 값은 아래 prefers-color-scheme 블록에 있다. */
+    --color-bg: #f2f2f7;
+    --color-surface: #ffffff;
+    --color-surface-muted: #fafafb;
+    --color-fill: #e5e5ea;
+    /* fill 위에 떠 있는 것: 구분 버튼에서 고른 칸 */
+    --color-raised: #ffffff;
+    --color-text: #1c1c1e;
+    --color-text-secondary: #636366;
+    --color-text-tertiary: #8e8e93;
+    --color-separator: #c6c6c8;
+    --color-border: #e5e5ea;
+    --color-accent: #1c1c1e;
+    --color-on-accent: #ffffff;
+    --color-scrim: rgba(0, 0, 0, 0.4);
+    /* 카카오 로그인 버튼과 그 위의 글자. 카카오의 브랜드 색이라 다크모드에서도 바꾸지 않는다. */
+    --color-kakao: #fee500;
+    --color-on-kakao: #191919;
+    /* 탭바·상단 바의 반투명 바탕 (뒤가 비치는 유리 질감) */
+    --color-tabbar: rgba(249, 249, 249, 0.94);
+    /* 하단 탭바 높이. 화면 아래에 붙는 요소가 이 값만큼 위로 올라간다. */
+    --tabbar-h: 56px;
+    /* 묶음·입력칸의 둥글기. PC 관리 화면에서는 한 단계 작아진다. */
+    --radius-md: 12px;
 
-/* react-datepicker 커스텀 스타일 */
-.react-datepicker-wrapper {
-  width: 100%;
-}
+    /* 상태색 — soft는 칩 배경, 이름만 있는 쪽은 글자 */
+    --color-positive: #176b34;
+    --color-positive-soft: #e3f5e8;
+    --color-warning: #8a5a00;
+    --color-warning-soft: #fff2d9;
+    --color-negative: #b3261e;
+    --color-negative-soft: #fde7e5;
+    --color-neutral: #636366;
+    --color-neutral-soft: #efeff2;
 
-.react-datepicker__input-container {
-  width: 100%;
-}
+    /* 사진이 없는 아바타의 바탕 */
+    --color-avatar-1: #5f6f8f;
+    --color-avatar-2: #7a6296;
+    --color-avatar-3: #4f7a5c;
+    --color-avatar-4: #96605b;
+    --color-avatar-5: #4e7a96;
+    --color-avatar-6: #857040;
+    /* 아바타 첫 글자. 바탕이 늘 짙은 색이라 다크모드에서도 흰색이다. */
+    --color-on-avatar: #ffffff;
 
-.react-datepicker__input-container input {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  transition:
-    border-color 0.15s ease-in-out,
-    box-shadow 0.15s ease-in-out;
-}
-
-.react-datepicker__input-container input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.react-datepicker-popper {
-  z-index: 9999;
-}
-
-.react-datepicker {
-  font-family: inherit;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.react-datepicker__header {
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
-  border-radius: 0.5rem 0.5rem 0 0;
-  padding: 0.75rem;
-}
-
-.react-datepicker__current-month {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
-}
-
-.react-datepicker__day-name {
-  color: #6b7280;
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.react-datepicker__day {
-  color: #374151;
-  font-size: 0.875rem;
-  border-radius: 0.25rem;
-  transition: background-color 0.15s ease-in-out;
-}
-
-.react-datepicker__day:hover {
-  background-color: #f3f4f6;
-}
-
-.react-datepicker__day--selected {
-  background-color: #3b82f6;
-  color: white;
-}
-
-.react-datepicker__day--selected:hover {
-  background-color: #2563eb;
-}
-
-.react-datepicker__day--keyboard-selected {
-  background-color: #dbeafe;
-  color: #1e40af;
-}
-
-.react-datepicker__day--disabled {
-  color: #d1d5db;
-}
-
-.react-datepicker__navigation {
-  top: 0.75rem;
-}
-
-.react-datepicker__navigation-icon::before {
-  border-color: #6b7280;
-}
-
-.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
-  border-color: #374151;
-}
-
-.react-datepicker__year-dropdown,
-.react-datepicker__month-dropdown {
-  background-color: white;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.react-datepicker__year-option,
-.react-datepicker__month-option {
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease-in-out;
-}
-
-.react-datepicker__year-option:hover,
-.react-datepicker__month-option:hover {
-  background-color: #f3f4f6;
-}
-
-.react-datepicker__year-option--selected,
-.react-datepicker__month-option--selected {
-  background-color: #3b82f6;
-  color: white;
-}
-
-/* 모바일 최적화 */
-@media (max-width: 640px) {
-  .react-datepicker {
-    font-size: 0.875rem;
+    /* 글자 크기 / 줄 높이 — 휴대폰 기준 */
+    --fs-large-title: 28px;
+    --lh-large-title: 34px;
+    --fs-title: 22px;
+    --lh-title: 28px;
+    --fs-headline: 17px;
+    --lh-headline: 24px;
+    --fs-body: 16px;
+    --lh-body: 24px;
+    --fs-callout: 15px;
+    --lh-callout: 22px;
+    --fs-footnote: 13px;
+    --lh-footnote: 18px;
+    --fs-caption: 12px;
+    --lh-caption: 16px;
   }
 
-  .react-datepicker__day {
-    width: 2rem;
-    height: 2rem;
-    line-height: 2rem;
-    font-size: 0.75rem;
+  /* 다크모드 — 시스템 설정을 따른다. 역할 이름은 그대로 두고 값만 바꾼다.
+     여기에 없는 색(카카오, 아바타)은 라이트 값을 그대로 쓴다. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #000000;
+      --color-surface: #1c1c1e;
+      --color-surface-muted: #161618;
+      --color-fill: #2c2c2e;
+      --color-raised: #636366;
+      --color-text: #f5f5f7;
+      --color-text-secondary: #aeaeb2;
+      --color-text-tertiary: #8e8e93;
+      --color-separator: #38383a;
+      --color-border: #38383a;
+      --color-accent: #f5f5f7;
+      --color-on-accent: #1c1c1e;
+      --color-scrim: rgba(0, 0, 0, 0.6);
+      --color-tabbar: rgba(28, 28, 30, 0.94);
+
+      /* 상태색 — 어두운 바탕에서는 글자를 밝게, soft 바탕을 어둡게 뒤집는다. */
+      --color-positive: #5fd47e;
+      --color-positive-soft: #12301b;
+      --color-warning: #f2bd4b;
+      --color-warning-soft: #3a2a06;
+      --color-negative: #ff7b72;
+      --color-negative-soft: #3d1614;
+      --color-neutral: #aeaeb2;
+      --color-neutral-soft: #2c2c2e;
+    }
   }
 
-  .react-datepicker__day-name {
-    width: 2rem;
-    height: 2rem;
-    line-height: 2rem;
-    font-size: 0.75rem;
+  /* PC 관리 화면: 본문 영역에 data-density="compact"를 달면 한 단계 작아진다. */
+  @media (min-width: 1024px) {
+    [data-density='compact'] {
+      --fs-large-title: 24px;
+      --lh-large-title: 30px;
+      --fs-title: 20px;
+      --lh-title: 26px;
+      --fs-headline: 15px;
+      --lh-headline: 22px;
+      --fs-body: 14px;
+      --lh-body: 20px;
+      --fs-callout: 14px;
+      --lh-callout: 20px;
+      --radius-md: 8px;
+    }
+  }
+
+  body {
+    color: var(--color-text);
+    background: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-.swap-year-month-dropdowns .react-datepicker__header__dropdown--select {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem; /* 8px */
-}
+@layer components {
+  /* Select의 화살표. data URI 안에서는 CSS 변수를 쓸 수 없어 색(#636366 =
+     --color-text-secondary)을 직접 적었다. 다크용은 아래에 따로 있다. */
+  .select-chevron {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23636366' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px 16px;
+  }
 
-.swap-year-month-dropdowns .react-datepicker__year-dropdown-container {
-  order: 1;
-}
-
-.swap-year-month-dropdowns .react-datepicker__month-dropdown-container {
-  order: 2;
+  @media (prefers-color-scheme: dark) {
+    /* data URI 안에서는 CSS 변수를 쓸 수 없어 밝은 화살표를 따로 둔다
+       (#aeaeb2 = 다크의 --color-text-secondary). */
+    .select-chevron {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aeaeb2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    }
+  }
 }

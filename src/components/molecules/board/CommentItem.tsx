@@ -2,13 +2,15 @@ import { useState } from 'react';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { Heart } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Textarea } from '@/components/atoms/Textarea';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
-import { formatDate } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import { RootState } from '@/store';
 import { PostCommentWithRelations } from '@/types/board.types';
 import { canEditPost } from '@/utils/boardPermissions';
@@ -134,8 +136,15 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
     updateMutation.mutate(editContent.trim());
   };
 
-  const onClickDelete = () => {
-    if (confirm('정말 삭제하시겠습니까?')) {
+  const confirm = useConfirm();
+  const onClickDelete = async () => {
+    if (
+      await confirm({
+        title: '정말 삭제하시겠습니까?',
+        confirmLabel: '삭제',
+        destructive: true,
+      })
+    ) {
       deleteMutation.mutate();
     }
   };
@@ -170,24 +179,24 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
   };
 
   return (
-    <div className={depth > 0 ? 'ml-6 mt-2' : ''}>
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex justify-between items-start mb-2">
+    <div className={depth > 0 ? 'ml-4 mt-2' : ''}>
+      <div className={cn('rounded-md p-3', depth > 0 ? 'bg-surface' : 'bg-bg')}>
+        <div className="mb-1 flex items-start justify-between gap-2">
           <div>
-            <span className="font-medium">
+            <span className="text-callout font-semibold text-primary">
               {comment.author?.name || '알 수 없음'}
             </span>
-            <span className="text-sm text-gray-500 ml-2">
+            <span className="ml-2 text-footnote tabular-nums text-secondary">
               {formatDate(comment.createdAt)}
             </span>
           </div>
           {isEditable && !isEditing && (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={onClickEdit}>
+              <Button variant="plain" size="sm" onClick={onClickEdit}>
                 수정
               </Button>
               <Button
-                variant="ghost"
+                variant="plain"
                 size="sm"
                 onClick={onClickDelete}
                 disabled={deleteMutation.isPending}
@@ -203,15 +212,15 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[100px] resize-none"
+              minRows={3}
               maxRows={10}
             />
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={onClickCancel}>
+              <Button variant="plain" size="sm" onClick={onClickCancel}>
                 취소
               </Button>
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={onClickUpdate}
                 disabled={!editContent.trim() || updateMutation.isPending}
@@ -222,24 +231,32 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
           </div>
         ) : (
           <>
-            <p className="text-gray-700 whitespace-pre-wrap break-words mb-2">
+            <p className="whitespace-pre-wrap break-words text-body text-primary">
               {comment.content}
             </p>
-            <div className="flex items-center gap-3">
-              <button
+            <div className="-ml-3 flex items-center">
+              <Button
+                type="button"
+                variant="plain"
+                size="sm"
+                aria-label={`좋아요 ${comment.likeCount}`}
+                className="text-secondary"
                 onClick={onClickLike}
                 disabled={likeMutation.isPending}
-                className="text-sm text-gray-500 hover:text-red-500 flex items-center gap-1"
               >
-                ❤️ {comment.likeCount}
-              </button>
+                <Heart aria-hidden className="mr-1 h-3.5 w-3.5" />
+                {comment.likeCount}
+              </Button>
               {depth < 1 && (
-                <button
+                <Button
+                  type="button"
+                  variant="plain"
+                  size="sm"
+                  className="text-secondary"
                   onClick={onClickReply}
-                  className="text-sm text-gray-500 hover:text-blue-500"
                 >
                   답글
-                </button>
+                </Button>
               )}
             </div>
           </>
@@ -247,20 +264,21 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
 
         {/* 대댓글 작성 폼 */}
         {isReplying && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 border-t border-border pt-3">
             <Textarea
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder="답글을 입력하세요"
-              className="min-h-[80px] resize-none mb-2"
+              minRows={2}
               maxRows={5}
+              className="mb-2"
             />
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={onClickReplyCancel}>
+              <Button variant="plain" size="sm" onClick={onClickReplyCancel}>
                 취소
               </Button>
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={onClickReplySubmit}
                 disabled={!replyContent.trim() || replyMutation.isPending}
@@ -273,7 +291,7 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
 
         {/* 대댓글 목록 */}
         {comment.children && comment.children.length > 0 && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 border-t border-border pt-3">
             {comment.children.map((child) => (
               <CommentItem
                 key={child.id}

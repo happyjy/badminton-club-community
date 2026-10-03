@@ -30,16 +30,18 @@ function PostDetailPage({ user }: AuthProps) {
 
   if (postLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-gray-500">로딩 중...</p>
+      <div className="rounded-md bg-surface p-6 text-center">
+        <p className="text-callout text-secondary">로딩 중...</p>
       </div>
     );
   }
 
   if (postError || !post) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-red-500">게시글을 불러올 수 없습니다.</p>
+      <div className="rounded-md bg-surface p-6 text-center">
+        <p className="text-callout text-negative">
+          게시글을 불러올 수 없습니다.
+        </p>
       </div>
     );
   }
@@ -48,12 +50,14 @@ function PostDetailPage({ user }: AuthProps) {
     <div className="space-y-4">
       <PostDetail post={post} />
       {commentsLoading ? (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">댓글 로딩 중...</p>
+        <div className="rounded-md bg-surface p-6 text-center">
+          <p className="text-callout text-secondary">댓글 로딩 중...</p>
         </div>
       ) : commentsError || !comments ? (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-red-500">댓글을 불러올 수 없습니다.</p>
+        <div className="rounded-md bg-surface p-6 text-center">
+          <p className="text-callout text-negative">
+            댓글을 불러올 수 없습니다.
+          </p>
         </div>
       ) : (
         <CommentList

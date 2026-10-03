@@ -23,7 +23,7 @@ function TournamentFileList({
 
   return (
     <div className={className}>
-      <h3 className="mb-2 text-sm font-semibold text-gray-700">{title}</h3>
+      <h3 className="mb-2 text-callout font-semibold text-primary">{title}</h3>
       <ul className="space-y-2">
         {files.map((file) => {
           const isImage = file.mimeType.startsWith('image/');
@@ -35,13 +35,13 @@ function TournamentFileList({
                 href={file.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm transition-colors hover:bg-gray-50"
+                className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-callout transition-colors"
               >
-                <Icon className="h-4 w-4 shrink-0 text-gray-400" />
-                <span className="min-w-0 flex-1 truncate text-blue-600 underline">
+                <Icon className="h-4 w-4 shrink-0 text-secondary" />
+                <span className="min-w-0 flex-1 truncate text-primary underline">
                   {file.fileName}
                 </span>
-                <span className="shrink-0 text-xs text-gray-400">
+                <span className="shrink-0 text-footnote text-secondary">
                   {formatFileSize(file.fileSize)}
                 </span>
               </a>

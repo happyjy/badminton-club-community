@@ -112,7 +112,7 @@ describe('PhoneField 인라인 인증', () => {
       expect(verifyPhoneCode).toHaveBeenCalledWith('010-1234-5678', '123456');
     });
 
-    expect(await screen.findByText('✓ 인증 완료')).toBeTruthy();
+    expect(await screen.findByText('인증 완료')).toBeTruthy();
     expect(onPhoneVerifiedChange).toHaveBeenCalledWith(true);
   });
 
@@ -129,7 +129,7 @@ describe('PhoneField 인라인 인증', () => {
     });
 
     expect(screen.queryByRole('button', { name: '인증하기' })).toBeNull();
-    expect(screen.getByText('✓ 인증된 전화번호입니다')).toBeTruthy();
+    expect(screen.getByText('인증된 전화번호입니다')).toBeTruthy();
   });
 
   it('계정에 인증된 번호는 형식이 달라도 다시 인증하지 않는다', () => {
@@ -146,7 +146,7 @@ describe('PhoneField 인라인 인증', () => {
     });
 
     expect(screen.queryByRole('button', { name: '인증하기' })).toBeNull();
-    expect(screen.getByText('✓ 인증된 전화번호입니다')).toBeTruthy();
+    expect(screen.getByText('인증된 전화번호입니다')).toBeTruthy();
   });
 
   it('계정에 인증된 번호와 다른 번호는 인증을 요구한다', () => {
@@ -166,7 +166,7 @@ describe('PhoneField 인라인 인증', () => {
     });
 
     expect(screen.getByRole('button', { name: '인증하기' })).toBeTruthy();
-    expect(screen.queryByText('✓ 인증된 전화번호입니다')).toBeNull();
+    expect(screen.queryByText('인증된 전화번호입니다')).toBeNull();
     expect(onPhoneVerifiedChange).toHaveBeenCalledWith(false);
   });
 
@@ -208,7 +208,7 @@ describe('PhoneField 인라인 인증', () => {
     );
 
     expect(screen.getByRole('button', { name: '인증하기' })).toBeTruthy();
-    expect(screen.queryByText('✓ 인증된 전화번호입니다')).toBeNull();
+    expect(screen.queryByText('인증된 전화번호입니다')).toBeNull();
   });
 
   // 서버는 이미 인증된 번호면 문자를 보내지 않고 canSkipVerification으로 알려준다.
@@ -237,7 +237,7 @@ describe('PhoneField 인라인 인증', () => {
       expect(sendPhoneVerificationCode).toHaveBeenCalledWith('010-1234-5678');
     });
 
-    expect(await screen.findByText('✓ 인증 완료')).toBeTruthy();
+    expect(await screen.findByText('인증 완료')).toBeTruthy();
     expect(screen.queryByLabelText('인증번호 6자리')).toBeNull();
     expect(onPhoneVerifiedChange).toHaveBeenCalledWith(true);
   });
@@ -261,6 +261,6 @@ describe('PhoneField 인라인 인증', () => {
     fireEvent.click(screen.getByRole('button', { name: '인증하기' }));
 
     expect(await screen.findByLabelText('인증번호 6자리')).toBeTruthy();
-    expect(screen.queryByText('✓ 인증 완료')).toBeNull();
+    expect(screen.queryByText('인증 완료')).toBeNull();
   });
 });

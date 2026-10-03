@@ -3,6 +3,8 @@ import { useRef, useState } from 'react';
 import { Loader2, Trash2, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+
 import {
   useDeleteTournamentFile,
   useTournamentFiles,
@@ -37,11 +39,12 @@ function TournamentFileField({
   const { data: files, isLoading } = useTournamentFiles(clubId, tournamentId);
   const uploadFile = useUploadTournamentFile(clubId, tournamentId);
   const deleteFile = useDeleteTournamentFile(clubId, tournamentId);
+  const confirm = useConfirm();
 
   // 대회를 저장하기 전에는 붙일 대상이 없다.
   if (!tournamentId) {
     return (
-      <p className="rounded-md border border-dashed border-gray-300 px-3 py-4 text-center text-sm text-gray-500">
+      <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-callout text-secondary">
         대회를 먼저 저장하면 첨부파일을 올릴 수 있습니다.
       </p>
     );
@@ -73,7 +76,15 @@ function TournamentFileField({
   };
 
   const handleDelete = async (fileId: string, fileName: string) => {
-    if (!window.confirm(`'${fileName}'을(를) 삭제할까요?`)) return;
+    if (
+      !(await confirm({
+        title: `'${fileName}'을(를) 삭제할까요?`,
+        confirmLabel: '삭제',
+        destructive: true,
+      }))
+    ) {
+      return;
+    }
 
     setDeletingId(fileId);
     try {
@@ -89,23 +100,23 @@ function TournamentFileField({
   return (
     <div className="space-y-2">
       {isLoading ? (
-        <p className="text-sm text-gray-400">불러오는 중...</p>
+        <p className="text-callout text-secondary">불러오는 중...</p>
       ) : files?.length ? (
         <ul className="space-y-2">
           {files.map((file) => (
             <li
               key={file.id}
-              className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm"
+              className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-callout"
             >
               <a
                 href={file.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-w-0 flex-1 truncate text-blue-600 underline"
+                className="min-w-0 flex-1 truncate text-primary underline"
               >
                 {file.fileName}
               </a>
-              <span className="shrink-0 text-xs text-gray-400">
+              <span className="shrink-0 text-footnote text-secondary">
                 {formatFileSize(file.fileSize)}
               </span>
               <button
@@ -113,7 +124,7 @@ function TournamentFileField({
                 aria-label={`${file.fileName} 삭제`}
                 disabled={deletingId === file.id}
                 onClick={() => handleDelete(file.id, file.fileName)}
-                className="shrink-0 rounded p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                className="shrink-0 rounded-sm p-1 text-secondary transition-colors disabled:opacity-50"
               >
                 {deletingId === file.id ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -139,7 +150,7 @@ function TournamentFileField({
           type="button"
           disabled={uploadFile.isPending}
           onClick={() => inputRef.current?.click()}
-          className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-callout transition-colors disabled:opacity-50"
         >
           {uploadFile.isPending ? (
             <>
@@ -153,7 +164,9 @@ function TournamentFileField({
             </>
           )}
         </button>
-        <span className="text-xs text-gray-400">PDF·이미지, 10MB 이하</span>
+        <span className="text-footnote text-secondary">
+          PDF·이미지, 10MB 이하
+        </span>
       </div>
     </div>
   );

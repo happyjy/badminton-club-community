@@ -41,26 +41,30 @@ const RankingTable: React.FC<RankingTableProps> = ({
 
   const currentDate = new Date().getMonth() + 1;
   return (
-    <div className="mt-8">
-      <h3 className="font-bold mb-4">{currentDate}월 랭킹</h3>
-      <div className="border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+    <section>
+      <h2 className="px-4 pb-2 text-footnote text-secondary">
+        {currentDate}월 랭킹
+      </h2>
+      <div className="overflow-hidden rounded-md bg-surface">
+        <table className="w-full text-callout text-primary">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 text-left w-16">#</th>
-              <th className="px-4 py-2 text-left">출석</th>
-              <th className="px-4 py-2 text-left">도우미</th>
+            <tr className="border-b border-border text-left text-footnote text-secondary">
+              <th className="w-12 px-4 py-2 font-medium">#</th>
+              <th className="px-2 py-2 font-medium">출석</th>
+              <th className="px-4 py-2 font-medium">도우미</th>
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: maxRows }).map((_, index) => (
-              <tr key={index} className="border-t">
-                <td className="px-4 py-2 font-medium">{index + 1}</td>
-                <td className="px-4 py-2">
+              <tr key={index} className="border-t border-border first:border-0">
+                <td className="px-4 py-2.5 font-semibold tabular-nums">
+                  {index + 1}
+                </td>
+                <td className="px-2 py-2.5">
                   {paddedAttendance[index] ? (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between gap-2">
                       <span>{paddedAttendance[index].name}</span>
-                      <span className="text-gray-500">
+                      <span className="shrink-0 tabular-nums text-secondary">
                         {paddedAttendance[index].count}회
                       </span>
                     </div>
@@ -68,11 +72,11 @@ const RankingTable: React.FC<RankingTableProps> = ({
                     '-'
                   )}
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2.5">
                   {paddedHelper[index] ? (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between gap-2">
                       <span>{paddedHelper[index].name}</span>
-                      <span className="text-gray-500">
+                      <span className="shrink-0 tabular-nums text-secondary">
                         {paddedHelper[index].count}회
                       </span>
                     </div>
@@ -87,25 +91,21 @@ const RankingTable: React.FC<RankingTableProps> = ({
 
         {(attendanceRanking.length > initialDisplayCount ||
           helperRanking.length > initialDisplayCount) && (
-          <div
-            className="text-center py-2 border-t cursor-pointer hover:bg-gray-50"
+          <button
+            type="button"
             onClick={toggleExpanded}
+            className="flex min-h-11 w-full items-center justify-center border-t border-border text-callout text-secondary transition-colors duration-150 active:bg-fill"
           >
+            {expanded ? '접기' : '더보기'}
             {expanded ? (
-              <div className="flex items-center justify-center text-gray-500">
-                <span>접기</span>
-                <ChevronUp size={16} className="ml-1" />
-              </div>
+              <ChevronUp aria-hidden className="ml-1 h-4 w-4" />
             ) : (
-              <div className="flex items-center justify-center text-gray-500">
-                <span>더보기</span>
-                <ChevronDown size={16} className="ml-1" />
-              </div>
+              <ChevronDown aria-hidden className="ml-1 h-4 w-4" />
             )}
-          </div>
+          </button>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

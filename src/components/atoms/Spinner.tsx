@@ -11,8 +11,8 @@ interface SpinnerProps {
  * 로딩 스피너.
  *
  * 링의 4분의 3만 그리고 나머지를 투명하게 둬서 회전이 드러나는 형태다.
- * `border-current`로 부모의 텍스트 색을 따르므로, 파란 버튼 위에서는
- * `text-white`, 회색 버튼 위에서는 `text-gray-600`처럼 색만 바꾸면 된다.
+ * `border-current`로 부모의 텍스트 색을 따르므로, 검정 버튼 위에서는
+ * `text-on-accent`, 회색 버튼 위에서는 `text-secondary`처럼 색만 바꾸면 된다.
  *
  * 이전 구현은 SVG를 next/image로 불러왔는데, 그 방식은 SVG 안의
  * `currentColor`가 문서 색상을 상속받지 못해 color prop이 무시됐다.

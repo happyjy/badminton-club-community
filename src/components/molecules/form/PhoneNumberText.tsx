@@ -1,3 +1,5 @@
+import { StatusChip } from '@/components/atoms/StatusChip';
+
 import { toDisplayPhoneNumber } from '@/utils/phoneNumber';
 
 interface PhoneNumberTextProps {
@@ -24,11 +26,8 @@ function PhoneNumberText({ value, fallback = '-' }: PhoneNumberTextProps) {
   return (
     <span className="inline-flex items-center gap-1">
       <span>{text}</span>
-      <span
-        title="전화번호 형식이 올바르지 않습니다. 확인이 필요합니다."
-        className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800"
-      >
-        확인 필요
+      <span title="전화번호 형식이 올바르지 않습니다. 확인이 필요합니다.">
+        <StatusChip tone="warning">확인 필요</StatusChip>
       </span>
     </span>
   );

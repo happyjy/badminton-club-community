@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
@@ -75,8 +76,8 @@ function ExternalEntryLookupPage() {
   });
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4">
-      <h1 className="text-xl font-bold">신청 내역 조회</h1>
+    <div className="space-y-6">
+      <h1 className="text-large-title text-primary">신청 내역 조회</h1>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <FormField
@@ -106,44 +107,40 @@ function ExternalEntryLookupPage() {
             })}
           />
         </FormField>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-md bg-blue-600 py-2 text-white disabled:bg-gray-300"
-        >
+        <Button type="submit" disabled={isLoading} size="md" className="w-full">
           {isLoading ? '조회 중...' : '조회하기'}
-        </button>
+        </Button>
       </form>
 
       {entry && (
-        <section className="space-y-4 rounded-lg border p-4">
+        <section className="space-y-4 rounded-md border p-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">신청 내역</h2>
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-sm">
+            <span className="rounded-full bg-fill px-3 py-1 text-callout">
               {PAYMENT_STATUS_LABEL[entry.paymentStatus] ?? entry.paymentStatus}
             </span>
           </div>
 
-          <dl className="space-y-1 text-sm">
+          <dl className="space-y-1 text-callout">
             <div className="flex justify-between">
-              <dt className="text-gray-500">입금자명</dt>
+              <dt className="text-secondary">입금자명</dt>
               <dd>{entry.depositorName}</dd>
             </div>
             {entry.teamName && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">팀명</dt>
+                <dt className="text-secondary">팀명</dt>
                 <dd>{entry.teamName}</dd>
               </div>
             )}
             <div className="flex justify-between">
-              <dt className="text-gray-500">총 참가비</dt>
+              <dt className="text-secondary">총 참가비</dt>
               <dd className="font-medium">{formatFee(entry.totalFee)}</dd>
             </div>
           </dl>
 
           <div>
-            <h3 className="mb-2 text-sm font-medium">신청 종목</h3>
-            <ul className="space-y-1 text-sm">
+            <h3 className="mb-2 text-callout font-medium">신청 종목</h3>
+            <ul className="space-y-1 text-callout">
               {entry.entryEvents
                 .filter((event) => event.status === 'ACTIVE')
                 .map((event) => (
@@ -159,8 +156,8 @@ function ExternalEntryLookupPage() {
           </div>
 
           <div>
-            <h3 className="mb-2 text-sm font-medium">선수</h3>
-            <ul className="space-y-1 text-sm">
+            <h3 className="mb-2 text-callout font-medium">선수</h3>
+            <ul className="space-y-1 text-callout">
               {entry.players.map((player) => (
                 <li key={player.id}>
                   {player.name} ({player.gender})
@@ -169,7 +166,7 @@ function ExternalEntryLookupPage() {
             </ul>
           </div>
 
-          <p className="text-xs text-gray-500">
+          <p className="text-footnote text-secondary">
             내용을 수정하려면 클럽 담당자에게 문의해주세요.
           </p>
         </section>

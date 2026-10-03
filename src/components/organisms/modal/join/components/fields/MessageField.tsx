@@ -1,3 +1,4 @@
+import { Textarea } from '@/components/atoms/Textarea';
 import { FormField } from '@/components/molecules/form/FormField';
 
 import { useJoinModalContext } from '../../JoinModalContext';
@@ -15,12 +16,12 @@ function MessageField({
 
   return (
     <FormField label={label}>
-      <textarea
+      <Textarea
         name="message"
         value={formData.message || ''}
         onChange={onChangeInput}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+        minRows={3}
       />
     </FormField>
   );

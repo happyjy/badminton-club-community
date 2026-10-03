@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils';
+
 interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   required?: boolean;
 }
@@ -5,16 +7,19 @@ interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
 export function Label({
   children,
   required = false,
-  className = '',
+  className,
   ...props
 }: LabelProps) {
   return (
     <label
-      className={`block text-sm font-medium text-gray-700 ${className}`}
+      className={cn(
+        'block text-footnote font-medium text-secondary',
+        className
+      )}
       {...props}
     >
       {children}
-      {required && <span className="text-red-500 ml-1">*</span>}
+      {required && <span className="ml-1 text-negative">*</span>}
     </label>
   );
 }

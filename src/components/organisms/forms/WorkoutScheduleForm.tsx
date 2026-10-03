@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
+import { FormField } from '@/components/molecules/form/FormField';
 
 const schema = z
   .object({
@@ -94,186 +95,87 @@ function WorkoutScheduleForm({
       <div className="space-y-4">
         {/* 날짜 범위 설정 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="startDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              시작 날짜
-            </label>
-            <Input
-              id="startDate"
-              type="date"
-              {...register('startDate')}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            {errors.startDate && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.startDate.message}
-              </p>
-            )}
-          </div>
+          <FormField label="시작 날짜" error={errors.startDate?.message}>
+            <Input id="startDate" type="date" {...register('startDate')} />
+          </FormField>
 
-          <div>
-            <label
-              htmlFor="endDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              종료 날짜
-            </label>
-            <Input
-              id="endDate"
-              type="date"
-              {...register('endDate')}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            {errors.endDate && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.endDate.message}
-              </p>
-            )}
-          </div>
+          <FormField label="종료 날짜" error={errors.endDate?.message}>
+            <Input id="endDate" type="date" {...register('endDate')} />
+          </FormField>
         </div>
 
         {/* 평일 운동 시간 */}
-        <div className="border-t pt-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            평일 운동 시간
-          </h3>
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-3 text-headline text-primary">평일 운동 시간</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="weekdayStartTime"
-                className="block text-sm font-medium text-gray-700"
-              >
-                시작 시간
-              </label>
+            <FormField
+              label="시작 시간"
+              error={errors.weekdayStartTime?.message}
+            >
               <Input
                 id="weekdayStartTime"
                 type="time"
                 {...register('weekdayStartTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
-              {errors.weekdayStartTime && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.weekdayStartTime.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div>
-              <label
-                htmlFor="weekdayEndTime"
-                className="block text-sm font-medium text-gray-700"
-              >
-                종료 시간
-              </label>
+            <FormField label="종료 시간" error={errors.weekdayEndTime?.message}>
               <Input
                 id="weekdayEndTime"
                 type="time"
                 {...register('weekdayEndTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
-              {errors.weekdayEndTime && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.weekdayEndTime.message}
-                </p>
-              )}
-            </div>
+            </FormField>
           </div>
         </div>
 
         {/* 주말 운동 시간 */}
-        <div className="border-t pt-4">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            주말 운동 시간
-          </h3>
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-3 text-headline text-primary">주말 운동 시간</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="weekendStartTime"
-                className="block text-sm font-medium text-gray-700"
-              >
-                시작 시간
-              </label>
+            <FormField
+              label="시작 시간"
+              error={errors.weekendStartTime?.message}
+            >
               <Input
                 id="weekendStartTime"
                 type="time"
                 {...register('weekendStartTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
-              {errors.weekendStartTime && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.weekendStartTime.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div>
-              <label
-                htmlFor="weekendEndTime"
-                className="block text-sm font-medium text-gray-700"
-              >
-                종료 시간
-              </label>
+            <FormField label="종료 시간" error={errors.weekendEndTime?.message}>
               <Input
                 id="weekendEndTime"
                 type="time"
                 {...register('weekendEndTime')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
-              {errors.weekendEndTime && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.weekendEndTime.message}
-                </p>
-              )}
-            </div>
+            </FormField>
           </div>
         </div>
 
         {/* 장소 및 참여인원 */}
-        <div className="border-t pt-4">
+        <div className="border-t border-border pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="location"
-                className="block text-sm font-medium text-gray-700"
-              >
-                장소
-              </label>
+            <FormField label="장소" error={errors.location?.message}>
               <Input
                 id="location"
                 {...register('location')}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="예: 서울체육관 1코트"
               />
-              {errors.location && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.location.message}
-                </p>
-              )}
-            </div>
+            </FormField>
 
-            <div>
-              <label
-                htmlFor="maxParticipants"
-                className="block text-sm font-medium text-gray-700"
-              >
-                최대 참여 인원
-              </label>
+            <FormField
+              label="최대 참여 인원"
+              error={errors.maxParticipants?.message}
+            >
               <Input
                 id="maxParticipants"
                 type="number"
                 min="1"
                 {...register('maxParticipants', { valueAsNumber: true })}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
-              {errors.maxParticipants && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.maxParticipants.message}
-                </p>
-              )}
-            </div>
+            </FormField>
           </div>
         </div>
       </div>

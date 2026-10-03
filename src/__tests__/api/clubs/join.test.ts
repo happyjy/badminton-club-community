@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 import { prisma } from '@/lib/prisma';
-
 import handler from '@/pages/api/clubs/[id]/join';
+
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 // 핸들러는 공유 싱글톤(@/lib/prisma)을 쓰므로 그 모듈을 바꿔치기한다.
 jest.mock('@/lib/prisma', () => ({

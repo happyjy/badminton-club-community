@@ -1,5 +1,6 @@
 import { useFormContext } from 'react-hook-form';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
@@ -61,23 +62,25 @@ function EntrySummary({
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold">③ 입금 정보</h2>
+      <h2 className="text-headline font-semibold">③ 입금 정보</h2>
 
-      <div className="rounded-lg bg-blue-50 p-4">
+      <div className="rounded-md bg-fill p-4">
         <div className="flex items-center justify-between">
-          <span className="font-medium text-gray-700">납부하실 금액</span>
-          <span className="text-xl font-bold text-blue-700">
+          <span className="font-medium text-primary">납부하실 금액</span>
+          <span className="text-large-title text-primary">
             {formatFee(totalFee)}
           </span>
         </div>
         {totalSurcharge > 0 && (
-          <p className="mt-1 text-right text-sm text-gray-600">
+          <p className="mt-1 text-right text-callout text-secondary">
             기본 {formatFee(totalFee - totalSurcharge)} + 외부 선수 추가금{' '}
             {formatFee(totalSurcharge)}
           </p>
         )}
         {bankAccount && (
-          <p className="mt-2 text-sm text-gray-600">입금 계좌: {bankAccount}</p>
+          <p className="mt-2 text-callout text-secondary">
+            입금 계좌: {bankAccount}
+          </p>
         )}
       </div>
 
@@ -102,10 +105,9 @@ function EntrySummary({
       )}
 
       <div className="space-y-1">
-        <label className="flex items-start gap-2 text-sm text-gray-700">
-          <input
-            type="checkbox"
-            className="mt-1"
+        <label className="flex items-start gap-2 text-callout text-primary">
+          <Checkbox
+            className="mr-0 mt-0.5"
             {...register('privacyAgreed', {
               required: '개인정보 수집·이용에 동의해주세요.',
             })}
@@ -118,7 +120,7 @@ function EntrySummary({
           </span>
         </label>
         {errors.privacyAgreed && (
-          <p role="alert" className="text-sm text-red-500">
+          <p role="alert" className="text-callout text-negative">
             {errors.privacyAgreed.message}
           </p>
         )}

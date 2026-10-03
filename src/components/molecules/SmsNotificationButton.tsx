@@ -59,7 +59,7 @@ function SmsNotificationButton({
       onClick={handleClick}
       disabled={disabled || loading}
       className={className}
-      variant="outline"
+      variant="secondary"
       size="sm"
     >
       {getButtonText()}

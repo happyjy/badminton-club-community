@@ -2,6 +2,7 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { JoinClubButton } from '@/components/molecules/buttons/JoinClubButton';
+
 import { MembershipStatus, User } from '@/types';
 
 jest.mock('next/router', () => ({

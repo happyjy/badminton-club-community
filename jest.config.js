@@ -1,5 +1,7 @@
 // 공통 변환·모듈 설정. node/jsdom 두 프로젝트가 함께 쓴다.
 const common = {
+  // 다른 작업 폴더(.claude/worktrees)의 테스트·모의 파일까지 끌어오지 않는다.
+  modulePathIgnorePatterns: ['<rootDir>/.claude/'],
   transform: {
     // tsconfig는 Next.js가 자체 변환하도록 jsx: "preserve"로 두고 있다.
     // ts-jest는 변환기가 없으므로 테스트에서만 react-jsx로 올려 JSX를 컴파일한다.

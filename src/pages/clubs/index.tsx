@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 
+import { Users } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 
+import { Spinner } from '@/components/atoms/Spinner';
+import { EmptyState } from '@/components/molecules/EmptyState';
+import { ListGroup } from '@/components/molecules/list/ListGroup';
 import { ClubListItem } from '@/components/organisms/navigation/clubNavigation/ClubListItem';
+import { PageHeader } from '@/components/organisms/PageHeader';
 
 import { initialState, setClubData } from '@/store/features/clubSlice';
 import { Club } from '@/types';
@@ -42,30 +47,35 @@ function ClubsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900" />
+      <div className="flex justify-center py-10">
+        <Spinner size="lg" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500 bg-red-50 p-4 rounded-lg">{error}</div>
-      </div>
+      <p role="alert" className="py-10 text-center text-body text-negative">
+        {error}
+      </p>
     );
   }
 
   return (
-    <main className="min-h-screen">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="flex flex-col space-y-4">
+    <div>
+      <PageHeader title="클럽" />
+      {clubs.length > 0 ? (
+        <ListGroup>
           {clubs.map((club) => (
             <ClubListItem key={club.id} club={club} />
           ))}
+        </ListGroup>
+      ) : (
+        <div className="rounded-md bg-surface">
+          <EmptyState icon={Users} title="등록된 클럽이 아직 없어요" />
         </div>
-      </div>
-    </main>
+      )}
+    </div>
   );
 }
 
