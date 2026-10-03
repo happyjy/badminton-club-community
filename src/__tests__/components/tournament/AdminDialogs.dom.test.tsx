@@ -203,6 +203,17 @@ describe('EditPlayersDialog', () => {
     expect(screen.getAllByLabelText(/이름/)).toHaveLength(2);
   });
 
+  it('ESC나 바깥 누르기로는 닫히지 않는다: 고친 내용을 실수로 잃지 않게 취소 버튼으로만 닫는다', async () => {
+    const onCancel = jest.fn();
+    await renderSheet(<EditPlayersDialog {...props} onCancel={onCancel} />);
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    expect(onCancel).not.toHaveBeenCalled();
+
+    fireEvent.click(button('취소'));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
   it('저장 중에는 저장도 취소도 눌리지 않는다', async () => {
     await renderSheet(<EditPlayersDialog {...props} isSaving />);
 

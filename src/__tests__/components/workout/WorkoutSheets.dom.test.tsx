@@ -270,6 +270,9 @@ describe('WorkoutEditSheet', () => {
       '종료 시간이 시작 시간보다 빠릅니다.'
     );
     expect(screen.getByRole('dialog')).toBeTruthy();
+    // 폼이 길어 본문이 스크롤되는 작은 화면에서도 보이도록, 오류는 늘 보이는
+    // 바닥 영역(저장 버튼 바로 위)에 있어야 한다.
+    expect(screen.getByRole('alert').closest('footer')).toBeTruthy();
   });
 
   it('입력칸의 글자는 16px 이상이다 (아이폰 확대 방지)', async () => {

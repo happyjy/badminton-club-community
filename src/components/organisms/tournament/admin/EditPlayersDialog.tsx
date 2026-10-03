@@ -74,8 +74,9 @@ function EditPlayersDialog({
   return (
     <Sheet
       open
-      // 저장이 진행되는 동안에는 ESC·바깥 누르기로 닫히지 않게 한다.
-      onClose={isSaving ? () => {} : onCancel}
+      // ESC·바깥 누르기로는 닫지 않는다. 고친 내용을 실수로 잃지 않도록
+      // 취소 버튼으로만 닫는다.
+      onClose={() => {}}
       title="선수 정보 수정"
       hideCloseButton
       className="md:max-w-lg"

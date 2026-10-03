@@ -74,25 +74,33 @@ export function WorkoutEditSheet({
       onClose={onClose}
       title="운동 일정 수정"
       footer={
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            className="flex-1"
-            onClick={onClose}
-          >
-            취소
-          </Button>
-          <Button
-            type="submit"
-            form={formId}
-            className="flex-1"
-            pending={isSaving}
-            pendingText="저장 중..."
-            pendingPosition="left"
-          >
-            저장
-          </Button>
+        <div className="space-y-2">
+          {/* 폼이 길어 본문이 스크롤되므로, 오류는 늘 보이는 버튼 위에 둔다. */}
+          {error && (
+            <p className="text-callout text-negative" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1"
+              onClick={onClose}
+            >
+              취소
+            </Button>
+            <Button
+              type="submit"
+              form={formId}
+              className="flex-1"
+              pending={isSaving}
+              pendingText="저장 중..."
+              pendingPosition="left"
+            >
+              저장
+            </Button>
+          </div>
         </div>
       }
     >
@@ -155,12 +163,6 @@ export function WorkoutEditSheet({
             onChange={(e) => update('maxParticipants', Number(e.target.value))}
           />
         </FormField>
-
-        {error && (
-          <p className="text-callout text-negative" role="alert">
-            {error}
-          </p>
-        )}
       </form>
     </Sheet>
   );
