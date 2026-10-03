@@ -1,4 +1,7 @@
 import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/session';
+
+import type { NextApiRequest } from 'next';
 
 export type ClubMemberContext = {
   id: number;
@@ -53,4 +56,20 @@ export async function requireClubAdmin(
     throw new ClubAuthError('권한이 없습니다.', 403);
   }
   return member;
+}
+
+/**
+ * 요청 쿠키로 로그인 사용자를 확인한 뒤 클럽 임원(ADMIN)인지 확인한다.
+ * 같은 API 안에서 조회는 공개, 저장은 임원 전용처럼 메서드별로 권한이
+ * 다를 때 withAuth 대신 쓴다. 로그인하지 않았으면 401을 던진다.
+ */
+export async function requireClubAdminRequest(
+  req: NextApiRequest,
+  clubId: number
+): Promise<ClubMemberContext> {
+  const user = await getAuthUser(req);
+  if (!user) {
+    throw new ClubAuthError('로그인이 필요합니다', 401);
+  }
+  return requireClubAdmin(user.id, clubId);
 }

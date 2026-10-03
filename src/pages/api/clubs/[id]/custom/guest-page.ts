@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdminRequest } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 
 export default async function handler(
@@ -35,6 +36,8 @@ export default async function handler(
   // PATCH: 게스트 페이지 설정 업데이트
   if (req.method === 'PATCH') {
     try {
+      await requireClubAdminRequest(req, parseInt(clubId));
+
       const { inquiryDescription, guestDescription } = req.body;
 
       const settings = await prisma.clubCustomSettings.upsert({
@@ -52,6 +55,9 @@ export default async function handler(
 
       return res.status(200).json(settings);
     } catch (error) {
+      if (error instanceof ClubAuthError) {
+        return res.status(error.status).json({ message: error.message });
+      }
       console.error('Error updating guest page settings:', error);
       return res
         .status(500)

@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdminRequest } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 
 export default async function handler(
@@ -27,6 +28,8 @@ export default async function handler(
     }
   } else if (req.method === 'PUT') {
     try {
+      await requireClubAdminRequest(req, clubId);
+
       const { clubOperatingTime, clubLocation, clubDescription } = req.body;
 
       const settings = await prisma.clubCustomSettings.upsert({
@@ -46,6 +49,9 @@ export default async function handler(
 
       res.status(200).json(settings);
     } catch (error) {
+      if (error instanceof ClubAuthError) {
+        return res.status(error.status).json({ error: error.message });
+      }
       console.error('Error updating club home settings:', error);
       res.status(500).json({ error: 'Failed to update club home settings' });
     }
