@@ -1,13 +1,16 @@
 import { GuestStatus, GuestPostType } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdmin } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { GuestListResponse } from '@/types/guest.types';
 import { getTodayInKorea } from '@/utils/date';
 
 // 게스트 신청 목록 조회 API
-export default async function handler(
-  req: NextApiRequest,
+// 신청자 전화번호·생년월일이 담겨 있어 클럽 임원만 조회할 수 있다.
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse<GuestListResponse>
 ) {
   if (req.method !== 'GET') {
@@ -32,6 +35,8 @@ export default async function handler(
         message: '클럽 ID가 필요합니다.',
       });
     }
+
+    await requireClubAdmin(req.user.id, Number(clubId));
 
     const skip = (page - 1) * limit;
 
@@ -158,6 +163,13 @@ export default async function handler(
 
     return res.status(200).json(response);
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res.status(error.status).json({
+        data: { items: [], total: 0, page: 1, limit: 10 },
+        status: error.status,
+        message: error.message,
+      });
+    }
     console.error('Error fetching guest requests:', error);
     return res.status(500).json({
       data: {
@@ -170,4 +182,4 @@ export default async function handler(
       message: '게스트 목록을 불러오는데 실패했습니다.',
     });
   }
-}
+});

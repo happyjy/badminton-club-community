@@ -57,8 +57,15 @@ export default withAuth(async function handler(
                 thumbnailImageUrl: true,
               },
             },
+            // 참석자 목록 화면에 쓰는 필드만 고른다. 전화번호 같은 연락처는 싣지 않는다.
             clubMember: {
-              include: {
+              select: {
+                id: true,
+                name: true,
+                gender: true,
+                birthDate: true,
+                localTournamentLevel: true,
+                nationalTournamentLevel: true,
                 helperStatuses: {
                   where: {
                     workoutId: workoutIdNum,

@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { BOARD_AUTHOR_SELECT } from '@/lib/board/authorSelect';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -94,7 +95,7 @@ export default withAuth(async function handler(
           },
           include: {
             category: true,
-            author: true,
+            author: { select: BOARD_AUTHOR_SELECT },
             _count: {
               select: {
                 comments: true,
@@ -113,7 +114,7 @@ export default withAuth(async function handler(
           },
           include: {
             category: true,
-            author: true,
+            author: { select: BOARD_AUTHOR_SELECT },
             _count: {
               select: {
                 comments: true,
@@ -194,7 +195,7 @@ export default withAuth(async function handler(
         },
         include: {
           category: true,
-          author: true,
+          author: { select: BOARD_AUTHOR_SELECT },
           _count: {
             select: {
               comments: true,

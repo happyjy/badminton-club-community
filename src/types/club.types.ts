@@ -73,7 +73,7 @@ export interface ClubWithDetails extends Club {
 
 // 클럽 멤버 타입
 export type ClubWithMembers = Club & {
-  members: (ClubMember & {
+  members: (Pick<ClubMember, 'id' | 'clubId' | 'userId' | 'role' | 'status'> & {
     user: Pick<User, 'id' | 'nickname' | 'thumbnailImageUrl'>;
   })[];
 };
