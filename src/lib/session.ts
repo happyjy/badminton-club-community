@@ -2,22 +2,22 @@ import { IncomingMessage } from 'http';
 
 import { verify } from 'jsonwebtoken';
 
+import { getJwtSecret } from '@/lib/jwtSecret';
 import { prisma } from '@/lib/prisma';
 
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
 export type AuthUser = { id: number };
 
 // JWT만 디코드해서 최소 정보(id) 반환
+// 비밀키가 없거나 약하면 아무도 로그인된 것으로 보지 않는다(getJwtSecret이 던진 에러도 여기서 막힌다).
 export async function getAuthUser(
   req: IncomingMessage & { cookies: Partial<Record<string, string>> }
 ): Promise<AuthUser | null> {
   const token = req.cookies?.['auth-token'];
   if (!token) return null;
   try {
-    const decoded = verify(token, JWT_SECRET) as
+    const decoded = verify(token, getJwtSecret()) as
       | { userId?: number }
       | undefined;
     if (!decoded?.userId) return null;
