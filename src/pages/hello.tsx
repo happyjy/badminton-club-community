@@ -34,16 +34,18 @@ function HelloPage() {
   if (error) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500 bg-red-50 p-4 rounded-lg">{error}</div>
+        <div className="rounded-md bg-negative-soft p-4 text-negative">
+          {error}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-4">API 응답:</h1>
-        <p className="text-gray-600">{message || '로딩 중...'}</p>
+      <div className="rounded-md bg-surface p-6">
+        <h1 className="mb-4 text-title text-primary">API 응답:</h1>
+        <p className="text-secondary">{message || '로딩 중...'}</p>
       </div>
     </div>
   );
