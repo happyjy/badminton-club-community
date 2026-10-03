@@ -5,6 +5,8 @@ import { useRouter } from 'next/router';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
+import { Input } from '@/components/atoms/inputs/Input';
+import { FormField } from '@/components/molecules/form/FormField';
 import ApplyNotice from '@/components/organisms/tournament/entry/ApplyNotice';
 import {
   createEmptyPlayer,
@@ -13,9 +15,6 @@ import {
 import EntrySummary from '@/components/organisms/tournament/entry/EntrySummary';
 import EventListField from '@/components/organisms/tournament/entry/EventListField';
 import PlayerListField from '@/components/organisms/tournament/entry/PlayerListField';
-
-import { Input } from '@/components/atoms/inputs/Input';
-import { FormField } from '@/components/molecules/form/FormField';
 
 import { isAcceptingEntries } from '@/lib/tournament/status';
 import { validateEntrySubmission } from '@/lib/tournament/validation';
@@ -188,11 +187,11 @@ function ExternalTournamentApplyPage() {
   });
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <div className="p-6 text-center text-secondary">불러오는 중...</div>;
   }
   if (notFound || !tournament) {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center text-secondary">
         대회를 찾을 수 없습니다.
       </div>
     );
@@ -211,16 +210,16 @@ function ExternalTournamentApplyPage() {
   );
   if (!isOpen) {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center text-secondary">
         현재 신청할 수 없는 대회입니다.
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-6">
-      <h1 className="mb-1 text-xl font-bold">{tournament.title}</h1>
-      <p className="mb-6 text-sm text-gray-500">참가 신청 (외부 신청)</p>
+    <div>
+      <h1 className="mb-1 text-large-title text-primary">{tournament.title}</h1>
+      <p className="mb-6 text-callout text-secondary">참가 신청 (외부 신청)</p>
 
       {/*
         대회별 안내는 관리자가 대회 설정의 "신청 주의사항"에 직접 쓴다.
@@ -231,8 +230,8 @@ function ExternalTournamentApplyPage() {
       <FormProvider {...methods}>
         <form onSubmit={onSubmitForm} className="space-y-8">
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">신청자 정보</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-headline font-semibold">신청자 정보</h2>
+            <p className="text-callout text-secondary">
               신청 후 내용을 확인하려면 여기 입력한 이름과 연락처 뒷 4자리가
               필요합니다.
             </p>
@@ -293,7 +292,7 @@ function ExternalTournamentApplyPage() {
           {/* 개별 필드 메시지가 화면 밖에 있으면 버튼이 먹통처럼 보인다.
               제출 실패 사실만이라도 버튼 옆에서 알린다. */}
           {methods.formState.submitCount > 0 && !methods.formState.isValid && (
-            <p role="alert" className="text-sm text-red-500">
+            <p role="alert" className="text-callout text-negative">
               입력하지 않은 필수 항목이 있습니다. 위 항목의 빨간 안내를
               확인해주세요.
             </p>
@@ -302,7 +301,7 @@ function ExternalTournamentApplyPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:bg-gray-300"
+            className="w-full rounded-md bg-accent py-3 font-medium text-on-accent disabled:bg-fill"
           >
             {isSubmitting ? '처리 중...' : '신청하기'}
           </button>

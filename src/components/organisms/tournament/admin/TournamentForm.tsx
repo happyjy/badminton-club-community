@@ -142,7 +142,7 @@ function TournamentForm({
                 })}
               />
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-footnote text-secondary">
               추가금은 신청 종목마다 외부 선수 인원수만큼 붙습니다. (예: 팀당
               60,000원 + 외부 선수 1명 → 70,000원)
             </p>
@@ -165,7 +165,7 @@ function TournamentForm({
                 valueAsNumber: true,
               })}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-footnote text-secondary">
               한 종목에 이 인원만큼 소속 회원이 없으면 신청할 수 없습니다. 1로
               두면 외부 선수끼리만 팀을 짤 수 없습니다. 0이면 제한 없음.
             </p>
@@ -174,7 +174,7 @@ function TournamentForm({
           {methods.watch('nonMemberSurcharge') > 0 && (
             <FormField label="추가금 부과 단위">
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-callout">
                   <input
                     type="radio"
                     className="h-5 w-5 accent-accent"
@@ -183,7 +183,7 @@ function TournamentForm({
                   />
                   1인당
                 </label>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-callout">
                   <input
                     type="radio"
                     className="h-5 w-5 accent-accent"
@@ -193,7 +193,7 @@ function TournamentForm({
                   팀당
                 </label>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-footnote text-secondary">
                 팀당으로 두면 한 종목에 외부 선수가 몇 명이든 추가금이 1회만
                 붙습니다.
               </p>
@@ -201,16 +201,16 @@ function TournamentForm({
           )}
 
           <FormField label="외부 신청">
-            <label className="flex items-start gap-2 text-sm">
+            <label className="flex items-start gap-2 text-callout">
               <Checkbox
                 className="mr-0 mt-0.5"
                 {...methods.register('allowExternalEntry')}
               />
               <span>
-                <span className="font-medium text-gray-800">
+                <span className="font-medium text-primary">
                   로그인 없이 신청할 수 있는 공개 링크를 연다
                 </span>
-                <span className="ml-2 text-gray-500">
+                <span className="ml-2 text-secondary">
                   링크를 아는 사람은 누구나 신청할 수 있습니다.
                 </span>
               </span>
@@ -264,7 +264,7 @@ function TournamentForm({
             onChangeValues={(values) => methods.setValue('levels', values)}
           />
 
-          <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-600">
+          <p className="rounded-md bg-fill p-3 text-callout text-secondary">
             신청자는 <b>종목 {eventTypeCount}개</b> ×{' '}
             <b>연령 {ageGroups.length}개</b>
             {levels.length > 0 && (
@@ -276,33 +276,33 @@ function TournamentForm({
             중에서 각각 선택합니다.
           </p>
 
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-callout">
             <Checkbox className="mr-0" {...methods.register('useTeamName')} />
             팀명 입력받기
           </label>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-gray-700">
+            <p className="mb-2 text-callout font-medium text-primary">
               티셔츠 사이즈 옵션
             </p>
             <div className="mb-2 flex flex-wrap gap-2">
               {tshirtSizes.map((size) => (
                 <span
                   key={size}
-                  className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm"
+                  className="inline-flex items-center gap-1 rounded-full bg-fill px-3 py-1 text-callout"
                 >
                   {size}
                   <button
                     type="button"
                     onClick={() => onClickRemoveSize(size)}
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-secondary"
                   >
-                    ✕
+                    ×
                   </button>
                 </span>
               ))}
               {tshirtSizes.length === 0 && (
-                <span className="text-sm text-gray-400">
+                <span className="text-callout text-secondary">
                   사이즈를 추가하지 않으면 티셔츠 항목을 받지 않습니다.
                 </span>
               )}
@@ -326,7 +326,7 @@ function TournamentForm({
               <button
                 type="button"
                 onClick={onClickAddSize}
-                className="rounded-md bg-gray-100 px-3 py-1.5 text-sm"
+                className="rounded-md bg-fill px-3 py-1.5 text-callout"
               >
                 추가
               </button>
@@ -337,7 +337,7 @@ function TournamentForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md bg-blue-600 py-3 font-medium text-white disabled:bg-gray-300"
+          className="w-full rounded-md bg-accent py-3 font-medium text-on-accent disabled:bg-fill"
         >
           {isSubmitting ? '저장 중...' : submitLabel}
         </button>

@@ -39,11 +39,11 @@ function EventTypeEditor() {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-700">종목 및 참가비</p>
+        <p className="text-callout font-medium text-primary">종목 및 참가비</p>
         <button
           type="button"
           onClick={onClickAdd}
-          className="rounded-md bg-blue-50 px-3 py-1.5 text-sm text-blue-700"
+          className="rounded-md bg-fill px-3 py-1.5 text-callout text-primary"
         >
           + 종목 추가
         </button>
@@ -53,7 +53,7 @@ function EventTypeEditor() {
         {fields.map((field, index) => (
           <div
             key={field.id}
-            className="flex flex-wrap items-start gap-2 rounded-lg border border-gray-200 p-2 sm:flex-nowrap"
+            className="flex flex-wrap items-start gap-2 rounded-md p-2 sm:flex-nowrap bg-surface"
           >
             <input type="hidden" {...register(`eventTypes.${index}.id`)} />
 
@@ -91,7 +91,7 @@ function EventTypeEditor() {
                   valueAsNumber: true,
                 })}
               />
-              <p className="mt-0.5 text-xs text-gray-400">
+              <p className="mt-0.5 text-footnote text-secondary">
                 {formatFee(eventTypes[index]?.fee ?? 0)}
               </p>
             </div>
@@ -101,7 +101,7 @@ function EventTypeEditor() {
               onClick={() => remove(index)}
               aria-label={`${index + 1}번 종목 삭제`}
               title="삭제"
-              className="shrink-0 rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+              className="shrink-0 rounded-sm p-1.5 text-secondary"
             >
               <svg
                 className="h-4 w-4"
@@ -122,7 +122,7 @@ function EventTypeEditor() {
       </div>
 
       {fields.length === 0 && (
-        <p className="rounded-md bg-gray-50 p-4 text-center text-sm text-gray-500">
+        <p className="rounded-md bg-fill p-4 text-center text-callout text-secondary">
           종목을 1개 이상 등록해야 합니다.
         </p>
       )}

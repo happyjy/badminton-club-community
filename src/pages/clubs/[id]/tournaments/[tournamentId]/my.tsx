@@ -54,20 +54,20 @@ function MyEntryPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <div className="p-6 text-center text-secondary">불러오는 중...</div>;
   }
 
   if (!myEntry) {
     return (
-      <div className="mx-auto max-w-2xl p-6 text-center">
-        <p className="mb-4 text-gray-500">아직 신청 내역이 없습니다.</p>
+      <div className="p-6 text-center">
+        <p className="mb-4 text-secondary">아직 신청 내역이 없습니다.</p>
         {isOpen && (
           <button
             type="button"
             onClick={() =>
               router.push(`/clubs/${clubId}/tournaments/${tournamentId}/apply`)
             }
-            className="rounded-md bg-blue-600 px-4 py-2 text-white"
+            className="rounded-md bg-accent px-4 py-2 text-on-accent"
           >
             신청하러 가기
           </button>
@@ -87,28 +87,28 @@ function MyEntryPage() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">내 신청 내역</h1>
+        <h1 className="text-large-title text-primary">내 신청 내역</h1>
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${PAYMENT_CLASS[myEntry.paymentStatus]}`}
+          className={`rounded-full px-2 py-0.5 text-footnote font-medium ${PAYMENT_CLASS[myEntry.paymentStatus]}`}
         >
           {PAYMENT_LABEL[myEntry.paymentStatus]}
         </span>
       </div>
 
-      <div className="rounded-lg bg-blue-50 p-4">
+      <div className="rounded-md bg-fill p-4">
         <div className="flex items-center justify-between">
-          <span className="font-medium text-gray-700">납부하실 금액</span>
-          <span className="text-xl font-bold text-blue-700">
+          <span className="font-medium text-primary">납부하실 금액</span>
+          <span className="text-large-title text-primary">
             {formatFee(myEntry.totalFee)}
           </span>
         </div>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-callout text-secondary">
           입금자명: {myEntry.depositorName}
         </p>
         {detail?.tournament.bankAccount && (
-          <p className="text-sm text-gray-600">
+          <p className="text-callout text-secondary">
             입금 계좌: {detail.tournament.bankAccount}
           </p>
         )}
@@ -130,12 +130,12 @@ function MyEntryPage() {
           return (
             <div
               key={event.id}
-              className="flex items-start justify-between rounded-lg border border-gray-200 p-4"
+              className="flex items-start justify-between rounded-md p-4 bg-surface"
             >
               <div>
                 <p className="font-medium">{label}</p>
-                <p className="mt-1 text-sm text-gray-600">{names}</p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-callout text-secondary">{names}</p>
+                <p className="mt-1 text-callout text-secondary">
                   {formatFee(event.fee)}
                 </p>
               </div>
@@ -144,7 +144,7 @@ function MyEntryPage() {
                   type="button"
                   onClick={() => onClickCancelEvent(event.id, label)}
                   disabled={cancelEvent.isPending}
-                  className="text-sm text-red-500 disabled:text-gray-300"
+                  className="text-callout text-negative disabled:text-tertiary"
                 >
                   취소
                 </button>
@@ -155,11 +155,13 @@ function MyEntryPage() {
 
         {canceledEvents.length > 0 && (
           <div className="space-y-2 pt-2">
-            <h3 className="text-sm font-medium text-gray-500">취소한 종목</h3>
+            <h3 className="text-callout font-medium text-secondary">
+              취소한 종목
+            </h3>
             {canceledEvents.map((event) => (
               <div
                 key={event.id}
-                className="rounded-lg bg-gray-50 p-3 text-sm text-gray-400 line-through"
+                className="rounded-md bg-fill p-3 text-callout text-secondary line-through"
               >
                 {formatEventLabel({
                   eventType: event.eventType.name,
@@ -179,14 +181,14 @@ function MyEntryPage() {
           onClick={() =>
             router.push(`/clubs/${clubId}/tournaments/${tournamentId}/apply`)
           }
-          className="w-full rounded-md border border-blue-600 py-3 font-medium text-blue-600"
+          className="w-full rounded-md border border-accent py-3 font-medium text-primary"
         >
           {myEntry.paymentStatus === 'CANCELED'
             ? '다시 신청하기'
             : '신청 내용 수정'}
         </button>
       ) : (
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-callout text-secondary">
           신청이 마감되어 수정·취소할 수 없습니다.
         </p>
       )}

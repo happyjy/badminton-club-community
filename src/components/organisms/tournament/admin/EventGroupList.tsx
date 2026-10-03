@@ -27,7 +27,7 @@ function EventGroupList({
 }: EventGroupListProps) {
   if (groups.length === 0) {
     return (
-      <p className="rounded-md bg-gray-50 p-6 text-center text-sm text-gray-500">
+      <p className="rounded-md bg-fill p-6 text-center text-callout text-secondary">
         신청 내역이 없습니다.
       </p>
     );
@@ -36,13 +36,10 @@ function EventGroupList({
   return (
     <div className="space-y-4">
       {groups.map((group) => (
-        <section
-          key={group.label}
-          className="rounded-lg border border-gray-200 p-4"
-        >
+        <section key={group.label} className="rounded-md p-4 bg-surface">
           <h3 className="mb-3 font-medium">
             {group.label}{' '}
-            <span className="text-sm text-gray-400">
+            <span className="text-callout text-secondary">
               {group.teams.length}팀 / {group.playerCount}명
             </span>
           </h3>
@@ -51,21 +48,23 @@ function EventGroupList({
             {group.teams.map((team, index) => (
               <li
                 key={`${team.entryId}-${index}`}
-                className="rounded-md bg-gray-50 p-3"
+                className="rounded-md bg-fill p-3"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
                   <div className="flex items-baseline gap-2">
                     {/* 팀 번호가 있어야 인원이 많은 종목에서 줄을 세어 읽기 쉽다. */}
-                    <span className="text-xs text-gray-400">{index + 1}</span>
+                    <span className="text-footnote text-secondary">
+                      {index + 1}
+                    </span>
                     <TeamPlayerNames team={team} />
                     {useTeamName && team.teamName && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-footnote text-secondary">
                         ({team.teamName})
                       </span>
                     )}
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${PAYMENT_CLASS[team.paymentStatus]}`}
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-footnote ${PAYMENT_CLASS[team.paymentStatus]}`}
                   >
                     {PAYMENT_LABEL[team.paymentStatus]}
                   </span>
@@ -76,7 +75,7 @@ function EventGroupList({
                   {team.players.map((player, playerIndex) => (
                     <li
                       key={`${player.name}-${playerIndex}`}
-                      className="flex flex-wrap items-baseline gap-x-2 text-xs text-gray-500"
+                      className="flex flex-wrap items-baseline gap-x-2 text-footnote text-secondary"
                     >
                       <span>{player.name}</span>
                       {/* 연령부 자격을 확인하려면 관리자에게 생년월일이 필요하다. */}
@@ -85,7 +84,7 @@ function EventGroupList({
                       <span>티셔츠 {player.tshirtSize ?? '-'}</span>
                       {/* 추가금 대상자를 임원이 한눈에 보고 입금액을 대조한다. */}
                       {memberLabel && !player.isClubMember && (
-                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">
+                        <span className="rounded-sm bg-warning-soft px-1.5 py-0.5 text-warning">
                           {memberLabel} 아님
                         </span>
                       )}

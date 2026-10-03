@@ -87,11 +87,11 @@ function EventListField({
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">② 신청 종목</h2>
+        <h2 className="text-headline font-semibold">② 신청 종목</h2>
         <button
           type="button"
           onClick={onClickAddEvent}
-          className="rounded-md bg-blue-50 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-100"
+          className="rounded-md bg-fill px-3 py-1.5 text-callout text-primary"
         >
           + 종목 추가
         </button>
@@ -115,18 +115,15 @@ function EventListField({
         };
 
         return (
-          <div
-            key={field.id}
-            className="space-y-3 rounded-lg border border-gray-200 p-4"
-          >
+          <div key={field.id} className="space-y-3 rounded-md p-4 bg-surface">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-callout font-medium text-primary">
                 종목 {index + 1}
               </span>
               <button
                 type="button"
                 onClick={() => remove(index)}
-                className="text-sm text-red-500"
+                className="text-callout text-negative"
               >
                 삭제
               </button>
@@ -188,7 +185,7 @@ function EventListField({
             {getShortfall(selected?.playerKeys ?? []) > 0 && (
               <p
                 role="alert"
-                className="rounded-md bg-red-50 p-3 text-sm text-red-700"
+                className="rounded-md bg-negative-soft p-3 text-callout text-negative"
               >
                 이 종목은 {clubLabel} 회원이 최소 {minClubMembersPerTeam}명
                 필요합니다. 주최측에 본회 소속으로 등록하려면 팀에 소속 회원이
@@ -197,7 +194,7 @@ function EventListField({
             )}
 
             {eventType && (
-              <p className="text-right text-sm text-gray-600">
+              <p className="text-right text-callout text-secondary">
                 참가비 {formatFee(eventType.fee)}
               </p>
             )}
@@ -206,7 +203,7 @@ function EventListField({
       })}
 
       {fields.length === 0 && (
-        <p className="rounded-md bg-gray-50 p-4 text-center text-sm text-gray-500">
+        <p className="rounded-md bg-fill p-4 text-center text-callout text-secondary">
           [+ 종목 추가]를 눌러 신청할 종목을 선택하세요.
         </p>
       )}

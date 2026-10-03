@@ -137,15 +137,17 @@ function TournamentAdminPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <div className="p-6 text-center text-secondary">불러오는 중...</div>;
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl font-bold">신청 현황</h1>
-          <p className="text-sm text-gray-500">{detail?.tournament.title}</p>
+          <h1 className="text-large-title text-primary">신청 현황</h1>
+          <p className="text-callout text-secondary">
+            {detail?.tournament.title}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -153,21 +155,21 @@ function TournamentAdminPage() {
             onClick={() =>
               router.push(`/clubs/${clubId}/tournaments/${tournamentId}/edit`)
             }
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-border px-3 py-1.5 text-callout"
           >
             대회 수정
           </button>
           <button
             type="button"
             onClick={onClickDownloadCsv}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white"
+            className="rounded-md bg-accent px-3 py-1.5 text-callout text-on-accent"
           >
             CSV 다운로드
           </button>
           <button
             type="button"
             onClick={() => setIsDeleteOpen(true)}
-            className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
+            className="rounded-md border border-negative px-3 py-1.5 text-callout text-negative"
           >
             대회 삭제
           </button>
@@ -175,41 +177,43 @@ function TournamentAdminPage() {
       </header>
 
       {detail?.tournament.allowExternalEntry && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm font-medium text-blue-900">
+        <div className="rounded-md border border-accent bg-fill p-4">
+          <p className="text-callout font-medium text-primary">
             외부 신청 링크가 열려 있습니다
           </p>
-          <p className="mt-1 text-xs text-blue-800">
+          <p className="mt-1 text-footnote text-primary">
             아래 주소를 아는 사람은 로그인 없이 신청할 수 있습니다.
           </p>
 
-          <p className="mt-3 text-xs font-medium text-blue-900">신청 링크</p>
+          <p className="mt-3 text-footnote font-medium text-primary">
+            신청 링크
+          </p>
           <div className="mt-1 flex items-center gap-2">
-            <code className="flex-1 overflow-x-auto rounded bg-white px-2 py-1 text-xs">
+            <code className="flex-1 overflow-x-auto rounded-sm bg-surface px-2 py-1 text-footnote">
               {externalApplyUrl}
             </code>
             <button
               type="button"
               onClick={() => onClickCopyLink(externalApplyUrl)}
               disabled={!externalApplyUrl}
-              className="shrink-0 rounded-md bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+              className="shrink-0 rounded-md bg-accent px-3 py-1 text-footnote text-on-accent disabled:opacity-50"
             >
               복사
             </button>
           </div>
 
-          <p className="mt-3 text-xs font-medium text-blue-900">
+          <p className="mt-3 text-footnote font-medium text-primary">
             신청 조회 링크
           </p>
           <div className="mt-1 flex items-center gap-2">
-            <code className="flex-1 overflow-x-auto rounded bg-white px-2 py-1 text-xs">
+            <code className="flex-1 overflow-x-auto rounded-sm bg-surface px-2 py-1 text-footnote">
               {externalEntryUrl}
             </code>
             <button
               type="button"
               onClick={() => onClickCopyLink(externalEntryUrl)}
               disabled={!externalEntryUrl}
-              className="shrink-0 rounded-md bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+              className="shrink-0 rounded-md bg-accent px-3 py-1 text-footnote text-on-accent disabled:opacity-50"
             >
               복사
             </button>
@@ -248,38 +252,38 @@ function TournamentAdminPage() {
       )}
 
       <div className="grid grid-cols-3 gap-3 text-center">
-        <div className="rounded-lg bg-gray-50 p-3">
-          <p className="text-xs text-gray-500">신청 건수</p>
-          <p className="text-lg font-bold">{entries?.length ?? 0}</p>
+        <div className="rounded-md bg-fill p-3">
+          <p className="text-footnote text-secondary">신청 건수</p>
+          <p className="text-headline font-bold">{entries?.length ?? 0}</p>
         </div>
-        <div className="rounded-lg bg-gray-50 p-3">
-          <p className="text-xs text-gray-500">입금 확인</p>
-          <p className="text-lg font-bold">
+        <div className="rounded-md bg-fill p-3">
+          <p className="text-footnote text-secondary">입금 확인</p>
+          <p className="text-headline font-bold">
             {
               (entries ?? []).filter((e) => e.paymentStatus === 'CONFIRMED')
                 .length
             }
           </p>
         </div>
-        <div className="rounded-lg bg-gray-50 p-3">
-          <p className="text-xs text-gray-500">수납액</p>
-          <p className="text-lg font-bold">{formatFee(totalConfirmed)}</p>
+        <div className="rounded-md bg-fill p-3">
+          <p className="text-footnote text-secondary">수납액</p>
+          <p className="text-headline font-bold">{formatFee(totalConfirmed)}</p>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex rounded-md border border-gray-200">
+        <div className="flex rounded-md border border-border">
           <button
             type="button"
             onClick={() => setViewMode('entry')}
-            className={`px-3 py-1.5 text-sm ${viewMode === 'entry' ? 'bg-blue-50 font-medium text-blue-700' : 'text-gray-500'}`}
+            className={`px-3 py-1.5 text-callout ${viewMode === 'entry' ? 'bg-fill font-medium text-primary' : 'text-secondary'}`}
           >
             신청서 단위
           </button>
           <button
             type="button"
             onClick={() => setViewMode('event')}
-            className={`px-3 py-1.5 text-sm ${viewMode === 'event' ? 'bg-blue-50 font-medium text-blue-700' : 'text-gray-500'}`}
+            className={`px-3 py-1.5 text-callout ${viewMode === 'event' ? 'bg-fill font-medium text-primary' : 'text-secondary'}`}
           >
             종목 단위
           </button>

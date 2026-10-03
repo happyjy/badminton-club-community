@@ -2,6 +2,8 @@ import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
+import { Button } from '@/components/atoms/buttons/Button';
+import { PageHeader } from '@/components/organisms/PageHeader';
 import TournamentFileList from '@/components/organisms/tournament/TournamentFileList';
 import TournamentStatusBadge from '@/components/organisms/tournament/TournamentStatusBadge';
 
@@ -22,11 +24,11 @@ function TournamentDetailPage() {
   const isAdmin = clubMember?.role === Role.ADMIN;
 
   if (isLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <div className="p-6 text-center text-secondary">불러오는 중...</div>;
   }
   if (!detail) {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center text-secondary">
         대회를 찾을 수 없습니다.
       </div>
     );
@@ -44,37 +46,36 @@ function TournamentDetailPage() {
       : '신청 내용 수정';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6">
-      <header>
-        <div className="flex items-start justify-between gap-2">
-          <h1 className="text-xl font-bold">{tournament.title}</h1>
-          <TournamentStatusBadge status={effectiveStatus} />
-        </div>
-        {tournament.hostName && (
-          <p className="mt-1 text-sm text-gray-500">{tournament.hostName}</p>
-        )}
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        title={tournament.title}
+        subtitle={tournament.hostName || undefined}
+        backHref={`/clubs/${clubId}/tournaments`}
+        wrapTitle
+        action={<TournamentStatusBadge status={effectiveStatus} />}
+        className="mb-0"
+      />
 
-      <section className="space-y-2 rounded-lg border border-gray-200 p-4 text-sm">
+      <section className="space-y-2 rounded-md bg-surface p-4 text-body text-primary">
         {tournament.tournamentDate && (
           <p>
-            <span className="text-gray-400">대회일 </span>
+            <span className="text-secondary">대회일 </span>
             {tournament.tournamentDate}
           </p>
         )}
         {tournament.location && (
           <p>
-            <span className="text-gray-400">장소 </span>
+            <span className="text-secondary">장소 </span>
             {tournament.location}
           </p>
         )}
         <p>
-          <span className="text-gray-400">신청 마감 </span>
+          <span className="text-secondary">신청 마감 </span>
           {new Date(tournament.applyDeadline).toLocaleString('ko-KR')}
         </p>
         {tournament.bankAccount && (
           <p>
-            <span className="text-gray-400">입금 계좌 </span>
+            <span className="text-secondary">입금 계좌 </span>
             {tournament.bankAccount}
           </p>
         )}
@@ -82,9 +83,9 @@ function TournamentDetailPage() {
 
       {(tournament.description || tournament.files?.length) && (
         <section className="space-y-3">
-          <h2 className="mb-2 font-semibold">모집 요강</h2>
+          <h2 className="px-4 text-footnote text-secondary">모집 요강</h2>
           {tournament.description && (
-            <p className="whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
+            <p className="whitespace-pre-wrap break-words rounded-md bg-surface p-4 text-body text-primary">
               {renderContentWithLinks(tournament.description)}
             </p>
           )}
@@ -93,11 +94,13 @@ function TournamentDetailPage() {
       )}
 
       <section>
-        <h2 className="mb-2 font-semibold">종목 및 참가비</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <h2 className="px-4 pb-2 text-footnote text-secondary">
+          종목 및 참가비
+        </h2>
+        <div className="overflow-x-auto rounded-md bg-surface px-4">
+          <table className="w-full text-body text-primary">
             <thead>
-              <tr className="border-b text-left text-gray-500">
+              <tr className="border-b border-border text-left text-footnote text-secondary">
                 <th className="py-2">종목</th>
                 <th className="py-2">인원</th>
                 <th className="py-2 text-right">참가비</th>
@@ -107,7 +110,10 @@ function TournamentDetailPage() {
               {tournament.eventTypes
                 .filter((eventType) => eventType.isActive)
                 .map((eventType) => (
-                  <tr key={eventType.id} className="border-b last:border-0">
+                  <tr
+                    key={eventType.id}
+                    className="border-b border-border last:border-0"
+                  >
                     <td className="py-2">{eventType.name}</td>
                     <td className="py-2">{eventType.playerCount}명</td>
                     <td className="py-2 text-right">
@@ -120,14 +126,14 @@ function TournamentDetailPage() {
         </div>
       </section>
 
-      <section className="space-y-1 text-sm">
+      <section className="space-y-1 rounded-md bg-surface p-4 text-body text-primary">
         <p>
-          <span className="text-gray-400">연령 </span>
+          <span className="text-secondary">연령 </span>
           {tournament.ageGroups.join(', ')}
         </p>
         {tournament.levels.length > 0 && (
           <p>
-            <span className="text-gray-400">급수 </span>
+            <span className="text-secondary">급수 </span>
             {tournament.levels.join(', ')}
           </p>
         )}
@@ -135,31 +141,36 @@ function TournamentDetailPage() {
 
       <div className="space-y-2">
         {effectiveStatus === 'OPEN' && (
-          <button
+          <Button
             type="button"
+            size="lg"
+            className="w-full"
             onClick={() => router.push(`${basePath}/apply`)}
-            className="w-full rounded-md bg-blue-600 py-3 font-medium text-white"
           >
             {applyButtonLabel}
-          </button>
+          </Button>
         )}
         {myEntryId && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="lg"
+            className="w-full"
             onClick={() => router.push(`${basePath}/my`)}
-            className="w-full rounded-md border border-gray-300 py-3 font-medium text-gray-700"
           >
             내 신청 확인
-          </button>
+          </Button>
         )}
         {isAdmin && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="lg"
+            className="w-full"
             onClick={() => router.push(`${basePath}/admin`)}
-            className="w-full rounded-md border border-blue-600 py-3 font-medium text-blue-600"
           >
             신청 현황 관리
-          </button>
+          </Button>
         )}
       </div>
     </div>

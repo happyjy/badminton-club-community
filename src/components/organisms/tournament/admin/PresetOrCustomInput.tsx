@@ -60,7 +60,7 @@ function PresetOrCustomInput({
           }}
           aria-label="목록에서 선택으로 되돌리기"
           title="목록에서 선택"
-          className="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="shrink-0 rounded-sm p-1 text-secondary"
         >
           <svg
             className="h-3.5 w-3.5"

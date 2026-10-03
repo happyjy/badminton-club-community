@@ -11,10 +11,10 @@ export const STATUS_LABEL: Record<TournamentEffectiveStatus, string> = {
 };
 
 export const STATUS_CLASS: Record<TournamentEffectiveStatus, string> = {
-  DRAFT: 'bg-gray-100 text-gray-600',
-  UPCOMING: 'bg-yellow-100 text-yellow-700',
-  OPEN: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-gray-200 text-gray-500',
+  DRAFT: 'bg-neutral-soft text-neutral',
+  UPCOMING: 'bg-warning-soft text-warning',
+  OPEN: 'bg-positive-soft text-positive',
+  CLOSED: 'bg-neutral-soft text-neutral',
 };
 
 export const PAYMENT_LABEL: Record<EntryPaymentStatus, string> = {
@@ -24,9 +24,9 @@ export const PAYMENT_LABEL: Record<EntryPaymentStatus, string> = {
 };
 
 export const PAYMENT_CLASS: Record<EntryPaymentStatus, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  CANCELED: 'bg-gray-200 text-gray-500',
+  PENDING: 'bg-warning-soft text-warning',
+  CONFIRMED: 'bg-positive-soft text-positive',
+  CANCELED: 'bg-neutral-soft text-neutral',
 };
 
 export function formatFee(fee: number): string {

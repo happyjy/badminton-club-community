@@ -63,19 +63,19 @@ function TagListField({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-gray-700">{label}</p>
+      <p className="text-callout font-medium text-primary">{label}</p>
 
       {/* 아직 선택하지 않은 기본 선택지 */}
       {unselectedPresets.length > 0 && (
         <div>
-          <p className="mb-1.5 text-xs text-gray-500">빠른 선택</p>
+          <p className="mb-1.5 text-footnote text-secondary">빠른 선택</p>
           <div className="flex flex-wrap gap-1.5">
             {unselectedPresets.map((preset) => (
               <button
                 key={preset}
                 type="button"
                 onClick={() => onClickToggle(preset)}
-                className="rounded-full bg-white px-3 py-1 text-sm text-gray-600 ring-1 ring-gray-300"
+                className="rounded-full bg-surface px-3 py-1 text-callout text-secondary ring-1 ring-border"
               >
                 {preset}
               </button>
@@ -103,26 +103,26 @@ function TagListField({
         <button
           type="button"
           onClick={onClickAddCustom}
-          className="rounded-md bg-gray-100 px-3 py-1.5 text-sm"
+          className="rounded-md bg-fill px-3 py-1.5 text-callout"
         >
           추가
         </button>
       </div>
 
       {values.length === 0 ? (
-        <p className="text-xs text-gray-400">{emptyHint}</p>
+        <p className="text-footnote text-secondary">{emptyHint}</p>
       ) : (
-        <div className="rounded-md bg-gray-50 p-2">
+        <div className="rounded-md bg-fill p-2">
           <div className="mb-1.5 flex items-center justify-between">
-            <p className="text-xs text-gray-500">
-              <span className="font-medium text-gray-700">선택한 {label}</span>{' '}
-              · 신청 화면에 이 순서대로 보입니다
+            <p className="text-footnote text-secondary">
+              <span className="font-medium text-primary">선택한 {label}</span> ·
+              신청 화면에 이 순서대로 보입니다
             </p>
             <button
               type="button"
               onClick={() => onChangeValues(sortTagValues(values))}
               disabled={isSorted}
-              className="rounded-md px-2 py-1 text-xs text-blue-600 disabled:text-gray-300"
+              className="rounded-md px-2 py-1 text-footnote text-primary disabled:text-tertiary"
             >
               숫자순 정렬
             </button>
@@ -132,14 +132,14 @@ function TagListField({
             {values.map((value, index) => (
               <li
                 key={value}
-                className="inline-flex items-center gap-1 rounded-full bg-blue-600 py-1 pl-2 pr-1 text-sm text-white"
+                className="inline-flex items-center gap-1 rounded-full bg-accent py-1 pl-2 pr-1 text-callout text-on-accent"
               >
                 <button
                   type="button"
                   onClick={() => onClickMove(index, -1)}
                   disabled={index === 0}
                   aria-label={`${value} 앞으로`}
-                  className="px-0.5 text-blue-200 hover:text-white disabled:text-blue-500"
+                  className="px-0.5 text-primary hover:text-on-accent disabled:text-primary"
                 >
                   ‹
                 </button>
@@ -149,7 +149,7 @@ function TagListField({
                   onClick={() => onClickMove(index, 1)}
                   disabled={index === values.length - 1}
                   aria-label={`${value} 뒤로`}
-                  className="px-0.5 text-blue-200 hover:text-white disabled:text-blue-500"
+                  className="px-0.5 text-primary hover:text-on-accent disabled:text-primary"
                 >
                   ›
                 </button>
@@ -157,9 +157,9 @@ function TagListField({
                   type="button"
                   onClick={() => onClickToggle(value)}
                   aria-label={`${value} 제거`}
-                  className="px-1 text-blue-200 hover:text-white"
+                  className="px-1 text-primary hover:text-on-accent"
                 >
-                  ✕
+                  ×
                 </button>
               </li>
             ))}

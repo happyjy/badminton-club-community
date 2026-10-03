@@ -12,11 +12,11 @@ function ApplyNotice({ notice }: ApplyNoticeProps) {
   if (!notice?.trim()) return null;
 
   return (
-    <section className="mb-6 rounded-md border-l-4 border-amber-400 bg-amber-50 p-4">
-      <h2 className="text-sm font-semibold text-amber-900">
+    <section className="mb-6 rounded-md border-l-4 border-warning bg-warning-soft p-4">
+      <h2 className="text-callout font-semibold text-warning">
         신청 전 확인해주세요
       </h2>
-      <p className="mt-1 whitespace-pre-wrap break-words text-sm text-amber-900">
+      <p className="mt-1 whitespace-pre-wrap break-words text-callout text-warning">
         {renderContentWithLinks(notice)}
       </p>
     </section>

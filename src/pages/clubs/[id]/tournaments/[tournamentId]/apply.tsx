@@ -156,27 +156,29 @@ function TournamentApplyPage() {
   });
 
   if (isDetailLoading || isEntryLoading) {
-    return <div className="p-6 text-center text-gray-500">불러오는 중...</div>;
+    return <div className="p-6 text-center text-secondary">불러오는 중...</div>;
   }
   if (!detail) {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center text-secondary">
         대회를 찾을 수 없습니다.
       </div>
     );
   }
   if (detail.effectiveStatus !== 'OPEN') {
     return (
-      <div className="p-6 text-center text-gray-500">
+      <div className="p-6 text-center text-secondary">
         현재 신청할 수 없는 대회입니다.
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-6">
-      <h1 className="mb-1 text-xl font-bold">{detail.tournament.title}</h1>
-      <p className="mb-6 text-sm text-gray-500">
+    <div>
+      <h1 className="mb-1 text-large-title text-primary">
+        {detail.tournament.title}
+      </h1>
+      <p className="mb-6 text-callout text-secondary">
         {myEntry ? '신청 내역 수정' : '참가 신청'}
       </p>
 
@@ -214,7 +216,7 @@ function TournamentApplyPage() {
           {/* 개별 필드 메시지가 화면 밖에 있으면 버튼이 먹통처럼 보인다.
               제출 실패 사실만이라도 버튼 옆에서 알린다. */}
           {methods.formState.submitCount > 0 && !methods.formState.isValid && (
-            <p role="alert" className="text-sm text-red-500">
+            <p role="alert" className="text-callout text-negative">
               입력하지 않은 필수 항목이 있습니다. 위 항목의 빨간 안내를
               확인해주세요.
             </p>
@@ -223,7 +225,7 @@ function TournamentApplyPage() {
           <button
             type="submit"
             disabled={submitEntry.isPending}
-            className="w-full rounded-md bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:bg-gray-300"
+            className="w-full rounded-md bg-accent py-3 font-medium text-on-accent disabled:bg-fill"
           >
             {submitEntry.isPending
               ? '처리 중...'
