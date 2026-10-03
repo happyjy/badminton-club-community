@@ -1,8 +1,19 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import {
+  consumeVerifyAttempt,
+  resetVerifyAttempts,
+} from '@/lib/phoneVerificationLimit';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
-import { validatePhoneNumber, verifyCode } from '@/lib/sms-verification';
+import {
+  invalidateVerificationCode,
+  validatePhoneNumber,
+  verifyCode,
+} from '@/lib/sms-verification';
+
+const TOO_MANY_ATTEMPTS_MESSAGE =
+  '인증번호를 여러 번 틀렸습니다. 인증번호를 다시 받아주세요.';
 
 export default withAuth(async function handler(
   req: NextApiRequest & { user: { id: number } },
@@ -55,19 +66,35 @@ export default withAuth(async function handler(
       return res.status(404).json({ message: 'Club not found' });
     }
 
+    const clubIdNumber = parseInt(clubId);
+
+    // 6자리를 전수 시도하지 못하게 인증번호 하나당 확인 횟수를 제한한다
+    const attempt = consumeVerifyAttempt(user.id, clubIdNumber, phoneNumber);
+    if (!attempt.allowed) {
+      await invalidateVerificationCode(user.id, clubIdNumber, phoneNumber);
+      return res.status(429).json({ message: TOO_MANY_ATTEMPTS_MESSAGE });
+    }
+
     // 인증번호 확인
     const isVerified = await verifyCode(
       user.id,
-      parseInt(clubId),
+      clubIdNumber,
       phoneNumber,
       verificationCode
     );
 
     if (!isVerified) {
+      // 마지막 기회까지 틀리면 그 자리에서 번호를 만료시킨다
+      if (attempt.remaining === 0) {
+        await invalidateVerificationCode(user.id, clubIdNumber, phoneNumber);
+        return res.status(429).json({ message: TOO_MANY_ATTEMPTS_MESSAGE });
+      }
       return res.status(400).json({
-        message: '인증번호가 올바르지 않거나 만료되었습니다',
+        message: `인증번호가 올바르지 않거나 만료되었습니다 (남은 시도 ${attempt.remaining}회)`,
       });
     }
+
+    resetVerifyAttempts(user.id, clubIdNumber, phoneNumber);
 
     return res.status(200).json({
       success: true,

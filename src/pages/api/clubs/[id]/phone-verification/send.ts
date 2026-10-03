@@ -1,5 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import {
+  checkSendLimit,
+  resetVerifyAttempts,
+} from '@/lib/phoneVerificationLimit';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { sendSMS } from '@/lib/sms';
@@ -71,6 +75,12 @@ export default withAuth(async function handler(
       });
     }
 
+    // 실제로 문자를 보낼 때만 횟수를 센다. 문자 폭탄과 발송 비용을 막는다.
+    const sendLimit = checkSendLimit(user.id, phoneNumber);
+    if (!sendLimit.allowed) {
+      return res.status(429).json({ message: sendLimit.message });
+    }
+
     // 인증번호 생성 및 저장
     const verificationCode = generateVerificationCode();
     await saveVerificationCode(
@@ -79,6 +89,8 @@ export default withAuth(async function handler(
       phoneNumber,
       verificationCode
     );
+    // 새 번호가 나갔으니 확인 기회도 새로 준다
+    resetVerifyAttempts(user.id, parseInt(clubId), phoneNumber);
 
     // SMS 발송
     const message = `[배드민턴 클럽] 인증번호: ${verificationCode} (3분간 유효)`;

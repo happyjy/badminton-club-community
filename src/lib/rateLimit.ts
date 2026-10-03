@@ -63,6 +63,13 @@ export function resetAttempts(key: string): void {
   buckets.delete(key);
 }
 
+/** 접두어로 시작하는 카운터를 모두 지운다. 테스트에서 쓴다. */
+export function resetAttemptsByPrefix(prefix: string): void {
+  Array.from(buckets.keys()).forEach((key) => {
+    if (key.startsWith(prefix)) buckets.delete(key);
+  });
+}
+
 /**
  * 요청자 IP를 뽑는다. 프록시 뒤에 있으므로 x-forwarded-for를 먼저 본다.
  * 헤더는 위조 가능하지만, 이 제한의 목적은 정직한 자동화를 늦추는 것이라 충분하다.

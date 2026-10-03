@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma';
-
-import { toPhoneDigits } from '@/utils/phoneNumber';
+import { formatPhoneNumber, toPhoneDigits } from '@/utils/phoneNumber';
 
 // 6자리 랜덤 인증번호 생성
 export function generateVerificationCode(): string {
@@ -142,6 +141,33 @@ export async function verifyCode(
   });
 
   return true;
+}
+
+/**
+ * 아직 확인되지 않은 인증번호를 즉시 만료시킨다.
+ * 확인을 너무 많이 틀렸을 때 부른다. 카운터는 메모리에만 있어 인스턴스가
+ * 바뀌면 초기화되지만, DB의 번호를 죽여 두면 새로 받기 전에는 맞힐 수 없다.
+ * 저장된 번호 형식이 제각각이라 하이픈 유무 두 가지를 함께 만료시킨다.
+ */
+export async function invalidateVerificationCode(
+  userId: number,
+  clubId: number,
+  phoneNumber: string
+): Promise<void> {
+  const digits = toPhoneDigits(phoneNumber);
+  await prisma.phoneVerification.updateMany({
+    where: {
+      userId,
+      clubId,
+      isVerified: false,
+      phoneNumber: {
+        in: Array.from(
+          new Set([phoneNumber, digits, formatPhoneNumber(digits)])
+        ),
+      },
+    },
+    data: { expiresAt: new Date() },
+  });
 }
 
 // 만료된 인증 데이터 정리

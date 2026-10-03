@@ -3,6 +3,7 @@ import { sign } from 'jsonwebtoken';
 
 import { getBaseUrl, getKakaoCallbackUrl } from '@/constants/urls';
 import { prisma } from '@/lib/prisma';
+import { getSafeReturnPath } from '@/lib/safeRedirect';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -14,8 +15,8 @@ export default async function handler(
 ) {
   const { code, state } = req.query;
 
-  // state 파라미터 디코딩 (없으면 /clubs를 기본값으로 사용)
-  const returnUrl = state ? decodeURIComponent(state.toString()) : '/clubs';
+  // state는 누구나 조작할 수 있어 같은 사이트 경로만 받는다 (아니면 /clubs)
+  const returnUrl = getSafeReturnPath(state);
 
   if (!code) {
     return res.status(400).json({
