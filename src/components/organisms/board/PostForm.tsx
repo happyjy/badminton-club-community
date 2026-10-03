@@ -9,6 +9,7 @@ import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { Textarea } from '@/components/atoms/Textarea';
+import { FormField } from '@/components/molecules/form/FormField';
 
 import {
   PostCategoryWithRelations,
@@ -142,37 +143,17 @@ function PostForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label
-          htmlFor="categoryId"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          카테고리 *
-        </label>
+      <FormField label="카테고리" required error={errors.categoryId?.message}>
         <Select
-          id="categoryId"
           options={categoryOptions}
           {...register('categoryId', {
             required: '카테고리를 선택해주세요',
           })}
-          className={errors.categoryId ? 'border-red-500' : ''}
         />
-        {errors.categoryId && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.categoryId.message}
-          </p>
-        )}
-      </div>
+      </FormField>
 
-      <div>
-        <label
-          htmlFor="title"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          제목 *
-        </label>
+      <FormField label="제목" required error={errors.title?.message}>
         <Input
-          id="title"
           type="text"
           {...register('title', {
             required: '제목을 입력해주세요',
@@ -181,23 +162,13 @@ function PostForm({
               message: '제목은 200자 이하여야 합니다',
             },
           })}
-          className={errors.title ? 'border-red-500' : ''}
         />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-        )}
-      </div>
+      </FormField>
 
-      <div>
-        <label
-          htmlFor="content"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          내용 *
-        </label>
+      <FormField label="내용" required error={errors.content?.message}>
         <Textarea
-          id="content"
-          rows={10}
+          minRows={10}
+          maxRows={24}
           {...register('content', {
             required: '내용을 입력해주세요',
             maxLength: {
@@ -205,12 +176,8 @@ function PostForm({
               message: '내용은 10000자 이하여야 합니다',
             },
           })}
-          className={errors.content ? 'border-red-500' : ''}
         />
-        {errors.content && (
-          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
-        )}
-      </div>
+      </FormField>
 
       <div className="flex gap-2">
         <Button

@@ -42,6 +42,20 @@ const MIGRATED = [
   'components/organisms/modal/PrivacyModal.tsx',
   'components/molecules/form/VerificationCodeInput.tsx',
   'components/molecules/form/PhoneInputGroup.tsx',
+  // 4단계 ③ 게시판
+  'components/organisms/board/BoardCategoryTabs.tsx',
+  'components/organisms/board/BoardToolbar.tsx',
+  'components/organisms/board/PostCard.tsx',
+  'components/organisms/board/PostList.tsx',
+  'components/organisms/board/PostDetail.tsx',
+  'components/organisms/board/PostForm.tsx',
+  'components/molecules/board/CommentItem.tsx',
+  'components/molecules/board/CommentList.tsx',
+  'pages/clubs/[id]/board/index.tsx',
+  'pages/clubs/[id]/board/new.tsx',
+  'pages/clubs/[id]/board/[postId]/index.tsx',
+  'pages/clubs/[id]/board/[postId]/edit.tsx',
+  'utils/renderContentWithLinks.tsx',
 ];
 
 const COLOR_NAMES =

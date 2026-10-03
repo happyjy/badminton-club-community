@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-
 import { useRouter } from 'next/router';
+
+import { Skeleton } from '@/components/atoms/Skeleton';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
 
@@ -11,6 +11,18 @@ interface BoardCategoryTabsProps {
   onCategoryChange: (categoryId: number | null) => void;
 }
 
+// 버튼(터치 영역)은 44, 그 안에 보이는 알약은 36 높이로 그린다.
+const chipClass = (selected: boolean) =>
+  cn(
+    'relative flex h-11 shrink-0 items-center whitespace-nowrap',
+    "before:absolute before:inset-x-0 before:inset-y-1 before:rounded-full before:content-['']",
+    'px-4 text-callout transition-opacity duration-150 active:opacity-70',
+    selected
+      ? 'font-semibold text-on-accent before:bg-accent'
+      : 'font-medium text-primary before:bg-fill'
+  );
+
+/** 게시판 카테고리 고르기. 항목이 많으면 가로로 밀어서 본다. */
 function BoardCategoryTabs({
   selectedCategoryId,
   onCategoryChange,
@@ -22,61 +34,39 @@ function BoardCategoryTabs({
     clubId as string | undefined
   );
 
-  const onClickCategory = useCallback(
-    (categoryId: number | null) => {
-      onCategoryChange(categoryId);
-    },
-    [onCategoryChange]
-  );
-
   if (isLoading) {
     return (
-      <div className="border-b border-gray-200">
-        <div className="overflow-x-auto">
-          <div className="flex whitespace-nowrap px-4">
-            <div className="animate-pulse h-10 w-20 bg-gray-200 rounded mr-2" />
-            <div className="animate-pulse h-10 w-20 bg-gray-200 rounded mr-2" />
-          </div>
-        </div>
+      <div className="flex gap-2 py-1">
+        <Skeleton className="h-9 w-16 rounded-full" />
+        <Skeleton className="h-9 w-20 rounded-full" />
+        <Skeleton className="h-9 w-20 rounded-full" />
       </div>
     );
   }
 
-  return (
-    <nav className="border-b border-gray-200">
-      <div className="overflow-x-auto">
-        <div className="flex whitespace-nowrap px-4 min-w-full">
-          {/* 전체 탭 */}
-          <button
-            onClick={() => onClickCategory(null)}
-            className={cn(
-              'inline-flex flex-col md:flex-row items-center border-b-2 px-3 pt-1 text-sm font-medium',
-              'md:space-x-2 mr-2',
-              selectedCategoryId === null
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-            )}
-          >
-            <span className="mt-1 md:mt-0">전체</span>
-          </button>
+  const items: Array<{ id: number | null; name: string }> = [
+    { id: null, name: '전체' },
+    ...(categories ?? []).map(({ id, name }) => ({ id, name })),
+  ];
 
-          {/* 카테고리 탭들 */}
-          {categories?.map((category) => (
+  return (
+    <nav aria-label="게시판 카테고리" className="-mx-4 overflow-x-auto px-4">
+      <div className="flex gap-2">
+        {items.map((item) => {
+          const selected = selectedCategoryId === item.id;
+
+          return (
             <button
-              key={category.id}
-              onClick={() => onClickCategory(category.id)}
-              className={cn(
-                'inline-flex flex-col md:flex-row items-center border-b-2 px-3 pt-1 text-sm font-medium',
-                'md:space-x-2 mr-2',
-                selectedCategoryId === category.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-              )}
+              key={item.id ?? 'all'}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onCategoryChange(item.id)}
+              className={chipClass(selected)}
             >
-              <span className="mt-1 md:mt-0">{category.name}</span>
+              <span className="relative">{item.name}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </nav>
   );

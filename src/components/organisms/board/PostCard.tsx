@@ -1,56 +1,79 @@
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-import { formatDateSimple } from '@/lib/utils';
+import { Eye, Heart, type LucideIcon, MessageCircle, Pin } from 'lucide-react';
+
+import { StatusChip } from '@/components/atoms/StatusChip';
+
+import { formatDateCompact } from '@/lib/utils';
 import { PostWithRelations } from '@/types/board.types';
 
 interface PostCardProps {
   post: PostWithRelations;
 }
 
+function Count({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+}) {
+  return (
+    <span
+      aria-label={`${label} ${value}`}
+      className="flex items-center gap-1 tabular-nums"
+    >
+      <Icon aria-hidden className="h-3.5 w-3.5" />
+      {value}
+    </span>
+  );
+}
+
+/** 게시판 목록의 한 줄. 줄 전체가 글 상세로 가는 링크다. */
 function PostCard({ post }: PostCardProps) {
   const router = useRouter();
   const { id: clubId } = router.query;
 
-  const onClickPost = () => {
-    router.push(`/clubs/${clubId}/board/${post.id}`);
-  };
-
   return (
-    <div
-      className="p-4 sm:p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white cursor-pointer"
-      onClick={onClickPost}
+    <Link
+      href={`/clubs/${clubId}/board/${post.id}`}
+      className="block px-4 py-3 transition-colors duration-150 active:bg-fill"
     >
-      <div className="flex items-start justify-between mb-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            {post.isPinned && (
-              <span className="shrink-0 text-blue-500" title="고정 게시글">
-                📌
-              </span>
-            )}
-            <h2 className="min-w-0 font-semibold text-lg sm:text-xl text-gray-900 line-clamp-2 break-words">
-              {post.title}
-            </h2>
-          </div>
-          <p className="text-gray-600 text-sm sm:text-base line-clamp-2 break-words mb-3">
-            {post.content}
-          </p>
-        </div>
+      <div className="flex items-start gap-1.5">
+        {post.isPinned && (
+          <Pin
+            aria-label="고정 게시글"
+            className="mt-1 h-4 w-4 shrink-0 text-secondary"
+          />
+        )}
+        <h2 className="line-clamp-2 min-w-0 break-words text-headline text-primary">
+          {post.title}
+        </h2>
       </div>
+      <p className="mt-0.5 line-clamp-2 break-words text-callout text-secondary">
+        {post.content}
+      </p>
 
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
-        <span className="px-2 py-1 bg-gray-100 rounded text-gray-700">
-          {post.category.name}
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-footnote text-secondary">
+        <StatusChip tone="neutral">{post.category.name}</StatusChip>
+        <span>
+          {post.author.name || '알 수 없음'} ·{' '}
+          {formatDateCompact(post.createdAt)}
         </span>
-        <span>{post.author.name || '알 수 없음'}</span>
-        <span>{formatDateSimple(post.createdAt)}</span>
-        <div className="flex items-center gap-3 sm:gap-4 ml-auto">
-          <span>👁️ {post.viewCount}</span>
-          <span>❤️ {post.likeCount}</span>
-          <span>💬 {post._count?.comments || 0}</span>
-        </div>
+        <span className="ml-auto flex items-center gap-3">
+          <Count icon={Eye} label="조회" value={post.viewCount} />
+          <Count icon={Heart} label="좋아요" value={post.likeCount} />
+          <Count
+            icon={MessageCircle}
+            label="댓글"
+            value={post._count?.comments || 0}
+          />
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
 

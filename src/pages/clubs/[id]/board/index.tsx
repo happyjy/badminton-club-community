@@ -9,6 +9,7 @@ import { Button } from '@/components/atoms/buttons/Button';
 import BoardCategoryTabs from '@/components/organisms/board/BoardCategoryTabs';
 import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 import PostList from '@/components/organisms/board/PostList';
+import { PageHeader } from '@/components/organisms/PageHeader';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
 import { useBoardPosts } from '@/hooks/useBoardPosts';
@@ -97,8 +98,8 @@ function BoardPage(_props: AuthProps) {
 
     return (
       <div className="space-y-4">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <p className="text-gray-700 mb-4">
+        <div className="rounded-md bg-warning-soft p-6 text-center">
+          <p className="mb-4 text-body text-primary">
             {isAdmin
               ? '게시판을 사용하려면 먼저 카테고리를 생성해주세요.'
               : '카테고리가 없어 게시글을 작성할 수 없습니다. 관리자에게 문의해주세요.'}
@@ -113,6 +114,8 @@ function BoardPage(_props: AuthProps) {
 
   return (
     <div className="space-y-4">
+      <PageHeader title="게시판" className="mb-0" />
+
       {/* 카테고리 탭 */}
       <BoardCategoryTabs
         selectedCategoryId={selectedCategoryId}
@@ -131,14 +134,16 @@ function BoardPage(_props: AuthProps) {
 
       {/* 게시글 목록 */}
       {postsLoading ? (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">로딩 중...</p>
+        <div className="rounded-md bg-surface p-6 text-center">
+          <p className="text-callout text-secondary">로딩 중...</p>
         </div>
       ) : postsData ? (
         <PostList posts={postsData.items} />
       ) : (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">게시글을 불러올 수 없습니다.</p>
+        <div className="rounded-md bg-surface p-6 text-center">
+          <p className="text-callout text-secondary">
+            게시글을 불러올 수 없습니다.
+          </p>
         </div>
       )}
     </div>

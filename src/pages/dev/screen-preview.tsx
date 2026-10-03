@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { SegmentedControl } from '@/components/molecules/SegmentedControl';
+import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
+import PostList from '@/components/organisms/board/PostList';
 import {
   GuestApplicationItem,
   GuestApplicationList,
@@ -19,6 +21,7 @@ import { HELPER_LIMIT } from '@/hooks/useHelperIcons';
 
 import { getNavItems } from '@/constants/navItems';
 import { Guest, User, Workout, WorkoutParticipant } from '@/types';
+import { PostWithRelations } from '@/types/board.types';
 import { SortOption } from '@/types/participantSort';
 
 import type { GetServerSideProps } from 'next';
@@ -31,7 +34,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
   return { props: {} };
 };
 
-type Screen = 'attendance' | 'workout' | 'guest';
+type Screen = 'attendance' | 'workout' | 'guest' | 'board';
 
 const ME = { id: 7, nickname: '나' } as User;
 const NAMES = [
@@ -139,6 +142,46 @@ const INITIAL_WORKOUTS: Workout[] = [
   },
 ];
 
+const POSTS = [
+  {
+    id: 1,
+    title: '10월 정기 총회 안내',
+    content:
+      '10월 18일 운동이 끝난 뒤 체육관에서 정기 총회를 엽니다. 회비 결산과 내년 임원 선출이 있으니 꼭 참석해 주세요.',
+    isPinned: true,
+    viewCount: 128,
+    likeCount: 12,
+    createdAt: '2026-10-01T03:00:00.000Z',
+    category: { id: 1, name: '공지사항' },
+    author: { name: '김민수' },
+    _count: { comments: 7 },
+  },
+  {
+    id: 2,
+    title:
+      '요넥스 아스트록스 88D 프로 팝니다 (4U, 사용 3개월, 거트 새로 맸어요)',
+    content: '직거래 원합니다.',
+    isPinned: false,
+    viewCount: 45,
+    likeCount: 1,
+    createdAt: '2026-09-28T03:00:00.000Z',
+    category: { id: 2, name: '중고장터' },
+    author: { name: '이지은' },
+    _count: { comments: 2 },
+  },
+  {
+    id: 3,
+    title: '지난주 운동 사진',
+    content: 'https://example.com/photos 에 올려 두었어요.',
+    isPinned: false,
+    viewCount: 9,
+    likeCount: 0,
+    createdAt: '2025-12-20T03:00:00.000Z',
+    category: { id: 3, name: '자유게시판' },
+    author: { name: null },
+  },
+] as unknown as PostWithRelations[];
+
 const GUEST_DESCRIPTION = `◦ 이 클럽에 게스트로 초대 하고 싶은 분이 있으시다면 아래 버튼을 클릭하여 신청서를 작성해주세요.
 ◦ 게스트 참여 당일 참여 인원수가 많으면 제한 될 수 있습니다.
 ◦ 방문 신청은 최소 이틀 전에 하시기 바랍니다.`;
@@ -215,7 +258,9 @@ export default function ScreenPreviewPage() {
   const router = useRouter();
   const queryScreen = router.query.screen;
   const screen: Screen =
-    queryScreen === 'workout' || queryScreen === 'guest'
+    queryScreen === 'workout' ||
+    queryScreen === 'guest' ||
+    queryScreen === 'board'
       ? queryScreen
       : 'attendance';
 
@@ -326,6 +371,7 @@ export default function ScreenPreviewPage() {
             { value: 'attendance', label: '출석체크' },
             { value: 'workout', label: '운동 상세' },
             { value: 'guest', label: '게스트' },
+            { value: 'board', label: '게시판' },
           ]}
           value={screen}
           onChange={(next) =>
@@ -364,6 +410,19 @@ export default function ScreenPreviewPage() {
             ))}
           </div>
         </>
+      ) : screen === 'board' ? (
+        <div className="space-y-4">
+          <PageHeader title="게시판" className="mb-0" />
+          <BoardToolbar
+            sort="latest"
+            onChangeSort={() => {}}
+            canWrite
+            canManageCategories={isAdmin}
+            onClickWrite={() => {}}
+            onClickManageCategories={() => {}}
+          />
+          <PostList posts={POSTS} />
+        </div>
       ) : screen === 'guest' ? (
         <>
           <PageHeader title="게스트 신청" />

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import PostForm from '@/components/organisms/board/PostForm';
+import { PageHeader } from '@/components/organisms/PageHeader';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
 import { useBoardPost } from '@/hooks/useBoardPost';
@@ -33,16 +34,18 @@ function EditPostPage({ user }: AuthProps) {
 
   if (postLoading || categoriesLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-gray-500">로딩 중...</p>
+      <div className="rounded-md bg-surface p-6 text-center">
+        <p className="text-callout text-secondary">로딩 중...</p>
       </div>
     );
   }
 
   if (!post || !categories) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-red-500">게시글을 불러올 수 없습니다.</p>
+      <div className="rounded-md bg-surface p-6 text-center">
+        <p className="text-callout text-negative">
+          게시글을 불러올 수 없습니다.
+        </p>
         <Button
           onClick={() => router.push(`/clubs/${clubId}/board`)}
           className="mt-4"
@@ -62,8 +65,10 @@ function EditPostPage({ user }: AuthProps) {
 
   if (writableCategories.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-gray-500">작성 가능한 카테고리가 없습니다.</p>
+      <div className="rounded-md bg-surface p-6 text-center">
+        <p className="text-callout text-secondary">
+          작성 가능한 카테고리가 없습니다.
+        </p>
         <Button onClick={onClickCancel} className="mt-4">
           취소
         </Button>
@@ -76,23 +81,26 @@ function EditPostPage({ user }: AuthProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">게시글 수정</h1>
-      </div>
-      <PostForm
-        clubId={clubId as string}
-        categories={writableCategories}
-        postId={postId as string}
-        initialData={{
-          title: post.title,
-          content: post.content,
-          categoryId: post.categoryId,
-        }}
-        onSuccess={onSuccess}
-      />
-      <div className="mt-4">
-        <Button variant="plain" onClick={onClickCancel}>
+    <div>
+      <PageHeader title="게시글 수정" />
+      <div className="rounded-md bg-surface p-4">
+        <PostForm
+          clubId={clubId as string}
+          categories={writableCategories}
+          postId={postId as string}
+          initialData={{
+            title: post.title,
+            content: post.content,
+            categoryId: post.categoryId,
+          }}
+          onSuccess={onSuccess}
+        />
+        <Button
+          type="button"
+          variant="plain"
+          className="mt-2 w-full"
+          onClick={onClickCancel}
+        >
           취소
         </Button>
       </div>

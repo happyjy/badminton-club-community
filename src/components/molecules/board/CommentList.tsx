@@ -61,50 +61,56 @@ function CommentList({ comments, clubId, postId }: CommentListProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      <h2 className="text-xl font-bold mb-4">댓글 ({comments.length})</h2>
-
-      {/* 댓글 작성 폼 */}
-      {clubMember ? (
-        <div className="mb-6">
-          <Textarea
-            value={commentContent}
-            onChange={(e) => setCommentContent(e.target.value)}
-            placeholder="댓글을 입력하세요"
-            className="min-h-[100px] resize-none mb-2"
-            maxRows={10}
-          />
-          <div className="flex justify-end">
-            <Button
-              onClick={onClickSubmit}
-              disabled={!commentContent.trim() || createMutation.isPending}
-            >
-              {createMutation.isPending ? '작성 중...' : '작성하기'}
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg text-center text-gray-500">
-          댓글을 작성하려면 로그인이 필요합니다.
-        </div>
-      )}
-
-      {/* 댓글 목록 */}
-      <div className="space-y-4">
-        {comments.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">댓글이 없습니다.</p>
-        ) : (
-          comments.map((comment) => (
-            <CommentItem
-              key={comment.id}
-              comment={comment}
-              clubId={clubId}
-              postId={postId}
+    <section>
+      <h2 className="px-4 pb-2 text-footnote text-secondary">
+        댓글 {comments.length}
+      </h2>
+      <div className="rounded-md bg-surface p-4">
+        {/* 댓글 작성 폼 */}
+        {clubMember ? (
+          <div className="mb-6">
+            <Textarea
+              value={commentContent}
+              onChange={(e) => setCommentContent(e.target.value)}
+              placeholder="댓글을 입력하세요"
+              minRows={3}
+              maxRows={10}
+              className="mb-2"
             />
-          ))
+            <div className="flex justify-end">
+              <Button
+                onClick={onClickSubmit}
+                disabled={!commentContent.trim() || createMutation.isPending}
+              >
+                {createMutation.isPending ? '작성 중...' : '작성하기'}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 rounded-md bg-bg p-4 text-center text-callout text-secondary">
+            댓글을 작성하려면 로그인이 필요합니다.
+          </div>
         )}
+
+        {/* 댓글 목록 */}
+        <div className="space-y-2">
+          {comments.length === 0 ? (
+            <p className="py-8 text-center text-callout text-secondary">
+              아직 댓글이 없어요
+            </p>
+          ) : (
+            comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                clubId={clubId}
+                postId={postId}
+              />
+            ))
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
