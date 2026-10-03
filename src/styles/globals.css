@@ -2,14 +2,86 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
-}
+@layer base {
+  :root {
+    /* 색 — 역할 이름. 다크모드를 넣을 때는 이 블록의 값만 바꾼다. */
+    --color-bg: #f2f2f7;
+    --color-surface: #ffffff;
+    --color-surface-muted: #fafafb;
+    --color-fill: #e5e5ea;
+    --color-text: #1c1c1e;
+    --color-text-secondary: #636366;
+    --color-text-tertiary: #8e8e93;
+    --color-separator: #c6c6c8;
+    --color-border: #e5e5ea;
+    --color-accent: #1c1c1e;
+    --color-on-accent: #ffffff;
+    --color-scrim: rgba(0, 0, 0, 0.4);
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+    /* 상태색 — soft는 칩 배경, 이름만 있는 쪽은 글자 */
+    --color-positive: #176b34;
+    --color-positive-soft: #e3f5e8;
+    --color-warning: #8a5a00;
+    --color-warning-soft: #fff2d9;
+    --color-negative: #b3261e;
+    --color-negative-soft: #fde7e5;
+    --color-neutral: #636366;
+    --color-neutral-soft: #efeff2;
+
+    /* 사진이 없는 아바타의 바탕 */
+    --color-avatar-1: #5f6f8f;
+    --color-avatar-2: #7a6296;
+    --color-avatar-3: #4f7a5c;
+    --color-avatar-4: #96605b;
+    --color-avatar-5: #4e7a96;
+    --color-avatar-6: #857040;
+
+    /* 글자 크기 / 줄 높이 — 휴대폰 기준 */
+    --fs-large-title: 28px;
+    --lh-large-title: 34px;
+    --fs-title: 22px;
+    --lh-title: 28px;
+    --fs-headline: 17px;
+    --lh-headline: 24px;
+    --fs-body: 16px;
+    --lh-body: 24px;
+    --fs-callout: 15px;
+    --lh-callout: 22px;
+    --fs-footnote: 13px;
+    --lh-footnote: 18px;
+    --fs-caption: 12px;
+    --lh-caption: 16px;
+  }
+
+  /* PC 관리 화면: 본문 영역에 data-density="compact"를 달면 한 단계 작아진다. */
+  @media (min-width: 1024px) {
+    [data-density='compact'] {
+      --fs-large-title: 24px;
+      --lh-large-title: 30px;
+      --fs-title: 20px;
+      --lh-title: 26px;
+      --fs-headline: 15px;
+      --lh-headline: 22px;
+      --fs-body: 14px;
+      --lh-body: 20px;
+      --fs-callout: 14px;
+      --lh-callout: 20px;
+    }
+  }
+
+  body {
+    color: var(--color-text);
+    background: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 /* react-datepicker 커스텀 스타일 */
