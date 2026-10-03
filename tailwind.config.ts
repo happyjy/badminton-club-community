@@ -112,7 +112,7 @@ const config: Config = {
       },
       borderRadius: {
         sm: '8px',
-        md: '12px',
+        md: 'var(--radius-md)',
         lg: '16px',
       },
       boxShadow: {

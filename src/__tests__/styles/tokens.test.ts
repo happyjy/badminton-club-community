@@ -59,8 +59,14 @@ describe('디자인 토큰', () => {
   it('둥글기는 8 · 12 · 16이다', () => {
     expect(config.theme?.extend?.borderRadius).toEqual({
       sm: '8px',
-      md: '12px',
+      md: 'var(--radius-md)',
       lg: '16px',
     });
+    expect(css).toMatch(/--radius-md:\s*12px/);
+  });
+
+  it('PC 관리 화면(compact 밀도)에서는 묶음·입력칸의 둥글기가 8이다', () => {
+    const compact = css.slice(css.indexOf("[data-density='compact']"));
+    expect(compact).toMatch(/--radius-md:\s*8px/);
   });
 });

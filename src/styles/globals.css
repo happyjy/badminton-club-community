@@ -23,6 +23,8 @@
     --color-tabbar: rgba(249, 249, 249, 0.94);
     /* 하단 탭바 높이. 화면 아래에 붙는 요소가 이 값만큼 위로 올라간다. */
     --tabbar-h: 56px;
+    /* 묶음·입력칸의 둥글기. PC 관리 화면에서는 한 단계 작아진다. */
+    --radius-md: 12px;
 
     /* 상태색 — soft는 칩 배경, 이름만 있는 쪽은 글자 */
     --color-positive: #176b34;
@@ -72,6 +74,7 @@
       --lh-body: 20px;
       --fs-callout: 14px;
       --lh-callout: 20px;
+      --radius-md: 8px;
     }
   }
 

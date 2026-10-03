@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 
-type CheckboxProps = React.InputHTMLAttributes<HTMLInputElement>;
+// ref도 받는다 (표의 "전체 선택"이 중간 상태를 표시할 때 쓴다).
+type CheckboxProps = React.ComponentProps<'input'>;
 
 export function Checkbox({ className, ...props }: CheckboxProps) {
   return (
