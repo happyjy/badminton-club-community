@@ -23,28 +23,80 @@ const MIGRATED = [
 ];
 
 const COLOR_NAMES =
-  'gray|slate|zinc|neutral-\\d|stone|blue|red|green|yellow|amber|orange|purple|pink|indigo|teal|lime|sky|emerald|cyan|violet|rose';
+  'gray|slate|zinc|neutral|stone|blue|red|green|yellow|amber|orange|purple|pink|indigo|teal|lime|sky|emerald|cyan|violet|rose|fuchsia';
+const COLOR_PREFIXES =
+  'bg|text|border|ring|ring-offset|from|to|via|divide|placeholder|fill|stroke|outline|decoration|accent|caret|shadow';
 
+// tsconfig의 target이 낮아 일부 정규식은 리터럴 대신 생성자를 쓴다.
 const FORBIDDEN: Array<{ what: string; pattern: RegExp }> = [
   {
     what: 'Tailwind 기본 색',
+    // 뒤에 숫자 단계가 붙은 것만 잡는다. 토큰(bg-neutral-soft)은 숫자가 없다.
     pattern: new RegExp(
-      `\\b(?:bg|text|border|ring|from|to|via|divide|placeholder|fill|stroke)-(?:${COLOR_NAMES})-\\d{2,3}\\b`
+      `\\b(?:${COLOR_PREFIXES})-(?:${COLOR_NAMES})-\\d{2,3}\\b`
     ),
   },
   {
     what: '흑백 직접 지정',
-    pattern: /\b(?:bg|text|border)-(?:white|black)\b/,
+    pattern: /\b(?:bg|text|border|ring|divide)-(?:white|black)\b/,
   },
   { what: '그라디언트', pattern: /\bbg-gradient-/ },
-  { what: '옛 그림자', pattern: /\bshadow-(?:sm|md|lg|xl|2xl)\b/ },
-  { what: '색 값', pattern: /#[0-9a-fA-F]{6}\b/ },
+  {
+    what: '옛 그림자',
+    // shadow, shadow-sm … 은 금지. 토큰인 shadow-overlay와 shadow-none만 허용.
+    pattern: new RegExp(
+      '(?<![\\w-])shadow(?:-(?:sm|md|lg|xl|2xl|inner))?(?![\\w-])'
+    ),
+  },
+  { what: '색 값 (#hex)', pattern: /#[0-9a-fA-F]{3,8}\b/ },
+  { what: '색 값 (rgb/hsl)', pattern: /\b(?:rgba?|hsla?)\(/ },
   {
     what: '이모지',
-    // tsconfig의 target이 낮아 정규식 리터럴 대신 생성자를 쓴다.
-    pattern: new RegExp('[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}]', 'u'),
+    pattern: new RegExp(
+      '[\\u{1F000}-\\u{1FAFF}\\u{2300}-\\u{23FF}\\u{2600}-\\u{27BF}\\u{2B00}-\\u{2BFF}]',
+      'u'
+    ),
   },
 ];
+
+const violations = (line: string) =>
+  FORBIDDEN.filter(({ pattern }) => pattern.test(line)).map(({ what }) => what);
+
+describe('지킴이의 규칙 자체', () => {
+  it.each([
+    ['bg-gray-100', 'Tailwind 기본 색'],
+    ['bg-neutral-500', 'Tailwind 기본 색'],
+    ['text-fuchsia-600', 'Tailwind 기본 색'],
+    ['outline-red-500', 'Tailwind 기본 색'],
+    ['hover:bg-blue-50', 'Tailwind 기본 색'],
+    ['text-white', '흑백 직접 지정'],
+    ['bg-gradient-to-r', '그라디언트'],
+    ['rounded shadow p-3', '옛 그림자'],
+    ['shadow-md', '옛 그림자'],
+    ['bg-[#fff]', '색 값 (#hex)'],
+    ['color: #3b82f6', '색 값 (#hex)'],
+    ['rgba(0, 0, 0, 0.5)', '색 값 (rgb/hsl)'],
+    ['⏰ 시간', '이모지'],
+    ['📅 날짜', '이모지'],
+    ['🚗 주차', '이모지'],
+    ['⭐', '이모지'],
+  ])('%s 를 잡는다', (line, what) => {
+    expect(violations(line)).toContain(what);
+  });
+
+  it.each([
+    'bg-neutral-soft text-neutral',
+    'bg-positive-soft text-positive',
+    'shadow-overlay',
+    'bg-surface text-primary border-border',
+    'divide-y-[0.5px] divide-separator',
+    'text-large-title',
+    '// 10월 4일 토요일 · 오후 7:00 – 10:00',
+    'href={`/clubs/${clubId}/workouts/${workout.id}`}',
+  ])('%s 는 잡지 않는다', (line) => {
+    expect(violations(line)).toEqual([]);
+  });
+});
 
 describe('새 디자인으로 옮긴 화면', () => {
   it.each(MIGRATED)('%s 에 옛 색·이모지·그라디언트가 없다', (file) => {
@@ -52,10 +104,8 @@ describe('새 디자인으로 옮긴 화면', () => {
     const found: string[] = [];
 
     source.split('\n').forEach((line, index) => {
-      for (const { what, pattern } of FORBIDDEN) {
-        if (pattern.test(line)) {
-          found.push(`${index + 1}: ${what} — ${line.trim().slice(0, 80)}`);
-        }
+      for (const what of violations(line)) {
+        found.push(`${index + 1}: ${what} — ${line.trim().slice(0, 80)}`);
       }
     });
 

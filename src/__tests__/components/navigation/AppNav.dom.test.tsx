@@ -493,6 +493,18 @@ describe('PageHeader', () => {
     expect(screen.getByRole('button', { name: '수정' })).toBeTruthy();
   });
 
+  it('기본은 긴 제목을 한 줄로 자르고, wrapTitle이면 줄바꿈해서 다 보여 준다', () => {
+    const { rerender } = render(<PageHeader title="긴 제목" />);
+    expect(screen.getByRole('heading').className.split(' ')).toContain(
+      'truncate'
+    );
+
+    rerender(<PageHeader title="긴 제목" wrapTitle />);
+    const classes = screen.getByRole('heading').className.split(' ');
+    expect(classes).not.toContain('truncate');
+    expect(classes).toContain('break-words');
+  });
+
   it('제목만 주면 뒤로 가기와 부제가 없다', () => {
     const { container } = render(<PageHeader title="게시판" />);
 

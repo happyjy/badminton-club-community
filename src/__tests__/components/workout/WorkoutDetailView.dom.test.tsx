@@ -1,7 +1,14 @@
 import { ReactNode } from 'react';
 
 import { describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 
 import { WorkoutDetailView } from '@/components/organisms/workout/WorkoutDetailView';
 
@@ -106,6 +113,40 @@ describe('WorkoutDetailView — 머리와 일정', () => {
     expect(screen.getByText('오후 07:00 – 오후 10:00')).toBeTruthy();
     expect(screen.getByText('당산초 체육관')).toBeTruthy();
     expect(screen.getByText('3명')).toBeTruthy();
+  });
+
+  it('설명이 있으면 일정에 전부 보여 준다 (카드에서는 두 줄로 잘리므로)', () => {
+    const long =
+      '운동 뒤에 환영 모임이 있어요.\n주차 공간이 좁으니 대중교통을 이용해 주세요.';
+    render(
+      <WorkoutDetailView {...base} workout={workout({ description: long })} />
+    );
+
+    const description = screen.getByText(/운동 뒤에 환영 모임이 있어요/);
+    expect(description.textContent).toBe(long);
+    expect(description.className).toContain('whitespace-pre-line');
+    expect(description.className).not.toMatch(/truncate|line-clamp/);
+  });
+
+  it('설명이 없으면 설명 자리가 없다', () => {
+    const { container } = render(
+      <WorkoutDetailView {...base} workout={workout({ description: '' })} />
+    );
+
+    expect(container.querySelector('[data-workout-description]')).toBeNull();
+  });
+
+  it('긴 제목도 자르지 않고 줄바꿈해서 다 보여 준다', () => {
+    render(
+      <WorkoutDetailView
+        {...base}
+        workout={workout({ title: '아주 긴 운동 제목 '.repeat(8).trim() })}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { level: 1 }).className.split(' ')
+    ).not.toContain('truncate');
   });
 
   it('게스트가 있을 때만 인원에 게스트 수를 덧붙인다', () => {
@@ -342,6 +383,63 @@ describe('WorkoutDetailView — 도움 기록', () => {
     ).toBe('false');
   });
 
+  it('도움 기록 안내가 있으면 시트 안에 보여 준다', async () => {
+    render(
+      <WorkoutDetailView
+        {...base}
+        workout={workout()}
+        helperMessage="도움 기록을 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
+      />
+    );
+
+    await act(async () => {
+      fireEvent.click(row('이지은'));
+    });
+
+    expect(screen.getByRole('alert').textContent).toContain(
+      '저장하지 못했어요'
+    );
+  });
+
+  it('저장 중인 항목은 눌리지 않는다', async () => {
+    const onToggleHelper = jest.fn();
+    render(
+      <WorkoutDetailView
+        {...base}
+        workout={workout()}
+        onToggleHelper={onToggleHelper}
+        isHelperPending={(userId, icon) => userId === 2 && icon === 'key'}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.click(row('이지은'));
+    });
+    fireEvent.click(screen.getByRole('button', { name: '열쇠' }));
+
+    expect(onToggleHelper).not.toHaveBeenCalled();
+  });
+
+  it('시트를 닫으면 페이지에 알린다 (안내를 지울 수 있게)', async () => {
+    const onCloseHelper = jest.fn();
+    render(
+      <WorkoutDetailView
+        {...base}
+        workout={workout()}
+        onCloseHelper={onCloseHelper}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.click(row('이지은'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '완료' }));
+    });
+
+    expect(onCloseHelper).toHaveBeenCalledTimes(1);
+  });
+
   it('"완료"를 누르면 닫힌다', async () => {
     render(<WorkoutDetailView {...base} workout={workout()} />);
 
@@ -352,9 +450,12 @@ describe('WorkoutDetailView — 도움 기록', () => {
       fireEvent.click(screen.getByRole('button', { name: '완료' }));
     });
 
-    expect(
-      screen.queryByRole('dialog', { name: '이지은님의 도움 기록' })
-    ).toBeNull();
+    // 닫히는 전환이 끝나야 사라진다.
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: '이지은님의 도움 기록' })
+      ).toBeNull()
+    );
   });
 });
 

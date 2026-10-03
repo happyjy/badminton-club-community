@@ -9,6 +9,8 @@ import { WorkoutCard } from '@/components/organisms/workout/WorkoutCard';
 import { WorkoutDetailView } from '@/components/organisms/workout/WorkoutDetailView';
 import { AppShell } from '@/components/templates/AppShell';
 
+import { HELPER_LIMIT } from '@/hooks/useHelperIcons';
+
 import { getNavItems } from '@/constants/navItems';
 import { Guest, User, Workout, WorkoutParticipant } from '@/types';
 import { SortOption } from '@/types/participantSort';
@@ -156,6 +158,7 @@ export default function ScreenPreviewPage() {
   const [workouts, setWorkouts] = useState(INITIAL_WORKOUTS);
   const [isAdmin, setIsAdmin] = useState(true);
   const [sortOption, setSortOption] = useState<SortOption>('createdAt');
+  const [helperMessage, setHelperMessage] = useState<string | null>(null);
   const [icons, setIcons] = useState<Record<string, SelectedIcon[]>>({
     '1': ['net', 'key'],
     '3': ['mop'],
@@ -306,17 +309,24 @@ export default function ScreenPreviewPage() {
           getAttendanceCount={(id) => (id ? (id / 10) * 3 : 0)}
           getHelperCount={(id) => (id && id % 20 === 0 ? id / 20 : 0)}
           isAdmin={isAdmin}
-          onToggleHelper={(userId, _clubMemberId, icon) =>
-            setIcons((prev) => {
-              const current = prev[userId] ?? [];
-              return {
-                ...prev,
-                [userId]: current.includes(icon)
-                  ? current.filter((value) => value !== icon)
-                  : [...current, icon].slice(-3),
-              };
-            })
-          }
+          onToggleHelper={(userId, _clubMemberId, icon) => {
+            const current = icons[userId] ?? [];
+            if (!current.includes(icon) && current.length >= HELPER_LIMIT) {
+              setHelperMessage(
+                `도움은 한 사람에 ${HELPER_LIMIT}개까지 기록할 수 있어요.`
+              );
+              return;
+            }
+            setHelperMessage(null);
+            setIcons({
+              ...icons,
+              [userId]: current.includes(icon)
+                ? current.filter((value) => value !== icon)
+                : [...current, icon],
+            });
+          }}
+          helperMessage={helperMessage}
+          onCloseHelper={() => setHelperMessage(null)}
           onParkingCapacityChange={async () => {}}
         />
       )}

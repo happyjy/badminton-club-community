@@ -11,6 +11,8 @@ interface PageHeaderProps {
   subtitle?: string;
   /** 있으면 제목 위에 '뒤로' 링크를 둔다 */
   backHref?: string;
+  /** 긴 제목을 자르지 않고 줄바꿈한다. 제목이 내용인 상세 화면에서 쓴다 */
+  wrapTitle?: boolean;
   /** 오른쪽 동작. 보통 Button 하나 */
   action?: ReactNode;
   className?: string;
@@ -21,6 +23,7 @@ export function PageHeader({
   title,
   subtitle,
   backHref,
+  wrapTitle = false,
   action,
   className,
 }: PageHeaderProps) {
@@ -37,7 +40,14 @@ export function PageHeader({
       )}
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-large-title text-primary">{title}</h1>
+          <h1
+            className={cn(
+              'text-large-title text-primary',
+              wrapTitle ? 'break-words' : 'truncate'
+            )}
+          >
+            {title}
+          </h1>
           {subtitle && (
             <p className="mt-0.5 text-footnote text-secondary">{subtitle}</p>
           )}

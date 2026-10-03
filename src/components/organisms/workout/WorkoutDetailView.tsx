@@ -9,6 +9,7 @@ import { ListGroup } from '@/components/molecules/list/ListGroup';
 import PersonInfo from '@/components/molecules/PersonInfo';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import {
+  HELPER_OPTIONS,
   HelperIcons,
   HelperSheet,
   SelectedIcon,
@@ -39,6 +40,12 @@ interface WorkoutDetailViewProps {
     icon: SelectedIcon
   ) => void;
   onParkingCapacityChange: (capacity: number | null) => Promise<void>;
+  /** 도움 기록의 한도 초과·저장 실패 안내 */
+  helperMessage?: string | null;
+  /** 그 사람의 그 항목이 저장 중인가 */
+  isHelperPending?: (userId: number, icon: SelectedIcon) => boolean;
+  /** 도움 기록 시트를 닫을 때 (안내를 지울 수 있게) */
+  onCloseHelper?: () => void;
 }
 
 function InfoRow({
@@ -72,9 +79,14 @@ export function WorkoutDetailView({
   isAdmin,
   onToggleHelper,
   onParkingCapacityChange,
+  helperMessage,
+  isHelperPending,
+  onCloseHelper,
 }: WorkoutDetailViewProps) {
-  // 도움 기록 시트를 연 참여자의 userId
+  // 도움 기록 시트. 닫히는 애니메이션 동안에도 내용이 남도록
+  // "누구의 시트인가"와 "열려 있는가"를 따로 둔다.
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [isHelperOpen, setIsHelperOpen] = useState(false);
 
   const guests = workout.guests ?? [];
   const participantCount = workout.WorkoutParticipant?.length || 0;
@@ -91,10 +103,19 @@ export function WorkoutDetailView({
         title={workout.title}
         subtitle={formatWorkoutDateLabel(workout.date)}
         backHref={backHref}
+        wrapTitle
       />
 
       <div className="space-y-6">
         <ListGroup label="일정">
+          {workout.description && (
+            <p
+              data-workout-description
+              className="whitespace-pre-line break-words px-4 py-3 text-body text-primary"
+            >
+              {workout.description}
+            </p>
+          )}
           <InfoRow icon={Clock}>
             {formatToKoreanTime(workout.startTime)} –{' '}
             {formatToKoreanTime(workout.endTime)}
@@ -164,7 +185,10 @@ export function WorkoutDetailView({
                   <button
                     key={participant.User.id}
                     type="button"
-                    onClick={() => setSelectedUserId(participant.User.id)}
+                    onClick={() => {
+                      setSelectedUserId(participant.User.id);
+                      setIsHelperOpen(true);
+                    }}
                     className="flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 active:bg-fill"
                   >
                     <PersonInfo
@@ -220,8 +244,19 @@ export function WorkoutDetailView({
       </div>
 
       <HelperSheet
-        open={!!selected}
-        onClose={() => setSelectedUserId(null)}
+        open={isHelperOpen && !!selected}
+        onClose={() => {
+          setIsHelperOpen(false);
+          onCloseHelper?.();
+        }}
+        message={helperMessage}
+        pending={
+          selected && isHelperPending
+            ? HELPER_OPTIONS.map((option) => option.value).filter((icon) =>
+                isHelperPending(selected.User.id, icon)
+              )
+            : []
+        }
         name={selected ? displayName(selected) : ''}
         selected={selected ? (participantIcons[selected.User.id] ?? []) : []}
         onToggle={(icon) => {

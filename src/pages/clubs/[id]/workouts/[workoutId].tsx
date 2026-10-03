@@ -9,6 +9,7 @@ import { SelectedIcon } from '@/components/organisms/workout/HelperSheet';
 import { WorkoutDetailView } from '@/components/organisms/workout/WorkoutDetailView';
 
 import { useClubRankings } from '@/hooks/useClubRankings';
+import { ParticipantIcons, useHelperIcons } from '@/hooks/useHelperIcons';
 
 import {
   ParticipantSortProvider,
@@ -20,8 +21,6 @@ import { Workout, WorkoutParticipant } from '@/types';
 import { Role } from '@/types/enums';
 import { SortableItem } from '@/types/sortable';
 
-type ParticipantIcons = Record<string, SelectedIcon[]>;
-
 // 출석체크 상세 페이지
 function ClubWorkoutDetailPage() {
   const router = useRouter();
@@ -30,9 +29,9 @@ function ClubWorkoutDetailPage() {
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [participantIcons, setParticipantIcons] = useState<ParticipantIcons>(
-    () => ({})
-  );
+  // 도움 기록: 저장 중 중복 요청 방지, 한 사람 3개 한도, 실패 안내를 훅이 맡는다.
+  const helper = useHelperIcons(workoutId);
+  const { setIcons: setParticipantIcons } = helper;
   const [initialParticipants, setInitialParticipants] = useState<
     WorkoutParticipant[]
   >([]);
@@ -93,60 +92,11 @@ function ClubWorkoutDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [workoutId]);
+  }, [workoutId, setParticipantIcons]);
 
   useEffect(() => {
     fetchWorkoutDetail();
   }, [fetchWorkoutDetail]);
-
-  // 출석체크 아이콘 선택
-  const handleIconSelect = async (
-    userId: number,
-    clubMemberId: number | undefined,
-    icon: SelectedIcon
-  ) => {
-    if (!clubMemberId) return;
-
-    const currentIcons = participantIcons[userId] || [];
-    const isSelected = !currentIcons.includes(icon);
-
-    try {
-      const response = await fetch(`/api/workouts/${workoutId}/helper-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          iconType: icon,
-          isSelected,
-          targetUserId: userId,
-          clubMemberId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update helper status');
-      }
-
-      setParticipantIcons((prev) => {
-        const currentIcons = prev[userId] || [];
-        let newIcons: SelectedIcon[];
-
-        if (currentIcons.includes(icon)) {
-          newIcons = currentIcons.filter((i) => i !== icon);
-        } else {
-          newIcons = [...currentIcons, icon].slice(-3);
-        }
-
-        return {
-          ...prev,
-          [userId]: newIcons,
-        };
-      });
-    } catch (error) {
-      console.error('Failed to update helper status:', error);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -168,8 +118,7 @@ function ClubWorkoutDetailPage() {
     <ParticipantSortProvider initialParticipants={initialParticipants}>
       <WorkoutDetailContent
         workout={workout}
-        participantIcons={participantIcons}
-        handleIconSelect={handleIconSelect}
+        helper={helper}
         refetch={fetchWorkoutDetail}
       />
     </ParticipantSortProvider>
@@ -178,12 +127,7 @@ function ClubWorkoutDetailPage() {
 
 interface WorkoutDetailContentProps {
   workout: Workout;
-  participantIcons: ParticipantIcons;
-  handleIconSelect: (
-    userId: number,
-    clubMemberId: number | undefined,
-    icon: SelectedIcon
-  ) => Promise<void>;
+  helper: ReturnType<typeof useHelperIcons>;
   refetch: () => Promise<void>;
 }
 
@@ -194,8 +138,7 @@ function isWorkoutParticipant(item: SortableItem): item is WorkoutParticipant {
 
 function WorkoutDetailContent({
   workout,
-  participantIcons,
-  handleIconSelect,
+  helper,
   refetch,
 }: WorkoutDetailContentProps) {
   const router = useRouter();
@@ -234,11 +177,14 @@ function WorkoutDetailContent({
       participants={participants.filter(isWorkoutParticipant)}
       sortOption={sortOption}
       onChangeSort={onChangeSort}
-      participantIcons={participantIcons}
+      participantIcons={helper.icons}
       getAttendanceCount={getAttendanceCount}
       getHelperCount={getHelperCount}
       isAdmin={isAdmin}
-      onToggleHelper={handleIconSelect}
+      onToggleHelper={helper.toggle}
+      helperMessage={helper.message}
+      isHelperPending={helper.isPending}
+      onCloseHelper={helper.clearMessage}
       onParkingCapacityChange={async (capacity) => {
         await fetch(`/api/workouts/${workout.id}/parking/capacity`, {
           method: 'PATCH',

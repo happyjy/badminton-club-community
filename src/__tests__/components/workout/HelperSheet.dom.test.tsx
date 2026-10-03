@@ -114,6 +114,43 @@ describe('HelperSheet', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('안내가 있으면 시트 안에 보여 준다', async () => {
+    await renderSheet(
+      <HelperSheet
+        {...base}
+        message="도움은 한 사람에 3개까지 기록할 수 있어요."
+      />
+    );
+
+    expect(screen.getByRole('alert').textContent).toBe(
+      '도움은 한 사람에 3개까지 기록할 수 있어요.'
+    );
+  });
+
+  it('안내가 없으면 안내 자리가 없다', async () => {
+    await renderSheet(<HelperSheet {...base} />);
+
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('저장 중인 항목은 눌리지 않는다', async () => {
+    const onToggle = jest.fn();
+    await renderSheet(
+      <HelperSheet {...base} pending={['key']} onToggle={onToggle} />
+    );
+
+    const key = screen.getByRole('button', {
+      name: '열쇠',
+    }) as HTMLButtonElement;
+    expect(key.disabled).toBe(true);
+    fireEvent.click(key);
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(
+      (screen.getByRole('button', { name: '걸레질' }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+  });
+
   it('항목의 터치 영역은 44 이상이다', async () => {
     await renderSheet(<HelperSheet {...base} />);
 

@@ -75,6 +75,10 @@ interface HelperSheetProps {
   name: string;
   selected: SelectedIcon[];
   onToggle: (icon: SelectedIcon) => void;
+  /** 저장 중인 항목. 끝날 때까지 다시 누를 수 없다 */
+  pending?: SelectedIcon[];
+  /** 한도 초과·저장 실패 같은 안내 */
+  message?: string | null;
 }
 
 /**
@@ -87,6 +91,8 @@ export function HelperSheet({
   name,
   selected,
   onToggle,
+  pending = [],
+  message,
 }: HelperSheetProps) {
   return (
     <Sheet
@@ -108,8 +114,9 @@ export function HelperSheet({
               key={value}
               type="button"
               aria-pressed={isSelected}
+              disabled={pending.includes(value)}
               onClick={() => onToggle(value)}
-              className="flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 active:bg-fill"
+              className="flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 active:bg-fill disabled:opacity-50"
             >
               <HelperImage
                 value={value}
@@ -131,6 +138,11 @@ export function HelperSheet({
           );
         })}
       </div>
+      {message && (
+        <p role="alert" className="mt-3 text-callout text-negative">
+          {message}
+        </p>
+      )}
     </Sheet>
   );
 }
