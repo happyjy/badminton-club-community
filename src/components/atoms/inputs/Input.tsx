@@ -15,6 +15,22 @@ export const inputClassName = cn(
   'disabled:cursor-not-allowed disabled:opacity-50'
 );
 
+// 16px보다 작은 글자 크기 클래스. 반응형·상태 접두어(sm:, focus:)가 붙어도 잡는다.
+const SMALL_TEXT = /^(?:[a-z0-9-]+:)*text-(?:xs|sm|caption|footnote|callout)$/;
+
+/**
+ * 호출부 className에서 16px보다 작은 글자 크기만 지운다.
+ * 아이폰은 16px보다 작은 입력칸을 누르면 화면을 확대한다.
+ * 더 큰 글자(text-lg 등)와 글자색은 그대로 둔다.
+ */
+export function withMinBodyText(className?: string): string {
+  if (!className) return '';
+  return className
+    .split(/\s+/)
+    .filter((cls) => cls && !SMALL_TEXT.test(cls))
+    .join(' ');
+}
+
 // react-hook-form의 register()가 ref를 전달하므로 forwardRef가 필요하다.
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { fullWidth = true, className, ...props },
@@ -23,13 +39,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <input
       ref={ref}
-      // text-body를 맨 뒤에 둔다. 16px보다 작으면 아이폰이 입력할 때
-      // 화면을 확대하므로, 호출부가 준 글자 크기보다 이쪽이 이겨야 한다.
       className={cn(
         inputClassName,
+        'text-body',
         fullWidth && 'w-full',
-        className,
-        'text-body'
+        withMinBodyText(className)
       )}
       {...props}
     />

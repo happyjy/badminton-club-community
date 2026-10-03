@@ -49,6 +49,32 @@ describe('Input', () => {
     expect(classes).toContain('text-body');
     expect(classes).not.toContain('text-sm');
   });
+
+  it('호출부가 16px보다 큰 글자를 주면 그 크기를 쓴다', () => {
+    render(<Input placeholder="a" className="text-lg" />);
+
+    const classes = screen.getByPlaceholderText('a').className.split(' ');
+    expect(classes).toContain('text-lg');
+    expect(classes).not.toContain('text-body');
+  });
+
+  it('반응형 접두어가 붙은 작은 글자도 지운다', () => {
+    render(<Input placeholder="a" className="sm:text-sm text-xs w-24" />);
+
+    const classes = screen.getByPlaceholderText('a').className.split(' ');
+    expect(classes).toContain('text-body');
+    expect(classes).toContain('w-24');
+    expect(classes).not.toContain('sm:text-sm');
+    expect(classes).not.toContain('text-xs');
+  });
+
+  it('글자색 클래스는 작은 글자로 오해해 지우지 않는다', () => {
+    render(<Input placeholder="a" className="text-secondary text-center" />);
+
+    const classes = screen.getByPlaceholderText('a').className.split(' ');
+    expect(classes).toContain('text-secondary');
+    expect(classes).toContain('text-center');
+  });
 });
 
 describe('Select', () => {
@@ -81,6 +107,48 @@ describe('Select', () => {
       screen.getByRole('combobox').querySelectorAll('option')
     ).toHaveLength(1);
   });
+
+  it('placeholder가 null이면 안내 항목을 그리지 않는다', () => {
+    render(
+      <Select aria-label="필터" placeholder={null}>
+        <option value="">전체</option>
+        <option value="A">A조</option>
+      </Select>
+    );
+
+    const optionEls = screen.getByRole('combobox').querySelectorAll('option');
+    expect(optionEls).toHaveLength(2);
+    expect(optionEls[0].textContent).toBe('전체');
+  });
+
+  it('placeholder 글자를 바꿀 수 있다', () => {
+    render(<Select aria-label="조" options={options} placeholder="선택" />);
+
+    expect(
+      screen.getByRole('combobox').querySelector('option')?.textContent
+    ).toBe('선택');
+  });
+
+  it('options와 자식 option을 함께 주면 둘 다 그린다', () => {
+    render(
+      <Select aria-label="조" options={options} placeholder={null}>
+        <option value="C">C조</option>
+      </Select>
+    );
+
+    const labels = [
+      ...screen.getByRole('combobox').querySelectorAll('option'),
+    ].map((option) => option.textContent);
+    expect(labels).toEqual(['A조', 'B조', 'C조']);
+  });
+
+  it('options도 자식도 없이 placeholder가 null이면 빈 선택칸을 그린다', () => {
+    render(<Select aria-label="빈" placeholder={null} />);
+
+    expect(
+      screen.getByRole('combobox').querySelectorAll('option')
+    ).toHaveLength(0);
+  });
 });
 
 describe('Textarea', () => {
@@ -91,6 +159,14 @@ describe('Textarea', () => {
     for (const cls of ['min-h-11', 'text-body', 'border', 'px-3']) {
       expect(classes).toContain(cls);
     }
+  });
+
+  it('호출부가 작은 글자를 줘도 본문 크기를 지킨다', () => {
+    render(<Textarea placeholder="내용" className="text-sm" />);
+
+    const classes = screen.getByPlaceholderText('내용').className.split(' ');
+    expect(classes).toContain('text-body');
+    expect(classes).not.toContain('text-sm');
   });
 });
 

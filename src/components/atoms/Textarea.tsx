@@ -4,7 +4,10 @@ import TextareaAutosize, {
   TextareaAutosizeProps,
 } from 'react-textarea-autosize';
 
-import { inputClassName } from '@/components/atoms/inputs/Input';
+import {
+  inputClassName,
+  withMinBodyText,
+} from '@/components/atoms/inputs/Input';
 
 import { cn } from '@/lib/utils';
 
@@ -20,12 +23,10 @@ export function Textarea({
 }: TextareaProps) {
   return (
     <TextareaAutosize
-      // 여러 줄이라 높이를 고정하지 않고 최소 높이만 준다.
       className={cn(
         inputClassName,
-        'h-auto min-h-11 w-full resize-none py-2.5',
-        className,
-        'text-body'
+        'h-auto min-h-11 w-full resize-none py-2.5 text-body',
+        withMinBodyText(className)
       )}
       minRows={minRows}
       maxRows={maxRows}
