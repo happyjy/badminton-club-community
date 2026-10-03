@@ -10,8 +10,8 @@ import { prisma } from '@/lib/prisma';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// 비밀키가 없으면 핸들러가 읽히는 순간 멈출 수 있어 먼저 채운 뒤 불러온다.
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+// 비밀키가 없거나 짧으면(32자 미만) 토큰 발급이 실패하므로 테스트용 키를 먼저 채운다.
+process.env.JWT_SECRET = 'test-only-jwt-secret-at-least-32-characters';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const handler = require('@/pages/api/auth/kakao/callback').default as (
   req: NextApiRequest,
