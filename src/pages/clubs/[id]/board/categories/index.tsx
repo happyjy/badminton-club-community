@@ -9,7 +9,11 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { StatusChip } from '@/components/atoms/StatusChip';
+import { EmptyState } from '@/components/molecules/EmptyState';
+import { ListGroup } from '@/components/molecules/list/ListGroup';
 import CategoryManageForm from '@/components/organisms/board/CategoryManageForm';
+import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { useBoardCategories } from '@/hooks/useBoardCategories';
@@ -84,122 +88,102 @@ function CategoryManagePage({ user }: AuthProps) {
   // 권한 체크
   if (clubMember && !canManageCategory(clubMember)) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-gray-500">로딩 중...</p>
-      </div>
+      <p className="py-12 text-center text-callout text-secondary">
+        로딩 중...
+      </p>
     );
   }
 
+  const isListing = !isCreating && !editingCategory;
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">카테고리 관리</h1>
-        {!isCreating && !editingCategory && (
-          <Button onClick={() => setIsCreating(true)}>카테고리 추가</Button>
-        )}
-      </div>
+    <>
+      <PageHeader
+        title="카테고리 관리"
+        backHref={`/clubs/${clubId}/board`}
+        action={
+          isListing ? (
+            <Button onClick={() => setIsCreating(true)}>카테고리 추가</Button>
+          ) : undefined
+        }
+      />
 
-      {isCreating && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">카테고리 생성</h2>
+      {!isListing && (
+        <section className="rounded-md bg-surface p-4 lg:p-6">
+          <h2 className="mb-4 text-title text-primary">
+            {isCreating ? '카테고리 생성' : '카테고리 수정'}
+          </h2>
           <CategoryManageForm
             clubId={clubId as string}
+            category={editingCategory ?? undefined}
             onSuccess={onSuccess}
             onCancel={onCancel}
           />
-        </div>
+        </section>
       )}
 
-      {editingCategory && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">카테고리 수정</h2>
-          <CategoryManageForm
-            clubId={clubId as string}
-            category={editingCategory}
-            onSuccess={onSuccess}
-            onCancel={onCancel}
-          />
-        </div>
-      )}
-
-      {!isCreating && !editingCategory && (
-        <div className="bg-white rounded-lg shadow">
-          {categories && categories.length > 0 ? (
-            <div className="divide-y divide-gray-200">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="p-4 hover:bg-gray-50 flex justify-between items-center"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {category.name}
-                      </h3>
-                      {!category.isActive && (
-                        <span className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded">
-                          비활성화
-                        </span>
-                      )}
-                      <span className="text-sm text-gray-500">
-                        순서: {category.order}
-                      </span>
-                    </div>
-                    {category.description && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        {category.description}
-                      </p>
+      {isListing &&
+        (categories && categories.length > 0 ? (
+          <ListGroup>
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                className="flex items-center justify-between gap-3 px-4 py-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-headline text-primary">
+                      {category.name}
+                    </h3>
+                    {!category.isActive && (
+                      <StatusChip tone="neutral">비활성화</StatusChip>
                     )}
-                    <div className="mt-2 flex gap-2">
-                      <span className="text-xs text-gray-500">
-                        작성 권한:{' '}
-                        {category.allowedRoles
-                          .map((role) =>
-                            role === 'ADMIN' ? '관리자' : '일반 회원'
-                          )
-                          .join(', ')}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        게시글 수: {category._count?.posts || 0}
-                      </span>
-                    </div>
+                    <span className="text-footnote text-secondary">
+                      순서: {category.order}
+                    </span>
                   </div>
-                  <div className="flex gap-2 ml-4">
-                    <Button
-                      variant="plain"
-                      onClick={() => setEditingCategory(category)}
-                      className="text-sm"
-                    >
-                      수정
-                    </Button>
-                    <Button
-                      variant="plain"
-                      onClick={() => onDeleteCategory(category.id)}
-                      className="text-sm text-red-600 hover:text-red-700"
-                    >
-                      삭제
-                    </Button>
-                  </div>
+                  {category.description && (
+                    <p className="mt-1 text-callout text-secondary">
+                      {category.description}
+                    </p>
+                  )}
+                  <p className="mt-1 flex flex-wrap gap-x-2 text-footnote text-secondary">
+                    <span>
+                      작성 권한:{' '}
+                      {category.allowedRoles
+                        .map((role) =>
+                          role === 'ADMIN' ? '관리자' : '일반 회원'
+                        )
+                        .join(', ')}
+                    </span>
+                    <span>게시글 수: {category._count?.posts || 0}</span>
+                  </p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 text-center text-gray-500">
-              카테고리가 없습니다. 카테고리를 추가해주세요.
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="flex justify-end">
-        <Button
-          variant="plain"
-          onClick={() => router.push(`/clubs/${clubId}/board`)}
-        >
-          게시판으로 돌아가기
-        </Button>
-      </div>
-    </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    variant="plain"
+                    size="sm"
+                    onClick={() => setEditingCategory(category)}
+                  >
+                    수정
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onDeleteCategory(category.id)}
+                  >
+                    삭제
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </ListGroup>
+        ) : (
+          <div className="rounded-md bg-surface">
+            <EmptyState title="카테고리가 없습니다. 카테고리를 추가해주세요." />
+          </div>
+        ))}
+    </>
   );
 }
 

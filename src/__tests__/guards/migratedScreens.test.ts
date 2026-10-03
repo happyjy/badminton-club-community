@@ -105,6 +105,17 @@ const MIGRATED = [
   // 5단계 ② 게스트 확인
   'components/organisms/guest/GuestCheckView.tsx',
   'pages/clubs/[id]/guest/check/index.tsx',
+  // 5단계 ③ 클럽 설정 · 게시판 카테고리 관리
+  'pages/clubs/[id]/custom/index.tsx',
+  'components/organisms/forms/ClubHomeSettingsForm.tsx',
+  'components/organisms/forms/EmailSettingsForm.tsx',
+  'components/organisms/forms/GuestPageSettingsForm.tsx',
+  'components/organisms/forms/MenuSettingsForm.tsx',
+  'components/organisms/forms/ParkingSettingsForm.tsx',
+  'components/organisms/forms/SmsSettingsForm.tsx',
+  'components/organisms/forms/WorkoutScheduleForm.tsx',
+  'pages/clubs/[id]/board/categories/index.tsx',
+  'components/organisms/board/CategoryManageForm.tsx',
 ];
 
 const COLOR_NAMES =

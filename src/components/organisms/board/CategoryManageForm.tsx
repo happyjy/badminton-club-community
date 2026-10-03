@@ -117,7 +117,7 @@ function CategoryManageForm({
           placeholder="예: 공지사항, 자유게시판"
         />
         {errors.name && (
-          <p className="mt-1 text-footnote text-negative">
+          <p role="alert" className="mt-1 text-footnote text-negative">
             {errors.name.message}
           </p>
         )}
@@ -145,18 +145,20 @@ function CategoryManageForm({
               checked={allowedRoles.includes('MEMBER')}
               onChange={() => onToggleRole('MEMBER')}
             />
-            <span className="text-sm text-gray-700">일반 회원 (MEMBER)</span>
+            <span className="text-callout text-primary">
+              일반 회원 (MEMBER)
+            </span>
           </label>
           <label className="flex min-h-11 items-center">
             <Checkbox
               checked={allowedRoles.includes('ADMIN')}
               onChange={() => onToggleRole('ADMIN')}
             />
-            <span className="text-sm text-gray-700">관리자 (ADMIN)</span>
+            <span className="text-callout text-primary">관리자 (ADMIN)</span>
           </label>
         </div>
         {errors.allowedRoles && (
-          <p className="mt-1 text-footnote text-negative">
+          <p role="alert" className="mt-1 text-footnote text-negative">
             {errors.allowedRoles.message}
           </p>
         )}
@@ -177,7 +179,7 @@ function CategoryManageForm({
       <div>
         <label className="flex min-h-11 items-center">
           <Checkbox {...register('isActive')} />
-          <span className="text-sm text-gray-700">활성화</span>
+          <span className="text-callout text-primary">활성화</span>
         </label>
       </div>
 
@@ -187,7 +189,7 @@ function CategoryManageForm({
         </Button>
         <Button
           type="button"
-          variant="plain"
+          variant="secondary"
           onClick={onCancel}
           disabled={isSubmitting}
           className="flex-1"

@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { Button } from '@/components/atoms/buttons/Button';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Textarea } from '@/components/atoms/Textarea';
+import { FormField } from '@/components/molecules/form/FormField';
 
 const schema = z.object({
   clubOperatingTime: z.string().min(1, '운영 시간을 입력해주세요'),
@@ -62,65 +63,26 @@ function ClubHomeSettingsForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="clubOperatingTime"
-            className="block text-sm font-medium text-gray-700"
-          >
-            운영 시간
-          </label>
+        <FormField label="운영 시간" error={errors.clubOperatingTime?.message}>
           <Textarea
             id="clubOperatingTime"
             {...register('clubOperatingTime')}
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             rows={3}
             placeholder="예시:&#10;평일: 18:00 - 22:00&#10;주말: 10:00 - 18:00"
           />
-          {errors.clubOperatingTime && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.clubOperatingTime.message}
-            </p>
-          )}
-        </div>
+        </FormField>
 
-        <div>
-          <label
-            htmlFor="clubLocation"
-            className="block text-sm font-medium text-gray-700"
-          >
-            장소
-          </label>
-          <Input
-            id="clubLocation"
-            {...register('clubLocation')}
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          {errors.clubLocation && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.clubLocation.message}
-            </p>
-          )}
-        </div>
+        <FormField label="장소" error={errors.clubLocation?.message}>
+          <Input id="clubLocation" {...register('clubLocation')} />
+        </FormField>
 
-        <div>
-          <label
-            htmlFor="clubDescription"
-            className="block text-sm font-medium text-gray-700"
-          >
-            설명
-          </label>
+        <FormField label="설명" error={errors.clubDescription?.message}>
           <Textarea
             id="clubDescription"
             {...register('clubDescription')}
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             rows={4}
           />
-          {errors.clubDescription && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.clubDescription.message}
-            </p>
-          )}
-        </div>
+        </FormField>
       </div>
 
       <Button type="submit" disabled={isSubmitting}>

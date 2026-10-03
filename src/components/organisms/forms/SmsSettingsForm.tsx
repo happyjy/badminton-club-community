@@ -6,7 +6,9 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as z from 'zod';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Textarea } from '@/components/atoms/Textarea';
+import { FormField } from '@/components/molecules/form/FormField';
 
 const smsSettingsSchema = z.object({
   smsRecipients: z.string().min(1, '문자 수신자를 입력해주세요'),
@@ -57,36 +59,20 @@ function SmsSettingsForm({ clubId, initialData }: SmsSettingsFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <div>
-          <label
-            htmlFor="smsRecipients"
-            className="block text-sm font-medium text-gray-700"
-          >
-            문자 수신자
-          </label>
+        <FormField label="문자 수신자" error={errors.smsRecipients?.message}>
           <Textarea
             id="smsRecipients"
             {...register('smsRecipients')}
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm ring-offset-surface placeholder:text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             rows={4}
             placeholder="전화번호를 쉼표로 구분하여 입력하세요 (예: 010-1234-5678, 010-8765-4321)"
           />
-          {errors.smsRecipients && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.smsRecipients.message}
-            </p>
-          )}
-        </div>
+        </FormField>
       </div>
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? '저장 중...' : '저장하기'}
-        </button>
+        </Button>
       </div>
     </form>
   );

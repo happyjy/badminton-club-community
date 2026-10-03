@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { Button } from '@/components/atoms/buttons/Button';
 import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Label } from '@/components/atoms/labels/Label';
@@ -92,13 +93,13 @@ export default function ParkingSettingsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <label className="flex items-center gap-3">
+      <label className="flex min-h-11 items-center gap-3">
         <Checkbox
           checked={parkingEnabled}
           onChange={(e) => setParkingEnabled(e.target.checked)}
           className="mr-0"
         />
-        <span className="text-sm font-medium text-gray-800">
+        <span className="text-callout font-medium text-primary">
           주차 신청 기능 사용
         </span>
       </label>
@@ -116,12 +117,12 @@ export default function ParkingSettingsForm({
           onChange={(e) => setWeekdayValue(e.target.value)}
         />
         {parkingEnabled && isWeekdayEmpty && (
-          <p className="mt-1 text-footnote text-negative">
+          <p role="alert" className="mt-1 text-footnote text-negative">
             주차 대수를 입력해야 저장할 수 있습니다.
           </p>
         )}
         {parkingEnabled && !isWeekdayEmpty && isWeekdayInvalid && (
-          <p className="mt-1 text-footnote text-negative">
+          <p role="alert" className="mt-1 text-footnote text-negative">
             주차 대수는 0 이상의 숫자여야 합니다.
           </p>
         )}
@@ -140,18 +141,18 @@ export default function ParkingSettingsForm({
           onChange={(e) => setWeekendValue(e.target.value)}
         />
         {parkingEnabled && isWeekendEmpty && (
-          <p className="mt-1 text-footnote text-negative">
+          <p role="alert" className="mt-1 text-footnote text-negative">
             주차 대수를 입력해야 저장할 수 있습니다.
           </p>
         )}
         {parkingEnabled && !isWeekendEmpty && isWeekendInvalid && (
-          <p className="mt-1 text-footnote text-negative">
+          <p role="alert" className="mt-1 text-footnote text-negative">
             주차 대수는 0 이상의 숫자여야 합니다.
           </p>
         )}
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-footnote text-secondary">
         운동 일정별로 대수를 따로 정하지 않으면 위 기본값이 적용됩니다.
       </p>
 
@@ -163,24 +164,24 @@ export default function ParkingSettingsForm({
           className="mr-0 mt-0.5"
         />
         <span>
-          <span className="block text-sm font-medium text-gray-800">
+          <span className="block text-callout font-medium text-primary">
             대기 → 확정 승격 시 문자 발송
           </span>
-          <span className="block text-xs text-gray-500 mt-0.5">
+          <span className="mt-0.5 block text-footnote text-secondary">
             문자는 건당 비용이 발생합니다.
           </span>
         </span>
       </label>
 
-      {message && <p className="text-sm text-gray-600">{message}</p>}
+      {message && (
+        <p role="status" className="text-callout text-secondary">
+          {message}
+        </p>
+      )}
 
-      <button
-        type="submit"
-        disabled={isSaving || !canSave}
-        className="w-full py-2 px-4 rounded-lg bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-400"
-      >
+      <Button type="submit" disabled={isSaving || !canSave} className="w-full">
         {isSaving ? '저장 중...' : '저장'}
-      </button>
+      </Button>
     </form>
   );
 }
