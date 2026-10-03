@@ -14,12 +14,14 @@ import { useMenuSettings } from '@/hooks/useCustomSettings';
 import { useSyncClubMember } from '@/hooks/useSyncClubMember';
 
 import { getLayoutVariant } from '@/constants/layoutVariant';
+import { isActiveMemberStatus } from '@/constants/memberStatus';
 import { getNavItems } from '@/constants/navItems';
 import { RootState } from '@/store';
 import { setUser, setMembershipStatus } from '@/store/features/authSlice';
 import { setClubData } from '@/store/features/clubSlice';
 import { ClubMember, User, ClubWithDetails } from '@/types';
 import { LayoutProps } from '@/types/components.types';
+import { Status } from '@/types/enums';
 
 // useAuth 훅이 반환하는 데이터 타입 정의
 interface AuthData {
@@ -73,7 +75,8 @@ export function Layout({ children }: LayoutProps) {
         setMembershipStatus({
           // todo[refactoring]: jyoon - hard code 된 부분 수정하기
           isPending: memberStatus?.status === 'PENDING',
-          isMember: memberStatus?.status === 'APPROVED',
+          // 휴가 중인 회원도 회원으로 본다 (서버 requireClubMember와 같은 기준)
+          isMember: isActiveMemberStatus(memberStatus?.status),
         })
       );
     }
@@ -102,11 +105,17 @@ export function Layout({ children }: LayoutProps) {
   const { data: menuSettings } = useMenuSettings(navClubId ?? '');
   const { login, logout } = useAuthActions();
 
+  // 회원 기록(clubMember)은 탈퇴·거절·가입 대기여도 남아 있다.
+  // 회원 메뉴는 서버가 회원으로 인정하는 상태(승인·휴가)일 때만 보여 준다.
+  // 운영진 메뉴는 서버의 임원 확인(requireClubAdmin)처럼 승인 상태에서만 보여 준다.
+  const isActiveMember = isActiveMemberStatus(clubMember?.status);
   const navItems = navClubId
     ? getNavItems({
         clubId: navClubId,
-        isMember: !!clubMember,
-        isAdmin: clubMember?.role === 'ADMIN',
+        isMember: isActiveMember,
+        isAdmin:
+          clubMember?.role === 'ADMIN' &&
+          clubMember?.status === Status.APPROVED,
         tournamentMenuEnabled: menuSettings?.tournamentMenuEnabled ?? true,
       })
     : [];

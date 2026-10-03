@@ -106,14 +106,23 @@ export default withAuth(async function handler(
           data: updatedComment,
         });
       } else if (action === 'unlike') {
-        const updatedComment = await prisma.postComment.update({
+        // 사용자별 좋아요 기록이 없어 같은 사람이 여러 번 취소할 수 있다.
+        // 0보다 클 때만 줄여서 음수가 되지 않게 한다 (조건과 감소를 한 쿼리로).
+        await prisma.postComment.updateMany({
           where: {
             id: commentId,
+            likeCount: { gt: 0 },
           },
           data: {
             likeCount: {
               decrement: 1,
             },
+          },
+        });
+
+        const updatedComment = await prisma.postComment.findUnique({
+          where: {
+            id: commentId,
           },
           include: {
             author: {
