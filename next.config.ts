@@ -20,5 +20,8 @@ export default withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
+  // Pretendard는 글자 묶음별로 92개 파일로 나뉘어 있다. 설치 시 전부 미리
+  // 받게 하지 않고, 화면에 실제로 쓰인 묶음만 그때그때 받아 캐시한다.
+  buildExcludes: [/static\/media\/.*\.woff2$/],
   disable: process.env.NODE_ENV === 'development',
 })(nextConfig);

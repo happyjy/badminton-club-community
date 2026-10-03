@@ -1,13 +1,15 @@
 import {
   cloneElement,
-  Fragment,
   isValidElement,
   ReactElement,
   ReactNode,
   useId,
 } from 'react';
 
+import { Input } from '@/components/atoms/inputs/Input';
+import { Select } from '@/components/atoms/inputs/Select';
 import { Label } from '@/components/atoms/labels/Label';
+import { Textarea } from '@/components/atoms/Textarea';
 
 interface FormFieldProps {
   label: string;
@@ -23,14 +25,25 @@ interface ControlProps {
   'aria-describedby'?: string;
 }
 
-/** id를 넣어 줄 수 있는 자식인가: 요소 하나이고 Fragment가 아닐 때만. */
+const NATIVE_CONTROLS = ['input', 'select', 'textarea'];
+const CONTROL_ATOMS: unknown[] = [Input, Select, Textarea];
+
+/**
+ * 라벨과 이을 수 있는 자식인가: 입력 요소 그 자체이거나 입력 atom일 때만.
+ * 감싸는 div, Fragment, react-hook-form의 Controller처럼 id를 입력까지
+ * 전달하지 않는 자식에 이으면 가리킬 곳 없는 for만 남는다.
+ */
 function isSingleControl(node: ReactNode): node is ReactElement<ControlProps> {
-  return isValidElement(node) && node.type !== Fragment;
+  if (!isValidElement(node)) return false;
+
+  return typeof node.type === 'string'
+    ? NATIVE_CONTROLS.includes(node.type)
+    : CONTROL_ATOMS.includes(node.type);
 }
 
 /**
- * 라벨 + 입력 + 오류 문구. 자식이 요소 하나면 id를 넣어 라벨과 잇는다.
- * 자식이 여러 개거나 Fragment·문자열이면 잇지 않고 그대로 그린다.
+ * 라벨 + 입력 + 오류 문구. 자식이 입력 하나면 id를 넣어 라벨과 잇는다.
+ * 그 밖의 자식(감싸는 요소, 여러 개, Fragment, 문자열)은 그대로 그린다.
  */
 export function FormField({
   label,

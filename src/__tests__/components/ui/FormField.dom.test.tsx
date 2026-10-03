@@ -2,6 +2,8 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
 import { Input } from '@/components/atoms/inputs/Input';
+import { Select } from '@/components/atoms/inputs/Select';
+import { Textarea } from '@/components/atoms/Textarea';
 import { FormField } from '@/components/molecules/form/FormField';
 
 describe('FormField', () => {
@@ -109,9 +111,9 @@ describe('FormField', () => {
     errorSpy.mockRestore();
   });
 
-  it('전화번호 3칸처럼 div로 감싼 자식이면 그 div에 id가 붙고 오류 없이 그려진다', () => {
-    render(
-      <FormField label="전화번호">
+  it('div로 감싼 여러 입력이면 잇지 않는다: 가리킬 곳 없는 for를 남기지 않는다', () => {
+    const { container } = render(
+      <FormField label="전화번호" error="확인해주세요">
         <div data-testid="group">
           <Input placeholder="010" />
           <Input placeholder="1234" />
@@ -119,7 +121,48 @@ describe('FormField', () => {
       </FormField>
     );
 
-    expect(screen.getByTestId('group').getAttribute('id')).toBeTruthy();
+    const group = screen.getByTestId('group');
+    expect(group.hasAttribute('id')).toBe(false);
+    expect(group.hasAttribute('aria-invalid')).toBe(false);
+    expect(container.querySelector('label')?.hasAttribute('for')).toBe(false);
     expect(screen.getByPlaceholderText('1234')).toBeTruthy();
+  });
+
+  it('id를 받지 않는 컴포넌트(react-hook-form Controller 등)면 잇지 않는다', () => {
+    // 넘겨받은 props를 버리고 자기 입력을 그리는 컴포넌트
+    function ControllerLike() {
+      return <input placeholder="생년월일" />;
+    }
+
+    const { container } = render(
+      <FormField label="생년월일">
+        <ControllerLike />
+      </FormField>
+    );
+
+    expect(container.querySelector('label')?.hasAttribute('for')).toBe(false);
+    expect(screen.getByPlaceholderText('생년월일').hasAttribute('id')).toBe(
+      false
+    );
+  });
+
+  it('Select·Textarea·기본 input 요소도 라벨과 잇는다', () => {
+    render(
+      <>
+        <FormField label="급수">
+          <Select options={[{ value: 'A', label: 'A조' }]} />
+        </FormField>
+        <FormField label="남길 말">
+          <Textarea />
+        </FormField>
+        <FormField label="날짜">
+          <input type="date" />
+        </FormField>
+      </>
+    );
+
+    expect(screen.getByLabelText(/급수/).tagName).toBe('SELECT');
+    expect(screen.getByLabelText(/남길 말/).tagName).toBe('TEXTAREA');
+    expect(screen.getByLabelText(/날짜/).getAttribute('type')).toBe('date');
   });
 });

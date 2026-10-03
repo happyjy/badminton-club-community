@@ -3,9 +3,12 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react';
+
+import singletonRouter from 'next/router';
 
 import { Button } from '@/components/atoms/buttons/Button';
 import { Sheet } from '@/components/organisms/sheet/Sheet';
@@ -42,6 +45,16 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     resolveRef.current = null;
     setOpen(false);
   }, []);
+
+  // 화면이 바뀌면 취소로 끝낸다. 남아 있으면 다른 화면 위에서 이전 화면의
+  // 동작(삭제 등)이 실행될 수 있다.
+  useEffect(() => {
+    const onRouteChange = () => {
+      if (resolveRef.current) settle(false);
+    };
+    singletonRouter.events.on('routeChangeStart', onRouteChange);
+    return () => singletonRouter.events.off('routeChangeStart', onRouteChange);
+  }, [settle]);
 
   const confirm = useCallback<Confirm>((next) => {
     // 이미 떠 있으면 먼저 것은 취소로 끝낸다. 끝나지 않는 Promise를 남기지 않는다.

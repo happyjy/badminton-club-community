@@ -7,6 +7,8 @@ import {
   waitFor,
 } from '@testing-library/react';
 
+import singletonRouter from 'next/router';
+
 import {
   ConfirmOptions,
   ConfirmProvider,
@@ -183,6 +185,25 @@ describe('useConfirm', () => {
 
     await press('확인');
     expect(second).toHaveBeenCalledWith(true);
+  });
+
+  it('떠 있는 동안 다른 화면으로 이동하면 false로 끝나고 닫힌다', async () => {
+    // 뒤로 가기로 화면이 바뀌었는데 확인창이 남으면, 엉뚱한 화면 위에서
+    // 이전 화면의 삭제가 실행될 수 있다.
+    const onResult = jest.fn();
+    render(
+      <ConfirmProvider>
+        <Trigger options={{ title: '삭제할까요?' }} onResult={onResult} />
+      </ConfirmProvider>
+    );
+
+    await open();
+    await act(async () => {
+      singletonRouter.events.emit('routeChangeStart', '/clubs/1/board');
+    });
+
+    expect(onResult).toHaveBeenCalledWith(false);
+    await waitUntilClosed();
   });
 
   it('닫은 뒤 다시 열 수 있다', async () => {
