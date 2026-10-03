@@ -8,6 +8,8 @@ interface ListGroupProps {
   /** 묶음 아래의 안내 문구 */
   footer?: ReactNode;
   children: ReactNode;
+  /** 묶음의 바탕. 흰 시트 안에서는 inset(연회색)을 써서 묶음이 구분되게 한다 */
+  tone?: 'surface' | 'inset';
   className?: string;
 }
 
@@ -19,6 +21,7 @@ export function ListGroup({
   label,
   footer,
   children,
+  tone = 'surface',
   className,
 }: ListGroupProps) {
   return (
@@ -28,7 +31,8 @@ export function ListGroup({
       )}
       <div
         className={cn(
-          'overflow-hidden rounded-md bg-surface',
+          'overflow-hidden rounded-md',
+          tone === 'inset' ? 'bg-bg' : 'bg-surface',
           'divide-y-[0.5px] divide-separator'
         )}
       >

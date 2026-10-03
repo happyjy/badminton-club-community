@@ -51,15 +51,18 @@ export function MoreSheet({
 
   return (
     <Sheet open={open} onClose={onClose} title="더보기">
-      {/* 흰 시트 위에서 묶음이 구분되도록 묶음마다 연회색 바탕을 준다. */}
-      <div className="space-y-6 [&_section>div]:bg-bg">
-        {rest.length > 0 && <ListGroup>{rest.map(renderItem)}</ListGroup>}
-
-        {admin.length > 0 && (
-          <ListGroup label="관리">{admin.map(renderItem)}</ListGroup>
+      <div className="space-y-6">
+        {rest.length > 0 && (
+          <ListGroup tone="inset">{rest.map(renderItem)}</ListGroup>
         )}
 
-        <ListGroup label="계정">
+        {admin.length > 0 && (
+          <ListGroup label="관리" tone="inset">
+            {admin.map(renderItem)}
+          </ListGroup>
+        )}
+
+        <ListGroup label="계정" tone="inset">
           {isAuthenticated && (
             <ListRow
               href="/profile"

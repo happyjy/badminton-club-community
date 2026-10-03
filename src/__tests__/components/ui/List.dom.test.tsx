@@ -56,6 +56,33 @@ describe('ListGroup', () => {
   });
 });
 
+describe('ListGroup의 바탕', () => {
+  it('기본은 흰 묶음이다', () => {
+    const { container } = render(
+      <ListGroup>
+        <ListRow title="행" />
+      </ListGroup>
+    );
+
+    expect(container.querySelector('section > div')?.className).toContain(
+      'bg-surface'
+    );
+  });
+
+  it('inset이면 연회색 묶음이다 (흰 시트 안에서 구분되게)', () => {
+    const { container } = render(
+      <ListGroup tone="inset">
+        <ListRow title="행" />
+      </ListGroup>
+    );
+
+    const classes =
+      container.querySelector('section > div')?.className.split(' ') ?? [];
+    expect(classes).toContain('bg-bg');
+    expect(classes).not.toContain('bg-surface');
+  });
+});
+
 describe('ListRow', () => {
   it('제목, 부제, 앞·뒤 요소를 그린다', () => {
     render(
