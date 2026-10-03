@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdminRequest } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 
 // 클럽 이메일 설정 관리
@@ -9,6 +10,17 @@ export default async function handler(
 ) {
   const { id } = req.query;
   const clubId = parseInt(id as string);
+
+  // 수신자 목록은 개인정보라 조회·저장 모두 클럽 임원만 할 수 있다.
+  try {
+    await requireClubAdminRequest(req, clubId);
+  } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res.status(error.status).json({ error: error.message });
+    }
+    console.error('Error checking email settings permission:', error);
+    return res.status(500).json({ error: 'Failed to check permission' });
+  }
 
   if (req.method === 'GET') {
     try {

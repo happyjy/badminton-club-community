@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdminRequest } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 
 export default async function handler(
@@ -11,6 +12,17 @@ export default async function handler(
 
   if (!clubId) {
     return res.status(400).json({ error: 'Invalid club ID' });
+  }
+
+  // 수신자 목록은 개인정보라 조회·저장 모두 클럽 임원만 할 수 있다.
+  try {
+    await requireClubAdminRequest(req, clubId);
+  } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res.status(error.status).json({ error: error.message });
+    }
+    console.error('Error checking SMS settings permission:', error);
+    return res.status(500).json({ error: 'Failed to check permission' });
   }
 
   if (req.method === 'GET') {
