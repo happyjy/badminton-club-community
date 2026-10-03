@@ -1,7 +1,14 @@
 import { ComponentProps } from 'react';
 
 import { describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+  waitFor,
+} from '@testing-library/react';
 
 import { MembersView } from '@/components/organisms/club/MembersView';
 
@@ -204,5 +211,59 @@ describe('회원 관리 화면', () => {
       target: { value: 'createdAt' },
     });
     expect(onChangeSort).toHaveBeenCalledWith('createdAt');
+  });
+
+  it('시트를 연 회원이 필터에 걸려 목록에서 빠져도 시트는 그 회원을 계속 보여 준다', async () => {
+    let view: ReturnType<typeof render> | undefined;
+    await act(async () => {
+      view = render(<MembersView {...base} allMembers={MEMBERS} />);
+    });
+    await openSheet('나래');
+
+    // 승인되어 "대기중만 보기" 필터에서 빠진 상황
+    const approved = MEMBERS.map((user) =>
+      user.id === 2
+        ? {
+            ...user,
+            clubMember: { ...user.clubMember, status: Status.APPROVED },
+          }
+        : user
+    );
+    await act(async () => {
+      view?.rerender(
+        <MembersView {...base} members={[]} allMembers={approved} isFiltered />
+      );
+    });
+
+    const dialog = screen.getByRole('dialog', { name: '나래' });
+    expect(
+      (within(dialog).getByLabelText('상태') as HTMLSelectElement).value
+    ).toBe(Status.APPROVED);
+  });
+
+  it('시트를 닫은 뒤에는 목록이 바뀌어도 다시 열리지 않는다', async () => {
+    let view: ReturnType<typeof render> | undefined;
+    await act(async () => {
+      view = render(<MembersView {...base} allMembers={MEMBERS} />);
+    });
+    const dialog = await openSheet('나래');
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: '닫기' }));
+    });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+
+    await act(async () => {
+      view?.rerender(
+        <MembersView
+          {...base}
+          members={MEMBERS.slice(0, 1)}
+          allMembers={MEMBERS}
+        />
+      );
+    });
+    await act(async () => {
+      view?.rerender(<MembersView {...base} allMembers={MEMBERS} />);
+    });
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

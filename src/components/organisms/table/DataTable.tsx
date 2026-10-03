@@ -117,14 +117,18 @@ export function DataTable<T>({
 
   if (rows.length === 0) {
     return (
-      <div className={cn('rounded-md bg-surface', className)}>
-        {typeof empty === 'string' ? (
-          <p className="px-4 py-12 text-center text-callout text-secondary">
-            {empty}
-          </p>
-        ) : (
-          empty
-        )}
+      <div className={className}>
+        <div className="rounded-md bg-surface">
+          {typeof empty === 'string' ? (
+            <p className="px-4 py-12 text-center text-callout text-secondary">
+              {empty}
+            </p>
+          ) : (
+            empty
+          )}
+        </div>
+        {/* 빈 쪽에서도 다른 쪽으로 갈 수 있어야 한다. */}
+        {pagination && <Pagination {...pagination} className="mt-4" />}
       </div>
     );
   }

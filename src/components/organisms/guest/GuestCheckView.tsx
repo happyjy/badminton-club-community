@@ -162,6 +162,8 @@ export function GuestCheckView({
               typeText(guest.postType),
               guest.visitDate ? `방문 ${visitDay(guest)}` : null,
               guest.clubMember?.name ? `작성 ${guest.clubMember.name}` : null,
+              guest.birthDate ? `${guest.birthDate.split('-')[0]}년생` : null,
+              `전국 ${guest.nationalTournamentLevel || '-'} · 구 ${guest.localTournamentLevel || '-'}`,
               guest.intendToJoin === true ? '가입 의향' : null,
             ]
               .filter(Boolean)

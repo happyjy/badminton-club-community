@@ -21,6 +21,11 @@ import { SortOption } from '@/types/participantSort';
 interface MembersViewProps {
   /** 필터·정렬이 끝난 회원 */
   members: ClubMemberWithUser[];
+  /**
+   * 필터를 걸기 전의 전체 회원. 상세 시트는 여기서 회원을 찾는다
+   * (상태를 바꿔 필터에서 빠져도 시트가 갑자기 닫히지 않게). 없으면 members에서 찾는다.
+   */
+  allMembers?: ClubMemberWithUser[];
   /** 필터를 걸기 전의 전체 회원 수 */
   totalCount: number;
   /** 상태 필터나 검색이 걸려 있는가 */
@@ -45,7 +50,7 @@ const displayName = (user: ClubMemberWithUser) =>
 const formatDay = (value?: string) =>
   value ? new Date(value).toLocaleDateString('ko-KR') : EMPTY;
 
-/** 시트와 표가 함께 쓰는 상세 항목 */
+/** 상세 시트의 항목 */
 const details = (user: ClubMemberWithUser) => {
   const member = user.clubMember;
   return [
@@ -78,6 +83,7 @@ function MemberStatusChip({ status }: { status: string }) {
  */
 export function MembersView({
   members,
+  allMembers,
   totalCount,
   isFiltered,
   search,
@@ -92,7 +98,9 @@ export function MembersView({
   // 닫히는 애니메이션 동안에도 내용이 남도록 "누구의 시트인가"와 "열려 있는가"를 따로 둔다.
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const selected = members.find((user) => user.id === selectedUserId);
+  const selected = (allMembers ?? members).find(
+    (user) => user.id === selectedUserId
+  );
 
   const approveButton = (user: ClubMemberWithUser, size: 'sm' | 'lg') => (
     <Button

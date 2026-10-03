@@ -277,4 +277,19 @@ describe('DataTable — 쪽 넘김', () => {
     fireEvent.click(screen.getByRole('button', { name: '2쪽' }));
     expect(onChange).toHaveBeenCalledWith(2);
   });
+
+  it('행이 없어도 쪽 번호는 남는다 (빈 쪽에서 다른 쪽으로 갈 수 있게)', () => {
+    const onChange = jest.fn();
+    render(
+      <DataTable
+        {...base}
+        rows={[]}
+        pagination={{ page: 2, totalPages: 2, onChange }}
+      />
+    );
+
+    expect(screen.getByText('회원이 없어요')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '1쪽' }));
+    expect(onChange).toHaveBeenCalledWith(1);
+  });
 });

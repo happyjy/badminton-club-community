@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { toast } from 'react-hot-toast';
-
 import { Skeleton } from '@/components/atoms/Skeleton';
 import { StatusFilter } from '@/components/molecules/StatusFilter';
 import { MembersView } from '@/components/organisms/club/MembersView';
 import { PageHeader } from '@/components/organisms/PageHeader';
+
+import { useMemberActions } from '@/hooks/useMemberActions';
 
 import {
   ParticipantSortProvider,
@@ -20,7 +20,6 @@ import {
 import { withAuth } from '@/lib/withAuth';
 import { User } from '@/types';
 import { Role, Status } from '@/types/enums';
-import { SortableItem } from '@/types/sortable';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
 export interface ClubMemberWithUser extends User {
@@ -48,7 +47,6 @@ function UsersPageContent() {
     useParticipantSortContext();
   const { statusFilters } = useStatusFilter();
   const [search, setSearch] = useState('');
-  const [approvingUserId, setApprovingUserId] = useState<number | null>(null);
   const keyword = search.trim().toLowerCase();
 
   // 필터링된 참가자 목록 계산
@@ -81,98 +79,11 @@ function UsersPageContent() {
     return true;
   });
 
-  const handleApprove = async (userId: number, clubId: number) => {
-    setApprovingUserId(userId);
-    try {
-      const response = await fetch(
-        `/api/clubs/${clubId}/members/${userId}/approve`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('승인 처리에 실패했습니다');
-      }
-
-      // 승인된 사용자의 상태를 업데이트
-      const updatedParticipants = participants.map((user) => {
-        if (user.id === userId) {
-          const updatedClubMember = {
-            ...user.clubMember,
-            status: Status.APPROVED,
-          };
-          return {
-            ...user,
-            clubMember: updatedClubMember,
-          };
-        }
-        return user;
-      });
-
-      // 정렬 옵션을 다시 적용하여 목록 업데이트
-      onChangeSort(sortOption, updatedParticipants as SortableItem[]);
-      toast.success('승인했어요');
-    } catch (err) {
-      console.error('승인 처리 중 오류가 발생했습니다', err);
-      toast.error('승인 처리에 실패했습니다');
-    } finally {
-      setApprovingUserId(null);
-    }
-  };
-
-  const handleStatusChange = async (
-    userId: number,
-    clubId: number,
-    newStatus: Status
-  ) => {
-    // 이전 상태 저장
-    const previousParticipants = [...participants];
-
-    // 낙관적 업데이트: UI 먼저 업데이트
-    const updatedParticipants = participants.map((user) => {
-      if (user.id === userId) {
-        return {
-          ...user,
-          clubMember: {
-            ...user.clubMember,
-            status: newStatus,
-          },
-        };
-      }
-      return user;
-    });
-
-    // 정렬 옵션을 다시 적용하여 목록 업데이트
-    onChangeSort(sortOption, updatedParticipants as SortableItem[]);
-
-    try {
-      const response = await fetch(
-        `/api/clubs/${clubId}/members/${userId}/status`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('상태 변경에 실패했습니다');
-      }
-
-      // 성공 시 추가 작업이 필요한 경우 여기에 구현
-    } catch (error) {
-      console.error('상태 변경 중 오류가 발생했습니다:', error);
-      // 실패 시 이전 상태로 복원
-      onChangeSort(sortOption, previousParticipants as SortableItem[]);
-      toast.error('상태 변경에 실패했습니다');
-    }
-  };
+  const { approve, changeStatus, approvingUserId } = useMemberActions({
+    participants: participants as ClubMemberWithUser[],
+    // 정렬 옵션을 다시 적용하여 목록을 바꾼다.
+    applyParticipants: (next) => onChangeSort(sortOption, next),
+  });
 
   const isFiltered =
     keyword.length > 0 ||
@@ -191,8 +102,9 @@ function UsersPageContent() {
         sortOption={sortOption}
         onChangeSort={onChangeSort}
         filter={<StatusFilter />}
-        onApprove={handleApprove}
-        onStatusChange={handleStatusChange}
+        allMembers={participants as ClubMemberWithUser[]}
+        onApprove={approve}
+        onStatusChange={changeStatus}
         approvingUserId={approvingUserId}
       />
     </>

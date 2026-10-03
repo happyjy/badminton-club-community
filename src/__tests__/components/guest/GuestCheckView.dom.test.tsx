@@ -151,4 +151,13 @@ describe('게스트 확인 화면', () => {
     render(<GuestCheckView {...base} items={[]} />);
     expect(screen.getByText('신청 내역이 없습니다.')).toBeTruthy();
   });
+
+  it('휴대폰 리스트에서도 출생 연도와 급수를 볼 수 있다', () => {
+    render(<GuestCheckView {...base} />);
+    const list = screen.getByTestId('data-table-list');
+
+    expect(within(list).getAllByText(/1992년생/).length).toBe(3);
+    expect(within(list).getAllByText(/전국 D · 구 C/).length).toBe(2);
+    expect(within(list).getByText(/전국 - · 구 C/)).toBeTruthy();
+  });
 });

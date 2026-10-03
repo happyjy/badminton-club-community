@@ -31,6 +31,7 @@ export function Pagination({
         aria-label="이전 쪽"
         disabled={page <= 1}
         onClick={() => onChange(page - 1)}
+        className="h-9 w-9"
       >
         <ChevronLeft aria-hidden className="h-5 w-5" />
       </IconButton>
@@ -54,8 +55,9 @@ export function Pagination({
               if (item !== page) onChange(item);
             }}
             className={cn(
-              // after: 보이는 크기는 36이지만 터치 영역을 44까지 넓힌다.
-              "relative h-9 min-w-9 rounded-sm px-2 text-callout after:absolute after:-inset-1 after:content-['']",
+              // 폭 360 휴대폰에서 7칸과 화살표가 한 줄에 들어가도록 좁게 잡는다.
+              // after: 보이는 크기는 작지만 터치 영역을 44까지 넓힌다.
+              "relative h-9 min-w-8 rounded-sm px-1 text-callout after:absolute after:-inset-1 after:content-['']",
               'transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
               item === page
                 ? 'bg-accent font-semibold text-on-accent'
@@ -71,6 +73,7 @@ export function Pagination({
         aria-label="다음 쪽"
         disabled={page >= totalPages}
         onClick={() => onChange(page + 1)}
+        className="h-9 w-9"
       >
         <ChevronRight aria-hidden className="h-5 w-5" />
       </IconButton>
