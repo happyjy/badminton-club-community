@@ -2,11 +2,10 @@ import { serialize } from 'cookie';
 import { sign } from 'jsonwebtoken';
 
 import { getBaseUrl, getKakaoCallbackUrl } from '@/constants/urls';
+import { getJwtSecret } from '@/lib/jwtSecret';
 import { prisma } from '@/lib/prisma';
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export default async function handler(
   req: NextApiRequest,
@@ -84,7 +83,7 @@ export default async function handler(
       // console.log('사용자 정보 저장 완료:', user);
 
       // JWT 토큰 생성
-      const token = sign({ userId: user.id }, JWT_SECRET, {
+      const token = sign({ userId: user.id }, getJwtSecret(), {
         expiresIn: '7d',
       });
 
