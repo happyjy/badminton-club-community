@@ -1,11 +1,14 @@
 import { ReactNode, useState } from 'react';
 
+import { ArrowUpDown } from 'lucide-react';
+
 import { Avatar } from '@/components/atoms/Avatar';
 import { Button } from '@/components/atoms/buttons/Button';
 import { Select } from '@/components/atoms/inputs/Select';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { FormField } from '@/components/molecules/form/FormField';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
+import { OptionPicker } from '@/components/molecules/OptionPicker';
 import { Sheet } from '@/components/organisms/sheet/Sheet';
 import { Column, DataTable } from '@/components/organisms/table/DataTable';
 import { Toolbar } from '@/components/organisms/table/Toolbar';
@@ -43,6 +46,14 @@ interface MembersViewProps {
 }
 
 const EMPTY = '미입력';
+
+const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
+  { value: 'name', label: '이름순' },
+  { value: 'localLevel', label: '지역대회 급수' },
+  { value: 'nationalLevel', label: '전국대회 급수' },
+  { value: 'birthDate', label: '생년월일' },
+  { value: 'createdAt', label: '가입순서' },
+];
 
 const displayName = (user: ClubMemberWithUser) =>
   user.clubMember.name || '이름 없음';
@@ -191,19 +202,13 @@ export function MembersView({
         }}
         summary={`${isFiltered ? '표시 중' : '총 회원 수'} ${members.length}명`}
       >
-        <Select
-          placeholder={null}
-          fullWidth={false}
+        <OptionPicker<SortOption>
           aria-label="정렬"
+          icon={ArrowUpDown}
+          options={SORT_OPTIONS}
           value={sortOption}
-          onChange={(e) => onChangeSort(e.target.value as SortOption)}
-        >
-          <option value="name">이름순</option>
-          <option value="localLevel">지역대회 급수</option>
-          <option value="nationalLevel">전국대회 급수</option>
-          <option value="birthDate">생년월일</option>
-          <option value="createdAt">가입순서</option>
-        </Select>
+          onChange={onChangeSort}
+        />
       </Toolbar>
 
       {filter && <div className="mb-3">{filter}</div>}

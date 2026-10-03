@@ -12,6 +12,7 @@ import {
 
 import { MembersView } from '@/components/organisms/club/MembersView';
 
+import { pickOption } from '@/__tests__/helpers/optionPicker';
 import type { ClubMemberWithUser } from '@/pages/clubs/[id]/members';
 import { Status } from '@/types/enums';
 
@@ -207,9 +208,7 @@ describe('회원 관리 화면', () => {
     });
     expect(onChangeSearch).toHaveBeenCalledWith('가');
 
-    fireEvent.change(screen.getByLabelText('정렬'), {
-      target: { value: 'createdAt' },
-    });
+    await pickOption('정렬', '가입순서');
     expect(onChangeSort).toHaveBeenCalledWith('createdAt');
   });
 

@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/molecules/EmptyState';
 import { FormField } from '@/components/molecules/form/FormField';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
 import { ListRow } from '@/components/molecules/list/ListRow';
+import { OptionPicker } from '@/components/molecules/OptionPicker';
 import { SegmentedControl } from '@/components/molecules/SegmentedControl';
 import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 import { PageHeader } from '@/components/organisms/PageHeader';
@@ -230,6 +231,28 @@ export default function UiKitPage() {
           <p className="mt-2 text-footnote text-secondary">고른 값: {filter}</p>
         </div>
       </ListGroup>
+
+      {/* PC에서 메뉴가 아래로 펼쳐지므로 넘치는 부분을 자르는 묶음(ListGroup) 안에 두지 않는다. */}
+      <section>
+        <h3 className="px-4 pb-2 text-footnote text-secondary">
+          정렬 · 필터 고르기 (휴대폰은 아래 시트, PC는 메뉴)
+        </h3>
+        <div className="flex items-center gap-2 rounded-md bg-surface px-4 py-2">
+          <OptionPicker<Filter>
+            aria-label="회원 필터"
+            options={[
+              { value: 'all', label: '전체' },
+              { value: 'active', label: '활동' },
+              { value: 'unpaid', label: '미납' },
+            ]}
+            value={filter}
+            onChange={setFilter}
+          />
+          <span className="text-footnote text-secondary">
+            고른 값: {filter}
+          </span>
+        </div>
+      </section>
 
       <ListGroup label="시트 · 확인창">
         <div className="space-y-3 px-4 py-4">

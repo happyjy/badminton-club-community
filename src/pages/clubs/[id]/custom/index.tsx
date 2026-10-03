@@ -5,9 +5,9 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
-import { Select } from '@/components/atoms/inputs/Select';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
 import { ListRow } from '@/components/molecules/list/ListRow';
+import { OptionPicker } from '@/components/molecules/OptionPicker';
 import ClubHomeSettingsForm from '@/components/organisms/forms/ClubHomeSettingsForm';
 import EmailSettingsForm from '@/components/organisms/forms/EmailSettingsForm';
 import GuestPageSettingsForm from '@/components/organisms/forms/GuestPageSettingsForm';
@@ -286,20 +286,18 @@ function CustomSettingPage() {
     <>
       <PageHeader title="커스텀 설정" />
       <div className="lg:flex lg:items-start lg:gap-6">
-        {/* 설정 고르기: 휴대폰은 선택 상자, PC는 왼쪽 메뉴 */}
+        {/* 설정 고르기: 휴대폰은 아래 시트로 고르는 버튼, PC는 왼쪽 메뉴 */}
         <div className="mb-4 lg:hidden">
-          <Select
-            placeholder={null}
+          <OptionPicker
             aria-label="설정 항목"
+            options={customSettings.map((setting) => ({
+              value: setting.id,
+              label: setting.name,
+            }))}
             value={selectedSetting}
-            onChange={(e) => setSelectedSetting(e.target.value)}
-          >
-            {customSettings.map((setting) => (
-              <option key={setting.id} value={setting.id}>
-                {setting.name}
-              </option>
-            ))}
-          </Select>
+            onChange={setSelectedSetting}
+            className="text-headline"
+          />
         </div>
         <nav aria-label="설정 항목" className="hidden w-64 shrink-0 lg:block">
           <ListGroup>

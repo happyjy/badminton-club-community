@@ -146,6 +146,7 @@
 | `Avatar` (신규, `GuestAvatar` 대체) | atoms | 프로필 사진, 없으면 이름 첫 글자 | `size`: 28 · 36 · 56 |
 | `ListGroup` · `ListRow` (신규) | molecules | iOS식 묶음 리스트 | `ListGroup`에 `label`·`footer`, `ListRow`에 `leading`·`title`·`subtitle`·`trailing`·`href`/`onClick`. 누를 수 있는 행에는 오른쪽 `›` |
 | `SegmentedControl` (신규) | molecules | 2–4개 중 하나 고르기 | 게시판 카테고리, 회원 필터 |
+| `OptionPicker` (신규, 2026-10-03 추가) | molecules | 정렬·필터 고르기 | 테두리 없는 글자 버튼. 휴대폰은 아래 시트, PC는 버튼 아래 메뉴. 폼의 값에는 `Select`를 쓴다 |
 | `Sheet` (신규) | organisms | 떠 있는 창 | headlessui `Dialog` 기반. 휴대폰은 아래에서 올라오는 시트, `md` 이상은 가운데 모달. 고정 머리·고정 버튼 영역, `max-h-[90dvh]`, 홈 인디케이터 여백 |
 | `ConfirmSheet` + `useConfirm()` (신규) | organisms | 확인·경고 | `confirm()` / `alert()` 호출(약 10곳)을 대체 |
 | `PageHeader` (신규) | organisms | 화면 제목 영역 | `large-title` 제목, 뒤로 가기, 오른쪽 동작 버튼 |

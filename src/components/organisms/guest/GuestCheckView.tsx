@@ -1,5 +1,5 @@
-import { Select } from '@/components/atoms/inputs/Select';
 import { StatusChip } from '@/components/atoms/StatusChip';
+import { OptionPicker } from '@/components/molecules/OptionPicker';
 import { Column, DataTable } from '@/components/organisms/table/DataTable';
 import { Toolbar } from '@/components/organisms/table/Toolbar';
 
@@ -107,6 +107,19 @@ const COLUMNS: Column<GuestPostForList>[] = [
   },
 ];
 
+const TYPE_OPTIONS = [
+  { value: 'ALL', label: '전체 타입' },
+  { value: 'GUEST_REQUEST', label: '게스트 신청' },
+  { value: 'JOIN_INQUIRY_REQUEST', label: '가입 문의' },
+];
+
+const STATUS_OPTIONS = [
+  { value: 'ALL', label: '전체 상태' },
+  { value: 'PENDING', label: '대기 중' },
+  { value: 'APPROVED', label: '승인됨' },
+  { value: 'REJECTED', label: '거절됨' },
+];
+
 /** 게스트 확인의 그리는 부분. PC에서는 표, 휴대폰에서는 리스트. */
 export function GuestCheckView({
   items,
@@ -122,32 +135,18 @@ export function GuestCheckView({
   return (
     <>
       <Toolbar>
-        <Select
-          placeholder={null}
-          fullWidth={false}
+        <OptionPicker
           aria-label="신청 종류"
+          options={TYPE_OPTIONS}
           value={typeFilter}
-          onChange={(e) => onChangeType(e.target.value)}
-          className="min-w-0 flex-1 lg:w-44 lg:flex-none"
-        >
-          <option value="ALL">전체 타입</option>
-          <option value="GUEST_REQUEST">게스트 신청</option>
-          <option value="JOIN_INQUIRY_REQUEST">가입 문의</option>
-        </Select>
-
-        <Select
-          placeholder={null}
-          fullWidth={false}
+          onChange={onChangeType}
+        />
+        <OptionPicker
           aria-label="처리 상태"
+          options={STATUS_OPTIONS}
           value={statusFilter}
-          onChange={(e) => onChangeStatus(e.target.value)}
-          className="min-w-0 flex-1 lg:w-44 lg:flex-none"
-        >
-          <option value="ALL">전체 상태</option>
-          <option value="PENDING">대기 중</option>
-          <option value="APPROVED">승인됨</option>
-          <option value="REJECTED">거절됨</option>
-        </Select>
+          onChange={onChangeStatus}
+        />
       </Toolbar>
 
       <DataTable
