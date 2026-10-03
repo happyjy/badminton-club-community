@@ -5,6 +5,7 @@ import {
   ReactElement,
   ReactNode,
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
@@ -151,10 +152,17 @@ function JoinModal({
   };
 
   // 제목은 시트의 제목 줄에 그린다. 프리셋이 넘긴 <JoinModal.Header>에서 읽는다.
-  const header = Children.toArray(children).find(
+  const childList = Children.toArray(children);
+  const header = childList.find(
     (child): child is ReactElement<HeaderProps> =>
       isValidElement(child) && child.type === Header
   );
+  // 제출 버튼은 시트의 아래 고정 영역에 그린다. 폼 안에 두고 sticky로 붙이면
+  // 홈 인디케이터 여백을 맞출 수 없다.
+  const isFooter = (child: ReactNode) =>
+    isValidElement(child) && child.type === Footer;
+  const footer = childList.find(isFooter);
+  const formId = useId();
 
   // Context 값 생성
   const contextValue = {
@@ -180,6 +188,7 @@ function JoinModal({
     isPrivacyModalOpen,
     setIsPrivacyModalOpen,
     submitError,
+    formId,
   };
 
   return (
@@ -190,9 +199,10 @@ function JoinModal({
         onClose={() => {}}
         title={header?.props.title ?? ''}
         hideCloseButton
+        footer={footer}
       >
-        <form onSubmit={onSubmitForm} className="space-y-4">
-          {children}
+        <form id={formId} onSubmit={onSubmitForm} className="space-y-4">
+          {childList.filter((child) => !isFooter(child))}
         </form>
 
         {/* 개인정보 수집 및 이용 동의 창. 신청 창 안에 겹쳐 뜬다. */}

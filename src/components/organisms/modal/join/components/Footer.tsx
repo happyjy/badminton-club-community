@@ -15,15 +15,16 @@ function Footer({
   onClose,
   isSubmitting = false,
 }: FooterProps) {
-  const { canVerifyPhone, isPhoneVerified, submitError } =
+  const { canVerifyPhone, isPhoneVerified, submitError, formId } =
     useJoinModalContext();
 
   // 인증을 쓸 수 있는 화면에서는 인증을 마쳐야 제출할 수 있다.
   const isWaitingForVerification = !!canVerifyPhone && !isPhoneVerified;
 
   return (
-    // 긴 폼을 스크롤해도 제출 버튼이 늘 보이도록 시트 아래에 붙인다.
-    <div className="sticky bottom-0 -mx-4 space-y-2 border-t border-border bg-surface px-4 pb-1 pt-3">
+    // JoinModal이 이 부분을 시트의 아래 고정 영역으로 옮겨 그린다.
+    // 테두리와 홈 인디케이터 여백은 시트가 맡는다.
+    <div className="space-y-2">
       {submitError && (
         <p role="alert" className="text-callout text-negative">
           {submitError}
@@ -47,6 +48,7 @@ function Footer({
         )}
         <Button
           type="submit"
+          form={formId}
           className="flex-1"
           pending={isSubmitting}
           disabled={isWaitingForVerification}

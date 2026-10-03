@@ -139,7 +139,7 @@ function TagListField({
                   onClick={() => onClickMove(index, -1)}
                   disabled={index === 0}
                   aria-label={`${value} 앞으로`}
-                  className="px-0.5 text-primary hover:text-on-accent disabled:text-primary"
+                  className="px-0.5 text-on-accent disabled:opacity-40"
                 >
                   ‹
                 </button>
@@ -149,7 +149,7 @@ function TagListField({
                   onClick={() => onClickMove(index, 1)}
                   disabled={index === values.length - 1}
                   aria-label={`${value} 뒤로`}
-                  className="px-0.5 text-primary hover:text-on-accent disabled:text-primary"
+                  className="px-0.5 text-on-accent disabled:opacity-40"
                 >
                   ›
                 </button>
@@ -157,7 +157,7 @@ function TagListField({
                   type="button"
                   onClick={() => onClickToggle(value)}
                   aria-label={`${value} 제거`}
-                  className="px-1 text-primary hover:text-on-accent"
+                  className="px-1 text-on-accent"
                 >
                   ×
                 </button>

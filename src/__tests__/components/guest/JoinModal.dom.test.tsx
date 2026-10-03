@@ -196,4 +196,45 @@ describe('게스트 신청 창 (JoinModal)', () => {
     fireEvent.click(screen.getByText(/개인정보 수집 및 이용에 동의합니다/));
     expect(box.checked).toBe(true);
   });
+
+  it('제출 버튼은 스크롤되는 폼 밖, 시트의 아래 고정 영역에 있다 (홈 인디케이터 여백을 시트가 맡는다)', async () => {
+    await renderModal(
+      <GuestApplicationModal {...base} initialValues={filled} />
+    );
+
+    const form = document.querySelector('form') as HTMLFormElement;
+    const submit = screen.getByRole('button', {
+      name: '수정하기',
+    }) as HTMLButtonElement;
+
+    expect(form.contains(submit)).toBe(false);
+    expect(submit.closest('footer')).toBeTruthy();
+    // 폼 밖에 있어도 그 폼의 제출 버튼이다.
+    expect(submit.form).toBe(form);
+    expect(screen.getByRole('dialog').querySelector('.sticky')).toBeNull();
+  });
+
+  it('아래 고정 영역의 제출 버튼을 눌러도 제출된다', async () => {
+    const onSubmit = jest.fn();
+    // 버튼으로 제출하면 브라우저가 날짜 범위를 검사하므로, 방문일을 내일로 둔다.
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const visitDate = [
+      tomorrow.getFullYear(),
+      String(tomorrow.getMonth() + 1).padStart(2, '0'),
+      String(tomorrow.getDate()).padStart(2, '0'),
+    ].join('-');
+    await renderModal(
+      <GuestApplicationModal
+        {...base}
+        initialValues={{ ...filled, visitDate }}
+        onSubmit={onSubmit}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '수정하기' }));
+    });
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
 });

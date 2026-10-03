@@ -201,3 +201,20 @@ describe('TagListField 순서 조절', () => {
     expect(screen.queryByRole('button', { name: '숫자순 정렬' })).toBeNull();
   });
 });
+
+describe('TagListField 선택한 값의 버튼 색', () => {
+  it('강조색 칩 안의 이동·제거 버튼은 칩 배경과 같은 색 글자를 쓰지 않는다', () => {
+    renderTagListField(['20대', '30대']);
+
+    const buttons = ['20대 앞으로', '20대 뒤로', '20대 제거'].map((name) =>
+      screen.getByRole('button', { name })
+    );
+
+    buttons.forEach((button) => {
+      const classes = button.className.split(/\s+/);
+      // text-primary와 bg-accent는 같은 색이라 글자가 보이지 않는다.
+      expect(classes.some((c) => c.endsWith('text-primary'))).toBe(false);
+      expect(classes).toContain('text-on-accent');
+    });
+  });
+});
