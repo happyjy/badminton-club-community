@@ -64,10 +64,8 @@ function findHandMadeOverlays(dir: string): string[] {
 }
 
 describe('원시 입력 요소', () => {
-  it('대회 컴포넌트는 input·select·textarea를 직접 쓰지 않는다', () => {
-    expect(
-      findRawControls(path.join(SRC, 'components/organisms/tournament'))
-    ).toEqual([]);
+  it('input·select·textarea를 직접 쓰지 않는다 (radio·hidden·file 제외)', () => {
+    expect(findRawControls(SRC)).toEqual([]);
   });
 });
 

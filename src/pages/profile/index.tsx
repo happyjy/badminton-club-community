@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 
 import Image from 'next/image';
 
+import { Input } from '@/components/atoms/inputs/Input';
+import { Select } from '@/components/atoms/inputs/Select';
+import { Label } from '@/components/atoms/labels/Label';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { withAuth } from '@/lib/withAuth';
@@ -138,121 +141,92 @@ function ProfilePage({ user }: ProfilePageProps) {
           )}
         </div>
 
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            닉네임
-          </label>
-          <input
-            type="text"
-            value={formData.nickname}
-            onChange={(e) =>
-              setFormData({ ...formData, nickname: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div> */}
-
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            이메일
-          </label>
-          <input
-            type="email"
-            value={formData.email}
-            disabled
-            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
-          />
+          <Label className="mb-2">이메일</Label>
+          <Input type="email" value={formData.email} disabled />
           <p className="mt-1 text-sm text-gray-500">
             이메일은 카카오 계정과 연동되어 있어 변경할 수 없습니다
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            이름
-          </label>
-          <input
+          <Label className="mb-2">이름</Label>
+          <Input
             type="text"
             value={formData.name || ''}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            생년월일
-          </label>
-          <input
+          <Label className="mb-2">생년월일</Label>
+          <Input
             type="date"
             value={formData.birthDate || ''}
             onChange={(e) =>
               setFormData({ ...formData, birthDate: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            전화번호
-          </label>
+          <Label className="mb-2">전화번호</Label>
           {/* maxLength를 두지 않는다. 자동완성이 한 칸에 채운 '+82 10-...'을
               브라우저가 먼저 잘라 버리면 핸들러가 숫자를 되찾을 수 없다.
               자리 수 제한은 onChange에서 처리한다. */}
           <div className="flex gap-2">
-            <input
+            <Input
               type="tel"
               autoComplete="tel"
               value={phoneNumbers.first}
               onChange={(e) => onChangePhoneNumber(e, 'first')}
               placeholder="010"
-              className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+              fullWidth={false}
+              aria-label="전화번호 앞자리"
+              className="w-20 text-center"
             />
             <span className="flex items-center">-</span>
-            <input
+            <Input
               type="tel"
               value={phoneNumbers.second}
               onChange={(e) => onChangePhoneNumber(e, 'second')}
               placeholder="0000"
-              className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+              fullWidth={false}
+              aria-label="전화번호 가운데 자리"
+              className="w-24 text-center"
             />
             <span className="flex items-center">-</span>
-            <input
+            <Input
               type="tel"
               value={phoneNumbers.third}
               onChange={(e) => onChangePhoneNumber(e, 'third')}
               placeholder="0000"
-              className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+              fullWidth={false}
+              aria-label="전화번호 끝자리"
+              className="w-24 text-center"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            구대회 신청 가능 급수
-          </label>
-          <select
+          <Label className="mb-2">구대회 신청 가능 급수</Label>
+          <Select
             value={formData.localTournamentLevel || ''}
             onChange={(e) =>
               setFormData({ ...formData, localTournamentLevel: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">선택해주세요</option>
             {TOURNAMENT_LEVELS.map((level) => (
               <option key={level} value={level}>
                 {level}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            전국대회 신청 가능 급수
-          </label>
-          <select
+          <Label className="mb-2">전국대회 신청 가능 급수</Label>
+          <Select
             value={formData.nationalTournamentLevel || ''}
             onChange={(e) =>
               setFormData({
@@ -260,44 +234,36 @@ function ProfilePage({ user }: ProfilePageProps) {
                 nationalTournamentLevel: e.target.value,
               })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">선택해주세요</option>
             {TOURNAMENT_LEVELS.map((level) => (
               <option key={level} value={level}>
                 {level}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            레슨 받은 기간
-          </label>
-          <input
+          <Label className="mb-2">레슨 받은 기간</Label>
+          <Input
             type="text"
             value={formData.lessonPeriod || ''}
             onChange={(e) =>
               setFormData({ ...formData, lessonPeriod: e.target.value })
             }
             placeholder="예: 6개월"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            구력
-          </label>
-          <input
+          <Label className="mb-2">구력</Label>
+          <Input
             type="text"
             value={formData.playingPeriod || ''}
             onChange={(e) =>
               setFormData({ ...formData, playingPeriod: e.target.value })
             }
             placeholder="예: 2년"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 

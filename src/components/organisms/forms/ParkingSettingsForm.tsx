@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
+import { Input } from '@/components/atoms/inputs/Input';
+import { Label } from '@/components/atoms/labels/Label';
+
 import { ClubParkingSettingsResponse } from '@/types/parking.types';
 
 interface ParkingSettingsFormProps {
@@ -86,18 +90,13 @@ export default function ParkingSettingsForm({
     }
   };
 
-  const inputClass =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400';
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1';
-
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <label className="flex items-center gap-3">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={parkingEnabled}
           onChange={(e) => setParkingEnabled(e.target.checked)}
-          className="h-5 w-5"
+          className="mr-0"
         />
         <span className="text-sm font-medium text-gray-800">
           주차 신청 기능 사용
@@ -105,50 +104,48 @@ export default function ParkingSettingsForm({
       </label>
 
       <div>
-        <label className={labelClass} htmlFor="parking-weekday">
+        <Label className="mb-1" htmlFor="parking-weekday">
           평일 기본 주차 대수
-        </label>
-        <input
+        </Label>
+        <Input
           id="parking-weekday"
           type="number"
           min={0}
           disabled={!parkingEnabled}
           value={weekdayValue}
           onChange={(e) => setWeekdayValue(e.target.value)}
-          className={inputClass}
         />
         {parkingEnabled && isWeekdayEmpty && (
-          <p className="text-xs text-red-500 mt-1">
+          <p className="mt-1 text-footnote text-negative">
             주차 대수를 입력해야 저장할 수 있습니다.
           </p>
         )}
         {parkingEnabled && !isWeekdayEmpty && isWeekdayInvalid && (
-          <p className="text-xs text-red-500 mt-1">
+          <p className="mt-1 text-footnote text-negative">
             주차 대수는 0 이상의 숫자여야 합니다.
           </p>
         )}
       </div>
 
       <div>
-        <label className={labelClass} htmlFor="parking-weekend">
+        <Label className="mb-1" htmlFor="parking-weekend">
           주말 기본 주차 대수
-        </label>
-        <input
+        </Label>
+        <Input
           id="parking-weekend"
           type="number"
           min={0}
           disabled={!parkingEnabled}
           value={weekendValue}
           onChange={(e) => setWeekendValue(e.target.value)}
-          className={inputClass}
         />
         {parkingEnabled && isWeekendEmpty && (
-          <p className="text-xs text-red-500 mt-1">
+          <p className="mt-1 text-footnote text-negative">
             주차 대수를 입력해야 저장할 수 있습니다.
           </p>
         )}
         {parkingEnabled && !isWeekendEmpty && isWeekendInvalid && (
-          <p className="text-xs text-red-500 mt-1">
+          <p className="mt-1 text-footnote text-negative">
             주차 대수는 0 이상의 숫자여야 합니다.
           </p>
         )}
@@ -159,12 +156,11 @@ export default function ParkingSettingsForm({
       </p>
 
       <label className="flex items-start gap-3">
-        <input
-          type="checkbox"
+        <Checkbox
           disabled={!parkingEnabled}
           checked={parkingSmsEnabled}
           onChange={(e) => setParkingSmsEnabled(e.target.checked)}
-          className="h-5 w-5 mt-0.5"
+          className="mr-0 mt-0.5"
         />
         <span>
           <span className="block text-sm font-medium text-gray-800">

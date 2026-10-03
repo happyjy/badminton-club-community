@@ -5,6 +5,9 @@ import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
+import { Select } from '@/components/atoms/inputs/Select';
+
 import {
   buildGuestListQuery,
   parseGuestListQuery,
@@ -237,26 +240,30 @@ export default function GuestCheckPage() {
       <h1 className="text-2xl font-bold mb-6">게스트 신청 목록</h1>
 
       <div className="mb-4 flex flex-col sm:flex-row gap-3">
-        <select
+        <Select
+          placeholder={null}
+          aria-label="신청 종류"
           value={typeFilter}
           onChange={handleTypeChange}
-          className="w-full sm:w-[180px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="sm:w-[180px]"
         >
           <option value="ALL">전체 타입</option>
           <option value="GUEST_REQUEST">게스트 신청</option>
           <option value="JOIN_INQUIRY_REQUEST">가입 문의</option>
-        </select>
+        </Select>
 
-        <select
+        <Select
+          placeholder={null}
+          aria-label="처리 상태"
           value={statusFilter}
           onChange={handleStatusChange}
-          className="w-full sm:w-[180px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="sm:w-[180px]"
         >
           <option value="ALL">전체 상태</option>
           <option value="PENDING">대기 중</option>
           <option value="APPROVED">승인됨</option>
           <option value="REJECTED">거절됨</option>
-        </select>
+        </Select>
       </div>
 
       {guestRequests?.items.length > 0 ? (
@@ -323,11 +330,11 @@ export default function GuestCheckPage() {
                   <td className="px-1 py-1.5 sm:px-4 sm:py-1 text-xs sm:text-sm text-gray-500">
                     <div className="flex flex-col">
                       <div className="flex flex-wrap items-center gap-1">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={guest.intendToJoin === true}
                           readOnly
-                          className="h-3 w-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
+                          aria-label="클럽 가입 의향"
+                          className="mr-0 h-4 w-4 cursor-not-allowed"
                         />
                         {' | '}
                         <span className="font-medium">{guest.name}</span>

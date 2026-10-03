@@ -7,6 +7,10 @@ import { toast } from 'react-hot-toast';
 import { z } from 'zod';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
+import { Input } from '@/components/atoms/inputs/Input';
+import { Label } from '@/components/atoms/labels/Label';
+import { Textarea } from '@/components/atoms/Textarea';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PostCategoryWithRelations } from '@/types/board.types';
@@ -103,90 +107,76 @@ function CategoryManageForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          카테고리 이름 <span className="text-red-500">*</span>
-        </label>
-        <input
+        <Label htmlFor="name" required className="mb-1">
+          카테고리 이름
+        </Label>
+        <Input
           id="name"
           type="text"
           {...register('name')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="예: 공지사항, 자유게시판"
         />
         {errors.name && (
-          <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+          <p className="mt-1 text-footnote text-negative">
+            {errors.name.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label
-          htmlFor="description"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
+        <Label htmlFor="description" className="mb-1">
           설명 (선택)
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="description"
           {...register('description')}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          minRows={3}
           placeholder="카테고리에 대한 설명을 입력해주세요"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          작성 권한 <span className="text-red-500">*</span>
-        </label>
+        <Label required className="mb-2">
+          작성 권한
+        </Label>
         <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
+          <label className="flex min-h-11 items-center">
+            <Checkbox
               checked={allowedRoles.includes('MEMBER')}
               onChange={() => onToggleRole('MEMBER')}
-              className="mr-2"
             />
             <span className="text-sm text-gray-700">일반 회원 (MEMBER)</span>
           </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
+          <label className="flex min-h-11 items-center">
+            <Checkbox
               checked={allowedRoles.includes('ADMIN')}
               onChange={() => onToggleRole('ADMIN')}
-              className="mr-2"
             />
             <span className="text-sm text-gray-700">관리자 (ADMIN)</span>
           </label>
         </div>
         {errors.allowedRoles && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-footnote text-negative">
             {errors.allowedRoles.message}
           </p>
         )}
       </div>
 
       <div>
-        <label
-          htmlFor="order"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
+        <Label htmlFor="order" className="mb-1">
           순서 (숫자가 작을수록 위에 표시)
-        </label>
-        <input
+        </Label>
+        <Input
           id="order"
           type="number"
           {...register('order', { valueAsNumber: true })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="자동 설정"
         />
       </div>
 
       <div>
-        <label className="flex items-center">
-          <input type="checkbox" {...register('isActive')} className="mr-2" />
+        <label className="flex min-h-11 items-center">
+          <Checkbox {...register('isActive')} />
           <span className="text-sm text-gray-700">활성화</span>
         </label>
       </div>

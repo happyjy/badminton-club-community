@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { Select } from '@/components/atoms/inputs/Select';
 import BoardCategoryTabs from '@/components/organisms/board/BoardCategoryTabs';
 import PostList from '@/components/organisms/board/PostList';
 
@@ -127,17 +128,18 @@ function BoardPage(_props: AuthProps) {
           <label htmlFor="sort" className="text-sm font-medium text-gray-700">
             정렬:
           </label>
-          <select
+          <Select
             id="sort"
+            placeholder={null}
+            fullWidth={false}
             value={sort}
             onChange={onChangeSort}
-            className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="latest">최신순</option>
             <option value="views">조회수순</option>
             <option value="likes">좋아요순</option>
             <option value="comments">댓글순</option>
-          </select>
+          </Select>
         </div>
 
         <div className="flex gap-2">

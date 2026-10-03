@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
+import { Select } from '@/components/atoms/inputs/Select';
 import { StatusFilter } from '@/components/molecules/StatusFilter';
 import { ClubMemberCard } from '@/components/organisms/club/ClubMemberCard';
 
@@ -232,30 +233,19 @@ function UsersPageContent({ userClubs }: UsersPageContentProps) {
             </span>
           </div>
           <div className="relative w-full md:w-auto">
-            <select
+            <Select
+              placeholder={null}
+              aria-label="정렬"
               value={sortOption}
               onChange={(e) => onChangeSort(e.target.value as SortOption)}
-              className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer w-full md:w-auto"
+              className="md:w-auto"
             >
               <option value="name">이름순</option>
               <option value="localLevel">지역대회 급수</option>
               <option value="nationalLevel">전국대회 급수</option>
               <option value="birthDate">생년월일</option>
               <option value="createdAt">가입순서</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg
-                className="w-4 h-4 fill-current"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
+            </Select>
           </div>
         </div>
       </div>

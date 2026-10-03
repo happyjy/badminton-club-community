@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import PhoneNumberText from '@/components/molecules/form/PhoneNumberText';
 import { InfoItem } from '@/components/molecules/InfoItem';
 import { CommentInput } from '@/components/organisms/comment/CommentInput';
@@ -459,15 +460,13 @@ function GuestDetailPage({ user, guestPost }: GuestDetailPageProps) {
             </InfoItem>
             <InfoItem label="클럽 가입 의향">
               <div className="flex items-center">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={guestPost.intendToJoin}
                   readOnly
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
+                  aria-label="클럽 가입 의향"
+                  className="cursor-not-allowed"
                 />
-                <span className="ml-2">
-                  {guestPost.intendToJoin ? '있음' : '없음'}
-                </span>
+                <span>{guestPost.intendToJoin ? '있음' : '없음'}</span>
               </div>
             </InfoItem>
             <InfoItem label="처리 상태">

@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 
 import { useSelector } from 'react-redux';
 
+import { Select } from '@/components/atoms/inputs/Select';
 import CircleMenu, { SelectedIcon } from '@/components/molecules/CircleMenu';
 import PersonInfo from '@/components/molecules/PersonInfo';
 import { WorkoutParkingSection } from '@/components/organisms/workout/WorkoutParkingSection';
@@ -308,30 +309,19 @@ function WorkoutDetailContent({
           <div className="flex justify-between items-center mb-2 sm:mb-4">
             <h2 className="text-xl font-semibold">참여자 목록</h2>
             <div className="relative">
-              <select
+              <Select
+                placeholder={null}
+                fullWidth={false}
+                aria-label="정렬"
                 value={sortOption}
                 onChange={(e) => onChangeSort(e.target.value as SortOption)}
-                className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
                 <option value="createdAt">참여순서</option>
                 <option value="name">이름순</option>
                 <option value="gender">성별</option>
                 <option value="localLevel">지역대회 급수</option>
                 <option value="nationalLevel">전국대회 급수</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg
-                  className="w-4 h-4 fill-current"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
+              </Select>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-4">

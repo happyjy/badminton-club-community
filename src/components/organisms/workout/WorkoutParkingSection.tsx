@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
+import { Input } from '@/components/atoms/inputs/Input';
+
 import { ParkingRequestListItem } from '@/types/parking.types';
 
 interface WorkoutParkingSectionProps {
@@ -82,22 +85,23 @@ export function WorkoutParkingSection({
       {isAdmin && (
         <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-2">
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={useDefault}
               onChange={(e) => setUseDefault(e.target.checked)}
-              className="h-4 w-4"
+              className="mr-0"
             />
             클럽 기본값 사용
           </label>
           <div className="flex gap-2">
-            <input
+            <Input
               type="number"
               min={0}
+              fullWidth={false}
+              aria-label="주차 대수"
               disabled={useDefault}
               value={useDefault ? capacity : value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-24 rounded border border-gray-300 px-2 py-1 disabled:bg-gray-100 disabled:text-gray-400"
+              className="w-24"
             />
             <button
               type="button"

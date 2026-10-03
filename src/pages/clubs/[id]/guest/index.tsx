@@ -7,6 +7,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import {
   GuestApplicationModal,
   GuestInquiryModal,
@@ -240,11 +241,11 @@ function GuestPage({ user }: AuthProps) {
                       </td>
                       <td className="px-1 py-1 sm:px-4 sm:py-3 text-xs sm:text-sm text-gray-500 truncate">
                         <div className="flex items-center">
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={application.intendToJoin === true}
                             readOnly
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-not-allowed"
+                            aria-label="클럽 가입 의향"
+                            className="mr-0 h-4 w-4 cursor-not-allowed"
                           />
                         </div>
                       </td>

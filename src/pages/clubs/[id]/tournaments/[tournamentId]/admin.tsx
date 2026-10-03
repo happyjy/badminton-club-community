@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 
 import toast from 'react-hot-toast';
 
+import { Select } from '@/components/atoms/inputs/Select';
 import DeleteTournamentDialog from '@/components/organisms/tournament/admin/DeleteTournamentDialog';
 import EditPlayersDialog, {
   type EditablePlayer,
@@ -284,18 +285,20 @@ function TournamentAdminPage() {
           </button>
         </div>
 
-        <select
+        <Select
+          placeholder={null}
+          fullWidth={false}
+          aria-label="입금 상태 필터"
           value={statusFilter}
           onChange={(e) =>
             setStatusFilter(e.target.value as 'ALL' | EntryPaymentStatus)
           }
-          className="rounded-md border-gray-300 text-sm"
         >
           <option value="ALL">전체</option>
           <option value="PENDING">입금대기</option>
           <option value="CONFIRMED">입금확인</option>
           <option value="CANCELED">취소</option>
-        </select>
+        </Select>
       </div>
 
       {viewMode === 'entry' ? (
