@@ -142,7 +142,7 @@ function BoardPage(_props: AuthProps) {
 
         <div className="flex gap-2">
           {clubMember && canManageCategory(clubMember) && (
-            <Button variant="ghost" onClick={onClickManageCategories}>
+            <Button variant="plain" onClick={onClickManageCategories}>
               카테고리 관리
             </Button>
           )}

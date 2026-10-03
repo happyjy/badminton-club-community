@@ -197,7 +197,7 @@ function CategoryManageForm({
         </Button>
         <Button
           type="button"
-          variant="ghost"
+          variant="plain"
           onClick={onCancel}
           disabled={isSubmitting}
           className="flex-1"

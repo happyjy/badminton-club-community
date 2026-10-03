@@ -77,20 +77,20 @@ export function CommentItem({
           <div className="flex items-center">
             {!isEditing ? (
               <>
-                <Button variant="ghost" size="sm" onClick={handleEdit}>
+                <Button variant="plain" size="sm" onClick={handleEdit}>
                   수정
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleDelete}>
+                <Button variant="plain" size="sm" onClick={handleDelete}>
                   삭제
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={handleCancel}>
+                <Button variant="plain" size="sm" onClick={handleCancel}>
                   취소
                 </Button>
                 <Button
-                  variant="default"
+                  variant="primary"
                   size="sm"
                   onClick={handleUpdate}
                   disabled={

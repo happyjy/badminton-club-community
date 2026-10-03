@@ -183,11 +183,11 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
           </div>
           {isEditable && !isEditing && (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={onClickEdit}>
+              <Button variant="plain" size="sm" onClick={onClickEdit}>
                 수정
               </Button>
               <Button
-                variant="ghost"
+                variant="plain"
                 size="sm"
                 onClick={onClickDelete}
                 disabled={deleteMutation.isPending}
@@ -207,11 +207,11 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
               maxRows={10}
             />
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={onClickCancel}>
+              <Button variant="plain" size="sm" onClick={onClickCancel}>
                 취소
               </Button>
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={onClickUpdate}
                 disabled={!editContent.trim() || updateMutation.isPending}
@@ -256,11 +256,11 @@ function CommentItem({ comment, clubId, postId, depth = 0 }: CommentItemProps) {
               maxRows={5}
             />
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={onClickReplyCancel}>
+              <Button variant="plain" size="sm" onClick={onClickReplyCancel}>
                 취소
               </Button>
               <Button
-                variant="default"
+                variant="primary"
                 size="sm"
                 onClick={onClickReplySubmit}
                 disabled={!replyContent.trim() || replyMutation.isPending}

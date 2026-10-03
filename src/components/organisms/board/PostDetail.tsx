@@ -149,12 +149,12 @@ function PostDetail({ post }: PostDetailProps) {
 
       {/* 액션 버튼 */}
       <div className="flex flex-wrap items-center gap-2 pt-4 border-t">
-        <Button variant="ghost" onClick={onClickBack}>
+        <Button variant="plain" onClick={onClickBack}>
           목록
         </Button>
         {clubMember && (
           <Button
-            variant="ghost"
+            variant="plain"
             onClick={onClickLike}
             disabled={likeMutation.isPending}
           >
@@ -163,11 +163,11 @@ function PostDetail({ post }: PostDetailProps) {
         )}
         {isEditable && (
           <>
-            <Button variant="ghost" onClick={onClickEdit}>
+            <Button variant="plain" onClick={onClickEdit}>
               수정
             </Button>
             <Button
-              variant="ghost"
+              variant="plain"
               onClick={onClickDelete}
               disabled={deleteMutation.isPending}
             >
@@ -177,7 +177,7 @@ function PostDetail({ post }: PostDetailProps) {
         )}
         {canPin && (
           <Button
-            variant="ghost"
+            variant="plain"
             onClick={onClickPin}
             disabled={pinMutation.isPending}
           >

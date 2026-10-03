@@ -153,7 +153,7 @@ function PhoneField({
         {!isVerified && sendPhoneVerificationCode && (
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             size="sm"
             className="mt-1 shrink-0"
             onClick={handleSendCode}

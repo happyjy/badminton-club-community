@@ -102,7 +102,7 @@ function VerificationCodeInput({
           <Button
             onClick={handleResend}
             disabled={!canResend || loading}
-            variant="outline"
+            variant="secondary"
             size="sm"
           >
             재발송

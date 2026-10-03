@@ -1,46 +1,59 @@
 import React, { ButtonHTMLAttributes } from 'react';
 
+import { cva, type VariantProps } from 'class-variance-authority';
+
 import { Spinner } from '@/components/atoms/Spinner';
 
+import { cn } from '@/lib/utils';
+
+/**
+ * 버튼. 같은 모양을 <Link>에 입힐 때는 buttonVariants()를 className에 쓴다.
+ * sm은 보이는 높이가 32지만 after 가상 요소로 터치 영역을 44까지 넓힌다.
+ */
+export const buttonVariants = cva(
+  [
+    'relative inline-flex items-center justify-center whitespace-nowrap',
+    'font-semibold transition-opacity duration-150 active:opacity-70',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+    'focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+    'disabled:cursor-not-allowed disabled:opacity-40',
+  ],
+  {
+    variants: {
+      variant: {
+        primary: 'bg-accent text-on-accent',
+        secondary: 'bg-fill text-primary',
+        destructive: 'bg-fill text-negative',
+        plain: 'bg-transparent text-primary',
+      },
+      size: {
+        lg: 'h-12 rounded-md px-5 text-body',
+        md: 'h-11 rounded-md px-4 text-body',
+        sm: "h-8 rounded-sm px-3 text-footnote after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']",
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
+  }
+);
+
+type ButtonVariantProps = VariantProps<typeof buttonVariants>;
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'primary' | 'secondary' | 'ghost' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: NonNullable<ButtonVariantProps['variant']>;
+  size?: NonNullable<ButtonVariantProps['size']>;
   pending?: boolean;
   pendingText?: string;
   pendingPosition?: 'left' | 'right' | 'center';
 }
 
-const getVariantClasses = (variant: ButtonProps['variant'] = 'default') => {
-  switch (variant) {
-    case 'primary':
-      return 'bg-blue-500 text-white hover:bg-blue-600';
-    case 'secondary':
-      return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
-    case 'ghost':
-      return 'bg-transparent text-gray-600 hover:bg-gray-100';
-    case 'outline':
-      return 'bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400';
-    default:
-      return 'bg-gray-800 text-white hover:bg-gray-900';
-  }
-};
-
-const getSizeClasses = (size: ButtonProps['size'] = 'md') => {
-  switch (size) {
-    case 'sm':
-      return 'px-3 py-1 text-sm';
-    case 'lg':
-      return 'px-6 py-3 text-lg';
-    default:
-      return 'px-4 py-2';
-  }
-};
-
 export function Button({
   children,
-  variant = 'default',
+  variant = 'primary',
   size = 'md',
-  className = '',
+  className,
   disabled = false,
   pending = false,
   pendingText,
@@ -49,15 +62,6 @@ export function Button({
 }: ButtonProps) {
   // 버튼이 pending 중이면 disabled 속성을 true로 설정
   const isDisabled = pending || disabled;
-
-  const baseClasses =
-    'rounded-md font-medium transition-colors duration-200 whitespace-nowrap flex items-center justify-center';
-  const variantClasses = getVariantClasses(variant);
-  const sizeClasses = getSizeClasses(size);
-  const disabledClasses = isDisabled ? 'opacity-50 cursor-not-allowed' : '';
-
-  const combinedClasses =
-    `${baseClasses} ${variantClasses} ${sizeClasses} ${disabledClasses} ${className}`.trim();
 
   // pending 중일 때 표시할 콘텐츠
   const renderContent = () => {
@@ -90,7 +94,11 @@ export function Button({
   };
 
   return (
-    <button className={combinedClasses} disabled={isDisabled} {...props}>
+    <button
+      className={cn(buttonVariants({ variant, size }), className)}
+      disabled={isDisabled}
+      {...props}
+    >
       {renderContent()}
     </button>
   );

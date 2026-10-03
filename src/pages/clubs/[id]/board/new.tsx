@@ -79,7 +79,7 @@ function NewPostPage({ user }: AuthProps) {
         onSuccess={onSuccess}
       />
       <div className="mt-4">
-        <Button variant="ghost" onClick={onClickCancel}>
+        <Button variant="plain" onClick={onClickCancel}>
           취소
         </Button>
       </div>

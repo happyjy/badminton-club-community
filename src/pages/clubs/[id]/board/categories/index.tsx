@@ -158,14 +158,14 @@ function CategoryManagePage({ user }: AuthProps) {
                   </div>
                   <div className="flex gap-2 ml-4">
                     <Button
-                      variant="ghost"
+                      variant="plain"
                       onClick={() => setEditingCategory(category)}
                       className="text-sm"
                     >
                       수정
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="plain"
                       onClick={() => onDeleteCategory(category.id)}
                       className="text-sm text-red-600 hover:text-red-700"
                     >
@@ -185,7 +185,7 @@ function CategoryManagePage({ user }: AuthProps) {
 
       <div className="flex justify-end">
         <Button
-          variant="ghost"
+          variant="plain"
           onClick={() => router.push(`/clubs/${clubId}/board`)}
         >
           게시판으로 돌아가기
