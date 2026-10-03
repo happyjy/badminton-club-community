@@ -65,11 +65,13 @@ export function CommentItem({
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm">
-      <div className="flex justify-between items-start mb-2">
+    <div className="rounded-md bg-bg p-3">
+      <div className="mb-1 flex items-start justify-between gap-2">
         <div>
-          <span className="font-medium">{author?.name || '알 수 없음'}</span>
-          <span className="text-sm text-gray-500 ml-2">
+          <span className="text-callout font-semibold text-primary">
+            {author?.name || '알 수 없음'}
+          </span>
+          <span className="ml-2 text-footnote tabular-nums text-secondary">
             {formatDate(createdAt)}
           </span>
         </div>
@@ -106,19 +108,15 @@ export function CommentItem({
       </div>
       {isEditing ? (
         <div className="space-y-2">
-          <Textarea
-            value={editContent}
-            onChange={handleChange}
-            className="min-h-[100px] resize-none"
-          />
+          <Textarea value={editContent} onChange={handleChange} minRows={3} />
           <div className="text-right">
-            <span className="text-sm text-gray-500">
+            <span className="text-footnote tabular-nums text-secondary">
               {charCount}/{maxLength}자
             </span>
           </div>
         </div>
       ) : (
-        <p className="text-gray-700 whitespace-pre-wrap break-words">
+        <p className="whitespace-pre-wrap break-words text-body text-primary">
           {content}
         </p>
       )}

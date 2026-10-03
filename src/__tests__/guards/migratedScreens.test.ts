@@ -23,6 +23,12 @@ const MIGRATED = [
   // 4단계 ② 게스트 신청 목록
   'components/organisms/guest/GuestApplicationList.tsx',
   'pages/clubs/[id]/guest/index.tsx',
+  'pages/clubs/[id]/guest/[guestId]/index.tsx',
+  'components/molecules/InfoItem.tsx',
+  'components/organisms/InfoSection.tsx',
+  'components/organisms/comment/CommentInput.tsx',
+  'components/organisms/comment/CommentItem.tsx',
+  'components/molecules/form/PhoneNumberText.tsx',
 ];
 
 const COLOR_NAMES =

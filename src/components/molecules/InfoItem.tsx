@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import { Label } from '../atoms/Label';
+import { cn } from '@/lib/utils';
 
 interface InfoItemProps {
   label: string;
@@ -8,16 +8,18 @@ interface InfoItemProps {
   className?: string;
 }
 
-export const InfoItem = ({
-  label,
-  children,
-  className = '',
-}: InfoItemProps) => {
+/** InfoSection 안의 한 줄: 왼쪽에 항목 이름, 오른쪽에 값. */
+export const InfoItem = ({ label, children, className }: InfoItemProps) => {
   return (
-    <div className={`bg-white p-3 rounded-md ${className}`}>
-      <div className="flex items-center justify-between">
-        <Label>{label}</Label>
-        <div className="font-medium">{children}</div>
+    <div
+      className={cn(
+        'flex min-h-11 items-center justify-between gap-4 px-4 py-3',
+        className
+      )}
+    >
+      <span className="shrink-0 text-body text-secondary">{label}</span>
+      <div className="min-w-0 break-words text-right text-body text-primary">
+        {children}
       </div>
     </div>
   );
