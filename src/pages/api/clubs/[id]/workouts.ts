@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
-import { Workout, ApiResponse } from '@/types';
 import { getAuthUser } from '@/lib/session';
 import { resolveParkingCapacity } from '@/lib/workout/parkingCapacity';
+import { Workout, ApiResponse } from '@/types';
 import { WorkoutParkingStatus } from '@/types/parking.types';
 
 import type { NextApiRequest, NextApiResponse } from 'next';

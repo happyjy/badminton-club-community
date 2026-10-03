@@ -1,3 +1,5 @@
+import singletonRouter from 'next/router';
+
 import { describe, expect, it, jest } from '@jest/globals';
 import {
   act,
@@ -6,8 +8,6 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-
-import singletonRouter from 'next/router';
 
 import {
   ConfirmOptions,

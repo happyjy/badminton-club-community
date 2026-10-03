@@ -13,11 +13,12 @@ import { HELPER_LIMIT, useHelperIcons } from '@/hooks/useHelperIcons';
 type FetchArgs = [string, { method: string; body: string }];
 
 let resolvers: Array<(ok: boolean) => void> = [];
-const fetchMock = jest.fn((..._args: FetchArgs) => {
-  return new Promise<{ ok: boolean }>((resolve) => {
-    resolvers.push((ok) => resolve({ ok }));
-  });
-});
+const fetchMock = jest.fn<(...args: FetchArgs) => Promise<{ ok: boolean }>>(
+  () =>
+    new Promise<{ ok: boolean }>((resolve) => {
+      resolvers.push((ok) => resolve({ ok }));
+    })
+);
 
 /** 가장 오래 기다린 요청을 끝낸다. */
 async function finish(ok = true) {
