@@ -1,11 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { canViewGuestPost } from '@/lib/guestAccess';
 import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import { sendCommentAddedSms } from '@/lib/sms-notification';
 
 // 게스트 신청 게시글의 댓글 목록을 조회하고 생성(SMS 전송)하는 API
-export default async function handler(
-  req: NextApiRequest,
+// 신청서를 볼 수 있는 사람(작성자 본인·클럽 임원)만 댓글을 보고 쓸 수 있다.
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
   const { id, guestId } = req.query;
@@ -15,6 +18,20 @@ export default async function handler(
   }
 
   try {
+    const guestPost = await prisma.guestPost.findUnique({
+      where: { id: guestId as string },
+      select: { clubId: true, userId: true },
+    });
+
+    // 다른 클럽의 신청서를 이 클럽 경로로 다루지 못하게 한다.
+    if (!guestPost || guestPost.clubId !== Number(id)) {
+      return res.status(404).json({ message: 'Guest post not found' });
+    }
+
+    if (!(await canViewGuestPost(req.user.id, guestPost))) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
     switch (req.method) {
       // 댓글 목록 조회
       case 'GET': {
@@ -53,30 +70,21 @@ export default async function handler(
 
       // 댓글 생성 & SMS 전송
       case 'POST': {
-        const { content, userId, clubMemberId, parentId } = req.body;
+        const { content, parentId } = req.body;
 
         if (!content) {
           return res.status(400).json({ message: 'Content is required' });
         }
 
-        if (!userId && !clubMemberId) {
-          return res
-            .status(400)
-            .json({ message: 'Either userId or clubMemberId is required' });
-        }
+        // 작성자는 요청 body가 아니라 로그인 세션으로 정한다.
+        // body의 userId를 믿으면 다른 사람(임원)을 사칭해 댓글과 문자를 보낼 수 있다.
+        const userId = req.user.id;
 
-        // TODO: 인증 및 권한 확인 로직 추가
-        // const user = await getAuthenticatedUser(req);
-        // if (!user) {
-        //   return res.status(401).json({ message: 'Unauthorized' });
-        // }
-
-        // 댓글 생성
         const newComment = await prisma.guestComment.create({
           data: {
             postId: guestId as string,
-            userId: userId || null,
-            clubMemberId: clubMemberId || null,
+            userId,
+            clubMemberId: null,
             content,
             parentId: parentId || null,
           },
@@ -91,29 +99,20 @@ export default async function handler(
           },
         });
 
-        // 게스트 신청 게시글 정보 조회
-        const guestPost = await prisma.guestPost.findUnique({
-          where: { id: guestId as string },
-          select: { userId: true },
-        });
-
-        if (guestPost) {
-          // 댓글 작성자가 게시글 작성자와 다른 경우 SMS 전송
-          const commentUserId = userId || clubMemberId;
-          if (commentUserId && commentUserId !== guestPost.userId) {
-            try {
-              await sendCommentAddedSms(
-                guestId as string,
-                guestPost.userId,
-                commentUserId
-              );
-              console.log(
-                `SMS notification sent for comment on guest post ${guestId}`
-              );
-            } catch (smsError) {
-              // SMS 전송 실패는 전체 요청을 실패시키지 않음
-              console.error('Failed to send SMS notification:', smsError);
-            }
+        // 댓글 작성자가 게시글 작성자와 다른 경우 SMS 전송
+        if (userId !== guestPost.userId) {
+          try {
+            await sendCommentAddedSms(
+              guestId as string,
+              guestPost.userId,
+              userId
+            );
+            console.log(
+              `SMS notification sent for comment on guest post ${guestId}`
+            );
+          } catch (smsError) {
+            // SMS 전송 실패는 전체 요청을 실패시키지 않음
+            console.error('Failed to send SMS notification:', smsError);
           }
         }
 
@@ -130,4 +129,4 @@ export default async function handler(
     console.error('Error in comments API:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
-}
+});

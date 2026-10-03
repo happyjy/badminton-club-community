@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdmin } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 import {
   sendStatusUpdateSms,
   sendCommentAddedSms,
@@ -8,8 +10,9 @@ import {
 import { NotificationType } from '@/types/sms.types';
 
 // 게스트 신청 게시글의 SMS 전송 API
-export default async function handler(
-  req: NextApiRequest,
+// 문자 발송은 비용이 들고 신청자에게 바로 닿으므로 클럽 임원만 할 수 있다.
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
@@ -28,21 +31,18 @@ export default async function handler(
       return res.status(400).json({ message: 'Invalid notification type' });
     }
 
-    // TODO: 인증 및 권한 확인 로직 추가
-    // const user = await getAuthenticatedUser(req);
-    // if (!user) {
-    //   return res.status(401).json({ message: 'Unauthorized' });
-    // }
-
     // 게스트 신청 게시글 정보 조회
     const guestPost = await prisma.guestPost.findUnique({
       where: { id: guestId as string },
-      select: { userId: true, status: true },
+      select: { clubId: true, userId: true, status: true },
     });
 
-    if (!guestPost) {
+    // 다른 클럽의 신청서를 이 클럽 경로로 다루지 못하게 한다.
+    if (!guestPost || guestPost.clubId !== Number(id)) {
       return res.status(404).json({ message: 'Guest post not found' });
     }
+
+    await requireClubAdmin(req.user.id, guestPost.clubId);
 
     let success = false;
 
@@ -61,17 +61,11 @@ export default async function handler(
       );
     } else if (notificationType === NotificationType.COMMENT_ADDED) {
       // 댓글 추가 SMS 전송
-      // 이 경우 commentUserId는 요청 본문에서 받아야 함
-      const { commentUserId } = req.body;
-
-      if (!commentUserId) {
-        return res.status(400).json({ message: 'Missing commentUserId' });
-      }
-
+      // 댓글 작성자는 body가 아니라 로그인 세션으로 정한다.
       success = await sendCommentAddedSms(
         guestId as string,
         guestPost.userId,
-        commentUserId
+        req.user.id
       );
     }
 
@@ -81,7 +75,10 @@ export default async function handler(
       return res.status(400).json({ message: 'Failed to send SMS' });
     }
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res.status(error.status).json({ message: error.message });
+    }
     console.error('Error sending SMS:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
-}
+});

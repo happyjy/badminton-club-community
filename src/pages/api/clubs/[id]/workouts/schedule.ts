@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdmin } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
+import { withAuth } from '@/lib/session';
 
 interface WorkoutScheduleRequest {
   startDate: string;
@@ -13,8 +15,9 @@ interface WorkoutScheduleRequest {
   maxParticipants: number;
 }
 
-export default async function handler(
-  req: NextApiRequest,
+// 운동 일정 일괄 생성은 커스텀 설정의 임원 기능이다.
+export default withAuth(async function handler(
+  req: NextApiRequest & { user: { id: number } },
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
@@ -23,6 +26,9 @@ export default async function handler(
 
   try {
     const { id: clubId } = req.query;
+
+    await requireClubAdmin(req.user.id, Number(clubId));
+
     const {
       startDate,
       endDate,
@@ -105,9 +111,12 @@ export default async function handler(
       workouts,
     });
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res.status(error.status).json({ message: error.message });
+    }
     console.error('Error creating workout schedule:', error);
     return res
       .status(500)
       .json({ message: '운동 일정 생성 중 오류가 발생했습니다' });
   }
-}
+});

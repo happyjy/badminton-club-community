@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { ClubAuthError, requireClubAdmin } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { sendStatusUpdateSms } from '@/lib/sms-notification';
@@ -32,6 +33,9 @@ export default withAuth(async function handler(
         .status(400)
         .json({ success: false, message: '유효한 상태값이 필요합니다' });
     }
+
+    // 승인·거절은 신청자에게 문자가 나가는 임원 작업이다.
+    await requireClubAdmin(req.user.id, parseInt(clubId as string));
 
     // 현재 시간
     const now = new Date();
@@ -80,6 +84,11 @@ export default withAuth(async function handler(
       message: `게스트 신청이 ${status === 'APPROVED' ? '승인' : status === 'REJECTED' ? '거절' : '대기 상태로 변경'}되었습니다.`,
     });
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res
+        .status(error.status)
+        .json({ success: false, message: error.message });
+    }
     console.error('게스트 신청 상태 변경 오류:', error);
     return res.status(500).json({
       success: false,
