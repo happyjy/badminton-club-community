@@ -2,7 +2,10 @@ import { useState } from 'react';
 
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
+import { Select } from '@/components/atoms/inputs/Select';
+import { Textarea } from '@/components/atoms/Textarea';
 import { FormField } from '@/components/molecules/form/FormField';
 
 import { parseTagInput } from '@/lib/tournament/parseTagInput';
@@ -93,22 +96,17 @@ function TournamentForm({
             <Input type="text" {...methods.register('location')} />
           </FormField>
           <FormField label="모집 요강">
-            <textarea
-              rows={5}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              {...methods.register('description')}
-            />
+            <Textarea minRows={5} {...methods.register('description')} />
           </FormField>
           <FormField label="모집 요강 첨부파일">
             <TournamentFileField clubId={clubId} tournamentId={tournamentId} />
           </FormField>
           <FormField label="신청 주의사항">
-            <textarea
-              rows={4}
+            <Textarea
+              minRows={4}
               placeholder={
                 '신청 페이지 상단에 안내됩니다.\n예) 티셔츠는 넉넉한 편이니 한 치수 작게 신청해주세요.'
               }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               {...methods.register('applyNotice')}
             />
           </FormField>
@@ -179,6 +177,7 @@ function TournamentForm({
                 <label className="flex items-center gap-2 text-sm">
                   <input
                     type="radio"
+                    className="h-5 w-5 accent-accent"
                     value="PER_PLAYER"
                     {...methods.register('surchargeUnit')}
                   />
@@ -187,6 +186,7 @@ function TournamentForm({
                 <label className="flex items-center gap-2 text-sm">
                   <input
                     type="radio"
+                    className="h-5 w-5 accent-accent"
                     value="PER_TEAM"
                     {...methods.register('surchargeUnit')}
                   />
@@ -202,9 +202,8 @@ function TournamentForm({
 
           <FormField label="외부 신청">
             <label className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4"
+              <Checkbox
+                className="mr-0 mt-0.5"
                 {...methods.register('allowExternalEntry')}
               />
               <span>
@@ -234,14 +233,11 @@ function TournamentForm({
             />
           </FormField>
           <FormField label="상태" required>
-            <select
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              {...methods.register('status')}
-            >
+            <Select placeholder={null} {...methods.register('status')}>
               <option value="DRAFT">임시저장 (회원에게 안 보임)</option>
               <option value="OPEN">모집 열기</option>
               <option value="CLOSED">마감</option>
-            </select>
+            </Select>
           </FormField>
         </section>
 
@@ -281,7 +277,7 @@ function TournamentForm({
           </p>
 
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...methods.register('useTeamName')} />
+            <Checkbox className="mr-0" {...methods.register('useTeamName')} />
             팀명 입력받기
           </label>
 
@@ -312,8 +308,9 @@ function TournamentForm({
               )}
             </div>
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
+                fullWidth={false}
                 value={sizeInput}
                 onChange={(e) => setSizeInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -324,7 +321,7 @@ function TournamentForm({
                   }
                 }}
                 placeholder="S, M, L (쉼표로 여러 개 입력)"
-                className="flex-1 rounded-md border-gray-300 text-sm"
+                className="min-w-0 flex-1"
               />
               <button
                 type="button"

@@ -2,12 +2,12 @@ import { useEffect } from 'react';
 
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { Select } from '@/components/atoms/inputs/Select';
 import { FormField } from '@/components/molecules/form/FormField';
 
 import { type SurchargeUnitValue } from '@/lib/tournament/fee';
-
 import {
   getBirthDateError,
   toBirthDateDigits,
@@ -265,9 +265,8 @@ function PlayerListField({
                 </p>
               ) : (
                 <label className="flex items-start gap-2 rounded-md bg-gray-50 p-3 text-sm">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5 h-4 w-4"
+                  <Checkbox
+                    className="mr-0 mt-0.5"
                     {...register(`players.${index}.isClubMember`)}
                   />
                   <span>

@@ -1,9 +1,12 @@
+import { Select } from '@/components/atoms/inputs/Select';
+
 import {
   formatEventLabel,
   formatFee,
   PAYMENT_CLASS,
   PAYMENT_LABEL,
 } from '@/lib/tournament/display';
+import { cn } from '@/lib/utils';
 import type {
   EntryForAdmin,
   EntryPaymentStatus,
@@ -72,19 +75,25 @@ function PaymentStatusSelect({
   onChangePaymentStatus: EntryTableProps['onChangePaymentStatus'];
 }) {
   return (
-    <select
+    <Select
+      placeholder={null}
+      fullWidth={false}
+      aria-label="입금 상태"
       value={entry.paymentStatus}
       onChange={(e) =>
         onChangePaymentStatus(entry.id, e.target.value as EntryPaymentStatus)
       }
-      className={`rounded border-none px-2 py-1 text-xs font-medium ${PAYMENT_CLASS[entry.paymentStatus]}`}
+      className={cn(
+        'h-9 border-none pl-2 font-medium',
+        PAYMENT_CLASS[entry.paymentStatus]
+      )}
     >
       {PAYMENT_STATUSES.map((status) => (
         <option key={status} value={status}>
           {PAYMENT_LABEL[status]}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }
 

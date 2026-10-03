@@ -1,5 +1,6 @@
 import { useFormContext } from 'react-hook-form';
 
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { FormField } from '@/components/molecules/form/FormField';
 
@@ -103,9 +104,8 @@ function EntrySummary({
 
       <div className="space-y-1">
         <label className="flex items-start gap-2 text-sm text-gray-700">
-          <input
-            type="checkbox"
-            className="mt-1"
+          <Checkbox
+            className="mr-0 mt-0.5"
             {...register('privacyAgreed', {
               required: '개인정보 수집·이용에 동의해주세요.',
             })}

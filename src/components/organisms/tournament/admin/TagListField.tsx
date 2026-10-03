@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { Input } from '@/components/atoms/inputs/Input';
+
 import { parseTagInput } from '@/lib/tournament/parseTagInput';
 import { moveTagValue, sortTagValues } from '@/lib/tournament/sortTagValues';
 
@@ -83,8 +85,9 @@ function TagListField({
       )}
 
       <div className="flex gap-2">
-        <input
+        <Input
           type="text"
+          fullWidth={false}
           value={customInput}
           onChange={(e) => setCustomInput(e.target.value)}
           onKeyDown={(e) => {
@@ -95,7 +98,7 @@ function TagListField({
             }
           }}
           placeholder={placeholder}
-          className="flex-1 rounded-md border-gray-300 text-sm"
+          className="min-w-0 flex-1"
         />
         <button
           type="button"

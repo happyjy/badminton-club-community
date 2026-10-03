@@ -1,5 +1,8 @@
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
+import { Input } from '@/components/atoms/inputs/Input';
+import { Select } from '@/components/atoms/inputs/Select';
+
 import { formatFee } from '@/lib/tournament/display';
 import type { TournamentInput } from '@/types/tournament.types';
 
@@ -63,22 +66,27 @@ function EventTypeEditor() {
               />
             </div>
 
-            <select
-              className="shrink-0 rounded border-gray-300 text-sm"
+            <Select
+              placeholder={null}
+              fullWidth={false}
+              aria-label="종목 인원"
+              className="shrink-0"
               {...register(`eventTypes.${index}.playerCount`, {
                 valueAsNumber: true,
               })}
             >
               <option value={1}>1명</option>
               <option value={2}>2명</option>
-            </select>
+            </Select>
 
             <div className="shrink-0">
-              <input
+              <Input
                 type="number"
                 min={0}
                 step={1000}
-                className="w-28 rounded border-gray-300 text-sm"
+                fullWidth={false}
+                aria-label="종목 참가비"
+                className="w-28"
                 {...register(`eventTypes.${index}.fee`, {
                   valueAsNumber: true,
                 })}

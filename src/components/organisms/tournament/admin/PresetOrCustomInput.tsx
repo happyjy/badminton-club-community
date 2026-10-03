@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 
+import { Input } from '@/components/atoms/inputs/Input';
+import { Select } from '@/components/atoms/inputs/Select';
+
 /** '기타 직접입력'을 나타내는 내부 센티넬. 실제 저장값이 아니다. */
 const CUSTOM_VALUE = '__CUSTOM__';
 
@@ -43,8 +46,8 @@ function PresetOrCustomInput({
   if (isCustom) {
     return (
       <div className="flex min-w-0 items-center gap-1">
-        <input
-          className="w-full min-w-0 rounded border-gray-300 text-sm"
+        <Input
+          className="min-w-0"
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChangeValue(e.target.value)}
@@ -78,11 +81,7 @@ function PresetOrCustomInput({
   }
 
   return (
-    <select
-      className="w-full rounded border-gray-300 text-sm"
-      value={value}
-      onChange={onChangeSelect}
-    >
+    <Select placeholder={null} value={value} onChange={onChangeSelect}>
       <option value="">{allowEmpty ? '없음' : '선택'}</option>
       {presets.map((preset) => (
         <option key={preset} value={preset}>
@@ -90,7 +89,7 @@ function PresetOrCustomInput({
         </option>
       ))}
       <option value={CUSTOM_VALUE}>기타 직접입력...</option>
-    </select>
+    </Select>
   );
 }
 
