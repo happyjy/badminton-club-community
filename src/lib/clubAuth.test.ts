@@ -6,7 +6,12 @@ jest.mock('@/lib/prisma', () => ({
 
 import { prisma } from '@/lib/prisma';
 
-import { ClubAuthError, requireClubAdmin, requireClubMember } from './clubAuth';
+import {
+  ClubAuthError,
+  requireActiveClubMember,
+  requireClubAdmin,
+  requireClubMember,
+} from './clubAuth';
 
 type MemberRow = {
   id: number;
@@ -48,6 +53,39 @@ describe('requireClubMember', () => {
     await expect(requireClubMember(1, 2)).rejects.toMatchObject({
       status: 403,
     });
+  });
+});
+
+describe('requireActiveClubMember', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each(['APPROVED', 'ON_LEAVE'])(
+    '%s 회원이면 컨텍스트를 반환한다',
+    async (status) => {
+      findUnique.mockResolvedValue({ ...APPROVED_MEMBER, status });
+      await expect(requireActiveClubMember(1, 2)).resolves.toMatchObject({
+        status,
+      });
+    }
+  );
+
+  it.each(['PENDING', 'REJECTED', 'LEFT'])(
+    '%s 회원이면 403',
+    async (status) => {
+      findUnique.mockResolvedValue({ ...APPROVED_MEMBER, status });
+      await expect(requireActiveClubMember(1, 2)).rejects.toMatchObject({
+        status: 403,
+      });
+    }
+  );
+
+  it('클럽 멤버가 아니면 403', async () => {
+    findUnique.mockResolvedValue(null);
+    await expect(requireActiveClubMember(1, 2)).rejects.toBeInstanceOf(
+      ClubAuthError
+    );
   });
 });
 

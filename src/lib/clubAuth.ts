@@ -55,6 +55,22 @@ export async function requireClubMember(
 }
 
 /**
+ * 회원 기능을 쓸 수 있는 회원(APPROVED·ON_LEAVE)인지 확인한다.
+ * 아니면 ClubAuthError(403)를 던진다.
+ * 휴가 중인 회원도 출석·운동 기능은 계속 써야 하므로 requireClubMember와 구분한다.
+ */
+export async function requireActiveClubMember(
+  userId: number,
+  clubId: number
+): Promise<ClubMemberContext> {
+  const member = await findMember(userId, clubId);
+  if (!member || !ACTIVE_MEMBER_STATUS.in.includes(member.status)) {
+    throw new ClubAuthError('클럽 회원만 이용할 수 있습니다.', 403);
+  }
+  return member;
+}
+
+/**
  * 클럽 임원(ADMIN)인지 확인한다. 아니면 ClubAuthError를 던진다.
  */
 export async function requireClubAdmin(

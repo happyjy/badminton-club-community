@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { CalendarX } from 'lucide-react';
+import { CalendarX, Lock } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
 import { Skeleton } from '@/components/atoms/Skeleton';
@@ -26,6 +26,7 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
   const { id: clubId } = router.query;
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [isForbidden, setIsForbidden] = useState(false);
 
   const [editTarget, setEditTarget] = useState<Workout | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Workout | null>(null);
@@ -62,7 +63,14 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     if (!clubId) return;
     try {
       const response = await fetch(`/api/clubs/${clubId}/workouts`);
+      // 활동 회원(승인·휴가)이 아니면 서버가 거절한다. 빈 목록 대신 이유를 보여 준다.
+      if (response.status === 401 || response.status === 403) {
+        setIsForbidden(true);
+        setWorkouts([]);
+        return;
+      }
       const result = await response.json();
+      setIsForbidden(false);
       setWorkouts(result.data.workouts);
     } catch (error) {
       console.error('운동 목록 조회 실패:', error);
@@ -79,14 +87,9 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
     markPending(setPendingParticipateIds, workoutId, true);
 
     try {
+      // 어느 클럽 운동인지는 서버가 운동 정보로 판단한다.
       const response = await fetch(`/api/workouts/${workoutId}/participate`, {
         method: isParticipating ? 'DELETE' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clubId,
-        }),
       });
       if (response.ok) {
         // 참여 인원과 주차 연동까지 바뀌므로 목록을 다시 읽는다.
@@ -224,6 +227,12 @@ function AttendancePage({ user, isLoggedIn }: ClubDetailPageProps) {
             <Skeleton key={index} className="h-56 rounded-md" />
           ))}
         </div>
+      ) : isForbidden ? (
+        <EmptyState
+          icon={Lock}
+          title="클럽 회원만 볼 수 있어요"
+          description="가입이 승인되면 운동 일정을 확인하고 참여할 수 있어요"
+        />
       ) : workouts.length > 0 ? (
         <div className="grid gap-4">
           {workouts.map((workout) => (

@@ -1,3 +1,4 @@
+import { ClubAuthError, requireActiveClubMember } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { recalcParkingAssignments } from '@/lib/workout/parkingAssignment';
@@ -22,43 +23,41 @@ export default withAuth(async function handler(
   }
 
   const { workoutId } = req.query;
-  if (!workoutId || Array.isArray(workoutId)) {
+  if (!workoutId || Array.isArray(workoutId) || !Number(workoutId)) {
     return res.status(400).json({
       error: '잘못된 workout ID입니다',
       status: 400,
     });
   }
 
-  const { clubId } = req.body;
-  if (!clubId) {
-    return res.status(400).json({
-      error: '클럽 ID가 필요합니다',
-      status: 400,
-    });
-  }
   try {
-    if (req.method === 'POST') {
-      const clubMember = await prisma.clubMember.findUnique({
-        where: {
-          clubId_userId: {
-            clubId: Number(clubId),
-            userId: Number(req.user.id),
-          },
-        },
+    // 클럽은 요청 body가 아니라 DB의 운동에서 정한다.
+    // body의 clubId를 믿으면 다른 클럽 운동에 참여할 수 있었다.
+    const workout = await prisma.workout.findUnique({
+      where: { id: Number(workoutId) },
+      select: { clubId: true, date: true, parkingCapacity: true },
+    });
+
+    // 클럽이 없는 운동은 회원 여부를 확인할 수 없으므로 없는 운동으로 본다.
+    if (!workout?.clubId) {
+      return res.status(404).json({
+        error: '운동을 찾을 수 없습니다',
+        status: 404,
       });
+    }
 
-      if (!clubMember) {
-        return res.status(400).json({
-          error: '클럽 멤버를 찾을 수 없습니다',
-          status: 400,
-        });
-      }
+    // 가입 대기·탈퇴 회원은 참여도 취소도 할 수 없다.
+    const clubMember = await requireActiveClubMember(
+      req.user.id,
+      workout.clubId
+    );
 
+    if (req.method === 'POST') {
       await prisma.workoutParticipant.create({
         data: {
           workoutId: Number(workoutId),
           userId: Number(req.user.id),
-          clubMemberId: Number(clubMember.id),
+          clubMemberId: clubMember.id,
           status: Status.PENDING,
         },
       });
@@ -69,29 +68,14 @@ export default withAuth(async function handler(
         message: '운동에 참여했습니다',
       });
     } else {
-      const workout = await prisma.workout.findUnique({
-        where: { id: Number(workoutId) },
-        select: { clubId: true, date: true, parkingCapacity: true },
-      });
-
       const settings = await prisma.clubCustomSettings.findUnique({
-        where: { clubId: Number(clubId) },
+        where: { clubId: workout.clubId },
         select: {
           parkingEnabled: true,
           parkingWeekdayCapacity: true,
           parkingWeekendCapacity: true,
           parkingSmsEnabled: true,
         },
-      });
-
-      const clubMember = await prisma.clubMember.findUnique({
-        where: {
-          clubId_userId: {
-            clubId: Number(clubId),
-            userId: Number(req.user.id),
-          },
-        },
-        select: { id: true },
       });
 
       const promoted = await prisma.$transaction(async (tx) => {
@@ -106,14 +90,7 @@ export default withAuth(async function handler(
 
         // 운동 참여를 취소하면 주차 신청도 함께 사라진다.
         // 참여하지 않는 사람이 자리를 차지하고 있으면 안 되기 때문이다.
-        // workout.clubId가 요청의 clubId와 다르면(다른 클럽 소속 운동이면)
-        // 그 클럽의 설정으로 이 운동의 정원을 재계산해서는 안 되므로 건너뛴다.
-        if (
-          !settings?.parkingEnabled ||
-          !workout ||
-          !clubMember ||
-          workout.clubId !== Number(clubId)
-        ) {
+        if (!settings?.parkingEnabled) {
           return [];
         }
 
@@ -143,6 +120,11 @@ export default withAuth(async function handler(
       });
     }
   } catch (error) {
+    if (error instanceof ClubAuthError) {
+      return res
+        .status(error.status)
+        .json({ error: error.message, status: error.status });
+    }
     console.error('운동 참여/취소 중 오류 발생:', error);
     return res.status(500).json({
       error: '처리 중 오류가 발생했습니다',
