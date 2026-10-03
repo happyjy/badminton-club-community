@@ -52,3 +52,89 @@ describe('PersonInfo의 아바타', () => {
     );
   });
 });
+
+describe('PersonInfo의 글자', () => {
+  // 나이대는 올해 기준이라 태어난 해를 올해에서 거꾸로 센다.
+  const birthYear = (age: number) => `${new Date().getFullYear() - age}-05-01`;
+
+  it('성별·나이대·급수를 한 줄로 이어 보여 준다', () => {
+    render(
+      <PersonInfo
+        name="김민수"
+        gender="MALE"
+        birthDate={birthYear(34)}
+        localTournamentLevel="C"
+      />
+    );
+
+    expect(screen.getByText('남성 · 30대 · 지역 C')).toBeTruthy();
+  });
+
+  it('급수는 전국만 / 지역만 / 둘 다의 글자가 다르다', () => {
+    const { rerender } = render(
+      <PersonInfo name="김민수" nationalTournamentLevel="A" />
+    );
+    expect(screen.getByText('전국 A')).toBeTruthy();
+
+    rerender(<PersonInfo name="김민수" localTournamentLevel="C" />);
+    expect(screen.getByText('지역 C')).toBeTruthy();
+
+    rerender(
+      <PersonInfo
+        name="김민수"
+        nationalTournamentLevel="A"
+        localTournamentLevel="C"
+      />
+    );
+    expect(screen.getByText('전국A/지역C')).toBeTruthy();
+  });
+
+  it('모르는 성별 값은 받은 그대로 보여 준다', () => {
+    render(<PersonInfo name="김민수" gender="여" />);
+
+    expect(screen.getByText('여')).toBeTruthy();
+  });
+
+  it('정보가 하나도 없으면 설명 줄이 없다', () => {
+    const { container } = render(<PersonInfo name="김민수" />);
+
+    expect(container.querySelector('[data-person-meta]')).toBeNull();
+  });
+
+  it('번호가 있으면 이름 앞에 붙인다', () => {
+    render(<PersonInfo name="김민수" number={3} />);
+
+    expect(screen.getByText('3.')).toBeTruthy();
+    expect(screen.getByText('김민수')).toBeTruthy();
+  });
+
+  it('가입 희망이면 칩으로 알린다', () => {
+    const { rerender } = render(<PersonInfo name="홍길동" intendToJoin />);
+    expect(screen.getByText('가입희망').className).toContain(
+      'bg-positive-soft'
+    );
+
+    rerender(<PersonInfo name="홍길동" intendToJoin={false} />);
+    expect(screen.queryByText('가입희망')).toBeNull();
+  });
+
+  it('게스트를 신청한 사람을 보여 준다', () => {
+    render(<PersonInfo name="홍길동" guestRequestName="김민수" />);
+
+    expect(screen.getByText('신청자: 김민수')).toBeTruthy();
+  });
+
+  it('덧붙인 아이콘을 그린다', () => {
+    render(<PersonInfo name="김민수" extraIcons={<span>도움 아이콘</span>} />);
+
+    expect(screen.getByText('도움 아이콘')).toBeTruthy();
+  });
+
+  it('긴 이름은 한 줄에서 자른다', () => {
+    render(<PersonInfo name="아주아주아주 긴 이름을 가진 회원" />);
+
+    expect(
+      screen.getByText('아주아주아주 긴 이름을 가진 회원').closest('.truncate')
+    ).toBeTruthy();
+  });
+});

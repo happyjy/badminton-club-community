@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 
 import { Avatar } from '@/components/atoms/Avatar';
+import { StatusChip } from '@/components/atoms/StatusChip';
 
 import { cn } from '@/lib/utils';
 import { calculateAgeGroup } from '@/utils/age';
@@ -63,7 +64,7 @@ function PersonInfo({
   className = '',
   avatarClassName = '',
   contentClassName = '',
-  badgeContainerClassName = 'flex items-center gap-1 mt-1',
+  badgeContainerClassName = 'mt-0.5 flex items-center gap-1',
 }: PersonInfoProps) {
   // 성별 표시 텍스트 결정
   const displayGender = gender ? GENDER_DISPLAY[gender] || gender : null;
@@ -111,58 +112,53 @@ function PersonInfo({
     />
   );
 
+  // 이름 아래 한 줄 설명: 성별 · 나이대 · 급수
+  const hasLevel = !!(nationalTournamentLevel || localTournamentLevel);
+  const meta = [
+    displayGender,
+    birthDate ? calculateAgeGroup(birthDate) : null,
+    hasLevel ? renderTournamentLevelBadge() : null,
+  ].filter(Boolean);
+
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={cn('flex min-w-0 items-center gap-3', className)}>
       {/* 프로필 이미지 또는 아바타 */}
       {renderAvatar()}
 
       {/* 사용자 정보 */}
-      <div className={`${contentClassName}`}>
-        <span className="font-medium block truncate">
-          {numberProp != null && (
-            <span className="text-gray-500 font-medium">{numberProp}. </span>
-          )}
-          {name}
-        </span>
-
-        <div className={badgeContainerClassName}>
-          <div className="flex flex-wrap gap-1">
-            {intendToJoin && (
-              <span className="inline-block bg-green-100 rounded-full px-2 py-0.5 text-xs text-green-800 font-semibold">
-                가입희망
-              </span>
-            )}
-            {gender && (
-              <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-                {displayGender}
-              </span>
-            )}
-            {birthDate && (
-              <span className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-                {calculateAgeGroup(birthDate)}
-              </span>
-            )}
-            {(nationalTournamentLevel || localTournamentLevel) && (
-              <span
-                className="inline-block bg-blue-100 rounded-full px-2 py-0.5 text-xs text-gray-600 cursor-help"
-                title={getTournamentLevelTitle()}
-              >
-                {renderTournamentLevelBadge()}
-              </span>
-            )}
-          </div>
-
-          {rightMeta && <div className="ml-auto">{rightMeta}</div>}
+      <div className={cn('min-w-0', contentClassName)}>
+        <div className="flex items-center gap-1.5">
+          <span className="block min-w-0 truncate text-headline text-primary">
+            {numberProp != null && (
+              <span className="font-medium text-secondary">{numberProp}.</span>
+            )}{' '}
+            {name}
+          </span>
+          {intendToJoin && <StatusChip tone="positive">가입희망</StatusChip>}
+          {/* 추가 아이콘 영역 */}
+          {extraIcons}
         </div>
+
+        {(meta.length > 0 || rightMeta) && (
+          <div className={badgeContainerClassName}>
+            {meta.length > 0 && (
+              <span
+                data-person-meta
+                className="text-footnote text-secondary"
+                title={hasLevel ? getTournamentLevelTitle() : undefined}
+              >
+                {meta.join(' · ')}
+              </span>
+            )}
+            {rightMeta && <div className="ml-auto">{rightMeta}</div>}
+          </div>
+        )}
         {guestRequestName && (
-          <p className="text-sm text-gray-500 mt-1 text-right">
+          <p className="mt-0.5 text-footnote text-secondary">
             신청자: {guestRequestName}
           </p>
         )}
       </div>
-
-      {/* 추가 아이콘 영역 */}
-      <div className="flex items-center gap-1">{extraIcons}</div>
     </div>
   );
 }
