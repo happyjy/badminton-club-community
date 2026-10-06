@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PrismaClient } from '@prisma/client';
 
+import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@/types/sms.types';
 
 import {
@@ -11,23 +11,22 @@ import {
   sendStatusUpdateSms,
 } from './sms-notification';
 
-// Mock PrismaClient
-jest.mock('@prisma/client');
+// 본 코드는 '@/lib/prisma' 싱글톤을 쓰므로 그 모듈을 대체한다.
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    smsNotificationLog: { findFirst: jest.fn(), create: jest.fn() },
+    user: { findUnique: jest.fn() },
+  },
+}));
 jest.mock('./sms');
 
-const mockPrisma = {
+const mockPrisma = prisma as unknown as {
   smsNotificationLog: {
-    findUnique: jest.fn(),
-    create: jest.fn(),
-  },
-  user: {
-    findUnique: jest.fn(),
-  },
+    findFirst: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  };
+  user: { findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>> };
 };
-
-(PrismaClient as jest.MockedClass<typeof PrismaClient>).mockImplementation(
-  () => mockPrisma as any
-);
 
 describe('SMS Notification Service', () => {
   beforeEach(() => {
@@ -36,7 +35,7 @@ describe('SMS Notification Service', () => {
 
   describe('checkSmsNotificationSent', () => {
     it('should return true when SMS notification log exists', async () => {
-      mockPrisma.smsNotificationLog.findUnique.mockResolvedValue({ id: 1 });
+      mockPrisma.smsNotificationLog.findFirst.mockResolvedValue({ id: 1 });
 
       const result = await checkSmsNotificationSent(
         'post1',
@@ -45,19 +44,17 @@ describe('SMS Notification Service', () => {
       );
 
       expect(result).toBe(true);
-      expect(mockPrisma.smsNotificationLog.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.smsNotificationLog.findFirst).toHaveBeenCalledWith({
         where: {
-          guestPostId_userId_notificationType: {
-            guestPostId: 'post1',
-            userId: 1,
-            notificationType: NotificationType.STATUS_UPDATE,
-          },
+          guestPostId: 'post1',
+          userId: 1,
+          notificationType: NotificationType.STATUS_UPDATE,
         },
       });
     });
 
     it('should return false when SMS notification log does not exist', async () => {
-      mockPrisma.smsNotificationLog.findUnique.mockResolvedValue(null);
+      mockPrisma.smsNotificationLog.findFirst.mockResolvedValue(null);
 
       const result = await checkSmsNotificationSent(
         'post1',
@@ -91,7 +88,7 @@ describe('SMS Notification Service', () => {
 
   describe('sendStatusUpdateSms', () => {
     it('should send status update SMS when not already sent', async () => {
-      mockPrisma.smsNotificationLog.findUnique.mockResolvedValue(null);
+      mockPrisma.smsNotificationLog.findFirst.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({
         phoneNumber: '010-1234-5678',
       });
@@ -102,7 +99,7 @@ describe('SMS Notification Service', () => {
     });
 
     it('should not send SMS when already sent', async () => {
-      mockPrisma.smsNotificationLog.findUnique.mockResolvedValue({ id: 1 });
+      mockPrisma.smsNotificationLog.findFirst.mockResolvedValue({ id: 1 });
 
       const result = await sendStatusUpdateSms('post1', 1, 'APPROVED');
 
@@ -110,7 +107,7 @@ describe('SMS Notification Service', () => {
     });
 
     it('should not send SMS when user phone number not found', async () => {
-      mockPrisma.smsNotificationLog.findUnique.mockResolvedValue(null);
+      mockPrisma.smsNotificationLog.findFirst.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
       const result = await sendStatusUpdateSms('post1', 1, 'APPROVED');
@@ -121,7 +118,7 @@ describe('SMS Notification Service', () => {
 
   describe('sendCommentAddedSms', () => {
     it('should send comment added SMS when not already sent', async () => {
-      mockPrisma.smsNotificationLog.findUnique.mockResolvedValue(null);
+      mockPrisma.smsNotificationLog.findFirst.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({
         phoneNumber: '010-1234-5678',
       });
@@ -138,7 +135,7 @@ describe('SMS Notification Service', () => {
     });
 
     it('should not send SMS when already sent', async () => {
-      mockPrisma.smsNotificationLog.findUnique.mockResolvedValue({ id: 1 });
+      mockPrisma.smsNotificationLog.findFirst.mockResolvedValue({ id: 1 });
 
       const result = await sendCommentAddedSms('post1', 1, 2);
 
@@ -148,7 +145,7 @@ describe('SMS Notification Service', () => {
 
   describe('getSmsNotificationStatus', () => {
     it('should return SMS notification status', async () => {
-      mockPrisma.smsNotificationLog.findUnique
+      mockPrisma.smsNotificationLog.findFirst
         .mockResolvedValueOnce({ id: 1 }) // STATUS_UPDATE
         .mockResolvedValueOnce(null); // COMMENT_ADDED
 
