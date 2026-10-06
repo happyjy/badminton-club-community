@@ -18,6 +18,13 @@
 /.next/
 /out/
 
+# next-pwa, next-sitemap 빌드 산출물
+/public/sw.js
+/public/sw.js.map
+/public/workbox-*.js
+/public/workbox-*.js.map
+/public/sitemap*.xml
+
 # production
 /build
 
