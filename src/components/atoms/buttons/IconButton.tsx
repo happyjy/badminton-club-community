@@ -2,8 +2,10 @@ import { ButtonHTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
 
-interface IconButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> {
+interface IconButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'aria-label'
+> {
   /** 아이콘만 있어 글자가 없으므로 화면 낭독기용 이름이 꼭 필요하다. */
   'aria-label': string;
   variant?: 'plain' | 'filled';

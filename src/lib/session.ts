@@ -18,8 +18,7 @@ export async function getAuthUser(
   if (!token) return null;
   try {
     const decoded = verify(token, getJwtSecret()) as
-      | { userId?: number }
-      | undefined;
+      { userId?: number } | undefined;
     if (!decoded?.userId) return null;
     return { id: decoded.userId };
   } catch (err) {
