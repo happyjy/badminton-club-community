@@ -10,8 +10,7 @@ export type ApiErrorResponse = {
 };
 
 export type ApiResponse<K extends string, T> =
-  | ApiSuccessResponse<K, T>
-  | ApiErrorResponse;
+  ApiSuccessResponse<K, T> | ApiErrorResponse;
 
 export interface BaseEntity {
   id: number;

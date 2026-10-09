@@ -14,7 +14,7 @@ jest.mock('@/lib/prisma', () => ({
 
 // 제네릭 없는 jest.Mock은 인자를 never로 좁혀 mockResolvedValue를 막는다.
 // 반환값만 쓰므로 느슨한 시그니처로 선언한다.
-type AnyMock = jest.Mock<(...args: never[]) => Promise<unknown>>;
+type AnyMock = jest.Mock<(...args: unknown[]) => Promise<unknown>>;
 
 const mockPrisma = prisma as unknown as {
   user: { findUnique: AnyMock };

@@ -14,10 +14,7 @@ export type { TournamentStatus, EntryPaymentStatus, EntryEventStatus };
 
 // DB에 저장되지 않는 파생 상태. UPCOMING은 응답에만 존재한다.
 export type TournamentEffectiveStatus =
-  | 'DRAFT'
-  | 'UPCOMING'
-  | 'OPEN'
-  | 'CLOSED';
+  'DRAFT' | 'UPCOMING' | 'OPEN' | 'CLOSED';
 
 // ---------- 공통 API 응답 ----------
 // 실패 응답은 기존 common.types.ts의 ApiErrorResponse를 그대로 사용한다.
