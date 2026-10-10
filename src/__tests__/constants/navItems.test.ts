@@ -36,12 +36,12 @@ describe('getNavItems — 누가 무엇을 보는가', () => {
     expect(find(member, 'guest').label).toBe('게스트');
   });
 
-  it('운영진은 관리 메뉴(회원·게스트 확인·클럽 설정)가 더해진다', () => {
+  it('운영진은 관리 메뉴(회원·게스트 확인·회비 관리·클럽 설정)가 더해진다', () => {
     const admin = getNavItems({ ...member, isAdmin: true });
 
     expect(
       admin.filter((item) => item.section === 'admin').map((item) => item.key)
-    ).toEqual(['members', 'guestCheck', 'custom']);
+    ).toEqual(['members', 'guestCheck', 'membershipFee', 'custom']);
   });
 
   it('회원에게는 관리 메뉴가 없다', () => {
@@ -111,6 +111,12 @@ describe('getNavItems — 현재 위치', () => {
   it('게스트 상세에서는 게스트가, 게스트 확인에서는 게스트 확인만 켜진다', () => {
     expect(activeKeys('/clubs/1/guest/55')).toEqual(['guest']);
     expect(activeKeys('/clubs/1/guest/check')).toEqual(['guestCheck']);
+  });
+
+  it('회비 관리 하위 화면에서도 회비 관리가 켜진다', () => {
+    expect(activeKeys('/clubs/1/membership-fee/process')).toEqual([
+      'membershipFee',
+    ]);
   });
 
   it('쿼리·해시·끝 슬래시가 붙어도 같은 항목이 켜진다', () => {

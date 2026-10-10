@@ -44,6 +44,14 @@ describe('statusTone', () => {
     expect(statusTone('feeRecord', 'SKIPPED')).toBe('neutral');
   });
 
+  it('입금 분류: 회비가 아닌 것은 눈에 띄지 않게, 가입비만 구분되게 한다', () => {
+    expect(statusTone('paymentKind', 'FEE')).toBe('positive');
+    expect(statusTone('paymentKind', 'JOINING_FEE')).toBe('warning');
+    expect(statusTone('paymentKind', 'EVENT')).toBe('neutral');
+    expect(statusTone('paymentKind', 'OTHER')).toBe('neutral');
+    expect(statusTone('paymentKind', 'INTEREST')).toBe('neutral');
+  });
+
   it('모르는 상태값은 중립이다', () => {
     expect(statusTone('guest', 'SOMETHING_NEW')).toBe('neutral');
   });
