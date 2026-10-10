@@ -36,9 +36,9 @@ npx prisma migrate diff \
   --from-schema-datasource prisma/schema.prisma \
   --to-schema-datamodel prisma/schema.prisma --script
 
-# 4. 필요한 SQL만 골라 마이그레이션 파일로 직접 작성
+# 4. diff 출력을 검토해 마이그레이션 파일로 직접 작성
 #    prisma/migrations/YYYYMMDDHHMMSS_설명/migration.sql
-#    diff 출력 전체를 그대로 쓰면 안 된다. 기존 드리프트까지 섞여 있다.
+#    내 변경과 무관한 SQL이 섞여 있으면 드리프트가 다시 생긴 것이다. 그대로 쓰지 말고 멈춰서 알린다.
 
 # 5. --- 여기서 멈추고 사용자에게 확인받는다 ---
 #    적용할 SQL과 영향 범위를 설명하고, 백업 상태를 확인하도록 안내한다.
@@ -51,9 +51,9 @@ npx prisma generate
 
 ### 알려진 문제
 
-- **스키마 드리프트가 남아 있다.** 스키마에 선언됐지만 DB에 없는 인덱스·FK가 있다
-  (`PostCategory`, `PostComment`, `PaymentRecord` 등). `migrate diff`를 돌리면 늘 이것들이
-  함께 출력되므로, 마이그레이션 SQL을 만들 때 **필요한 부분만 골라내야 한다.**
+- **스키마 드리프트는 2026-10-10 기준 없다.**
+  - 스키마를 바꾸지 않은 상태에서 `migrate diff`를 돌리면 빈 결과(`-- This is an empty migration.`)가 나온다.
+  - 내 변경과 무관한 SQL이 나오면 DB나 스키마가 한쪽만 바뀐 것이다. 마이그레이션에 섞지 말고 멈춰서 사용자에게 알린다.
 - `_prisma_migrations` 테이블은 2026-08-19에 생성됐다. 그전에는 `db push` 위주로 작업했다.
 
 ### 사고 기록 (2026-08-19)

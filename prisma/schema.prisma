@@ -519,8 +519,9 @@ model TournamentEntry {
   updatedAt        DateTime            @updatedAt
 
   tournament       Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  user             User?         @relation(fields: [userId], references: [id])
-  clubMember       ClubMember?   @relation("TournamentEntryMember", fields: [clubMemberId], references: [id])
+  // DB의 외래키는 ON DELETE RESTRICT다. 선택 관계의 기본값(SetNull)으로 두면 스키마와 DB가 어긋난다.
+  user             User?         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  clubMember       ClubMember?   @relation("TournamentEntryMember", fields: [clubMemberId], references: [id], onDelete: Restrict)
   players          EntryPlayer[]
   entryEvents      EntryEvent[]
 
