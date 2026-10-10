@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/molecules/EmptyState';
 import { FormField } from '@/components/molecules/form/FormField';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
 import { ListRow } from '@/components/molecules/list/ListRow';
+import { Notice } from '@/components/molecules/Notice';
 import { OptionPicker } from '@/components/molecules/OptionPicker';
 import { SegmentedControl } from '@/components/molecules/SegmentedControl';
 import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
@@ -214,6 +215,22 @@ export default function UiKitPage() {
           onClickWrite={() => {}}
           onClickManageCategories={() => {}}
         />
+      </section>
+
+      <section>
+        <h3 className="px-4 pb-2 text-footnote text-secondary">안내 상자</h3>
+        <Notice>배치 필터 적용 중 · 12건</Notice>
+        <Notice tone="warning">2026년 회비 설정이 필요합니다.</Notice>
+        <Notice
+          tone="negative"
+          action={
+            <Button size="sm" variant="destructive">
+              배치 삭제
+            </Button>
+          }
+        >
+          확정된 납부 3건이 포함되어 있습니다.
+        </Notice>
       </section>
 
       <ListGroup label="세그먼트">
