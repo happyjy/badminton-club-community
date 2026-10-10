@@ -41,7 +41,10 @@ export function BulkActionBar({
       <Button type="button" variant="plain" size="sm" onClick={onClear}>
         선택 해제
       </Button>
-      <div className="ml-auto flex items-center gap-2">{children}</div>
+      {/* 버튼이 많으면 막대 밖으로 넘치지 않게 줄을 바꾼다 */}
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+        {children}
+      </div>
     </section>
   );
 }

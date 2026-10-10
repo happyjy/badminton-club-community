@@ -18,6 +18,23 @@ enum FeePeriod {
   ANNUAL       // 연납 (12개월)
 }
 
+// 거래 분류. FEE만 회비 흐름(매칭·확정·납부 현황)에 들어간다.
+enum PaymentRecordKind {
+  FEE         // 회비
+  JOINING_FEE // 가입비
+  EVENT       // 행사 (뒷풀이·단체티 등)
+  OTHER       // 기타 (콕·찬조 등)
+  INTEREST    // 통장 이자
+}
+
+// 한 입금에서 회비가 아닌 부분(nonFeeAmount)의 성격
+enum NonFeeKind {
+  JOINING_FEE
+  EVENT
+  OTHER
+  OVERPAY // 초과 입금분
+}
+
 // 회비 유형 (일반, 부부, 학생 등)
 model FeeType {
   id          Int      @id @default(autoincrement())
@@ -188,6 +205,14 @@ model PaymentRecord {
   matchedMemberId Int?                // 하위 호환: 첫 번째 매칭 회원 (matchedMembers 우선 사용)
   status          PaymentRecordStatus @default(PENDING)
   errorReason     String?
+  kind            PaymentRecordKind   @default(FEE)
+  kindReason      String?             // 자동 분류 근거 또는 수동 변경 사유
+  nonFeeAmount    Int                 @default(0) // 회비가 아닌 금액. 회비 = amount - nonFeeAmount
+  nonFeeKind      NonFeeKind?
+  monthHints      Json?               // { source: 'depositorName'|'memo', months: {year,month}[] }
+  needsReview     Boolean             @default(false) // 사람이 확인해야 풀리는 검토 표시 (불확실한 자동 매칭 등). 금액·월의 검토 사유는 저장하지 않고 조회할 때 계산한다
+  reviewReason    String?             // needsReview의 사유 (동명이인, 행사비일 수 있는 금액). 없으면 "이름이 비슷한 회원으로 자동 매칭됨"
+  note            String?             // 재무의 처리 메모 (카카오뱅크 메모 대체)
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
@@ -202,6 +227,7 @@ model PaymentRecord {
   @@index([clubId])
   @@index([matchedMemberId])
   @@index([status])
+  @@index([clubId, kind])
 }
 
 // 납부 내역 (확정된 회비 납부)
@@ -221,7 +247,8 @@ model MembershipPayment {
   paymentRecord PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
   confirmedBy   ClubMember    @relation("MembershipPaymentConfirmer", fields: [confirmedById], references: [id])
 
-  @@unique([clubMemberId, year, month])
+  // 같은 달 두 번째 납부(부족분 충당)를 허용한다. 중복 확정은 PaymentRecord.status 가드가 막는다.
+  @@index([clubMemberId, year, month])
   @@index([clubMemberId])
   @@index([paymentRecordId])
   @@index([year])

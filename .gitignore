@@ -56,3 +56,7 @@ next-env.d.ts
 
 # brainstorming mockups
 .superpowers/
+
+# 회원 실명과 납부 상태가 든 대조 자료. 공개 저장소에 올리지 않는다.
+docs/회비 정산/data/
+docs/회비 정산/이미지-DB-납부현황-비교-*.md
