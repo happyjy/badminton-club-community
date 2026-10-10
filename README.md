@@ -26,6 +26,7 @@
 | 외부 연동   | 네이버 SENS(SMS), Nodemailer(이메일), Supabase Storage(첨부파일) |
 | 테스트·검사 | Jest, React Testing Library, ESLint, Prettier                    |
 | 배포·자동화 | Vercel, GitHub Actions(CI), Dependabot                           |
+| 모니터링    | Sentry(서버 에러. DSN을 넣었을 때만 동작)                        |
 | 패키지 관리 | npm                                                              |
 
 ## 프로젝트 구조
@@ -74,6 +75,8 @@ npm ci
 | `SITE_URL`                                                                  | sitemap 생성 기준 주소                 |
 | `NEXT_PUBLIC_GA_ID`                                                         | Google Analytics                       |
 | `NEXT_PUBLIC_API_URL`                                                       | API 기본 주소. 비우면 같은 출처로 요청 |
+| `SENTRY_DSN`                                                                | 서버 에러 전송 주소. 비우면 전송 안 함 |
+| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`                         | 소스맵 업로드. 선택                    |
 
 ### 3. 개발 서버 실행
 
@@ -110,6 +113,16 @@ npm test           # Jest
 
 - `public/sw.js`, `public/workbox-*.js`, `public/sitemap*.xml`은 빌드 때 생성되므로 git에 올리지 않습니다.
 - Dependabot이 매주 월요일 npm 패치·마이너 업데이트를 PR 하나로 묶어 올립니다. 메이저 업그레이드는 직접 올립니다.
+
+## 에러 모니터링
+
+API와 페이지 렌더링에서 난 서버 에러를 Sentry로 보냅니다. `SENTRY_DSN`이 없으면 아무것도 보내지 않습니다.
+
+- **API 핸들러의 `console.error`가 그대로 에러로 보고됩니다.** 핸들러에서 에러를 잡았으면 `console.error('무슨 작업 중 오류:', error)`로 남깁니다.
+- **회원 정보는 보내지 않습니다.** 쿠키·헤더·요청 본문·쿼리·IP·직전 로그는 수집하지 않고, `src/lib/monitoring/scrubEvent.ts`에서 한 번 더 지웁니다. 에러 메시지 자체는 그대로 전송됩니다.
+- **만료되거나 잘못된 로그인 토큰은 보고하지 않습니다.**
+- **`next.config.js`를 `.ts`로 바꾸지 않습니다.** Next 15.5가 TS 설정을 읽은 뒤 Node의 `.mjs` 로더를 지워 Sentry 빌드 플러그인이 실패합니다.
+- 설정은 `src/sentry.server.config.ts`, `src/instrumentation.ts`, `next.config.js`에 있습니다. 브라우저 쪽 에러는 수집하지 않습니다.
 
 ## 라이선스
 
