@@ -27,7 +27,7 @@ const ctx = (): PlannerContext => ({
   paidByMember: new Map([
     [1, [1, 2, 3, 4].map((month) => ({ year: 2026, month, amount: 25000 }))],
   ]),
-  exemptByYear: new Map(),
+  exemptionsByMember: new Map(),
 });
 
 /** 2026년 5월 10일, 1번 회원에 매칭된 회비 25,000원 */

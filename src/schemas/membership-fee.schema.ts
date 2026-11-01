@@ -117,13 +117,37 @@ export type CoupleHistoryUpsertSchema = z.infer<
 >;
 
 // 회비 면제 등록 스키마
-export const feeExemptionSchema = z.object({
-  clubMemberId: z.number().int().positive(),
-  year: z.number().int().min(2020).max(2100),
-  reason: z.string().min(1, '면제 사유를 입력해주세요').max(100),
-});
+const exemptionMonth = z.number().int().min(1).max(12);
+const exemptionReason = z.string().min(1, '면제 사유를 입력해주세요').max(100);
+const endNotBeforeStart = {
+  check: (data: { startMonth: number; endMonth: number }) =>
+    data.startMonth <= data.endMonth,
+  message: '종료 월은 시작 월보다 앞설 수 없습니다',
+};
+
+// 면제 등록. 기간은 그 해 안의 시작 월~종료 월이고, 주지 않으면 1년 전체다.
+export const feeExemptionSchema = z
+  .object({
+    clubMemberId: z.number().int().positive(),
+    year: z.number().int().min(2020).max(2100),
+    startMonth: exemptionMonth.default(1),
+    endMonth: exemptionMonth.default(12),
+    reason: exemptionReason,
+  })
+  .refine(endNotBeforeStart.check, { message: endNotBeforeStart.message });
 
 export type FeeExemptionSchema = z.infer<typeof feeExemptionSchema>;
+
+// 면제 수정. 회원·연도는 바꾸지 않는다 (바꾸려면 지우고 다시 등록한다).
+export const feeExemptionUpdateSchema = z
+  .object({
+    startMonth: exemptionMonth,
+    endMonth: exemptionMonth,
+    reason: exemptionReason,
+  })
+  .refine(endNotBeforeStart.check, { message: endNotBeforeStart.message });
+
+export type FeeExemptionUpdateSchema = z.infer<typeof feeExemptionUpdateSchema>;
 
 // 휴회/병가 기간 등록·수정 스키마
 export const memberLeaveSchema = z

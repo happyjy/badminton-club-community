@@ -100,14 +100,14 @@ export default withAuth(async function handler(
       buildMemberYearStatus(year, member)
     );
 
-    // 월별 통계: 해당 월에 의무 있는 회원 수 기준 (휴회 월 제외)
+    // 월별 통계: 해당 월에 의무 있는 회원 수 기준 (휴회 월·면제 월 제외)
     const monthlyStats = Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
       let paidCount = 0;
       let totalCount = 0;
 
       members.forEach((m) => {
-        if (m.type === 'exempt') return;
+        if (m.exemptMonths.includes(month)) return;
         const isObligated = m.obligationMonths
           ? m.obligationMonths.includes(month)
           : (m.firstObligationMonth ?? 1) <= month;

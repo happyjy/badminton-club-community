@@ -9,7 +9,10 @@ import { Button } from '@/components/atoms/buttons/Button';
 import { Skeleton } from '@/components/atoms/Skeleton';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import YearSelector from '@/components/molecules/membership-fee/YearSelector';
-import { ExemptionRegisterSheet } from '@/components/organisms/membership-fee/ExemptionRegisterSheet';
+import {
+  ExemptionRegisterSheet,
+  type ExemptionSheetValues,
+} from '@/components/organisms/membership-fee/ExemptionRegisterSheet';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 import { DataTable } from '@/components/organisms/table/DataTable';
@@ -19,6 +22,7 @@ import {
   useExemptions,
   useCreateExemption,
   useDeleteExemption,
+  useUpdateExemption,
 } from '@/hooks/membership-fee/useExemptions';
 
 import { withAuth } from '@/lib/withAuth';
@@ -37,6 +41,17 @@ const reasonChip = (exemption: FeeExemption) => (
   <StatusChip tone="neutral">{exemption.reason}</StatusChip>
 );
 
+/** 면제 기간. 1~12월이면 1년 전체 */
+const exemptionPeriod = (exemption: FeeExemption) =>
+  exemption.startMonth === 1 && exemption.endMonth === 12
+    ? '1년 전체'
+    : exemption.startMonth === exemption.endMonth
+      ? `${exemption.startMonth}월`
+      : `${exemption.startMonth}월~${exemption.endMonth}월`;
+
+const createdByLabel = (exemption: FeeExemption) =>
+  `(등록: ${exemption.createdBy?.name || '알 수 없음'})`;
+
 function ExemptionsSettingsPage() {
   const router = useRouter();
   const { id: clubId } = router.query;
@@ -45,6 +60,7 @@ function ExemptionsSettingsPage() {
 
   const [year, setYear] = useState(new Date().getFullYear());
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editing, setEditing] = useState<FeeExemption | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(true);
 
@@ -53,6 +69,7 @@ function ExemptionsSettingsPage() {
     year
   );
   const createExemption = useCreateExemption(clubIdStr);
+  const updateExemption = useUpdateExemption(clubIdStr);
   const deleteExemption = useDeleteExemption(clubIdStr);
 
   useEffect(() => {
@@ -83,23 +100,46 @@ function ExemptionsSettingsPage() {
 
   const exemptedMemberIds = exemptions?.map((e) => e.clubMemberId) || [];
 
-  const handleCreateExemption = async (data: {
-    clubMemberId: number;
-    reason: string;
-  }) => {
+  const openCreate = () => {
+    setEditing(null);
+    setIsModalOpen(true);
+  };
+
+  // 행을 누르면 수정 시트가 열린다. 삭제도 시트에서 한다.
+  const openEdit = (exemption: FeeExemption) => {
+    setEditing(exemption);
+    setIsModalOpen(true);
+  };
+
+  const closeSheet = () => {
+    setIsModalOpen(false);
+    setEditing(null);
+  };
+
+  const handleSubmit = async (data: ExemptionSheetValues) => {
     try {
-      await createExemption.mutateAsync({
-        ...data,
-        year,
-      });
-      setIsModalOpen(false);
+      if (editing) {
+        await updateExemption.mutateAsync({
+          exemptionId: editing.id,
+          year,
+          input: {
+            startMonth: data.startMonth,
+            endMonth: data.endMonth,
+            reason: data.reason,
+          },
+        });
+      } else {
+        await createExemption.mutateAsync({ ...data, year });
+      }
+      closeSheet();
     } catch (error) {
-      console.error('면제 등록 실패:', error);
-      toast.error('면제 등록에 실패했습니다.');
+      console.error('면제 저장 실패:', error);
+      toast.error(
+        editing ? '면제 수정에 실패했습니다.' : '면제 등록에 실패했습니다.'
+      );
     }
   };
 
-  // 면제는 수정이 없다. 행을 누르면 바로 삭제할지 묻는다.
   const handleDeleteExemption = async (exemption: FeeExemption) => {
     // 삭제 요청이 끝나기 전에 다른 행을 눌러 삭제가 겹치지 않게 한다.
     if (deleteExemption.isPending) return;
@@ -113,6 +153,7 @@ function ExemptionsSettingsPage() {
 
     try {
       await deleteExemption.mutateAsync({ exemptionId: exemption.id, year });
+      closeSheet();
     } catch (error) {
       console.error('면제 삭제 실패:', error);
       toast.error('면제 삭제에 실패했습니다.');
@@ -136,7 +177,7 @@ function ExemptionsSettingsPage() {
         title="회비 면제 관리"
         backHref={backHref}
         action={
-          <Button type="button" size="sm" onClick={() => setIsModalOpen(true)}>
+          <Button type="button" size="sm" onClick={openCreate}>
             <Plus aria-hidden className="mr-1 h-4 w-4" />
             면제 등록
           </Button>
@@ -164,13 +205,19 @@ function ExemptionsSettingsPage() {
             ),
             sortValue: exemptionName,
           },
+          {
+            key: 'period',
+            header: '기간',
+            cell: exemptionPeriod,
+            sortValue: (exemption) => exemption.startMonth,
+          },
           { key: 'reason', header: '사유', cell: reasonChip },
           {
             key: 'createdBy',
             header: '등록',
             cell: (exemption) => (
               <span className="text-secondary">
-                (등록: {exemption.createdBy?.name || '알 수 없음'})
+                {createdByLabel(exemption)}
               </span>
             ),
           },
@@ -178,21 +225,27 @@ function ExemptionsSettingsPage() {
         list={{
           title: exemptionName,
           subtitle: (exemption) =>
-            `(등록: ${exemption.createdBy?.name || '알 수 없음'})`,
+            `${exemptionPeriod(exemption)} · ${createdByLabel(exemption)}`,
           trailing: reasonChip,
         }}
-        onRowClick={handleDeleteExemption}
+        onRowClick={openEdit}
         empty="등록된 면제 회원이 없습니다."
       />
 
       <ExemptionRegisterSheet
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateExemption}
+        onClose={closeSheet}
+        onSubmit={handleSubmit}
+        onDelete={handleDeleteExemption}
+        editing={editing}
         members={members}
         exemptedMemberIds={exemptedMemberIds}
         year={year}
-        isSubmitting={createExemption.isPending}
+        isSubmitting={
+          createExemption.isPending ||
+          updateExemption.isPending ||
+          deleteExemption.isPending
+        }
       />
     </>
   );

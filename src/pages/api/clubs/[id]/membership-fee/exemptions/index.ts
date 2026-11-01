@@ -82,7 +82,8 @@ export default withAuth(async function handler(
         });
       }
 
-      const { clubMemberId, year, reason } = parseResult.data;
+      const { clubMemberId, year, startMonth, endMonth, reason } =
+        parseResult.data;
 
       // 회원이 해당 클럽 소속인지 확인
       const clubMember = await prisma.clubMember.findFirst({
@@ -120,6 +121,8 @@ export default withAuth(async function handler(
         data: {
           clubMemberId,
           year,
+          startMonth,
+          endMonth,
           reason,
           createdById: adminMember.id,
         },

@@ -97,6 +97,8 @@ describe('ExemptionRegisterSheet', () => {
     expect(onSubmit).toHaveBeenCalledWith({
       clubMemberId: 2,
       reason: '명예회원',
+      startMonth: 1,
+      endMonth: 12,
     });
   });
 
@@ -112,7 +114,132 @@ describe('ExemptionRegisterSheet', () => {
       target: { value: '코치' },
     });
     await click(sheet().getByRole('button', { name: '등록' }));
-    expect(onSubmit).toHaveBeenCalledWith({ clubMemberId: 1, reason: '코치' });
+    expect(onSubmit).toHaveBeenCalledWith({
+      clubMemberId: 1,
+      reason: '코치',
+      startMonth: 1,
+      endMonth: 12,
+    });
+  });
+
+  it('면제 기간을 고르면 그 기간으로 알린다 (연중에 임원이 된 경우)', async () => {
+    const onSubmit = jest.fn();
+    render(<ExemptionRegisterSheet {...base} onSubmit={onSubmit} />);
+    await pickMember('회원 선택', '가온');
+    await click(sheet().getByRole('radio', { name: '임원' }));
+    fireEvent.change(sheet().getByRole('combobox', { name: '시작 월' }), {
+      target: { value: '4' },
+    });
+    await click(sheet().getByRole('button', { name: '등록' }));
+    expect(onSubmit).toHaveBeenCalledWith({
+      clubMemberId: 1,
+      reason: '임원',
+      startMonth: 4,
+      endMonth: 12,
+    });
+  });
+
+  it('종료 월이 시작 월보다 앞서면 오류를 보이고 알리지 않는다', async () => {
+    const onSubmit = jest.fn();
+    render(<ExemptionRegisterSheet {...base} onSubmit={onSubmit} />);
+    await pickMember('회원 선택', '가온');
+    await click(sheet().getByRole('radio', { name: '임원' }));
+    fireEvent.change(sheet().getByRole('combobox', { name: '시작 월' }), {
+      target: { value: '6' },
+    });
+    fireEvent.change(sheet().getByRole('combobox', { name: '종료 월' }), {
+      target: { value: '3' },
+    });
+    await click(sheet().getByRole('button', { name: '등록' }));
+    expect(
+      sheet().getByText('종료 월은 시작 월보다 앞설 수 없습니다')
+    ).toBeTruthy();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  describe('수정', () => {
+    const EDITING = {
+      id: 7,
+      clubMemberId: 1,
+      year: 2026,
+      startMonth: 1,
+      endMonth: 12,
+      reason: '임원',
+      createdAt: new Date(2026, 4, 9),
+      createdById: 9,
+      clubMember: { id: 1, name: '가온' },
+    };
+
+    it('회원은 바꿀 수 없고, 기간과 사유가 채워져 있다', () => {
+      render(<ExemptionRegisterSheet {...base} editing={EDITING} />);
+      expect(
+        screen.getByRole('dialog', { name: '2026년 회비 면제 수정' })
+      ).toBeTruthy();
+      expect(sheet().getByText('가온')).toBeTruthy();
+      expect(sheet().queryByRole('button', { name: '회원 선택' })).toBeNull();
+      expect(
+        (sheet().getByRole('radio', { name: '임원' }) as HTMLInputElement)
+          .checked
+      ).toBe(true);
+      expect(
+        (
+          sheet().getByRole('combobox', {
+            name: '시작 월',
+          }) as HTMLSelectElement
+        ).value
+      ).toBe('1');
+    });
+
+    it('기간을 고쳐 수정하면 고친 기간과 사유를 알린다', async () => {
+      const onSubmit = jest.fn();
+      render(
+        <ExemptionRegisterSheet
+          {...base}
+          editing={EDITING}
+          onSubmit={onSubmit}
+        />
+      );
+      fireEvent.change(sheet().getByRole('combobox', { name: '시작 월' }), {
+        target: { value: '4' },
+      });
+      await click(sheet().getByRole('button', { name: '수정' }));
+      expect(onSubmit).toHaveBeenCalledWith({
+        clubMemberId: 1,
+        reason: '임원',
+        startMonth: 4,
+        endMonth: 12,
+      });
+    });
+
+    it('고를 수 있는 사유가 아니면 기타에 채운다', () => {
+      render(
+        <ExemptionRegisterSheet
+          {...base}
+          editing={{ ...EDITING, reason: '코치님' }}
+        />
+      );
+      expect(
+        (sheet().getByRole('radio', { name: '기타' }) as HTMLInputElement)
+          .checked
+      ).toBe(true);
+      expect(
+        (sheet().getByPlaceholderText('면제 사유 입력') as HTMLInputElement)
+          .value
+      ).toBe('코치님');
+    });
+
+    it('삭제를 누르면 그 면제를 알린다', async () => {
+      const onDelete = jest.fn();
+      render(
+        <ExemptionRegisterSheet
+          {...base}
+          editing={EDITING}
+          onDelete={onDelete}
+        />
+      );
+      await click(sheet().getByRole('button', { name: '삭제' }));
+      expect(onDelete).toHaveBeenCalledWith(EDITING);
+    });
   });
 
   it('이미 면제된 회원은 고를 수 없다', async () => {

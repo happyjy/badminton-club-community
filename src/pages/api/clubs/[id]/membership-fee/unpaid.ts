@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { APPROVED_STATUS } from '@/lib/clubAuth';
+import { isMonthExempt } from '@/lib/membership-fee/exemption';
 import {
   isMonthObligated,
   type LeavePeriod,
@@ -65,7 +66,7 @@ export default withAuth(async function handler(
       },
     });
 
-    // 면제 회원 조회
+    // 그 달이 면제 기간에 드는 회원 (연중에 면제가 된 회원은 그 전 달까지 미납 대상)
     const exemptions = await prisma.feeExemption.findMany({
       where: {
         clubMember: { clubId: clubIdNumber },
@@ -73,10 +74,17 @@ export default withAuth(async function handler(
       },
       select: {
         clubMemberId: true,
+        year: true,
+        startMonth: true,
+        endMonth: true,
       },
     });
 
-    const exemptedMemberIds = new Set(exemptions.map((e) => e.clubMemberId));
+    const exemptedMemberIds = new Set(
+      exemptions
+        .filter((period) => isMonthExempt([period], year, month))
+        .map((period) => period.clubMemberId)
+    );
 
     // 해당 연도와 겹치는 휴회 기간 조회 (회원별)
     const memberIds = clubMembers.map((m) => m.id);
@@ -146,7 +154,7 @@ export default withAuth(async function handler(
     }> = [];
 
     clubMembers.forEach((member) => {
-      // 면제 회원 제외
+      // 그 달이 면제인 회원 제외
       if (exemptedMemberIds.has(member.id)) return;
 
       // 해당 연·월에 회비 의무 없으면 미납 목록에서 제외 (가입 시기·휴회 반영)

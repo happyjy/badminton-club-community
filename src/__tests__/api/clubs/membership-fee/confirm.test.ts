@@ -349,6 +349,41 @@ describe('POST records/bulk-confirm — 달을 지정해도 막는 건', () => {
     );
     expect(paymentsOf(1)).toEqual([]);
   });
+
+  it('지정한 달이 면제 기간에 걸리면 자동 배정이 면제 앞의 달이어도 막는다', async () => {
+    // 6월부터 면제. 자동 배정은 5월이지만 관리자가 6월을 골랐다.
+    fakeDb.state.exemptions.push({
+      clubMemberId: 1,
+      year: 2026,
+      startMonth: 6,
+      endMonth: 12,
+    });
+    const id = matched();
+
+    const { data } = await bulkConfirm([id], [{ year: 2026, months: [6] }]);
+
+    expect(failure(data, id)).toBe(
+      '면제 회원입니다 — 대납이면 회원을 바꾸고, 본인이 낸 것이면 개별 확정하세요'
+    );
+    expect(paymentsOf(1)).toEqual([]);
+  });
+
+  it('연중에 면제가 된 회원도 면제 기간 앞의 달은 확정한다', async () => {
+    fakeDb.state.exemptions.push({
+      clubMemberId: 1,
+      year: 2026,
+      startMonth: 6,
+      endMonth: 12,
+    });
+    const id = matched();
+
+    const { data } = await bulkConfirm([id], [{ year: 2026, months: [5] }]);
+
+    expect(data.results.success).toEqual([id]);
+    expect(paymentsOf(1)).toEqual([
+      { year: 2026, month: 5, amount: 25000, period: 'MONTHLY' },
+    ]);
+  });
 });
 
 describe('applyPlan — 같은 회원·같은 달의 중복 납부', () => {

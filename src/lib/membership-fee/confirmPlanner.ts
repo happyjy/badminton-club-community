@@ -1,5 +1,6 @@
 import type { MonthHints } from '@/types/membership-fee.types';
 
+import { type ExemptionPeriod, isMonthExempt } from './exemption';
 import {
   resolveFeeAmount,
   type ResolveResult,
@@ -42,8 +43,8 @@ export interface PlannerContext {
   leaveMap: Map<number, LeavePeriod[]>;
   /** 회원별 납부한 연·월 (전 연도) */
   paidByMember: Map<number, PaidMonth[]>;
-  /** 연도별 면제 회원 */
-  exemptByYear: Map<number, Set<number>>;
+  /** 회원별 면제 기간 */
+  exemptionsByMember: Map<number, ExemptionPeriod[]>;
 }
 
 export interface PlanInput {
@@ -71,7 +72,7 @@ export interface RecordPlan {
   suggestedStartMonth: YM | null;
   /** 이 금액이 정확히 채우는, 앞서 덜 낸 달 (회원 1명일 때만) */
   partialPaidMonth: YM | null;
-  /** 매칭 회원이 그 해 면제 회원일 때의 사유 (대납이 면제 회원의 납부로 잡히지 않게 막는다) */
+  /** 확정할 달이 매칭 회원의 면제 기간에 걸릴 때의 사유 (대납이 면제 회원의 납부로 잡히지 않게 막는다) */
   exemptReason: string | null;
 }
 
@@ -167,6 +168,25 @@ export function isObligatedForAll(
       ctx.memberLeftAtMap.get(id) ?? null
     )
   );
+}
+
+/**
+ * 확정할 달 가운데 매칭 회원의 면제 기간에 걸리는 달이 있으면 그 사유.
+ * 면제 기간 앞의 달(연중에 면제가 된 임원이 그 전에 낸 회비)은 막지 않는다.
+ */
+export function exemptReasonFor(
+  ctx: PlannerContext,
+  memberIds: number[],
+  selections: YM[]
+): string | null {
+  const hitsExemption = memberIds.some((id) =>
+    selections.some((ym) =>
+      isMonthExempt(ctx.exemptionsByMember.get(id), ym.year, ym.month)
+    )
+  );
+  return hitsExemption
+    ? '면제 회원입니다 — 대납이면 회원을 바꾸고, 본인이 낸 것이면 개별 확정하세요'
+    : null;
 }
 
 /** 힌트의 가장 이른 달이 의무 시작 전이면 그 달 (회원 1명일 때만) */
@@ -312,11 +332,11 @@ export function planRecord(ctx: PlannerContext, input: PlanInput): RecordPlan {
     );
   }
   reviewReasons.push(...assigned.reasons);
-  const exempt = ctx.exemptByYear.get(txYear);
-  const exemptReason =
-    exempt && input.memberIds.some((id) => exempt.has(id))
-      ? '면제 회원입니다 — 대납이면 회원을 바꾸고, 본인이 낸 것이면 개별 확정하세요'
-      : null;
+  const exemptReason = exemptReasonFor(
+    ctx,
+    input.memberIds,
+    assigned.selections
+  );
   if (exemptReason) reviewReasons.push(exemptReason);
 
   return {
@@ -497,7 +517,12 @@ export async function loadPlannerContext(
     }),
     prisma.feeExemption.findMany({
       where: { clubMember: { clubId } },
-      select: { clubMemberId: true, year: true },
+      select: {
+        clubMemberId: true,
+        year: true,
+        startMonth: true,
+        endMonth: true,
+      },
     }),
   ]);
 
@@ -523,12 +548,12 @@ export async function loadPlannerContext(
     ]);
   }
 
-  const exemptByYear = new Map<number, Set<number>>();
-  for (const { clubMemberId, year } of exemptions) {
-    exemptByYear.set(
-      year,
-      (exemptByYear.get(year) ?? new Set<number>()).add(clubMemberId)
-    );
+  const exemptionsByMember = new Map<number, ExemptionPeriod[]>();
+  for (const { clubMemberId, ...period } of exemptions) {
+    exemptionsByMember.set(clubMemberId, [
+      ...(exemptionsByMember.get(clubMemberId) ?? []),
+      period,
+    ]);
   }
 
   return {
@@ -543,6 +568,6 @@ export async function loadPlannerContext(
     ),
     leaveMap,
     paidByMember,
-    exemptByYear,
+    exemptionsByMember,
   };
 }

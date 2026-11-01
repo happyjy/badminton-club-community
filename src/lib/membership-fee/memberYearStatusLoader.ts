@@ -1,3 +1,5 @@
+import { exemptMonthsOf } from './exemption';
+
 import type { MemberYearInput } from './memberYearStatus';
 import type { PrismaClient } from '@prisma/client';
 
@@ -62,7 +64,12 @@ export async function loadMemberYearData(
     }),
     prisma.feeExemption.findMany({
       where: { clubMember: { clubId }, year },
-      select: { clubMemberId: true },
+      select: {
+        clubMemberId: true,
+        year: true,
+        startMonth: true,
+        endMonth: true,
+      },
     }),
     // 해당 연도와 겹치는 휴회 기간
     prisma.memberLeave.findMany({
@@ -78,7 +85,13 @@ export async function loadMemberYearData(
     }),
   ]);
 
-  const exemptIds = new Set(exemptions.map((row) => row.clubMemberId));
+  const exemptMonthsOfMember = new Map<number, number[]>();
+  for (const { clubMemberId, ...period } of exemptions) {
+    exemptMonthsOfMember.set(clubMemberId, [
+      ...(exemptMonthsOfMember.get(clubMemberId) ?? []),
+      ...exemptMonthsOf([period], year),
+    ]);
+  }
 
   const partnerNameOf = new Map<number, string | null>();
   for (const group of coupleGroups) {
@@ -119,7 +132,7 @@ export async function loadMemberYearData(
   return {
     members: clubMembers.map((member) => ({
       ...member,
-      isExempt: exemptIds.has(member.id),
+      exemptMonths: exemptMonthsOfMember.get(member.id) ?? [],
       isCouple: partnerNameOf.has(member.id),
       couplePartnerName: partnerNameOf.get(member.id) ?? null,
       leavePeriods: leavesOf.get(member.id) ?? [],
@@ -127,6 +140,6 @@ export async function loadMemberYearData(
     })),
     amountsByMonth,
     coupleGroupCount: coupleGroups.length,
-    exemptMemberCount: exemptIds.size,
+    exemptMemberCount: exemptMonthsOfMember.size,
   };
 }

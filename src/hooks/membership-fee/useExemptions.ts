@@ -1,7 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import axios from 'axios';
 
-import { FeeExemption, FeeExemptionInput } from '@/types/membership-fee.types';
+import {
+  FeeExemption,
+  FeeExemptionInput,
+  FeeExemptionUpdateInput,
+} from '@/types/membership-fee.types';
 
 interface ExemptionsResponse {
   data: { exemptions: FeeExemption[] };
@@ -13,6 +22,20 @@ interface ExemptionResponse {
   data: { exemption: FeeExemption };
   status: number;
   message: string;
+}
+
+/**
+ * 면제가 바뀌면 그 해 면제 목록과 함께 납부 현황·미납 목록도 새로 받는다.
+ * 면제 기간이 바뀌면 그 회원의 칸·납부 수·월별 통계가 바뀐다.
+ */
+function invalidateAfterExemptionChange(
+  queryClient: QueryClient,
+  clubId: string | undefined,
+  year: number
+) {
+  queryClient.invalidateQueries({ queryKey: ['feeExemptions', clubId, year] });
+  queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+  queryClient.invalidateQueries({ queryKey: ['unpaidMembers', clubId] });
 }
 
 export function useExemptions(clubId: string | undefined, year?: number) {
@@ -60,9 +83,40 @@ export function useCreateExemption(clubId: string | undefined) {
       return response.data.data.exemption;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['feeExemptions', clubId, variables.year],
-      });
+      invalidateAfterExemptionChange(queryClient, clubId, variables.year);
+    },
+  });
+}
+
+export function useUpdateExemption(clubId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      exemptionId,
+      input,
+    }: {
+      exemptionId: number;
+      year: number;
+      input: FeeExemptionUpdateInput;
+    }) => {
+      if (!clubId) {
+        throw new Error('클럽 ID가 필요합니다');
+      }
+
+      const response = await axios.patch<ExemptionResponse>(
+        `/api/clubs/${clubId}/membership-fee/exemptions/${exemptionId}`,
+        input
+      );
+
+      if (response.data.status !== 200) {
+        throw new Error(response.data.message);
+      }
+
+      return response.data.data.exemption;
+    },
+    onSuccess: (_, variables) => {
+      invalidateAfterExemptionChange(queryClient, clubId, variables.year);
     },
   });
 }
@@ -93,9 +147,7 @@ export function useDeleteExemption(clubId: string | undefined) {
       return { exemptionId, year };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ['feeExemptions', clubId, data.year],
-      });
+      invalidateAfterExemptionChange(queryClient, clubId, data.year);
     },
   });
 }

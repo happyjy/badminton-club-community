@@ -107,6 +107,11 @@ function matchesCondition(value: unknown, condition: unknown): boolean {
   return true;
 }
 
+/** DB의 기본값과 같다: 기간을 적지 않은 면제는 1년 전체다 */
+function withExemptionDefaults(row: Row): Row {
+  return { startMonth: 1, endMonth: 12, ...row };
+}
+
 function matches(row: Row, where: Where | undefined): boolean {
   if (!where) return true;
   return Object.entries(where).every(([key, condition]) => {
@@ -226,7 +231,36 @@ function createFakeFeeDb() {
     },
     feeExemption: {
       findMany: async ({ where }: { where?: Where } = {}) =>
-        state.exemptions.filter((e) => matches(e, where)),
+        state.exemptions
+          .map(withExemptionDefaults)
+          .filter((e) => matches(e, where)),
+      findFirst: async ({ where }: { where?: Where } = {}) =>
+        state.exemptions
+          .map(withExemptionDefaults)
+          .find((e) => matches(e, where)) ?? null,
+      findUnique: async ({ where }: { where: Where }) => {
+        // 복합 키(clubMemberId_year)는 풀어서 비교한다
+        const flat = (where.clubMemberId_year as Where | undefined) ?? where;
+        return (
+          state.exemptions
+            .map(withExemptionDefaults)
+            .find((e) => matches(e, flat)) ?? null
+        );
+      },
+      create: async ({ data }: { data: Row }) => {
+        const exemption = withExemptionDefaults({
+          id: state.exemptions.length + 1,
+          ...data,
+        });
+        state.exemptions.push(exemption);
+        return { ...exemption };
+      },
+      update: async ({ where, data }: { where: Where; data: Row }) => {
+        const exemption = state.exemptions.find((e) => matches(e, where));
+        if (!exemption) throw new Error('없는 면제');
+        Object.assign(exemption, data);
+        return withExemptionDefaults(exemption);
+      },
     },
     paymentUploadBatch: {
       findFirst: async () => {

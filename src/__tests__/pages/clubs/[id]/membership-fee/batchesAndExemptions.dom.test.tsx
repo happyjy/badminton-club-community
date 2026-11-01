@@ -18,6 +18,7 @@ import ExemptionsSettingsPage from '@/pages/clubs/[id]/membership-fee/settings/e
 const mockPush = jest.fn();
 const mockConfirm = jest.fn<(options: any) => Promise<boolean>>();
 const mockDelete = jest.fn<(input: any) => Promise<unknown>>();
+const mockUpdate = jest.fn<(input: any) => Promise<unknown>>();
 let mockIsDeleting = false;
 
 jest.mock('next/router', () => ({
@@ -60,6 +61,8 @@ jest.mock('@/hooks/membership-fee/useExemptions', () => ({
         id: 7,
         clubMemberId: 10,
         year: 2026,
+        startMonth: 4,
+        endMonth: 12,
         reason: '임원',
         clubMember: { id: 10, name: '가온' },
         createdBy: { id: 1, name: '나래' },
@@ -68,6 +71,8 @@ jest.mock('@/hooks/membership-fee/useExemptions', () => ({
         id: 8,
         clubMemberId: 20,
         year: 2026,
+        startMonth: 1,
+        endMonth: 12,
         reason: '명예회원',
         clubMember: { id: 20, name: '다람' },
         createdBy: null,
@@ -75,6 +80,7 @@ jest.mock('@/hooks/membership-fee/useExemptions', () => ({
     ],
   }),
   useCreateExemption: () => ({ mutateAsync: jest.fn(), isPending: false }),
+  useUpdateExemption: () => ({ mutateAsync: mockUpdate, isPending: false }),
   useDeleteExemption: () => ({
     mutateAsync: mockDelete,
     isPending: mockIsDeleting,
@@ -119,16 +125,56 @@ describe('업로드 이력', () => {
 });
 
 describe('면제 관리', () => {
+  const year = new Date().getFullYear();
   const clickRow = async (name: string) => {
     const table = within(await screen.findByTestId('data-table-table'));
     await act(async () => {
       fireEvent.click(table.getByText(name));
     });
   };
+  const sheet = () => within(screen.getByRole('dialog'));
+  const click = async (element: HTMLElement) => {
+    await act(async () => {
+      fireEvent.click(element);
+    });
+  };
 
-  it('행을 누르면 누구의 면제인지 알리며 묻고, 확인하면 그 면제와 연도로 삭제한다', async () => {
+  it('목록에 면제 기간을 보인다', async () => {
+    render(<ExemptionsSettingsPage />);
+    const table = within(await screen.findByTestId('data-table-table'));
+    expect(table.getByText('4월~12월')).toBeTruthy();
+    expect(table.getByText('1년 전체')).toBeTruthy();
+  });
+
+  it('행을 누르면 그 면제의 수정 시트가 열린다', async () => {
     render(<ExemptionsSettingsPage />);
     await clickRow('가온');
+    expect(
+      screen.getByRole('dialog', { name: `${year}년 회비 면제 수정` })
+    ).toBeTruthy();
+    expect(mockConfirm).not.toHaveBeenCalled();
+  });
+
+  it('고친 기간과 사유를 그 면제와 연도로 수정한다', async () => {
+    render(<ExemptionsSettingsPage />);
+    await clickRow('다람');
+    fireEvent.change(sheet().getByRole('combobox', { name: '시작 월' }), {
+      target: { value: '7' },
+    });
+    await click(sheet().getByRole('button', { name: '수정' }));
+    await waitFor(() =>
+      expect(mockUpdate).toHaveBeenCalledWith({
+        exemptionId: 8,
+        year,
+        input: { startMonth: 7, endMonth: 12, reason: '명예회원' },
+      })
+    );
+  });
+
+  it('시트에서 삭제를 누르면 누구의 면제인지 알리며 묻고, 확인하면 그 면제와 연도로 삭제한다', async () => {
+    render(<ExemptionsSettingsPage />);
+    await clickRow('가온');
+    await click(sheet().getByRole('button', { name: '삭제' }));
     expect(mockConfirm).toHaveBeenCalledWith({
       title: '정말 이 면제를 삭제하시겠습니까?',
       message: '가온 · 임원',
@@ -136,10 +182,7 @@ describe('면제 관리', () => {
       destructive: true,
     });
     await waitFor(() =>
-      expect(mockDelete).toHaveBeenCalledWith({
-        exemptionId: 7,
-        year: new Date().getFullYear(),
-      })
+      expect(mockDelete).toHaveBeenCalledWith({ exemptionId: 7, year })
     );
   });
 
@@ -147,14 +190,18 @@ describe('면제 관리', () => {
     mockConfirm.mockResolvedValue(false);
     render(<ExemptionsSettingsPage />);
     await clickRow('가온');
+    await click(sheet().getByRole('button', { name: '삭제' }));
     expect(mockDelete).not.toHaveBeenCalled();
   });
 
-  it('삭제하는 중에는 다른 면제를 눌러도 다시 묻지 않는다', async () => {
+  it('삭제하는 중에는 삭제를 다시 누를 수 없다', async () => {
     mockIsDeleting = true;
     render(<ExemptionsSettingsPage />);
     await clickRow('다람');
-    expect(mockConfirm).not.toHaveBeenCalled();
-    expect(mockDelete).not.toHaveBeenCalled();
+    const button = sheet().getByRole('button', { name: '삭제' });
+    expect(
+      button.hasAttribute('disabled') ||
+        button.getAttribute('aria-disabled') === 'true'
+    ).toBe(true);
   });
 });

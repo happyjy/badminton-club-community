@@ -9,6 +9,10 @@ import {
 /** 2026년 10월 10일에 본 2026년 현황 */
 const today = new Date(2026, 9, 10);
 
+const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+/** 4월부터 면제 (연중에 임원이 된 경우) */
+const FROM_APRIL = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 /** 3월부터 의무, 3·4·5월 납부 */
 const input = (over: Partial<MemberYearInput> = {}): MemberYearInput => ({
   id: 1,
@@ -19,7 +23,7 @@ const input = (over: Partial<MemberYearInput> = {}): MemberYearInput => ({
   leftAt: null,
   position: null,
   positionOrder: null,
-  isExempt: false,
+  exemptMonths: [],
   isCouple: false,
   couplePartnerName: null,
   leavePeriods: [],
@@ -88,18 +92,32 @@ describe('buildMemberYearStatus — 칸의 상태', () => {
     expect(cells[12]).toBe('NONE');
   });
 
-  it('면제 회원은 이번 달까지 면제로 표시하고, 실제로 낸 달은 완납으로 둔다', () => {
+  it('면제 기간 앞의 달은 일반 회원처럼, 면제 기간의 달은 이번 달까지 면제로 표시한다', () => {
     const { cells } = status({
-      isExempt: true,
+      exemptMonths: FROM_APRIL,
       feeObligationStartAt: new Date(2025, 0, 1),
-      paidMonths: new Set([1, 2, 3]),
+      paidMonths: new Set([1, 3]),
     });
 
     expect(cells[1]).toBe('PAID');
+    expect(cells[2]).toBe('UNPAID');
     expect(cells[3]).toBe('PAID');
     expect(cells[4]).toBe('EXEMPT');
     expect(cells[10]).toBe('EXEMPT');
     expect(cells[11]).toBe('FUTURE');
+  });
+
+  it('면제 기간의 달은 낸 기록이 있어도 면제이고, 이월할 납부로 보지 않는다', () => {
+    const { cells, orphanPaidMonths } = status({
+      exemptMonths: FROM_APRIL,
+      feeObligationStartAt: new Date(2025, 0, 1),
+      paidMonths: new Set(MONTHS),
+    });
+
+    expect(cells[3]).toBe('PAID');
+    expect(cells[4]).toBe('EXEMPT');
+    expect(cells[10]).toBe('EXEMPT');
+    expect(orphanPaidMonths).toEqual([]);
   });
 
   it('지난 해를 보면 안 낸 달은 모두 미납이다', () => {
@@ -153,8 +171,35 @@ describe('buildMemberYearStatus — 대시보드가 쓰는 값', () => {
     expect(result.payments[1]).toBe(false);
   });
 
+  it('면제 달은 납부 수와 납부 대상 개월에서 빼고, 의무월에는 남긴다', () => {
+    const result = status({
+      exemptMonths: FROM_APRIL,
+      feeObligationStartAt: new Date(2025, 0, 1),
+      paidMonths: new Set(MONTHS),
+    });
+
+    expect(result).toMatchObject({
+      paidCount: 3,
+      totalMonths: 3,
+      exemptMonths: FROM_APRIL,
+      obligationMonths: MONTHS,
+    });
+  });
+
+  it('1년 전체가 면제면 납부 대상 개월이 없다', () => {
+    const result = status({
+      exemptMonths: MONTHS,
+      feeObligationStartAt: new Date(2025, 0, 1),
+      paidMonths: new Set([1, 2]),
+    });
+
+    expect(result).toMatchObject({ paidCount: 0, totalMonths: 0 });
+  });
+
   it('면제·부부·탈퇴를 구분한다', () => {
-    expect(status({ isExempt: true, isCouple: true }).type).toBe('exempt');
+    expect(status({ exemptMonths: FROM_APRIL, isCouple: true }).type).toBe(
+      'exempt'
+    );
     expect(
       status({ isCouple: true, couplePartnerName: '라마바' })
     ).toMatchObject({ type: 'couple', couplePartnerName: '라마바' });

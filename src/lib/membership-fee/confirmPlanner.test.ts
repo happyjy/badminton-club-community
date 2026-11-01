@@ -54,7 +54,7 @@ const ctx = (): PlannerContext => ({
   ]),
   leaveMap: new Map(),
   paidByMember: new Map([[1, in2026(1, 2, 3, 4)]]),
-  exemptByYear: new Map(),
+  exemptionsByMember: new Map(),
 });
 
 type Input = Parameters<typeof planRecord>[1];
@@ -173,13 +173,28 @@ describe('planRecord', () => {
       ).toBe(false);
     });
 
-    it('그 해 면제 회원에게 매칭되면 검토하게 한다', () => {
+    it('면제 기간의 달로 배정되면 검토하게 한다', () => {
       const context = ctx();
-      context.exemptByYear = new Map([[2026, new Set([1])]]);
+      context.exemptionsByMember = new Map([
+        [1, [{ year: 2026, startMonth: 5, endMonth: 12 }]],
+      ]);
 
       expect(planRecord(context, input()).reviewReasons).toContain(
         '면제 회원입니다 — 대납이면 회원을 바꾸고, 본인이 낸 것이면 개별 확정하세요'
       );
+    });
+
+    it('면제 기간 앞의 달로 배정되면 면제로 막지 않는다 (연중에 면제가 된 임원)', () => {
+      const context = ctx();
+      context.exemptionsByMember = new Map([
+        [1, [{ year: 2026, startMonth: 6, endMonth: 12 }]],
+      ]);
+
+      const plan = planRecord(context, input());
+
+      expect(plan.selections).toEqual([{ year: 2026, month: 5 }]);
+      expect(plan.exemptReason).toBeNull();
+      expect(plan.needsReview).toBe(false);
     });
 
     it('월 힌트를 쓰지 못한 사유를 함께 싣는다', () => {
@@ -423,7 +438,9 @@ describe('loadPlannerContext', () => {
         ],
       },
       feeExemption: {
-        findMany: async () => [{ clubMemberId: 9, year: 2026 }],
+        findMany: async () => [
+          { clubMemberId: 9, year: 2026, startMonth: 4, endMonth: 12 },
+        ],
       },
     };
 
@@ -441,6 +458,8 @@ describe('loadPlannerContext', () => {
       { year: 2026, month: 1, amount: 25000 },
       { year: 2026, month: 2, amount: 20000 },
     ]);
-    expect(context.exemptByYear.get(2026)?.has(9)).toBe(true);
+    expect(context.exemptionsByMember.get(9)).toEqual([
+      { year: 2026, startMonth: 4, endMonth: 12 },
+    ]);
   });
 });

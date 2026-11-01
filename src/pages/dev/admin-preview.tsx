@@ -11,6 +11,7 @@ import { StatusFilter } from '@/components/molecules/StatusFilter';
 import { MembersView } from '@/components/organisms/club/MembersView';
 import { GuestCheckView } from '@/components/organisms/guest/GuestCheckView';
 import { BulkKindSheet } from '@/components/organisms/membership-fee/BulkKindSheet';
+import { ExemptionRegisterSheet } from '@/components/organisms/membership-fee/ExemptionRegisterSheet';
 import {
   DashboardMemberFilter,
   FeeDashboardView,
@@ -35,6 +36,7 @@ import type { ClubMemberWithUser } from '@/pages/clubs/[id]/members';
 import { Status } from '@/types/enums';
 import { GuestPostForList } from '@/types/guest.types';
 import type {
+  FeeExemption,
   MemberPaymentStatus,
   PaymentRecord,
 } from '@/types/membership-fee.types';
@@ -57,6 +59,7 @@ const SCREENS = [
   { value: 'fee-process', label: '입금 내역 처리' },
   { value: 'fee-dashboard', label: '회비 대시보드' },
   { value: 'fee-member', label: '회원 상세 (회비)' },
+  { value: 'fee-exemption', label: '회비 면제 시트' },
 ] as const;
 
 type Screen = (typeof SCREENS)[number]['value'];
@@ -476,10 +479,18 @@ function FeeProcessPreview() {
 
 const PREVIEW_YEAR = new Date().getFullYear() - 1;
 
-/** 칸 종류 여섯 가지(납부·미납·면제·휴회·의무 없음·탈퇴)가 모두 나오게 만든다. */
+const FROM_APRIL = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+/**
+ * 칸 종류 여섯 가지(납부·미납·면제·휴회·의무 없음·탈퇴)가 모두 나오게 만든다.
+ * 면제 회원은 4월부터 면제(연중에 임원이 됨)와 1년 전체 면제를 번갈아 둔다.
+ */
 const DASHBOARD_MEMBERS = NAMES.map((name, index) => {
   const paidThrough = [12, 9, 12, 4, 12, 0][index % 6];
   const kind = index % 6;
+  const exemptMonths =
+    kind !== 2 ? [] : index % 12 === 2 ? FROM_APRIL : [1, 2, 3, ...FROM_APRIL];
+  const payableCount = 12 - exemptMonths.length;
   return {
     id: index + 1,
     userId: index + 1,
@@ -489,8 +500,9 @@ const DASHBOARD_MEMBERS = NAMES.map((name, index) => {
     payments: Object.fromEntries(
       Array.from({ length: 12 }, (_, month) => [month + 1, month < paidThrough])
     ),
-    paidCount: paidThrough,
-    totalMonths: kind === 3 ? 10 : 12,
+    paidCount: kind === 2 ? payableCount : paidThrough,
+    totalMonths: kind === 3 ? 10 : kind === 2 ? payableCount : 12,
+    exemptMonths,
     firstObligationMonth: kind === 1 ? 3 : 1,
     feeObligationStartMonth: kind === 1 ? `${PREVIEW_YEAR}.03` : null,
     obligationMonths:
@@ -667,6 +679,49 @@ function MemberFeePreview() {
  * 로그인 없이 운영진 화면을 가짜 데이터로 보는 화면.
  * 눌러도 이 화면 안의 가짜 상태만 바뀐다. 서버에는 아무것도 보내지 않는다.
  */
+/** 4월부터 면제가 된 임원 (연중에 면제가 된 경우) */
+const PREVIEW_EXEMPTION = {
+  id: 1,
+  clubMemberId: 1,
+  year: PREVIEW_YEAR,
+  startMonth: 4,
+  endMonth: 12,
+  reason: '임원',
+  createdAt: new Date(),
+  createdById: 2,
+  clubMember: { id: 1, name: NAMES[0] },
+} as FeeExemption;
+
+/** 면제 등록·수정 시트. ?mode=edit 이면 수정으로 연다. */
+function ExemptionSheetPreview() {
+  const router = useRouter();
+  const isEdit = router.query.mode === 'edit';
+  const [open, setOpen] = useState(true);
+
+  return (
+    <>
+      <PageHeader title="회비 면제 관리" />
+      <Button type="button" onClick={() => setOpen(true)}>
+        시트 다시 열기
+      </Button>
+      <ExemptionRegisterSheet
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onSubmit={(values) =>
+          toast.success(
+            `${values.startMonth}월~${values.endMonth}월 · ${values.reason}`
+          )
+        }
+        onDelete={() => toast.success('삭제를 눌렀어요')}
+        editing={isEdit ? PREVIEW_EXEMPTION : null}
+        members={NAMES.map((name, index) => ({ id: index + 1, name }))}
+        exemptedMemberIds={[]}
+        year={PREVIEW_YEAR}
+      />
+    </>
+  );
+}
+
 export default function AdminPreviewPage() {
   const router = useRouter();
   const queryScreen = router.query.screen;
@@ -721,6 +776,8 @@ export default function AdminPreviewPage() {
         <FeeDashboardPreview />
       ) : screen === 'fee-member' ? (
         <MemberFeePreview />
+      ) : screen === 'fee-exemption' ? (
+        <ExemptionSheetPreview />
       ) : (
         <TablePreview />
       )}

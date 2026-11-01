@@ -103,7 +103,7 @@ const ctx = (): PlannerContext => ({
       [1, 2, 3, 4].map((month) => ({ year: 2026, month, amount: 25000 })),
     ])
   ),
-  exemptByYear: new Map(),
+  exemptionsByMember: new Map(),
 });
 
 const row = (

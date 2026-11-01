@@ -31,6 +31,7 @@ interface Member {
   totalMonths: number;
   firstObligationMonth: number;
   obligationMonths: number[];
+  exemptMonths: number[];
   leaveMonths: number[];
   feeObligationStartMonth: string | null;
   isLeft: boolean;
@@ -192,6 +193,39 @@ describe('GET /api/clubs/[id]/membership-fee/dashboard', () => {
     expect(data.feeSettings).toMatchObject({
       regularAmount: 25000,
       coupleAmount: 45000,
+    });
+  });
+
+  it('연중에 면제가 된 회원은 면제 기간 앞의 달만 납부 현황과 월별 통계에 센다', async () => {
+    fakeDb.addMember({ id: 6, name: '바사아' });
+    fakeDb.state.exemptions.push({
+      clubMemberId: 6,
+      year: 2026,
+      startMonth: 4,
+      endMonth: 12,
+    });
+    for (let month = 1; month <= 12; month++) {
+      fakeDb.addPayment({ clubMemberId: 6, year: 2026, month });
+    }
+
+    const { data, member } = await dashboard();
+
+    expect(member('바사아')).toMatchObject({
+      type: 'exempt',
+      paidCount: 3,
+      totalMonths: 3,
+      exemptMonths: [4, 5, 6, 7, 8, 9, 10, 11, 12],
+    });
+    expect(data.summary.exemptMembers).toBe(3);
+    // 3월은 의무라 인원에 든다 (가나다·마바사·바사아 납부)
+    expect(data.summary.monthlyStats[2]).toMatchObject({
+      paidCount: 3,
+      totalCount: 5,
+    });
+    // 4월부터는 면제라 인원에 들지 않는다
+    expect(data.summary.monthlyStats[3]).toMatchObject({
+      paidCount: 1,
+      totalCount: 4,
     });
   });
 

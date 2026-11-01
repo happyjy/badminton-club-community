@@ -90,6 +90,9 @@ export interface FeeExemption {
   id: number;
   clubMemberId: number;
   year: number;
+  /** 그 해 안의 면제 기간 (양 끝 포함) */
+  startMonth: number;
+  endMonth: number;
   reason: string;
   createdAt: Date;
   createdById: number;
@@ -207,6 +210,8 @@ export interface MemberPaymentStatus {
   firstObligationMonth?: number;
   /** 해당 연도 의무 월 목록 (휴회 제외). 있으면 이 목록으로 의무 여부 판단 */
   obligationMonths?: number[];
+  /** 해당 연도 면제 월 목록. 없으면 type이 exempt일 때 1년 전체를 면제로 본다 */
+  exemptMonths?: number[];
   /** 해당 연도 휴회/병가 월 목록 */
   leaveMonths?: number[];
   /** 의무가 없는데(휴회·가입 전·탈퇴 후) 납부가 걸려 있는 달. 이월이 필요하다 */
@@ -328,6 +333,15 @@ export interface CoupleHistoryUpsertInput {
 export interface FeeExemptionInput {
   clubMemberId: number;
   year: number;
+  startMonth: number;
+  endMonth: number;
+  reason: string;
+}
+
+/** 면제 수정. 회원·연도는 바꾸지 않는다 */
+export interface FeeExemptionUpdateInput {
+  startMonth: number;
+  endMonth: number;
   reason: string;
 }
 

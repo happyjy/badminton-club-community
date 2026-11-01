@@ -22,7 +22,7 @@ const member = (over: Partial<MemberYearInput> = {}) =>
       leftAt: null,
       position: null,
       positionOrder: null,
-      isExempt: false,
+      exemptMonths: [],
       isCouple: false,
       couplePartnerName: null,
       leavePeriods: [],
@@ -95,7 +95,12 @@ describe('buildFeeStatusWorkbook', () => {
 
   it('면제·병가·해당없음을 각자의 색으로 칠한다', async () => {
     const sheet = await sheetOf([
-      member({ id: 1, name: '가', isExempt: true, paidMonths: new Set() }),
+      member({
+        id: 1,
+        name: '가',
+        exemptMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        paidMonths: new Set(),
+      }),
       member({
         id: 2,
         name: '나',

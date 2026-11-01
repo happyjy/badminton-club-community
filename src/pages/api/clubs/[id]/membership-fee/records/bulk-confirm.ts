@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { APPROVED_STATUS } from '@/lib/clubAuth';
 import {
   applyPlan,
+  exemptReasonFor,
   isObligatedForAll,
   loadPlannerContext,
   planRecord,
@@ -151,9 +152,10 @@ export default withAuth(async function handler(
       let targets = plan.selections;
       if (userSelected) {
         // 달을 지정하면 월 힌트·선납 같은 달에 관한 검토는 넘어가지만,
-        // 누구의 돈인지에 관한 검토(면제 회원 = 대납 가능성)는 그대로 막는다.
-        if (plan.exemptReason) {
-          fail(record.id, plan.exemptReason);
+        // 누구의 돈인지에 관한 검토(면제 회원 = 대납 가능성)는 지정한 달로 다시 막는다.
+        const exemptReason = exemptReasonFor(ctx, memberIds, userSelected);
+        if (exemptReason) {
+          fail(record.id, exemptReason);
           continue;
         }
         if (plan.resolve.shortfall) {

@@ -29,52 +29,60 @@ export function isPastOrCurrentMonth(year: number, month: number): boolean {
 
 const YEAR_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
-/**
- * 면제가 아니고, 의무 월 중 납부 안 된 달이 하나라도 있으면 true (휴회 월 제외)
- */
-export function memberHasAnyUnpaidMonthInYear(
-  member: MemberPaymentStatus
-): boolean {
-  if (member.type === 'exempt') return false;
-  const months =
-    member.obligationMonths ??
-    YEAR_MONTHS.filter((m) => m >= (member.firstObligationMonth ?? 1));
-  return months.some((month) => !member.payments[month]);
+/** 그 달이 면제인지. 면제 월 목록이 없으면 면제 회원은 1년 전체가 면제다 */
+function isExemptMonth(member: MemberPaymentStatus, month: number): boolean {
+  return member.exemptMonths
+    ? member.exemptMonths.includes(month)
+    : member.type === 'exempt';
 }
 
-/**
- * 면제가 아니고, 1~throughMonth 사이 의무 월 중 미납이 하나라도 있으면 true (휴회 월 제외)
- */
-export function memberHasAnyUnpaidMonthThroughMonth(
+/** 1~throughMonth 사이에 내야 하는 달 (휴회·면제 월 제외) */
+function payableMonthsThrough(
   member: MemberPaymentStatus,
   throughMonth: number
-): boolean {
-  if (member.type === 'exempt') return false;
+): number[] {
   const months = member.obligationMonths
     ? member.obligationMonths.filter((m) => m <= throughMonth)
     : YEAR_MONTHS.filter(
         (m) => m >= (member.firstObligationMonth ?? 1) && m <= throughMonth
       );
-  return months.some((month) => !member.payments[month]);
+  return months.filter((month) => !isExemptMonth(member, month));
 }
 
 /**
- * 일반/부부이면서 의무 월 1~throughMonth까지 모두 납부한 경우 true (휴회 월 제외)
+ * 의무 월 중 납부 안 된 달이 하나라도 있으면 true (휴회·면제 월 제외)
+ */
+export function memberHasAnyUnpaidMonthInYear(
+  member: MemberPaymentStatus
+): boolean {
+  return payableMonthsThrough(member, 12).some(
+    (month) => !member.payments[month]
+  );
+}
+
+/**
+ * 1~throughMonth 사이 의무 월 중 미납이 하나라도 있으면 true (휴회·면제 월 제외)
+ */
+export function memberHasAnyUnpaidMonthThroughMonth(
+  member: MemberPaymentStatus,
+  throughMonth: number
+): boolean {
+  return payableMonthsThrough(member, throughMonth).some(
+    (month) => !member.payments[month]
+  );
+}
+
+/**
+ * 의무 월 1~throughMonth까지 모두 납부한 경우 true (휴회·면제 월 제외).
+ * 그 기간이 모두 면제인 회원은 넣지 않는다.
  */
 export function memberFullyPaidThroughMonth(
   member: MemberPaymentStatus,
   throughMonth: number
 ): boolean {
-  if (member.type === 'exempt') return false;
-  const months =
-    member.obligationMonths ??
-    YEAR_MONTHS.filter(
-      (m) => m >= (member.firstObligationMonth ?? 1) && m <= throughMonth
-    );
-  const toCheck = member.obligationMonths
-    ? member.obligationMonths.filter((m) => m <= throughMonth)
-    : months;
-  return toCheck.every((month) => member.payments[month]);
+  const months = payableMonthsThrough(member, throughMonth);
+  if (member.type === 'exempt' && months.length === 0) return false;
+  return months.every((month) => member.payments[month]);
 }
 
 const ICON = 'mx-auto h-4 w-4';
@@ -132,8 +140,9 @@ function PaymentDashboardTable({
         </thead>
         <tbody>
           {sortedMembers.map((member, idx) => {
+            // 1년 전체가 면제면 낼 달이 없다
             const paymentLabel =
-              member.type === 'exempt'
+              member.type === 'exempt' && member.totalMonths === 0
                 ? '-'
                 : `${member.paidCount}/${member.totalMonths ?? 12}`;
 
@@ -148,9 +157,8 @@ function PaymentDashboardTable({
 
             // 해당 회원의 총 납부 대상 개월 수
             const totalMonths = member.totalMonths ?? 12;
-            // 면제 회원이거나 납부 의무 개월이 0인 경우
-            const isExemptOrNoObligation =
-              member.type === 'exempt' || totalMonths === 0;
+            // 낼 달이 없는 경우 (1년 전체 면제, 의무 개월 0)
+            const isExemptOrNoObligation = totalMonths === 0;
             // 납부 대상 개월 전액 완납
             const isFullyPaid = member.paidCount === totalMonths;
             // 납부 대상 개월의 절반 이상 납부
@@ -213,7 +221,7 @@ function PaymentDashboardTable({
                       ? member.obligationMonths.includes(month)
                       : month >= (member.firstObligationMonth ?? 1);
                     const isPaid = member.payments[month];
-                    const isExempt = member.type === 'exempt';
+                    const isExempt = isExemptMonth(member, month);
                     const isLeave =
                       member.leaveMonths?.includes(month) ?? false;
                     // 의무가 없어진 달에 납부가 걸려 있다. 회원 상세에서 다음 의무월로 옮긴다.

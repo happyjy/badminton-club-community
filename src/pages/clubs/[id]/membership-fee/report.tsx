@@ -58,8 +58,11 @@ function ReportPage() {
   }
 
   const monthlyStats = dashboard?.summary.monthlyStats || [];
+  // 1년 전체가 면제인 회원만 뺀다. 연중에 면제가 된 회원은 그 앞의 달로 싣는다.
   const membersWithPayment =
-    dashboard?.members.filter((m) => m.type !== 'exempt') || [];
+    dashboard?.members.filter(
+      (m) => m.type !== 'exempt' || m.totalMonths > 0
+    ) || [];
 
   const yearTotal = dashboard?.summary.yearTotal || 0;
   const summary = [

@@ -76,7 +76,11 @@ describe('입금 파이프라인 회귀 — 가짜 통장', () => {
 describe('입금 파이프라인 회귀 — 면제 회원이 있는 클럽', () => {
   const judged = judge(
     EXEMPT_STATEMENT,
-    buildDeps({ exemptByYear: new Map([[2026, new Set([EXEMPT_MEMBER_ID])]]) })
+    buildDeps({
+      exemptionsByMember: new Map([
+        [EXEMPT_MEMBER_ID, [{ year: 2026, startMonth: 1, endMonth: 12 }]],
+      ]),
+    })
   );
 
   it.each(judged)(

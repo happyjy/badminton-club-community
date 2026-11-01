@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { APPROVED_STATUS } from '@/lib/clubAuth';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
+import { feeExemptionUpdateSchema } from '@/schemas/membership-fee.schema';
 import { Role } from '@/types/enums';
 
 export default withAuth(async function handler(
@@ -46,6 +47,47 @@ export default withAuth(async function handler(
   }
 
   try {
+    if (req.method === 'PATCH') {
+      const parseResult = feeExemptionUpdateSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({
+          error: parseResult.error.errors[0].message,
+          status: 400,
+        });
+      }
+
+      // 면제 존재 여부 확인 (해당 클럽 소속인지도 확인)
+      const existing = await prisma.feeExemption.findFirst({
+        where: {
+          id: exemptionIdNumber,
+          clubMember: { clubId: clubIdNumber },
+        },
+      });
+
+      if (!existing) {
+        return res.status(404).json({
+          error: '면제 정보를 찾을 수 없습니다',
+          status: 404,
+        });
+      }
+
+      const { startMonth, endMonth, reason } = parseResult.data;
+      const exemption = await prisma.feeExemption.update({
+        where: { id: exemptionIdNumber },
+        data: { startMonth, endMonth, reason },
+        include: {
+          clubMember: { select: { id: true, name: true } },
+          createdBy: { select: { id: true, name: true } },
+        },
+      });
+
+      return res.status(200).json({
+        data: { exemption },
+        status: 200,
+        message: '면제가 수정되었습니다',
+      });
+    }
+
     if (req.method === 'DELETE') {
       // 면제 존재 여부 확인 (해당 클럽 소속인지도 확인)
       const exemption = await prisma.feeExemption.findFirst({
@@ -78,9 +120,12 @@ export default withAuth(async function handler(
       status: 405,
     });
   } catch (error) {
-    console.error('Error in fee exemption deletion:', error);
+    console.error('Error in fee exemption:', error);
     return res.status(500).json({
-      error: '면제 삭제 중 오류가 발생했습니다',
+      error:
+        req.method === 'PATCH'
+          ? '면제 수정 중 오류가 발생했습니다'
+          : '면제 삭제 중 오류가 발생했습니다',
       status: 500,
     });
   }

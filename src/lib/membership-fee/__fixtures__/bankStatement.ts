@@ -49,7 +49,7 @@ const paid = (months: number[]) =>
   months.map((month) => ({ year: 2026, month, amount: 25000 }));
 
 export function buildDeps(
-  over: Partial<Pick<PlannerContext, 'exemptByYear'>> = {}
+  over: Partial<Pick<PlannerContext, 'exemptionsByMember'>> = {}
 ): UploadDeps {
   return {
     members: MEMBERS,
@@ -87,7 +87,7 @@ export function buildDeps(
         ),
         [7, paid([1, 2])],
       ]),
-      exemptByYear: new Map(),
+      exemptionsByMember: new Map(),
       ...over,
     },
   };

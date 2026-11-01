@@ -6,7 +6,6 @@ import {
   isMonthInLeave,
   isMonthObligated,
   type LeavePeriod,
-  obligationMonthCount,
 } from './feeObligation';
 import { kstYearMonth } from './kst';
 
@@ -32,8 +31,8 @@ export interface MemberYearInput {
   leftAt: Date | null;
   position: string | null;
   positionOrder: number | null;
-  /** 그 해 면제 회원인지 */
-  isExempt: boolean;
+  /** 그 해 면제 기간의 달. 면제가 없으면 빈 목록 */
+  exemptMonths: number[];
   /** 현재 부부 그룹에 속했는지 */
   isCouple: boolean;
   couplePartnerName: string | null;
@@ -43,8 +42,9 @@ export interface MemberYearInput {
 }
 
 export interface MemberYearStatus extends MemberPaymentStatus {
-  /** 그 해의 의무월 (휴회·가입 전·탈퇴 후 제외) */
+  /** 그 해의 의무월 (휴회·가입 전·탈퇴 후 제외). 면제 달도 들어 있다 */
   obligationMonths: number[];
+  exemptMonths: number[];
   /** 그 해의 휴회월 */
   leaveMonths: number[];
   /** 1~12월 칸의 상태 */
@@ -68,13 +68,22 @@ export function buildMemberYearStatus(
   const isLeft = member.status === 'LEFT';
   // 복귀한 회원에게 예전 탈퇴일이 남아 있을 수 있어, 탈퇴 상태일 때만 본다.
   const leftAt = isLeft ? member.leftAt : null;
-  const { feeObligationStartAt: startAt, leavePeriods, paidMonths } = member;
+  const {
+    feeObligationStartAt: startAt,
+    leavePeriods,
+    paidMonths,
+    exemptMonths,
+  } = member;
 
   const obligationMonths = getObligationMonths(
     year,
     startAt,
     leavePeriods,
     leftAt
+  );
+  // 의무월 가운데 면제가 아닌 달. 납부 수와 납부 대상 개월은 이 달로 센다.
+  const payableMonths = obligationMonths.filter(
+    (month) => !exemptMonths.includes(month)
   );
   const firstObligation = getFirstObligationMonth(
     year,
@@ -120,11 +129,11 @@ export function buildMemberYearStatus(
           ?.reason ?? null;
     } else if (!obligated) {
       cells[month] = 'NONE';
-    } else if (paidMonths.has(month)) {
-      // 면제 회원이라도 실제로 낸 달은 완납으로 둔다 (연중에 면제가 된 임원 등).
-      cells[month] = 'PAID';
-    } else if (member.isExempt) {
+    } else if (exemptMonths.includes(month)) {
+      // 면제 기간의 달은 낸 기록이 있어도 면제다 (미리 낸 연납을 돌려준 임원 등).
       cells[month] = hasCome ? 'EXEMPT' : 'FUTURE';
+    } else if (paidMonths.has(month)) {
+      cells[month] = 'PAID';
     } else {
       cells[month] = hasCome ? 'UNPAID' : 'FUTURE';
     }
@@ -134,16 +143,19 @@ export function buildMemberYearStatus(
     id: member.id,
     userId: member.userId,
     name: member.name || '(이름 없음)',
-    type: member.isExempt ? 'exempt' : member.isCouple ? 'couple' : 'regular',
+    type:
+      exemptMonths.length > 0
+        ? 'exempt'
+        : member.isCouple
+          ? 'couple'
+          : 'regular',
     couplePartnerName: member.couplePartnerName,
     payments,
-    paidCount: obligationMonths.filter((month) => paidMonths.has(month)).length,
-    totalMonths:
-      firstObligation != null
-        ? obligationMonthCount(year, startAt, leavePeriods, leftAt)
-        : 0,
+    paidCount: payableMonths.filter((month) => paidMonths.has(month)).length,
+    totalMonths: payableMonths.length,
     firstObligationMonth: firstObligation ?? 1,
     obligationMonths,
+    exemptMonths,
     leaveMonths,
     feeObligationStartMonth: startAt ? yearMonthLabel(startAt) : null,
     isLeft,

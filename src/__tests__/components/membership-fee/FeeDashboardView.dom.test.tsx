@@ -292,6 +292,73 @@ describe('FeeDashboardView', () => {
     expect(row('라온').getAllByLabelText('미납')).toHaveLength(10);
   });
 
+  describe('연중에 면제가 된 회원 (4월부터 면제)', () => {
+    const FROM_APRIL = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+    /** 1년치를 미리 냈다가 4월부터 면제가 된 회원 */
+    const prepaid = member(5, '마루', 12, {
+      type: 'exempt',
+      exemptMonths: FROM_APRIL,
+      paidCount: 3,
+      totalMonths: 3,
+    });
+    /** 1월만 내고 4월부터 면제가 된 회원 */
+    const owing = member(6, '바다', 1, {
+      type: 'exempt',
+      exemptMonths: FROM_APRIL,
+      paidCount: 1,
+      totalMonths: 3,
+    });
+    /** 1년 전체 면제 */
+    const wholeYear = member(7, '사랑', 0, {
+      type: 'exempt',
+      exemptMonths: [1, 2, 3, ...FROM_APRIL],
+      paidCount: 0,
+      totalMonths: 0,
+    });
+    const withMembers = { ...DASHBOARD, members: [prepaid, owing, wholeYear] };
+    const row = (name: string) =>
+      within(grid().getByText(name).closest('tr') as HTMLElement);
+
+    it('면제 기간의 달은 낸 기록이 있어도 면제로, 그 앞의 달은 납부로 알린다', () => {
+      render(<FeeDashboardView {...base} dashboard={withMembers} />);
+
+      expect(row('마루').getAllByLabelText('납부완료')).toHaveLength(3);
+      expect(row('마루').getAllByLabelText('면제')).toHaveLength(9);
+      expect(row('마루').getByText('3/3')).toBeTruthy();
+      expect(row('사랑').getByText('-')).toBeTruthy();
+    });
+
+    it('미납 보기에서는 면제 앞의 달에 미납이 있으면 보인다', () => {
+      render(
+        <FeeDashboardView
+          {...base}
+          dashboard={withMembers}
+          memberFilter="unpaid"
+          throughMonth={6}
+        />
+      );
+
+      expect(grid().getByText('바다')).toBeTruthy();
+      expect(grid().queryByText('마루')).toBeNull();
+      expect(grid().queryByText('사랑')).toBeNull();
+    });
+
+    it('납부 완료 보기에서는 면제 앞의 달을 모두 냈으면 보이고, 1년 전체 면제는 빠진다', () => {
+      render(
+        <FeeDashboardView
+          {...base}
+          dashboard={withMembers}
+          memberFilter="paid"
+          throughMonth={6}
+        />
+      );
+
+      expect(grid().getByText('마루')).toBeTruthy();
+      expect(grid().queryByText('바다')).toBeNull();
+      expect(grid().queryByText('사랑')).toBeNull();
+    });
+  });
+
   it('탈퇴 회원은 구분 줄 아래에 모은다', () => {
     render(
       <FeeDashboardView
