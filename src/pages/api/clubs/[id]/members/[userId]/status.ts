@@ -56,6 +56,7 @@ export default withAuth(async function handler(
       },
       data: {
         status: newStatus,
+        leftAt: newStatus === Status.LEFT ? new Date() : null,
       },
     });
 

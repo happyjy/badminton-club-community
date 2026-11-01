@@ -27,6 +27,8 @@ jest.mock('@/lib/prisma', () => ({
           ? storedMember
           : null;
       }),
+      // 승인 API가 최초 승인인지(회비 의무 시작일이 비었는지) 확인할 때 쓴다.
+      findUnique: jest.fn(async () => ({ feeObligationStartAt: null })),
       update: jest.fn(async () => ({ id: 9, status: 'APPROVED' })),
     },
     post: { findMany: jest.fn(async () => []), count: jest.fn(async () => 0) },

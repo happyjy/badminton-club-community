@@ -51,6 +51,10 @@ model ClubMember {
   /// 탈퇴일. status가 'LEFT'로 변경될 때 자동 설정. 관리자가 회원 상세에서 수정 가능.
   /// 해당 년·월까지 회비 의무 있음. null이면 탈퇴하지 않은 회원.
   leftAt                   DateTime?
+  /// 직책 (회장·부회장·총무·재무·감사·이사 등 자유 입력). 납부현황 내보내기의 비고.
+  position                 String?
+  /// 직책 있는 회원끼리의 정렬 순서. 작을수록 위.
+  positionOrder            Int?
 
   // Relations
   guestComments            GuestComment[]

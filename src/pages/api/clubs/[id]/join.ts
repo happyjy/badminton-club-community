@@ -90,6 +90,14 @@ export default withAuth(async function handler(
       });
     }
 
+    // 15일 이전 가입 → 당월 시작, 15일 이후 가입 → 다음달 시작
+    const now = new Date();
+    const day = now.getUTCDate();
+    const feeObligationStartAt =
+      day <= 15
+        ? new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+        : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
     const membership = await prisma.clubMember.create({
       data: {
         clubId: Number(clubId),
@@ -104,6 +112,7 @@ export default withAuth(async function handler(
         nationalTournamentLevel,
         lessonPeriod,
         playingPeriod,
+        feeObligationStartAt,
       },
     });
 
