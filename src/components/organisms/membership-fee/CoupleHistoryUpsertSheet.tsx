@@ -169,24 +169,25 @@ export function CoupleHistoryUpsertSheet({
       }
     >
       <form id={FORM_ID} onSubmit={handleSubmit} className="space-y-4">
+        {/* 두 사람 모두 클럽 회원이라 본인·배우자로 나누지 않는다. */}
         <div className="space-y-1">
-          <span className={labelClass}>회원</span>
+          <span className={labelClass}>회원 1</span>
           <MemberSelectDropdown
             members={availableForMember}
             selectedMemberId={memberId}
             onSelect={setMemberId}
-            placeholder="회원 선택"
+            placeholder="회원 1 선택"
             disabled={isSubmitting}
           />
         </div>
 
         <div className="space-y-1">
-          <span className={labelClass}>배우자</span>
+          <span className={labelClass}>회원 2</span>
           <MemberSelectDropdown
             members={availableForPartner}
             selectedMemberId={partnerId}
             onSelect={setPartnerId}
-            placeholder="배우자 선택"
+            placeholder="회원 2 선택"
             disabled={isSubmitting}
           />
         </div>

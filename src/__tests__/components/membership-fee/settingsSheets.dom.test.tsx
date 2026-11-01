@@ -159,8 +159,8 @@ describe('CoupleHistoryUpsertSheet', () => {
 
   it('한쪽에서 고른 회원은 다른 쪽 목록에서 빠진다', async () => {
     render(<CoupleHistoryUpsertSheet {...base} />);
-    await pickMember('회원 선택', '가온');
-    await click(sheet().getByRole('button', { name: '배우자 선택' }));
+    await pickMember('회원 1 선택', '가온');
+    await click(sheet().getByRole('button', { name: '회원 2 선택' }));
     expect(
       within(sheet().getByRole('listbox'))
         .getAllByRole('option')
@@ -171,8 +171,8 @@ describe('CoupleHistoryUpsertSheet', () => {
   it('새로 등록하면 올해 1월 시작, 진행 중으로 알린다', async () => {
     const onSubmit = jest.fn();
     render(<CoupleHistoryUpsertSheet {...base} onSubmit={onSubmit} />);
-    await pickMember('회원 선택', '가온');
-    await pickMember('배우자 선택', '나래');
+    await pickMember('회원 1 선택', '가온');
+    await pickMember('회원 2 선택', '나래');
     await click(sheet().getByRole('button', { name: '등록' }));
     expect(onSubmit).toHaveBeenCalledWith({
       clubMemberId: 1,
@@ -185,8 +185,8 @@ describe('CoupleHistoryUpsertSheet', () => {
   it('종료가 시작보다 앞서면 오류를 보이고 알리지 않는다', async () => {
     const onSubmit = jest.fn();
     render(<CoupleHistoryUpsertSheet {...base} onSubmit={onSubmit} />);
-    await pickMember('회원 선택', '가온');
-    await pickMember('배우자 선택', '나래');
+    await pickMember('회원 1 선택', '가온');
+    await pickMember('회원 2 선택', '나래');
     fireEvent.change(sheet().getByRole('combobox', { name: '시작 월' }), {
       target: { value: '6' },
     });
@@ -204,8 +204,8 @@ describe('CoupleHistoryUpsertSheet', () => {
   it('종료된 관계로 등록하면 종료 연·월을 함께 알린다', async () => {
     const onSubmit = jest.fn();
     render(<CoupleHistoryUpsertSheet {...base} onSubmit={onSubmit} />);
-    await pickMember('회원 선택', '가온');
-    await pickMember('배우자 선택', '나래');
+    await pickMember('회원 1 선택', '가온');
+    await pickMember('회원 2 선택', '나래');
     await click(sheet().getByRole('checkbox', { name: '종료된 관계' }));
     await click(sheet().getByRole('button', { name: '등록' }));
     expect(onSubmit).toHaveBeenCalledWith({

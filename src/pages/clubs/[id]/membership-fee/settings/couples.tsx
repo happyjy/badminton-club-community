@@ -37,8 +37,9 @@ function formatYearMonth(iso: string): string {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
 }
 
+// 두 사람 모두 클럽 회원이다. DB의 본인·배우자 칸은 등록할 때 고른 순서일 뿐이라 방향 없이 보인다.
 const coupleNames = (h: CoupleHistory) =>
-  `${h.clubMember?.name || '(이름 없음)'} → ${h.partnerMember?.name || '(이름 없음)'}`;
+  `${h.clubMember?.name || '(이름 없음)'} · ${h.partnerMember?.name || '(이름 없음)'}`;
 
 const couplePeriod = (h: CoupleHistory) =>
   `${formatYearMonth(h.startedAt)} ~ ${
@@ -189,7 +190,7 @@ function CouplesSettingsPage() {
         columns={[
           {
             key: 'names',
-            header: '회원 → 배우자',
+            header: '부부',
             cell: (history) => (
               <span className="font-semibold">{coupleNames(history)}</span>
             ),
