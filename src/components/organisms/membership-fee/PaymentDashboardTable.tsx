@@ -85,6 +85,21 @@ export function memberFullyPaidThroughMonth(
   return months.every((month) => member.payments[month]);
 }
 
+/**
+ * 보고 있는 해에 입금을 시작했으면 그 달. 1월 시작은 1년 전체라 알리지 않는다.
+ * 휴회로 첫 의무월이 밀려도 실제 시작월을 쓴다.
+ */
+function startMonthInYear(
+  member: MemberPaymentStatus,
+  year: number
+): number | null {
+  const [startYear, startMonth] = (member.feeObligationStartMonth ?? '').split(
+    '.'
+  );
+  const month = Number(startMonth);
+  return startYear === String(year) && month > 1 ? month : null;
+}
+
 const ICON = 'mx-auto h-4 w-4';
 const NEEDS_SHIFT_LABEL = '납부 있음 — 이월 필요';
 
@@ -106,249 +121,277 @@ function PaymentDashboardTable({
   const leftMembers = members.filter((m) => m.isLeft);
   const sortedMembers = [...activeMembers, ...leftMembers];
 
+  // 그 해에 그어진 선만 범례에 싣는다.
+  const hasStartLine = members.some((m) => startMonthInYear(m, year) != null);
+  const hasLeftLine = members.some((m) => m.isLeft && m.leftMonth != null);
+
   return (
-    // 열이 15개라 좁은 화면에서는 가로로 민다. 이름 열은 왼쪽에 붙어 있다.
-    <div className="overflow-x-auto">
-      <table
-        aria-label="회원별 납부 현황"
-        className="w-full border-collapse text-footnote text-primary"
-      >
-        <thead>
-          <tr className="border-b border-border bg-surface-muted text-caption text-secondary">
-            <th
-              scope="col"
-              className="sticky left-0 w-px whitespace-nowrap bg-surface-muted px-4 py-3 text-left font-medium"
-            >
-              회원
-            </th>
-            <th scope="col" className="px-2 py-3 text-center font-medium">
-              유형
-            </th>
-            {MONTHS.map((month) => (
+    <>
+      {(hasStartLine || hasLeftLine) && (
+        <ul
+          aria-label="선의 뜻"
+          className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-caption text-secondary"
+        >
+          {hasStartLine && (
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden className="h-4 w-0.5 bg-accent" />
+              입금 시작월
+            </li>
+          )}
+          {hasLeftLine && (
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden className="h-4 w-0.5 bg-negative" />
+              탈퇴월
+            </li>
+          )}
+        </ul>
+      )}
+      {/* 열이 15개라 좁은 화면에서는 가로로 민다. 이름 열은 왼쪽에 붙어 있다. */}
+      <div className="overflow-x-auto">
+        <table
+          aria-label="회원별 납부 현황"
+          className="w-full border-collapse text-footnote text-primary"
+        >
+          <thead>
+            <tr className="border-b border-border bg-surface-muted text-caption text-secondary">
               <th
-                key={month}
                 scope="col"
-                className="w-10 whitespace-nowrap px-2 py-3 text-center font-medium"
+                className="sticky left-0 w-px whitespace-nowrap bg-surface-muted px-4 py-3 text-left font-medium"
               >
-                {month}월
+                회원
               </th>
-            ))}
-            <th scope="col" className="px-4 py-3 text-center font-medium">
-              납부
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedMembers.map((member, idx) => {
-            // 1년 전체가 면제면 낼 달이 없다
-            const paymentLabel =
-              member.type === 'exempt' && member.totalMonths === 0
-                ? '-'
-                : `${member.paidCount}/${member.totalMonths ?? 12}`;
+              <th scope="col" className="px-2 py-3 text-center font-medium">
+                유형
+              </th>
+              {MONTHS.map((month) => (
+                <th
+                  key={month}
+                  scope="col"
+                  className="w-10 whitespace-nowrap px-2 py-3 text-center font-medium"
+                >
+                  {month}월
+                </th>
+              ))}
+              <th scope="col" className="px-4 py-3 text-center font-medium">
+                납부
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedMembers.map((member, idx) => {
+              // 1년 전체가 면제면 낼 달이 없다
+              const paymentLabel =
+                member.type === 'exempt' && member.totalMonths === 0
+                  ? '-'
+                  : `${member.paidCount}/${member.totalMonths ?? 12}`;
 
-            // 고정된 이름 칸은 바탕이 꼭 있어야 한다. 없으면 밀려 온 칸이 비친다.
-            const rowBg = member.isLeft ? 'bg-surface-muted' : 'bg-surface';
+              // 고정된 이름 칸은 바탕이 꼭 있어야 한다. 없으면 밀려 온 칸이 비친다.
+              const rowBg = member.isLeft ? 'bg-surface-muted' : 'bg-surface';
 
-            // 탈퇴 회원 섹션 구분 행
-            const isFirstLeft =
-              member.isLeft && (idx === 0 || !sortedMembers[idx - 1]?.isLeft);
-            const showDivider =
-              isFirstLeft && leftMembers.length > 0 && activeMembers.length > 0;
+              // 탈퇴 회원 섹션 구분 행
+              const isFirstLeft =
+                member.isLeft && (idx === 0 || !sortedMembers[idx - 1]?.isLeft);
+              const showDivider =
+                isFirstLeft &&
+                leftMembers.length > 0 &&
+                activeMembers.length > 0;
 
-            // 해당 회원의 총 납부 대상 개월 수
-            const totalMonths = member.totalMonths ?? 12;
-            // 낼 달이 없는 경우 (1년 전체 면제, 의무 개월 0)
-            const isExemptOrNoObligation = totalMonths === 0;
-            // 납부 대상 개월 전액 완납
-            const isFullyPaid = member.paidCount === totalMonths;
-            // 납부 대상 개월의 절반 이상 납부
-            const isHalfOrMorePaid = member.paidCount >= totalMonths / 2;
+              // 해당 회원의 총 납부 대상 개월 수
+              const totalMonths = member.totalMonths ?? 12;
+              const startMonth = startMonthInYear(member, year);
+              // 낼 달이 없는 경우 (1년 전체 면제, 의무 개월 0)
+              const isExemptOrNoObligation = totalMonths === 0;
+              // 납부 대상 개월 전액 완납
+              const isFullyPaid = member.paidCount === totalMonths;
+              // 납부 대상 개월의 절반 이상 납부
+              const isHalfOrMorePaid = member.paidCount >= totalMonths / 2;
 
-            return (
-              <Fragment key={member.id}>
-                {showDivider && (
-                  <tr>
-                    <td
-                      colSpan={MONTHS.length + 3}
-                      className="bg-fill px-4 py-2 text-caption font-medium text-secondary"
-                    >
-                      탈퇴 회원
-                    </td>
-                  </tr>
-                )}
-                <tr className={cn('border-b border-border', rowBg)}>
-                  <td
-                    className={cn(
-                      'sticky left-0 w-px whitespace-nowrap px-4 py-2 font-semibold',
-                      rowBg
-                    )}
-                  >
-                    {clubId && member.userId != null ? (
-                      <Link
-                        href={`/clubs/${clubId}/members/${member.userId}?from=/clubs/${clubId}/membership-fee&fromLabel=회비 정산`}
-                        className="underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none"
-                        title="회원 정보에서 입금 시작일 수정"
-                      >
-                        {member.name}
-                      </Link>
-                    ) : (
-                      member.name
-                    )}
-                    {member.couplePartnerName && (
-                      <div className="text-caption font-normal text-secondary">
-                        ({member.couplePartnerName})
-                      </div>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-2 py-2 text-center">
-                    <span className="inline-flex items-center gap-1">
-                      {member.type === 'couple' && (
-                        <StatusChip tone="neutral">부부</StatusChip>
-                      )}
-                      {member.type === 'exempt' && (
-                        <StatusChip tone="neutral">면제</StatusChip>
-                      )}
-                      {member.type === 'regular' && (
-                        <StatusChip tone="neutral">일반</StatusChip>
-                      )}
-                      {member.isLeft && (
-                        <StatusChip tone="negative">탈퇴</StatusChip>
-                      )}
-                    </span>
-                  </td>
-                  {MONTHS.map((month) => {
-                    const isObligated = member.obligationMonths
-                      ? member.obligationMonths.includes(month)
-                      : month >= (member.firstObligationMonth ?? 1);
-                    const isPaid = member.payments[month];
-                    const isExempt = isExemptMonth(member, month);
-                    const isLeave =
-                      member.leaveMonths?.includes(month) ?? false;
-                    // 의무가 없어진 달에 납부가 걸려 있다. 회원 상세에서 다음 의무월로 옮긴다.
-                    const needsShift =
-                      member.orphanPaidMonths?.includes(month) ?? false;
-                    const leaveLabel = needsShift
-                      ? `휴회/병가 · ${NEEDS_SHIFT_LABEL}`
-                      : '휴회/병가';
-                    const noObligationLabel = needsShift
-                      ? `의무 없음 · ${NEEDS_SHIFT_LABEL}`
-                      : '의무 없음';
-                    // 입금 시작일이 표시 연도와 같은 경우에만 시작월 표시.
-                    // 작년 가입자가 1월 휴회로 firstObligationMonth가 2 이상으로
-                    // 밀려난 케이스는 제외 (feeObligationStartMonth가 작년이므로).
-                    const startYearStr =
-                      member.feeObligationStartMonth?.split('.')[0];
-                    const isStartMonth =
-                      !isExempt &&
-                      member.firstObligationMonth != null &&
-                      member.firstObligationMonth > 1 &&
-                      month === member.firstObligationMonth &&
-                      startYearStr === String(year);
-                    const isLeftMonth =
-                      member.isLeft &&
-                      member.leftMonth != null &&
-                      month === member.leftMonth;
-                    const showRedX =
-                      isObligated &&
-                      isPastOrCurrentMonth(year, month) &&
-                      !isPaid &&
-                      !isExempt;
-
-                    return (
+              return (
+                <Fragment key={member.id}>
+                  {showDivider && (
+                    <tr>
                       <td
-                        key={month}
-                        className={cn(
-                          'px-2 py-2 text-center',
-                          // 굵은 선으로 입금 시작월(왼쪽)과 탈퇴월(오른쪽)을 표시한다.
-                          isStartMonth && 'border-l-2 border-l-accent',
-                          isLeftMonth && 'border-r-2 border-r-negative'
-                        )}
-                        title={
-                          isLeftMonth
-                            ? `탈퇴 (${member.leftAtFormatted ?? ''})`
-                            : isStartMonth
-                              ? `입금 시작월 (${member.feeObligationStartMonth ?? ''})`
-                              : isLeave
-                                ? leaveLabel
-                                : !isObligated
-                                  ? noObligationLabel
-                                  : showRedX
-                                    ? '미납'
-                                    : undefined
-                        }
+                        colSpan={MONTHS.length + 3}
+                        className="bg-fill px-4 py-2 text-caption font-medium text-secondary"
                       >
-                        {isLeave ? (
-                          // 칸의 title은 탈퇴월·시작월이 먼저다. 겹쳐도 휴회임을 알 수 있게 따로 단다.
-                          <span title={leaveLabel}>
-                            <Hospital
-                              aria-label={leaveLabel}
+                        탈퇴 회원
+                      </td>
+                    </tr>
+                  )}
+                  <tr className={cn('border-b border-border', rowBg)}>
+                    <td
+                      className={cn(
+                        'sticky left-0 w-px whitespace-nowrap px-4 py-2 font-semibold',
+                        rowBg
+                      )}
+                    >
+                      {clubId && member.userId != null ? (
+                        <Link
+                          href={`/clubs/${clubId}/members/${member.userId}?from=/clubs/${clubId}/membership-fee&fromLabel=회비 정산`}
+                          className="underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none"
+                          title="회원 정보에서 입금 시작일 수정"
+                        >
+                          {member.name}
+                        </Link>
+                      ) : (
+                        member.name
+                      )}
+                      {member.couplePartnerName && (
+                        <div className="text-caption font-normal text-secondary">
+                          ({member.couplePartnerName})
+                        </div>
+                      )}
+                      {/* 입금 시작월·탈퇴월은 선 대신 글자로 알린다. 휴대폰에서도 뜻이 보인다. */}
+                      {startMonth != null && (
+                        <div className="text-caption font-normal text-secondary">
+                          {startMonth}월 입금 시작
+                        </div>
+                      )}
+                      {member.isLeft && member.leftMonth != null && (
+                        <div className="text-caption font-normal text-secondary">
+                          {member.leftMonth}월 탈퇴
+                        </div>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-2 py-2 text-center">
+                      <span className="inline-flex items-center gap-1">
+                        {member.type === 'couple' && (
+                          <StatusChip tone="neutral">부부</StatusChip>
+                        )}
+                        {member.type === 'exempt' && (
+                          <StatusChip tone="neutral">면제</StatusChip>
+                        )}
+                        {member.type === 'regular' && (
+                          <StatusChip tone="neutral">일반</StatusChip>
+                        )}
+                        {member.isLeft && (
+                          <StatusChip tone="negative">탈퇴</StatusChip>
+                        )}
+                      </span>
+                    </td>
+                    {MONTHS.map((month) => {
+                      const isObligated = member.obligationMonths
+                        ? member.obligationMonths.includes(month)
+                        : month >= (member.firstObligationMonth ?? 1);
+                      const isPaid = member.payments[month];
+                      const isExempt = isExemptMonth(member, month);
+                      const isLeave =
+                        member.leaveMonths?.includes(month) ?? false;
+                      // 선은 이름 아래 글자와 같은 달에 긋는다.
+                      const isStartMonth = month === startMonth;
+                      const isLeftMonth =
+                        member.isLeft === true && month === member.leftMonth;
+                      // 의무가 없어진 달에 납부가 걸려 있다. 회원 상세에서 다음 의무월로 옮긴다.
+                      const needsShift =
+                        member.orphanPaidMonths?.includes(month) ?? false;
+                      const leaveLabel = needsShift
+                        ? `휴회/병가 · ${NEEDS_SHIFT_LABEL}`
+                        : '휴회/병가';
+                      const noObligationLabel = needsShift
+                        ? `의무 없음 · ${NEEDS_SHIFT_LABEL}`
+                        : '의무 없음';
+                      const showRedX =
+                        isObligated &&
+                        isPastOrCurrentMonth(year, month) &&
+                        !isPaid &&
+                        !isExempt;
+
+                      return (
+                        <td
+                          key={month}
+                          className={cn(
+                            'px-2 py-2 text-center',
+                            // 굵은 선으로 입금 시작월(왼쪽)과 탈퇴월(오른쪽)을 표시한다. 뜻은 표 위 범례에 있다.
+                            isStartMonth && 'border-l-2 border-l-accent',
+                            isLeftMonth && 'border-r-2 border-r-negative'
+                          )}
+                          title={
+                            isLeftMonth
+                              ? `탈퇴 (${member.leftAtFormatted ?? ''})`
+                              : isStartMonth
+                                ? `입금 시작월 (${member.feeObligationStartMonth ?? ''})`
+                                : isLeave
+                                  ? leaveLabel
+                                  : !isObligated
+                                    ? noObligationLabel
+                                    : showRedX
+                                      ? '미납'
+                                      : undefined
+                          }
+                        >
+                          {isLeave ? (
+                            // 칸의 title은 탈퇴월·시작월이 먼저다. 겹쳐도 휴회임을 알 수 있게 따로 단다.
+                            <span title={leaveLabel}>
+                              <Hospital
+                                aria-label={leaveLabel}
+                                className={cn(
+                                  ICON,
+                                  needsShift ? 'text-warning' : 'text-secondary'
+                                )}
+                              />
+                            </span>
+                          ) : !isObligated ? (
+                            <Minus
+                              aria-label={noObligationLabel}
                               className={cn(
                                 ICON,
-                                needsShift ? 'text-warning' : 'text-secondary'
+                                needsShift ? 'text-warning' : 'text-tertiary'
                               )}
                             />
-                          </span>
-                        ) : !isObligated ? (
-                          <Minus
-                            aria-label={noObligationLabel}
-                            className={cn(
-                              ICON,
-                              needsShift ? 'text-warning' : 'text-tertiary'
-                            )}
-                          />
-                        ) : showRedX ? (
-                          <X
-                            aria-label="미납"
-                            className={cn(ICON, 'text-negative')}
-                          />
-                        ) : isExempt ? (
-                          <span title="면제">
-                            <Minus
-                              aria-label="면제"
-                              className={cn(ICON, 'text-secondary')}
-                            />
-                          </span>
-                        ) : isPaid ? (
-                          <span title="납부완료">
-                            <Check
-                              aria-label="납부완료"
-                              className={cn(ICON, 'text-positive')}
-                            />
-                          </span>
-                        ) : (
-                          // 아직 오지 않은 달
-                          <span title="미납">
+                          ) : showRedX ? (
                             <X
                               aria-label="미납"
-                              className={cn(ICON, 'text-tertiary')}
+                              className={cn(ICON, 'text-negative')}
                             />
-                          </span>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td className="px-4 py-2 text-center">
-                    <span
-                      className={
-                        isExemptOrNoObligation
-                          ? 'text-tertiary'
-                          : isFullyPaid
-                            ? 'font-semibold text-positive'
-                            : isHalfOrMorePaid
-                              ? 'text-primary'
-                              : 'text-negative'
-                      }
-                    >
-                      {paymentLabel}
-                    </span>
-                  </td>
-                </tr>
-              </Fragment>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+                          ) : isExempt ? (
+                            <span title="면제">
+                              <Minus
+                                aria-label="면제"
+                                className={cn(ICON, 'text-secondary')}
+                              />
+                            </span>
+                          ) : isPaid ? (
+                            <span title="납부완료">
+                              <Check
+                                aria-label="납부완료"
+                                className={cn(ICON, 'text-positive')}
+                              />
+                            </span>
+                          ) : (
+                            // 아직 오지 않은 달
+                            <span title="미납">
+                              <X
+                                aria-label="미납"
+                                className={cn(ICON, 'text-tertiary')}
+                              />
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="px-4 py-2 text-center">
+                      <span
+                        className={
+                          isExemptOrNoObligation
+                            ? 'text-tertiary'
+                            : isFullyPaid
+                              ? 'font-semibold text-positive'
+                              : isHalfOrMorePaid
+                                ? 'text-primary'
+                                : 'text-negative'
+                        }
+                      >
+                        {paymentLabel}
+                      </span>
+                    </td>
+                  </tr>
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 

@@ -114,6 +114,119 @@ describe('FeeDashboardView', () => {
     expect(icon.closest('td')?.getAttribute('title')).toBe('탈퇴 (2020.04)');
   });
 
+  describe('입금 시작월·탈퇴월', () => {
+    const row = (name: string) =>
+      within(grid().getByText(name).closest('tr') as HTMLElement);
+
+    it('이름 아래에 글자로 알린다', () => {
+      render(
+        <FeeDashboardView
+          {...base}
+          dashboard={{
+            ...DASHBOARD,
+            members: [
+              member(1, '가온', 0, {
+                feeObligationStartMonth: '2020.03',
+                firstObligationMonth: 3,
+              }),
+              member(2, '나래', 3, {
+                isLeft: true,
+                leftMonth: 8,
+                leftAtFormatted: '2020.08',
+              }),
+            ],
+          }}
+        />
+      );
+
+      expect(row('가온').getByText('3월 입금 시작')).toBeTruthy();
+      expect(row('나래').getByText('8월 탈퇴')).toBeTruthy();
+    });
+
+    it('시작월은 휴회로 첫 의무월이 밀려도 실제 시작월로 알린다', () => {
+      render(
+        <FeeDashboardView
+          {...base}
+          dashboard={{
+            ...DASHBOARD,
+            members: [
+              member(1, '가온', 0, {
+                feeObligationStartMonth: '2020.03',
+                firstObligationMonth: 5,
+                leaveMonths: [3, 4],
+              }),
+            ],
+          }}
+        />
+      );
+
+      expect(row('가온').getByText('3월 입금 시작')).toBeTruthy();
+    });
+
+    it('지난해에 시작했거나 1월에 시작했으면 알리지 않는다', () => {
+      render(
+        <FeeDashboardView
+          {...base}
+          dashboard={{
+            ...DASHBOARD,
+            members: [
+              member(1, '가온', 12, { feeObligationStartMonth: '2019.05' }),
+              member(2, '나래', 12, { feeObligationStartMonth: '2020.01' }),
+            ],
+          }}
+        />
+      );
+
+      expect(grid().queryByText(/입금 시작/)).toBeNull();
+    });
+
+    /** 이름·유형 다음부터 1~12월 칸 */
+    const monthCell = (name: string, month: number) =>
+      row(name).getAllByRole('cell')[month + 1];
+    const startAndLeft = member(1, '가온', 3, {
+      feeObligationStartMonth: '2020.03',
+      firstObligationMonth: 3,
+      obligationMonths: [3, 4, 5, 6, 7, 8],
+      isLeft: true,
+      leftMonth: 8,
+      leftAtFormatted: '2020.08',
+      payments: { 3: true, 4: true, 5: true },
+    });
+
+    it('선이 그어진 칸도 그 뜻을 칸 설명으로 알린다', () => {
+      render(
+        <FeeDashboardView
+          {...base}
+          dashboard={{ ...DASHBOARD, members: [startAndLeft] }}
+        />
+      );
+
+      expect(monthCell('가온', 3).getAttribute('title')).toBe(
+        '입금 시작월 (2020.03)'
+      );
+      expect(monthCell('가온', 8).getAttribute('title')).toBe('탈퇴 (2020.08)');
+    });
+
+    it('표 위 범례가 선의 뜻을 알린다', () => {
+      render(
+        <FeeDashboardView
+          {...base}
+          dashboard={{ ...DASHBOARD, members: [startAndLeft] }}
+        />
+      );
+      const legend = within(screen.getByRole('list', { name: '선의 뜻' }));
+
+      expect(legend.getByText('입금 시작월')).toBeTruthy();
+      expect(legend.getByText('탈퇴월')).toBeTruthy();
+    });
+
+    it('그 해에 선이 없으면 범례도 없다', () => {
+      render(<FeeDashboardView {...base} />);
+
+      expect(screen.queryByRole('list', { name: '선의 뜻' })).toBeNull();
+    });
+  });
+
   it('휴회 칸에 납부가 걸려 있으면 이월이 필요하다고 알린다', () => {
     render(
       <FeeDashboardView

@@ -501,12 +501,17 @@ const DASHBOARD_MEMBERS = NAMES.map((name, index) => {
       Array.from({ length: 12 }, (_, month) => [month + 1, month < paidThrough])
     ),
     paidCount: kind === 2 ? payableCount : paidThrough,
-    totalMonths: kind === 3 ? 10 : kind === 2 ? payableCount : 12,
+    totalMonths:
+      kind === 3 ? 10 : kind === 2 ? payableCount : kind === 5 ? 6 : 12,
     exemptMonths,
     firstObligationMonth: kind === 1 ? 3 : 1,
     feeObligationStartMonth: kind === 1 ? `${PREVIEW_YEAR}.03` : null,
     obligationMonths:
-      kind === 3 ? [1, 2, 3, 4, 7, 8, 9, 10, 11, 12] : undefined,
+      kind === 3
+        ? [1, 2, 3, 4, 7, 8, 9, 10, 11, 12]
+        : kind === 5
+          ? [1, 2, 3, 4, 5, 6]
+          : undefined,
     leaveMonths: kind === 3 ? [5, 6] : [],
     isLeft: kind === 5,
     leftMonth: kind === 5 ? 6 : undefined,
