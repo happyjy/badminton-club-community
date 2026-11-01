@@ -146,6 +146,9 @@ model FeeExemption {
   id           Int      @id @default(autoincrement())
   clubMemberId Int
   year         Int
+  // 그 해 안의 면제 기간 (양 끝 포함). 연중에 임원이 된 경우처럼 일부 달만 면제할 수 있다.
+  startMonth   Int      @default(1)
+  endMonth     Int      @default(12)
   reason       String   // 면제 사유 (예: "임원")
   createdAt    DateTime @default(now())
   createdById  Int
