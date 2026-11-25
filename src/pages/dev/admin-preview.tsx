@@ -8,6 +8,7 @@ import { Button } from '@/components/atoms/buttons/Button';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { OptionPicker } from '@/components/molecules/OptionPicker';
 import { StatusFilter } from '@/components/molecules/StatusFilter';
+import { MemberStatusMonthSheet } from '@/components/organisms/club/MemberStatusMonthSheet';
 import { MembersView } from '@/components/organisms/club/MembersView';
 import { GuestCheckView } from '@/components/organisms/guest/GuestCheckView';
 import { BulkKindSheet } from '@/components/organisms/membership-fee/BulkKindSheet';
@@ -16,6 +17,7 @@ import {
   DashboardMemberFilter,
   FeeDashboardView,
 } from '@/components/organisms/membership-fee/FeeDashboardView';
+import { ManualPaymentSection } from '@/components/organisms/membership-fee/ManualPaymentSection';
 import {
   MemberFeeDetailView,
   MemberLeaveItem,
@@ -60,7 +62,15 @@ const SCREENS = [
   { value: 'fee-dashboard', label: '회비 대시보드' },
   { value: 'fee-member', label: '회원 상세 (회비)' },
   { value: 'fee-exemption', label: '회비 면제 시트' },
+  { value: 'member-status-month', label: '탈퇴·재가입 달' },
 ] as const;
+
+/** 탈퇴·다시 가입 시트의 가짜 기본값 */
+const PREVIEW_STATUS_DEFAULTS = {
+  lastPaidMonth: '2026-07',
+  rejoinStartMonth: '2026-12',
+  previousStartMonth: '2024-03',
+};
 
 type Screen = (typeof SCREENS)[number]['value'];
 
@@ -182,7 +192,11 @@ function MembersPreview() {
         onChangeSort={setSortOption}
         filter={<StatusFilter />}
         onApprove={(userId) => setStatus(userId, Status.APPROVED)}
-        onStatusChange={(userId, _clubId, status) => setStatus(userId, status)}
+        onStatusChange={(userId, _clubId, status, months) => {
+          setStatus(userId, status);
+          if (months) toast.success(JSON.stringify(months));
+        }}
+        onLoadStatusDefaults={async () => PREVIEW_STATUS_DEFAULTS}
         approvingUserId={null}
       />
     </>
@@ -561,6 +575,8 @@ function FeeDashboardPreview() {
             exemptMembers: 2,
             coupleGroups: 1,
             yearTotal: 3240000,
+            // 직접 추가한 납부가 있을 때 총 수입 아래에 따로 보이는 줄
+            manualPayments: { count: 3, amount: 75000 },
             monthlyStats: Array.from({ length: 12 }, (_, month) => ({
               month: month + 1,
               paidCount: 10 - (month % 4),
@@ -609,73 +625,119 @@ function MemberFeePreview() {
   const [orphanPayments, setOrphanPayments] = useState([
     { id: 'p4', year: 2026, month: 4, amount: 25000 },
   ]);
+  const [feeExcluded, setFeeExcluded] = useState(false);
+  // 콕 계좌로 보낸 9월, 재무 표 기준으로 채운 10월
+  const [manualPayments, setManualPayments] = useState([
+    {
+      id: 'm10',
+      year: 2026,
+      month: 10,
+      amount: 25000,
+      reason: '재무 표 기준',
+      confirmedAt: '2026-11-23T01:00:00.000Z',
+      confirmedByName: '김재무',
+    },
+    {
+      id: 'm9',
+      year: 2026,
+      month: 9,
+      amount: 25000,
+      reason: '다른 계좌로 보냄',
+      confirmedAt: '2026-11-23T01:00:00.000Z',
+      confirmedByName: '김재무',
+    },
+  ]);
 
   return (
     <>
       <PageHeader title="김가온 회원 상세" backHref="/dev/admin-preview" />
-      <MemberFeeDetailView
-        member={{
-          id: 10,
-          name: '김가온',
-          status: 'LEFT',
-          createdAt: '2025-01-02T00:00:00.000Z',
-          feeObligationStartAt: '2025-02-01T00:00:00.000Z',
-          leftAt: '2026-06-15T00:00:00.000Z',
-        }}
-        leaves={leaves}
-        saving={false}
-        feeStartInput={feeStart}
-        onChangeFeeStart={setFeeStart}
-        onSaveFeeStart={() => {}}
-        leftAtInput={leftAt}
-        onChangeLeftAt={setLeftAt}
-        feeEndInput={feeEnd}
-        onChangeFeeEnd={setFeeEnd}
-        onSaveLeftInfo={() => {}}
-        onSubmitLeave={async (value) => {
-          if (!value.start) return false;
-          const [startYear, startMonth] = value.start.split('-').map(Number);
-          const [endYear, endMonth] = value.end
-            ? value.end.split('-').map(Number)
-            : [null, null];
-          const next = {
-            startYear,
-            startMonth,
-            endYear,
-            endMonth,
-            reason: value.reason.trim() || null,
-          };
-          setLeaves((prev) =>
-            value.editingId == null
-              ? [
-                  ...prev,
-                  {
-                    ...next,
-                    id: Math.max(0, ...prev.map((leave) => leave.id)) + 1,
-                    clubMemberId: 10,
-                    createdAt: '2026-10-01T00:00:00.000Z',
-                  },
-                ]
-              : prev.map((leave) =>
-                  leave.id === value.editingId ? { ...leave, ...next } : leave
-                )
-          );
-          return true;
-        }}
-        onDeleteLeave={(leaveId) =>
-          setLeaves((prev) => prev.filter((leave) => leave.id !== leaveId))
-        }
-        positionInput={position}
-        onChangePosition={setPosition}
-        positionOrderInput={positionOrder}
-        onChangePositionOrder={setPositionOrder}
-        onSavePosition={() => {}}
-        orphanPayments={orphanPayments}
-        onShiftPayments={() => {
-          setOrphanPayments([]);
-          toast.success('1건 이월, 0건 실패');
-        }}
-      />
+      <div className="space-y-6">
+        <MemberFeeDetailView
+          member={{
+            id: 10,
+            name: '김가온',
+            status: 'LEFT',
+            createdAt: '2025-01-02T00:00:00.000Z',
+            feeObligationStartAt: '2025-02-01T00:00:00.000Z',
+            leftAt: '2026-06-15T00:00:00.000Z',
+            feeExcluded,
+          }}
+          leaves={leaves}
+          saving={false}
+          feeStartInput={feeStart}
+          onChangeFeeStart={setFeeStart}
+          onSaveFeeStart={() => {}}
+          leftAtInput={leftAt}
+          onChangeLeftAt={setLeftAt}
+          feeEndInput={feeEnd}
+          onChangeFeeEnd={setFeeEnd}
+          onSaveLeftInfo={() => {}}
+          onSubmitLeave={async (value) => {
+            if (!value.start) return false;
+            const [startYear, startMonth] = value.start.split('-').map(Number);
+            const [endYear, endMonth] = value.end
+              ? value.end.split('-').map(Number)
+              : [null, null];
+            const next = {
+              startYear,
+              startMonth,
+              endYear,
+              endMonth,
+              reason: value.reason.trim() || null,
+            };
+            setLeaves((prev) =>
+              value.editingId == null
+                ? [
+                    ...prev,
+                    {
+                      ...next,
+                      id: Math.max(0, ...prev.map((leave) => leave.id)) + 1,
+                      clubMemberId: 10,
+                      createdAt: '2026-10-01T00:00:00.000Z',
+                    },
+                  ]
+                : prev.map((leave) =>
+                    leave.id === value.editingId ? { ...leave, ...next } : leave
+                  )
+            );
+            return true;
+          }}
+          onDeleteLeave={(leaveId) =>
+            setLeaves((prev) => prev.filter((leave) => leave.id !== leaveId))
+          }
+          positionInput={position}
+          onChangePosition={setPosition}
+          positionOrderInput={positionOrder}
+          onChangePositionOrder={setPositionOrder}
+          onSavePosition={() => {}}
+          orphanPayments={orphanPayments}
+          onShiftPayments={() => {
+            setOrphanPayments([]);
+            toast.success('1건 이월, 0건 실패');
+          }}
+          onToggleFeeExcluded={setFeeExcluded}
+        />
+        <ManualPaymentSection
+          payments={manualPayments}
+          saving={false}
+          onSuggestAmount={async () => 25000}
+          onAdd={async (value) => {
+            setManualPayments((prev) => [
+              {
+                ...value,
+                id: `m${value.year}${value.month}`,
+                confirmedAt: new Date().toISOString(),
+                confirmedByName: '김재무',
+              },
+              ...prev,
+            ]);
+            return true;
+          }}
+          onDelete={(id) =>
+            setManualPayments((prev) => prev.filter((p) => p.id !== id))
+          }
+        />
+      </div>
     </>
   );
 }
@@ -698,6 +760,33 @@ const PREVIEW_EXEMPTION = {
 } as FeeExemption;
 
 /** 면제 등록·수정 시트. ?mode=edit 이면 수정으로 연다. */
+/** 탈퇴 처리 · 다시 가입 처리 시트 (?kind=rejoin이면 다시 가입) */
+function MemberStatusMonthPreview() {
+  const router = useRouter();
+  const kind = router.query.kind === 'rejoin' ? 'rejoin' : 'leave';
+  const [open, setOpen] = useState(true);
+
+  return (
+    <>
+      <PageHeader title="클럽 멤버 관리" />
+      <Button type="button" onClick={() => setOpen(true)}>
+        시트 다시 열기
+      </Button>
+      <MemberStatusMonthSheet
+        key={kind}
+        open={open}
+        kind={kind}
+        defaults={PREVIEW_STATUS_DEFAULTS}
+        onCancel={() => setOpen(false)}
+        onConfirm={(month) => {
+          toast.success(month);
+          setOpen(false);
+        }}
+      />
+    </>
+  );
+}
+
 function ExemptionSheetPreview() {
   const router = useRouter();
   const isEdit = router.query.mode === 'edit';
@@ -783,6 +872,8 @@ export default function AdminPreviewPage() {
         <MemberFeePreview />
       ) : screen === 'fee-exemption' ? (
         <ExemptionSheetPreview />
+      ) : screen === 'member-status-month' ? (
+        <MemberStatusMonthPreview />
       ) : (
         <TablePreview />
       )}

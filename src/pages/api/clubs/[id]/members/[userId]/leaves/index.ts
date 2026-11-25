@@ -84,7 +84,8 @@ export default withAuth(async function handler(
     const orphanPayments = findOrphanPayments(
       {
         feeObligationStartAt: targetMember.feeObligationStartAt,
-        leftAt: targetMember.leftAt,
+        // 다시 돌아온 회원에게 예전 탈퇴일이 남아 있을 수 있어, 탈퇴 상태일 때만 본다 (memberYearStatus와 같다)
+        leftAt: targetMember.status === 'LEFT' ? targetMember.leftAt : null,
         leavePeriods: leaves,
       },
       payments

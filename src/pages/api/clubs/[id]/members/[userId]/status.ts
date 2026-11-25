@@ -1,6 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import { APPROVED_STATUS } from '@/lib/clubAuth';
+import {
+  parseMonthInput,
+  statusMonthKind,
+} from '@/lib/membership-fee/memberStatusChange';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse, ClubMember } from '@/types';
@@ -46,7 +50,50 @@ export default withAuth(async function handler(
       });
     }
 
-    // 멤버 상태 업데이트
+    const target = await prisma.clubMember.findUnique({
+      where: { clubId_userId: { clubId, userId } },
+    });
+    if (!target) {
+      return res.status(404).json({
+        error: '회원을 찾을 수 없습니다',
+        status: 404,
+      });
+    }
+
+    // 탈퇴일은 탈퇴 상태에만 둔다. 탈퇴로 바꾸면 탈퇴월을, 탈퇴에서 되돌리면 다시 시작하는 달을 받는다.
+    // 이전 상태는 화면이 보낸 값이 아니라 DB에서 읽는다.
+    const kind = statusMonthKind(target.status, newStatus);
+    let data: {
+      status: string;
+      leftAt?: Date | null;
+      feeObligationStartAt?: Date;
+    };
+    if (kind === 'leave') {
+      const leftAt = parseMonthInput(req.body.leftMonth);
+      if (!leftAt) {
+        return res.status(400).json({
+          error: '탈퇴월을 골라주세요',
+          status: 400,
+        });
+      }
+      data = { status: newStatus, leftAt };
+    } else if (kind === 'rejoin') {
+      const feeObligationStartAt = parseMonthInput(req.body.feeStartMonth);
+      if (!feeObligationStartAt) {
+        return res.status(400).json({
+          error: '다시 시작하는 달을 골라주세요',
+          status: 400,
+        });
+      }
+      data = { status: newStatus, leftAt: null, feeObligationStartAt };
+    } else {
+      // 탈퇴 → 탈퇴는 탈퇴일을 그대로 둔다
+      data =
+        newStatus === Status.LEFT
+          ? { status: newStatus }
+          : { status: newStatus, leftAt: null };
+    }
+
     const updatedMember = await prisma.clubMember.update({
       where: {
         clubId_userId: {
@@ -54,10 +101,7 @@ export default withAuth(async function handler(
           userId,
         },
       },
-      data: {
-        status: newStatus,
-        leftAt: newStatus === Status.LEFT ? new Date() : null,
-      },
+      data,
     });
 
     // Role과 Status를 enum 타입으로 캐스팅하고 null 값을 undefined로 변환

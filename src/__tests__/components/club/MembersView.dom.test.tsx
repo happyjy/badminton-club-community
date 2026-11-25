@@ -52,6 +52,15 @@ const MEMBERS = [
   member(3, '다람', Status.ON_LEAVE, { phoneNumber: undefined }),
 ];
 
+/** 탈퇴 회원이 있는 목록 (다시 가입 처리 테스트) */
+const WITH_LEFT = [...MEMBERS, member(4, '라온', Status.LEFT)];
+
+const DEFAULTS = {
+  lastPaidMonth: '2026-07',
+  rejoinStartMonth: '2026-12',
+  previousStartMonth: '2024-03',
+};
+
 type Props = ComponentProps<typeof MembersView>;
 
 const base: Props = {
@@ -65,6 +74,7 @@ const base: Props = {
   filter: <div>필터</div>,
   onApprove: () => {},
   onStatusChange: () => {},
+  onLoadStatusDefaults: async () => DEFAULTS,
   approvingUserId: null,
 };
 
@@ -158,8 +168,8 @@ describe('회원 관리 화면', () => {
       Array.from(select.options).map((option) => option.textContent)
     ).toEqual(['대기중', '승인됨', '휴가중', '거절됨', '탈퇴']);
 
-    fireEvent.change(select, { target: { value: Status.LEFT } });
-    expect(onStatusChange).toHaveBeenCalledWith(1, 1, Status.LEFT);
+    fireEvent.change(select, { target: { value: Status.ON_LEAVE } });
+    expect(onStatusChange).toHaveBeenCalledWith(1, 1, Status.ON_LEAVE);
     expect(
       within(dialog).queryByRole('button', { name: '승인하기' })
     ).toBeNull();
@@ -264,5 +274,170 @@ describe('회원 관리 화면', () => {
       view?.rerender(<MembersView {...base} allMembers={MEMBERS} />);
     });
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('회원 관리 화면 — 탈퇴월·다시 시작하는 달', () => {
+  const monthSheet = (title: string) =>
+    screen.getByRole('dialog', { name: title });
+
+  const pickStatus = async (dialog: HTMLElement, status: Status) => {
+    await act(async () => {
+      fireEvent.change(within(dialog).getByLabelText('상태'), {
+        target: { value: status },
+      });
+    });
+  };
+
+  it('탈퇴를 고르면 바로 바꾸지 않고 마지막으로 낸 달로 탈퇴월을 묻는다', async () => {
+    const onStatusChange = jest.fn();
+    await renderView({ onStatusChange });
+    const dialog = await openSheet('가온');
+
+    await pickStatus(dialog, Status.LEFT);
+
+    expect(onStatusChange).not.toHaveBeenCalled();
+    const sheet = within(monthSheet('탈퇴 처리'));
+    expect((sheet.getByLabelText('탈퇴월') as HTMLInputElement).value).toBe(
+      '2026-07'
+    );
+    expect(sheet.getByText('마지막으로 회비를 낸 달입니다.')).toBeTruthy();
+    expect(
+      sheet.getByText('이 달까지 회비를 내야 하는 달로 봅니다.')
+    ).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.click(sheet.getByRole('button', { name: '탈퇴 처리' }));
+    });
+
+    expect(onStatusChange).toHaveBeenCalledWith(1, 1, Status.LEFT, {
+      leftMonth: '2026-07',
+    });
+  });
+
+  it('낸 회비가 없으면 칸을 비우고 달을 넣어야 탈퇴 처리할 수 있다', async () => {
+    await renderView({
+      onLoadStatusDefaults: async () => ({ ...DEFAULTS, lastPaidMonth: null }),
+    });
+    const dialog = await openSheet('가온');
+
+    await pickStatus(dialog, Status.LEFT);
+
+    const sheet = within(monthSheet('탈퇴 처리'));
+    const input = sheet.getByLabelText('탈퇴월') as HTMLInputElement;
+    expect(input.value).toBe('');
+    expect(sheet.getByText('낸 회비가 없습니다.')).toBeTruthy();
+    const button = sheet.getByRole('button', { name: '탈퇴 처리' });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(input, { target: { value: '2026-05' } });
+    expect((button as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('탈퇴 회원을 승인됨으로 되돌리면 다시 시작하는 달을 묻고 예전 시작월을 알려 준다', async () => {
+    const onStatusChange = jest.fn();
+    await renderView({ onStatusChange, members: WITH_LEFT });
+    const dialog = await openSheet('라온');
+
+    await pickStatus(dialog, Status.APPROVED);
+
+    expect(onStatusChange).not.toHaveBeenCalled();
+    const sheet = within(monthSheet('다시 가입 처리'));
+    expect(
+      (sheet.getByLabelText('다시 시작하는 달') as HTMLInputElement).value
+    ).toBe('2026-12');
+    expect(sheet.getByText('이 달부터 회비를 냅니다.')).toBeTruthy();
+    expect(
+      sheet.getByText('실수로 탈퇴 처리했다면 예전 시작월(2024-03)을 고르세요.')
+    ).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.click(sheet.getByRole('button', { name: '다시 가입 처리' }));
+    });
+
+    expect(onStatusChange).toHaveBeenCalledWith(4, 1, Status.APPROVED, {
+      feeStartMonth: '2026-12',
+    });
+  });
+
+  it('취소하면 요청하지 않고 상태는 그대로다', async () => {
+    const onStatusChange = jest.fn();
+    await renderView({ onStatusChange });
+    const dialog = await openSheet('가온');
+
+    await pickStatus(dialog, Status.LEFT);
+    await act(async () => {
+      fireEvent.click(
+        within(monthSheet('탈퇴 처리')).getByRole('button', { name: '취소' })
+      );
+    });
+
+    expect(onStatusChange).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: '탈퇴 처리' })).toBeNull()
+    );
+    const select = within(
+      screen.getByRole('dialog', { name: '가온' })
+    ).getByLabelText('상태') as HTMLSelectElement;
+    expect(select.value).toBe(Status.APPROVED);
+  });
+
+  it('기본값을 못 불러와도 시트는 열리고 칸이 비면 저장할 수 없다', async () => {
+    await renderView({
+      onLoadStatusDefaults: async () => null,
+      members: WITH_LEFT,
+    });
+    const dialog = await openSheet('라온');
+
+    await pickStatus(dialog, Status.APPROVED);
+
+    const sheet = within(monthSheet('다시 가입 처리'));
+    expect(
+      (sheet.getByLabelText('다시 시작하는 달') as HTMLInputElement).value
+    ).toBe('');
+    expect(
+      (
+        sheet.getByRole('button', {
+          name: '다시 가입 처리',
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
+  });
+});
+
+describe('회원 관리 화면 — 기본값을 불러오는 중에 상세 시트를 닫으면', () => {
+  it('늦게 온 기본값으로 달 시트를 열지 않고, 다른 회원 시트에도 붙지 않는다', async () => {
+    let resolve: (value: typeof DEFAULTS) => void = () => {};
+    const onStatusChange = jest.fn();
+    await renderView({
+      onStatusChange,
+      onLoadStatusDefaults: () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    });
+    const dialog = await openSheet('가온');
+
+    await act(async () => {
+      fireEvent.change(within(dialog).getByLabelText('상태'), {
+        target: { value: Status.LEFT },
+      });
+    });
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: '닫기' }));
+    });
+    await act(async () => {
+      resolve(DEFAULTS);
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: '가온' })).toBeNull()
+    );
+
+    await openSheet('다람');
+
+    expect(
+      screen.queryByRole('dialog', { name: '탈퇴 처리', hidden: true })
+    ).toBeNull();
+    expect(onStatusChange).not.toHaveBeenCalled();
   });
 });

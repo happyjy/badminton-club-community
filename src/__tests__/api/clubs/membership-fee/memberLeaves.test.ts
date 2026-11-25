@@ -138,15 +138,32 @@ describe('휴회 기간 목록 — 의무가 없는 달의 납부', () => {
   });
 
   it('탈퇴한 뒤의 달에 걸려 있는 납부도 돌려준다', async () => {
-    fakeDb.state.members.find((m) => m.id === 1)!.leftAt = new Date(
-      2026,
-      2,
-      31
+    Object.assign(
+      fakeDb.state.members.find((m) => m.id === 1)!,
+      {
+        status: 'LEFT',
+        leftAt: new Date(2026, 2, 31),
+      }
     );
 
     const res = await call(leavesHandler, 'GET');
 
     expect(res.body.data.orphanPayments.map((p) => p.month)).toEqual([4, 5]);
+  });
+
+  it('다시 돌아온 회원의 예전 탈퇴일은 보지 않는다', async () => {
+    // 재가입해 승인 상태인데 예전 탈퇴일이 남아 있는 회원
+    Object.assign(
+      fakeDb.state.members.find((m) => m.id === 1)!,
+      {
+        status: 'APPROVED',
+        leftAt: new Date(2026, 2, 31),
+      }
+    );
+
+    const res = await call(leavesHandler, 'GET');
+
+    expect(res.body.data.orphanPayments).toEqual([]);
   });
 
   it('모두 의무가 있는 달이면 빈 목록이다', async () => {

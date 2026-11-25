@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 
 import {
+  defaultFeeObligationStartAt,
   getFirstObligationMonth,
   isMonthObligated,
   obligationMonthCount,
@@ -276,5 +277,31 @@ describe('feeObligation', () => {
       expect(result.next).toBeNull();
       expect(result.reasons).toEqual(['2026년 5월 탈퇴로 더 이상 의무 없음']);
     });
+  });
+});
+
+describe('defaultFeeObligationStartAt — 새 가입 규칙', () => {
+  it('15일까지는 그 달 1일', () => {
+    expect(
+      defaultFeeObligationStartAt(
+        new Date('2026-11-15T12:00:00Z')
+      ).toISOString()
+    ).toBe('2026-11-01T00:00:00.000Z');
+  });
+
+  it('16일부터는 다음 달 1일', () => {
+    expect(
+      defaultFeeObligationStartAt(
+        new Date('2026-11-16T00:00:00Z')
+      ).toISOString()
+    ).toBe('2026-12-01T00:00:00.000Z');
+  });
+
+  it('12월 하순이면 다음 해 1월', () => {
+    expect(
+      defaultFeeObligationStartAt(
+        new Date('2026-12-20T00:00:00Z')
+      ).toISOString()
+    ).toBe('2027-01-01T00:00:00.000Z');
   });
 });

@@ -2,6 +2,10 @@ import { useState } from 'react';
 
 import { toast } from 'react-hot-toast';
 
+import type {
+  MemberStatusDefaults,
+  StatusMonths,
+} from '@/lib/membership-fee/memberStatusChange';
 import type { ClubMemberWithUser } from '@/pages/clubs/[id]/members';
 import { Status } from '@/types/enums';
 
@@ -21,6 +25,16 @@ const withStatus = (
       ? { ...user, clubMember: { ...user.clubMember, status } }
       : user
   );
+
+/** 실패 응답의 사유. 읽지 못하면 null */
+async function readError(response: Response): Promise<string | null> {
+  try {
+    const body = (await response.json()) as { error?: unknown };
+    return typeof body.error === 'string' ? body.error : null;
+  } catch {
+    return null;
+  }
+}
 
 /** 회원 관리의 승인·상태 변경. 실패하면 토스트로 알린다. */
 export function useMemberActions({
@@ -56,12 +70,16 @@ export function useMemberActions({
     }
   };
 
+  /** 상태를 바꾼다. 탈퇴·다시 가입이면 고른 달(months)을 함께 보낸다 */
   const changeStatus = async (
     userId: number,
     clubId: number,
-    newStatus: Status
+    newStatus: Status,
+    months?: StatusMonths
   ) => {
     const previousParticipants = [...participants];
+    // 서버가 사유를 주면 그 사유를, 서버에 닿지 못했으면(네트워크 오류) 기본 문구를 보인다
+    let failureMessage = '상태 변경에 실패했습니다';
 
     // 낙관적 업데이트: 화면을 먼저 바꾼다.
     applyParticipants(withStatus(participants, userId, newStatus));
@@ -74,20 +92,39 @@ export function useMemberActions({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({ status: newStatus, ...months }),
         }
       );
 
       if (!response.ok) {
-        throw new Error('상태 변경에 실패했습니다');
+        failureMessage = (await readError(response)) ?? failureMessage;
+        throw new Error(failureMessage);
       }
     } catch (error) {
       console.error('상태 변경 중 오류가 발생했습니다:', error);
       // 실패하면 이전 상태로 되돌린다.
       applyParticipants(previousParticipants);
-      toast.error('상태 변경에 실패했습니다');
+      toast.error(failureMessage);
     }
   };
 
-  return { approve, changeStatus, approvingUserId };
+  /** 달 시트의 기본값. 읽지 못하면 null (시트는 빈 칸으로 연다) */
+  const loadStatusDefaults = async (
+    userId: number,
+    clubId: number
+  ): Promise<MemberStatusDefaults | null> => {
+    try {
+      const response = await fetch(
+        `/api/clubs/${clubId}/members/${userId}/status-defaults`
+      );
+      if (!response.ok) return null;
+      const body = (await response.json()) as { data?: MemberStatusDefaults };
+      return body.data ?? null;
+    } catch (error) {
+      console.error('기본값을 불러오지 못했습니다:', error);
+      return null;
+    }
+  };
+
+  return { approve, changeStatus, loadStatusDefaults, approvingUserId };
 }

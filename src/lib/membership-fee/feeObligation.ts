@@ -66,6 +66,17 @@ function getLastObligationMonth(
 }
 
 /**
+ * 새로 가입하거나 다시 가입한 회원의 회비 시작월 기본값 (그 달 1일 00:00 UTC).
+ * 15일까지는 그 달, 16일부터는 다음 달부터 낸다.
+ */
+export function defaultFeeObligationStartAt(now: Date): Date {
+  const offset = now.getUTCDate() <= 15 ? 0 : 1;
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offset, 1)
+  );
+}
+
+/**
  * 해당 연도에 회원의 첫 의무월 (1~12). 해당 연도에 의무 없으면 null.
  * feeObligationStartAt이 null이면 당해 연도 1월부터 의무로 간주 (하위 호환).
  * leavePeriods가 있으면 휴회 월은 제외한 첫 의무월을 반환.
