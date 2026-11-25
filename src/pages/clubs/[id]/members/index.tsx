@@ -79,11 +79,12 @@ function UsersPageContent() {
     return true;
   });
 
-  const { approve, changeStatus, approvingUserId } = useMemberActions({
-    participants: participants as ClubMemberWithUser[],
-    // 정렬 옵션을 다시 적용하여 목록을 바꾼다.
-    applyParticipants: (next) => onChangeSort(sortOption, next),
-  });
+  const { approve, changeStatus, loadStatusDefaults, approvingUserId } =
+    useMemberActions({
+      participants: participants as ClubMemberWithUser[],
+      // 정렬 옵션을 다시 적용하여 목록을 바꾼다.
+      applyParticipants: (next) => onChangeSort(sortOption, next),
+    });
 
   const isFiltered =
     keyword.length > 0 ||
@@ -105,6 +106,7 @@ function UsersPageContent() {
         allMembers={participants as ClubMemberWithUser[]}
         onApprove={approve}
         onStatusChange={changeStatus}
+        onLoadStatusDefaults={loadStatusDefaults}
         approvingUserId={approvingUserId}
       />
     </>

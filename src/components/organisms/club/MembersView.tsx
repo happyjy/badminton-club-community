@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useRef, useState } from 'react';
 
 import { ArrowUpDown } from 'lucide-react';
 
@@ -9,6 +9,7 @@ import { StatusChip } from '@/components/atoms/StatusChip';
 import { FormField } from '@/components/molecules/form/FormField';
 import { ListGroup } from '@/components/molecules/list/ListGroup';
 import { OptionPicker } from '@/components/molecules/OptionPicker';
+import { MemberStatusMonthSheet } from '@/components/organisms/club/MemberStatusMonthSheet';
 import { Sheet } from '@/components/organisms/sheet/Sheet';
 import { Column, DataTable } from '@/components/organisms/table/DataTable';
 import { Toolbar } from '@/components/organisms/table/Toolbar';
@@ -17,6 +18,12 @@ import {
   MEMBER_STATUS_LABEL,
   memberStatusLabel,
 } from '@/constants/memberStatus';
+import {
+  MemberStatusDefaults,
+  StatusMonthKind,
+  statusMonthKind,
+  StatusMonths,
+} from '@/lib/membership-fee/memberStatusChange';
 import type { ClubMemberWithUser } from '@/pages/clubs/[id]/members';
 import { Status } from '@/types/enums';
 import { SortOption } from '@/types/participantSort';
@@ -40,7 +47,18 @@ interface MembersViewProps {
   /** 상태 필터. 도구줄 아래에 그린다 */
   filter?: ReactNode;
   onApprove: (userId: number, clubId: number) => void;
-  onStatusChange: (userId: number, clubId: number, status: Status) => void;
+  /** 상태를 바꾼다. 탈퇴·다시 가입이면 고른 달(months)을 함께 넘긴다 */
+  onStatusChange: (
+    userId: number,
+    clubId: number,
+    status: Status,
+    months?: StatusMonths
+  ) => void;
+  /** 탈퇴·다시 가입 시트의 기본값. 불러오지 못하면 null */
+  onLoadStatusDefaults: (
+    userId: number,
+    clubId: number
+  ) => Promise<MemberStatusDefaults | null>;
   /** 승인 요청이 진행 중인 회원 */
   approvingUserId: number | null;
 }
@@ -104,6 +122,7 @@ export function MembersView({
   filter,
   onApprove,
   onStatusChange,
+  onLoadStatusDefaults,
   approvingUserId,
 }: MembersViewProps) {
   // 닫히는 애니메이션 동안에도 내용이 남도록 "누구의 시트인가"와 "열려 있는가"를 따로 둔다.
@@ -112,6 +131,69 @@ export function MembersView({
   const selected = (allMembers ?? members).find(
     (user) => user.id === selectedUserId
   );
+
+  // 탈퇴·다시 가입은 바로 바꾸지 않고 달을 묻는다. 닫히는 애니메이션 동안 내용이 남게 열림은 따로 둔다.
+  const [monthChange, setMonthChange] = useState<{
+    key: number;
+    kind: StatusMonthKind;
+    userId: number;
+    clubId: number;
+    status: Status;
+    defaults: MemberStatusDefaults | null;
+  } | null>(null);
+  const [isMonthSheetOpen, setIsMonthSheetOpen] = useState(false);
+  // 기본값 요청의 번호. 상세 시트를 닫거나 다른 회원을 열면 올려, 늦게 온 응답으로 달 시트를 열지 않는다.
+  const monthRequestSeq = useRef(0);
+
+  const openDetail = (userId: number) => {
+    monthRequestSeq.current += 1;
+    setIsMonthSheetOpen(false);
+    setSelectedUserId(userId);
+    setIsSheetOpen(true);
+  };
+
+  const closeDetail = () => {
+    monthRequestSeq.current += 1;
+    setIsMonthSheetOpen(false);
+    setIsSheetOpen(false);
+  };
+
+  const requestStatusChange = async (
+    user: ClubMemberWithUser,
+    next: Status
+  ) => {
+    const { clubId } = user.clubMember;
+    const kind = statusMonthKind(user.clubMember.status, next);
+    if (!kind) {
+      onStatusChange(user.id, clubId, next);
+      return;
+    }
+    const seq = ++monthRequestSeq.current;
+    const defaults = await onLoadStatusDefaults(user.id, clubId);
+    if (seq !== monthRequestSeq.current) return;
+    setMonthChange((prev) => ({
+      key: (prev?.key ?? 0) + 1,
+      kind,
+      userId: user.id,
+      clubId,
+      status: next,
+      defaults,
+    }));
+    setIsMonthSheetOpen(true);
+  };
+
+  const confirmMonthChange = (month: string) => {
+    if (!monthChange) return;
+    setIsMonthSheetOpen(false);
+    onStatusChange(
+      monthChange.userId,
+      monthChange.clubId,
+      monthChange.status,
+      monthChange.kind === 'leave'
+        ? { leftMonth: month }
+        : { feeStartMonth: month }
+    );
+  };
 
   const approveButton = (user: ClubMemberWithUser, size: 'sm' | 'lg') => (
     <Button
@@ -246,10 +328,7 @@ export function MembersView({
             <MemberStatusChip status={user.clubMember.status} />
           ),
         }}
-        onRowClick={(user) => {
-          setSelectedUserId(user.id);
-          setIsSheetOpen(true);
-        }}
+        onRowClick={(user) => openDetail(user.id)}
         empty={
           totalCount > 0
             ? '선택한 필터에 맞는 멤버가 없습니다.'
@@ -259,7 +338,7 @@ export function MembersView({
 
       <Sheet
         open={isSheetOpen && !!selected}
-        onClose={() => setIsSheetOpen(false)}
+        onClose={closeDetail}
         title={selected ? displayName(selected) : ''}
         footer={
           selected?.clubMember.status === Status.PENDING
@@ -303,11 +382,7 @@ export function MembersView({
                   onChange={(e) => {
                     const next = e.target.value as Status;
                     if (next !== selected.clubMember.status) {
-                      onStatusChange(
-                        selected.id,
-                        selected.clubMember.clubId,
-                        next
-                      );
+                      void requestStatusChange(selected, next);
                     }
                   }}
                 >
@@ -318,6 +393,18 @@ export function MembersView({
                   ))}
                 </Select>
               </FormField>
+            )}
+
+            {/* 상세 시트 안에 두어야 겹친 시트로 열린다 (바깥 누르기로 상세 시트가 닫히지 않게) */}
+            {monthChange && (
+              <MemberStatusMonthSheet
+                key={monthChange.key}
+                open={isMonthSheetOpen}
+                kind={monthChange.kind}
+                defaults={monthChange.defaults}
+                onCancel={() => setIsMonthSheetOpen(false)}
+                onConfirm={confirmMonthChange}
+              />
             )}
           </div>
         )}

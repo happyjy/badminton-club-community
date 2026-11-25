@@ -16,8 +16,17 @@ const BARE = new Set([
 
 const ADMIN = new Set([
   '/clubs/[id]/members',
+  '/clubs/[id]/members/[userId]',
   '/clubs/[id]/guest/check',
   '/clubs/[id]/custom',
+  '/clubs/[id]/membership-fee',
+  '/clubs/[id]/membership-fee/batches',
+  '/clubs/[id]/membership-fee/process',
+  '/clubs/[id]/membership-fee/report',
+  '/clubs/[id]/membership-fee/upload',
+  '/clubs/[id]/membership-fee/settings/couples',
+  '/clubs/[id]/membership-fee/settings/exemptions',
+  '/clubs/[id]/membership-fee/settings/fee-types',
   '/clubs/[id]/board/categories',
   '/clubs/[id]/tournaments/new',
   '/clubs/[id]/tournaments/[tournamentId]/admin',

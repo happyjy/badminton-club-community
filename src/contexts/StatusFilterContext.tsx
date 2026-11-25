@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  ReactNode,
+} from 'react';
 
 import { Status } from '@/types/enums';
 
@@ -23,41 +30,48 @@ export function StatusFilterProvider({ children }: { children: ReactNode }) {
     excluded: [],
   });
 
-  const toggleStatusFilter = (
-    status: Status,
-    type: 'included' | 'excluded'
-  ) => {
-    setStatusFilters((prev) => {
-      const newFilters = { ...prev };
-      const targetArray = newFilters[type];
-      const otherArray =
-        newFilters[type === 'included' ? 'excluded' : 'included'];
+  const toggleStatusFilter = useCallback(
+    (status: Status, type: 'included' | 'excluded') => {
+      setStatusFilters((prev) => {
+        const newFilters = { ...prev };
+        const targetArray = newFilters[type];
+        const otherArray =
+          newFilters[type === 'included' ? 'excluded' : 'included'];
 
-      // 이미 선택된 상태인 경우 제거
-      if (targetArray.includes(status)) {
-        newFilters[type] = targetArray.filter((s) => s !== status);
-      } else {
-        // 다른 배열에서 제거하고 현재 배열에 추가
-        newFilters[type] = [...targetArray, status];
-        newFilters[type === 'included' ? 'excluded' : 'included'] =
-          otherArray.filter((s) => s !== status);
-      }
+        // 이미 선택된 상태인 경우 제거
+        if (targetArray.includes(status)) {
+          newFilters[type] = targetArray.filter((s) => s !== status);
+        } else {
+          // 다른 배열에서 제거하고 현재 배열에 추가
+          newFilters[type] = [...targetArray, status];
+          newFilters[type === 'included' ? 'excluded' : 'included'] =
+            otherArray.filter((s) => s !== status);
+        }
 
-      return newFilters;
-    });
-  };
+        return newFilters;
+      });
+    },
+    []
+  );
 
-  const clearStatusFilters = () => {
+  const clearStatusFilters = useCallback(() => {
     setStatusFilters({
       included: [],
       excluded: [],
     });
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      statusFilters,
+      toggleStatusFilter,
+      clearStatusFilters,
+    }),
+    [statusFilters, toggleStatusFilter, clearStatusFilters]
+  );
 
   return (
-    <StatusFilterContext.Provider
-      value={{ statusFilters, toggleStatusFilter, clearStatusFilters }}
-    >
+    <StatusFilterContext.Provider value={value}>
       {children}
     </StatusFilterContext.Provider>
   );

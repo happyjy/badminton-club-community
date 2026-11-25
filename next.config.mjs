@@ -1,8 +1,12 @@
-import { NextConfig } from 'next';
+// 설정 파일을 .ts로 두지 않는다.
+// Next.js가 next.config.ts를 읽은 뒤 Node의 .mjs 처리기(require.extensions['.mjs'])를 지워,
+// dev 서버에서 엑셀 내보내기(exceljs)가 ERR_REQUIRE_ESM으로 실패한다 (Next 15.5.27 기준).
 import withPWA from 'next-pwa';
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
+  outputFileTracingRoot: process.cwd(),
   // Vercel에서 자동으로 이미지 최적화를 지원합니다
   images: {
     domains: ['k.kakaocdn.net', 'img1.kakaocdn.net', 't1.kakaocdn.net'],

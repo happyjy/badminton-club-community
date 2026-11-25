@@ -2,7 +2,7 @@
  * 도메인 상태 → 상태색 톤. 이 대응은 여기서만 정한다.
  * 화면에서 `status === 'APPROVED' ? … : …`로 색을 고르지 않는다.
  *
- * 값의 출처: prisma/schema/enums.prisma, membershipFee.prisma,
+ * 값의 출처: prisma/schema/enums.prisma, membershipFee.prisma(상태·입금 분류),
  * workout.prisma(참가 status), src/types/enums.ts(회원 Status).
  */
 export type Tone = 'positive' | 'warning' | 'negative' | 'neutral';
@@ -14,7 +14,8 @@ export type StatusDomain =
   | 'entryPayment'
   | 'entryEvent'
   | 'tournament'
-  | 'feeRecord';
+  | 'feeRecord'
+  | 'paymentKind';
 
 const TONES: Record<StatusDomain, Record<string, Tone>> = {
   guest: {
@@ -54,6 +55,14 @@ const TONES: Record<StatusDomain, Record<string, Tone>> = {
     CONFIRMED: 'positive',
     ERROR: 'negative',
     SKIPPED: 'neutral',
+  },
+  // 입금 분류. 회비가 아닌 건은 눈에 띄지 않게 두고, 금액이 큰 가입비만 구분되게 한다.
+  paymentKind: {
+    FEE: 'positive',
+    JOINING_FEE: 'warning',
+    EVENT: 'neutral',
+    OTHER: 'neutral',
+    INTEREST: 'neutral',
   },
 };
 

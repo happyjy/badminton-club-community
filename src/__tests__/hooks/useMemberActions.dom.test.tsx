@@ -22,8 +22,9 @@ const member = (id: number, status: Status) =>
 
 const MEMBERS = [member(1, Status.APPROVED), member(2, Status.PENDING)];
 
-type FetchArgs = [string, { method: string; body?: string }];
-const fetchMock = jest.fn<(...args: FetchArgs) => Promise<{ ok: boolean }>>();
+type FetchArgs = [string, { method: string; body?: string }?];
+type FetchResult = { ok: boolean; json?: () => Promise<unknown> };
+const fetchMock = jest.fn<(...args: FetchArgs) => Promise<FetchResult>>();
 const statusOf = (list: ClubMemberWithUser[], id: number) =>
   list.find((user) => user.id === id)?.clubMember.status;
 
@@ -62,8 +63,8 @@ describe('useMemberActions — 승인', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('/api/clubs/1/members/2/approve');
-    expect(init.method).toBe('PUT');
-    expect(init.body).toBeUndefined();
+    expect(init?.method).toBe('PUT');
+    expect(init?.body).toBeUndefined();
 
     expect(applyParticipants).toHaveBeenCalledTimes(1);
     const next = applyParticipants.mock.calls[0][0];
@@ -119,8 +120,8 @@ describe('useMemberActions — 상태 변경', () => {
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('/api/clubs/1/members/1/status');
-    expect(init.method).toBe('PUT');
-    expect(JSON.parse(init.body ?? '')).toEqual({
+    expect(init?.method).toBe('PUT');
+    expect(JSON.parse(init?.body ?? '')).toEqual({
       status: Status.ON_LEAVE,
     });
 
@@ -144,6 +145,92 @@ describe('useMemberActions — 상태 변경', () => {
     expect(statusOf(applyParticipants.mock.calls[1][0], 1)).toBe(
       Status.APPROVED
     );
+    expect(failure).toHaveBeenCalledWith('상태 변경에 실패했습니다');
+  });
+});
+
+describe('useMemberActions — 탈퇴월·다시 시작하는 달', () => {
+  it('고른 달을 상태와 함께 보낸다', async () => {
+    fetchMock.mockResolvedValue({ ok: true });
+    const { hook } = setup();
+
+    await act(async () => {
+      await hook.result.current.changeStatus(1, 1, Status.LEFT, {
+        leftMonth: '2026-07',
+      });
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse(init?.body ?? '')).toEqual({
+      status: Status.LEFT,
+      leftMonth: '2026-07',
+    });
+  });
+
+  it('실패하면 서버가 준 사유를 보이고 목록을 되돌린다', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: '탈퇴월을 골라주세요', status: 400 }),
+    });
+    const { applyParticipants, hook } = setup();
+
+    await act(async () => {
+      await hook.result.current.changeStatus(1, 1, Status.LEFT, {});
+    });
+
+    expect(failure).toHaveBeenCalledWith('탈퇴월을 골라주세요');
+    expect(statusOf(applyParticipants.mock.calls[1][0], 1)).toBe(
+      Status.APPROVED
+    );
+  });
+});
+
+describe('useMemberActions — 달 시트의 기본값', () => {
+  it('기본값 주소를 읽어 data를 돌려준다', async () => {
+    const defaults = {
+      lastPaidMonth: '2026-07',
+      rejoinStartMonth: '2026-12',
+      previousStartMonth: '2024-03',
+    };
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: defaults, status: 200 }),
+    });
+    const { hook } = setup();
+
+    let result: unknown;
+    await act(async () => {
+      result = await hook.result.current.loadStatusDefaults(1, 1);
+    });
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      '/api/clubs/1/members/1/status-defaults'
+    );
+    expect(result).toEqual(defaults);
+  });
+
+  it('읽지 못하면 null', async () => {
+    fetchMock.mockResolvedValue({ ok: false });
+    const { hook } = setup();
+
+    let result: unknown = 'not-set';
+    await act(async () => {
+      result = await hook.result.current.loadStatusDefaults(1, 1);
+    });
+
+    expect(result).toBeNull();
+  });
+});
+
+describe('useMemberActions — 서버에 닿지 못했을 때', () => {
+  it('네트워크 오류의 영어 문장 대신 기본 문구를 보인다', async () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    const { hook } = setup();
+
+    await act(async () => {
+      await hook.result.current.changeStatus(1, 1, Status.ON_LEAVE);
+    });
+
     expect(failure).toHaveBeenCalledWith('상태 변경에 실패했습니다');
   });
 });

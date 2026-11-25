@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
+import { defaultFeeObligationStartAt } from '@/lib/membership-fee/feeObligation';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { ApiResponse } from '@/types';
@@ -90,6 +91,9 @@ export default withAuth(async function handler(
       });
     }
 
+    // 15일 이전 가입 → 당월 시작, 15일 이후 가입 → 다음달 시작
+    const feeObligationStartAt = defaultFeeObligationStartAt(new Date());
+
     const membership = await prisma.clubMember.create({
       data: {
         clubId: Number(clubId),
@@ -104,6 +108,7 @@ export default withAuth(async function handler(
         nationalTournamentLevel,
         lessonPeriod,
         playingPeriod,
+        feeObligationStartAt,
       },
     });
 

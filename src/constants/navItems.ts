@@ -8,6 +8,7 @@ import {
   Trophy,
   UserPlus,
   Users,
+  Wallet,
 } from 'lucide-react';
 
 import { getGuestPageStrategy } from '@/strategies/GuestPageStrategy';
@@ -143,6 +144,15 @@ export function getNavItems({
         section: 'admin',
         tab: false,
         isActive: (path) => isUnder(path, `${base}/guest/check`),
+      },
+      {
+        key: 'membershipFee',
+        label: '회비 관리',
+        href: `${base}/membership-fee`,
+        icon: Wallet,
+        section: 'admin',
+        tab: false,
+        isActive: (path) => isUnder(path, `${base}/membership-fee`),
       },
       {
         key: 'custom',
