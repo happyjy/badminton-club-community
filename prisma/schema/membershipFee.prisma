@@ -237,17 +237,20 @@ model PaymentRecord {
 model MembershipPayment {
   id               String    @id @default(cuid())
   clubMemberId     Int
-  paymentRecordId  String
+  /// 입금 내역. 없으면 관리자가 직접 추가한 납부다 (통장 입금 없음)
+  paymentRecordId  String?
   year             Int
   month            Int
   amount           Int
   period           FeePeriod @default(MONTHLY) // 납부 주기
   confirmedAt      DateTime  @default(now())
   confirmedById    Int
+  /// 직접 추가한 납부의 사유 (다른 계좌로 보냄·현금으로 받음·직접 쓴 글). 입금 없는 납부에만 있다
+  manualReason     String?
 
   // Relations
-  clubMember    ClubMember    @relation("MembershipPaymentMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
-  paymentRecord PaymentRecord @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
+  clubMember    ClubMember     @relation("MembershipPaymentMember", fields: [clubMemberId], references: [id], onDelete: Cascade)
+  paymentRecord PaymentRecord? @relation(fields: [paymentRecordId], references: [id], onDelete: Cascade)
   confirmedBy   ClubMember    @relation("MembershipPaymentConfirmer", fields: [confirmedById], references: [id])
 
   // 같은 달 두 번째 납부(부족분 충당)를 허용한다. 중복 확정은 PaymentRecord.status 가드가 막는다.

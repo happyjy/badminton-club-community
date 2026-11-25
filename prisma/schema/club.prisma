@@ -55,6 +55,8 @@ model ClubMember {
   position                 String?
   /// 직책 있는 회원끼리의 정렬 순서. 작을수록 위.
   positionOrder            Int?
+  /// 회비 대상 아님 (코치 등). 납부 현황·내보내기·미납자 목록에서 뺀다.
+  feeExcluded              Boolean   @default(false)
 
   // Relations
   guestComments            GuestComment[]
