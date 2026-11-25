@@ -115,7 +115,9 @@ describe('buildFeeStatusWorkbook', () => {
     const exempt = sheet.getRow(DATA_START);
     expect(fillOf(monthCell(exempt, 1))).toBe(CELL_FILL.EXEMPT);
     expect(fillOf(monthCell(exempt, 4))).toBe(CELL_FILL.EXEMPT);
-    expect(fillOf(monthCell(exempt, 5))).toBeUndefined();
+    // 면제도 아직 오지 않은 달까지 칠한다
+    expect(fillOf(monthCell(exempt, 5))).toBe(CELL_FILL.EXEMPT);
+    expect(fillOf(monthCell(exempt, 12))).toBe(CELL_FILL.EXEMPT);
 
     const joinedInMarch = sheet.getRow(DATA_START + 1);
     expect(fillOf(monthCell(joinedInMarch, 1))).toBe(CELL_FILL.NONE);
@@ -169,6 +171,45 @@ describe('buildFeeStatusWorkbook', () => {
     expect(sheet.getRow(DATA_START).getCell(2).border?.bottom?.style).toBe(
       'thin'
     );
+  });
+
+  it('지금 부부인 회원은 비고에 부부라고 적고, 직책이 있으면 함께 적는다', async () => {
+    const sheet = await sheetOf([
+      member({
+        id: 1,
+        name: '가부부',
+        isCouple: true,
+        couplePartnerName: '나부부',
+      }),
+      member({
+        id: 2,
+        name: '다총무',
+        position: '총무',
+        positionOrder: 1,
+        // 면제인 임원도 부부면 적는다
+        exemptMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        isCouple: true,
+        couplePartnerName: '라부부',
+      }),
+      member({ id: 3, name: '마혼자' }),
+      member({
+        id: 4,
+        name: '바탈퇴',
+        status: 'LEFT',
+        leftAt: new Date(2026, 1, 20),
+        isCouple: true,
+        couplePartnerName: '사부부',
+      }),
+    ]);
+    const remarkOf = (offset: number) =>
+      sheet.getRow(DATA_START + offset).getCell(15).value;
+
+    expect(sheet.getRow(DATA_START).getCell(2).value).toBe('다총무');
+    expect(remarkOf(0)).toBe('총무 · 부부');
+    expect(remarkOf(1)).toBe('부부');
+    expect(remarkOf(2)).toBeNull();
+    // 탈퇴 회원은 탈퇴만 적는다
+    expect(remarkOf(3)).toBe('2026.02 탈퇴');
   });
 
   it('탈퇴 회원은 활동 회원 아래에 따로 모아 쓴다', async () => {

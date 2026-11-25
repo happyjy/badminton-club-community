@@ -92,7 +92,7 @@ describe('buildMemberYearStatus — 칸의 상태', () => {
     expect(cells[12]).toBe('NONE');
   });
 
-  it('면제 기간 앞의 달은 일반 회원처럼, 면제 기간의 달은 이번 달까지 면제로 표시한다', () => {
+  it('면제 기간 앞의 달은 일반 회원처럼, 면제 기간의 달은 아직 오지 않았어도 면제로 표시한다', () => {
     const { cells } = status({
       exemptMonths: FROM_APRIL,
       feeObligationStartAt: new Date(2025, 0, 1),
@@ -104,7 +104,8 @@ describe('buildMemberYearStatus — 칸의 상태', () => {
     expect(cells[3]).toBe('PAID');
     expect(cells[4]).toBe('EXEMPT');
     expect(cells[10]).toBe('EXEMPT');
-    expect(cells[11]).toBe('FUTURE');
+    expect(cells[11]).toBe('EXEMPT');
+    expect(cells[12]).toBe('EXEMPT');
   });
 
   it('면제 기간의 달은 낸 기록이 있어도 면제이고, 이월할 납부로 보지 않는다', () => {
@@ -197,9 +198,11 @@ describe('buildMemberYearStatus — 대시보드가 쓰는 값', () => {
   });
 
   it('면제·부부·탈퇴를 구분한다', () => {
-    expect(status({ exemptMonths: FROM_APRIL, isCouple: true }).type).toBe(
-      'exempt'
-    );
+    expect(status({ exemptMonths: FROM_APRIL, isCouple: true })).toMatchObject({
+      type: 'exempt',
+      isCouple: true,
+    });
+    expect(status().isCouple).toBe(false);
     expect(
       status({ isCouple: true, couplePartnerName: '라마바' })
     ).toMatchObject({ type: 'couple', couplePartnerName: '라마바' });

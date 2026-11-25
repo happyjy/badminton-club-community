@@ -54,6 +54,8 @@ export interface MemberYearStatus extends MemberPaymentStatus {
   orphanPaidMonths: number[];
   position: string | null;
   positionOrder: number | null;
+  /** 현재 부부 그룹에 속했는지. 면제 회원이면 type이 'exempt'라 따로 싣는다 */
+  isCouple: boolean;
 }
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -131,7 +133,8 @@ export function buildMemberYearStatus(
       cells[month] = 'NONE';
     } else if (exemptMonths.includes(month)) {
       // 면제 기간의 달은 낸 기록이 있어도 면제다 (미리 낸 연납을 돌려준 임원 등).
-      cells[month] = hasCome ? 'EXEMPT' : 'FUTURE';
+      // 면제는 기간을 정해 미리 등록하므로 아직 오지 않은 달도 면제로 칠한다 (재무의 표와 같다).
+      cells[month] = 'EXEMPT';
     } else if (paidMonths.has(month)) {
       cells[month] = 'PAID';
     } else {
@@ -171,6 +174,7 @@ export function buildMemberYearStatus(
     ),
     position: member.position,
     positionOrder: member.positionOrder,
+    isCouple: member.isCouple,
   };
 }
 

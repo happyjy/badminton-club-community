@@ -169,6 +169,11 @@ export async function buildFeeStatusWorkbook(params: {
     .filter((row) => row.isLeft)
     .sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
   const officerCount = active.filter((row) => row.position).length;
+  // 비고: 직책, 지금 부부면 "부부" (재무의 표처럼). 둘 다면 "총무 · 부부"
+  const remarkOf = (member: MemberYearStatus) =>
+    [member.position, member.isCouple ? '부부' : null]
+      .filter(Boolean)
+      .join(' · ');
 
   let rowNumber = FIRST_DATA_ROW;
   active.forEach((member, index) => {
@@ -179,7 +184,7 @@ export async function buildFeeStatusWorkbook(params: {
       sheet.getRow(rowNumber++),
       member,
       index + 1,
-      member.position ?? '',
+      remarkOf(member),
       isLastOfficer || isLastActive ? medium : thin
     );
   });
