@@ -134,4 +134,33 @@ describe('deliverFiles', () => {
     ]);
     click.mockRestore();
   });
+
+  it('기본 내려받기는 파일 주소를 바로 지우지 않고 잠시 뒤에 지운다 (사파리가 받기 전에 지우면 실패한다)', async () => {
+    jest.useFakeTimers();
+    const revoke = jest.fn();
+    (URL as unknown as { createObjectURL: unknown }).createObjectURL = jest.fn(
+      () => 'blob:image'
+    );
+    (URL as unknown as { revokeObjectURL: unknown }).revokeObjectURL = revoke;
+    const click = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+
+    await deliverFiles(FILES, {
+      title: TITLE,
+      confirmShare: async () => true,
+      env: {
+        navigator: {} as Navigator,
+        matchMedia: () => ({ matches: false }) as MediaQueryList,
+      },
+    });
+
+    expect(click).toHaveBeenCalledTimes(2);
+    expect(revoke).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(40_000);
+    expect(revoke).toHaveBeenCalledTimes(2);
+
+    click.mockRestore();
+    jest.useRealTimers();
+  });
 });

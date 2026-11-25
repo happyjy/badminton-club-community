@@ -11,13 +11,16 @@ interface DeliverEnv {
   download?: (file: File) => void;
 }
 
+/** 파일 주소를 지우기까지 기다리는 시간. 사파리는 누른 직후 지우면 받기에 실패할 수 있다 */
+const REVOKE_DELAY_MS = 40_000;
+
 function downloadFile(file: File) {
   const url = URL.createObjectURL(file);
   const link = document.createElement('a');
   link.href = url;
   link.download = file.name;
   link.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
 }
 
 export async function deliverFiles(
