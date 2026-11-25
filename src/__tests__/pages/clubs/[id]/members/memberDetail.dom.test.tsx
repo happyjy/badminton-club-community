@@ -14,6 +14,8 @@ import {
 } from '@testing-library/react';
 import axios from 'axios';
 
+import { toast } from 'react-hot-toast';
+
 import MemberDetailPage from '@/pages/clubs/[id]/members/[userId]';
 
 jest.mock('next/router', () => ({
@@ -29,6 +31,9 @@ jest.mock('@/components/organisms/sheet/ConfirmProvider', () => ({
   useConfirm: () => async () => true,
 }));
 jest.mock('axios');
+jest.mock('react-hot-toast', () => ({
+  toast: { success: jest.fn(), error: jest.fn() },
+}));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 const API = '/api/clubs/1/members/1001';
@@ -140,5 +145,49 @@ describe('회원 상세 — 이월 안내와 직접 추가한 납부', () => {
       `${API}/manual-payments/pay-9`
     );
     await waitFor(() => expect(getCalls('/leaves')).toBe(2));
+  });
+});
+
+describe('회원 상세 — 탈퇴 정보 저장 실패', () => {
+  it('서버가 준 사유를 토스트로 보인다', async () => {
+    const answer = mockedAxios.get.getMockImplementation()!;
+    mockedAxios.get.mockImplementation((async (url: string) =>
+      url === API
+        ? {
+            data: {
+              data: {
+                clubMember: {
+                  id: 1,
+                  name: '가나다',
+                  status: 'LEFT',
+                  createdAt: '2025-01-02T00:00:00.000Z',
+                  feeObligationStartAt: '2026-01-01T00:00:00.000Z',
+                  leftAt: '2026-06-01T00:00:00.000Z',
+                  feeExcluded: false,
+                },
+              },
+            },
+          }
+        : answer(url)) as unknown as typeof axios.get);
+    mockedAxios.patch.mockRejectedValue({
+      response: { data: { error: '탈퇴월을 입력해주세요', status: 400 } },
+    });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemberDetailPage />
+      </QueryClientProvider>
+    );
+
+    fireEvent.change(await screen.findByLabelText('탈퇴일'), {
+      target: { value: '' },
+    });
+    fireEvent.change(screen.getByLabelText('마지막 월'), {
+      target: { value: '' },
+    });
+    fireEvent.click(screen.getAllByRole('button', { name: '저장' })[0]);
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('탈퇴월을 입력해주세요')
+    );
   });
 });

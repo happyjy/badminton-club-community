@@ -286,8 +286,9 @@ function MemberDetailPage() {
           leftAt: effectiveLeftAt,
         });
       }
-    } catch {
-      toast.error('저장에 실패했습니다.');
+    } catch (err: unknown) {
+      // 탈퇴 회원의 탈퇴일을 비우면 서버가 "탈퇴월을 입력해주세요"를 준다
+      toast.error(serverError(err) ?? '저장에 실패했습니다.');
     } finally {
       setSaving(false);
     }
