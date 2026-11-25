@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
+import { renderFeeStatusImages } from '@/lib/membership-fee/feeStatusImage';
+import type { FeeStatusSheetResponse } from '@/lib/membership-fee/feeStatusSheet';
 import {
   PaymentDashboardData,
   MembershipFeeSettings,
@@ -148,6 +150,54 @@ export function useExportFeeStatus(clubId: string | undefined) {
       URL.revokeObjectURL(url);
 
       return fileName;
+    },
+  });
+}
+
+const IMAGE_FAILED_MESSAGE = '이미지를 만들지 못했습니다.';
+
+/**
+ * 연간 납부현황표를 40명씩 나눈 PNG 파일로 만든다 (카톡방에 올리는 용도).
+ * 보내기(공유·내려받기)는 부르는 쪽이 정한다.
+ */
+export function useBuildFeeStatusImages(clubId: string | undefined) {
+  return useMutation({
+    mutationFn: async (year: number): Promise<File[]> => {
+      if (!clubId) {
+        throw new Error('클럽 ID가 필요합니다');
+      }
+
+      let sheet: FeeStatusSheetResponse;
+      try {
+        const response = await axios.get<{
+          data: { sheet: FeeStatusSheetResponse };
+        }>(`/api/clubs/${clubId}/membership-fee/export-sheet?year=${year}`);
+        sheet = response.data.data.sheet;
+      } catch (error) {
+        const reason: unknown = axios.isAxiosError(error)
+          ? error.response?.data?.error
+          : null;
+        throw new Error(
+          typeof reason === 'string' && reason ? reason : IMAGE_FAILED_MESSAGE
+        );
+      }
+
+      let blobs: Blob[];
+      try {
+        blobs = await renderFeeStatusImages(sheet);
+      } catch {
+        throw new Error(IMAGE_FAILED_MESSAGE);
+      }
+      return blobs.map(
+        (blob, index) =>
+          new File(
+            [blob],
+            `회비납부현황_${year}_${sheet.stamp}_${index + 1}.png`,
+            {
+              type: 'image/png',
+            }
+          )
+      );
     },
   });
 }

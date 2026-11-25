@@ -31,6 +31,8 @@ const base: Props = {
   onThroughMonthChange: () => {},
   onExport: () => {},
   isExporting: false,
+  onExportImage: () => {},
+  isExportingImage: false,
 };
 
 describe('FeeDashboardView — 납부현황 내보내기', () => {
@@ -60,5 +62,45 @@ describe('FeeDashboardView — 납부현황 내보내기', () => {
     expect(
       screen.queryByRole('button', { name: '납부현황 내보내기' })
     ).toBeNull();
+  });
+});
+
+describe('FeeDashboardView — 이미지로 내보내기', () => {
+  it('버튼을 누르면 이미지 내보내기를 부른다', () => {
+    const onExport = jest.fn();
+    const onExportImage = jest.fn();
+    render(
+      <FeeDashboardView
+        {...base}
+        onExport={onExport}
+        onExportImage={onExportImage}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '이미지로 내보내기' }));
+
+    expect(onExportImage).toHaveBeenCalledTimes(1);
+    expect(onExport).not.toHaveBeenCalled();
+  });
+
+  it('만드는 중에는 그렇다고 알리고 다시 누를 수 없다', () => {
+    const onExportImage = jest.fn();
+    render(
+      <FeeDashboardView
+        {...base}
+        onExportImage={onExportImage}
+        isExportingImage
+      />
+    );
+
+    const button = screen.getByRole('button', { name: /만드는 중/ });
+    fireEvent.click(button);
+
+    expect(button).toHaveProperty('disabled', true);
+    expect(onExportImage).not.toHaveBeenCalled();
+    // 엑셀 버튼 문구는 그대로다
+    expect(
+      screen.getByRole('button', { name: '납부현황 내보내기' })
+    ).toBeTruthy();
   });
 });

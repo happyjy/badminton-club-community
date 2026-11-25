@@ -2,14 +2,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 import { APPROVED_STATUS } from '@/lib/clubAuth';
 import { buildFeeStatusWorkbook } from '@/lib/membership-fee/exportWorkbook';
+import { loadFeeStatusExport } from '@/lib/membership-fee/feeStatusExport';
 import { kstYearMonth } from '@/lib/membership-fee/kst';
-import { buildMemberYearStatus } from '@/lib/membership-fee/memberYearStatus';
-import { loadMemberYearData } from '@/lib/membership-fee/memberYearStatusLoader';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/session';
 import { Role } from '@/types/enums';
-
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 /**
  * GET: 연간 월회비 납부현황표를 엑셀 파일로 내려 준다 (관리자).
@@ -62,25 +59,14 @@ export default withAuth(async function handler(
   }
 
   try {
-    // 대시보드와 같은 조회·계산을 쓴다. 화면과 파일이 다를 수 없다.
-    const { members } = await loadMemberYearData(prisma, clubIdNumber, year);
-    const rows = members
-      .map((member) => buildMemberYearStatus(year, member, now))
-      // 그 해에 회비 의무(또는 휴회·면제)가 있었던 회원만 싣는다
-      .filter(
-        (row) => row.obligationMonths.length > 0 || row.leaveMonths.length > 0
-      );
-
-    // 반영일과 파일 이름의 날짜는 한국 시각으로 적는다
-    const today = new Date(now.getTime() + KST_OFFSET_MS);
-    const asOf = new Date(
-      today.getUTCFullYear(),
-      today.getUTCMonth(),
-      today.getUTCDate()
+    const { rows, asOf, stamp } = await loadFeeStatusExport(
+      prisma,
+      clubIdNumber,
+      year,
+      now
     );
     const buffer = await buildFeeStatusWorkbook({ year, asOf, rows });
 
-    const stamp = today.toISOString().slice(0, 10).replace(/-/g, '');
     const fileName = `회비납부현황_${year}_${stamp}.xlsx`;
     res.setHeader(
       'Content-Type',

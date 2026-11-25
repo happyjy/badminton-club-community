@@ -58,6 +58,8 @@ const base: Props = {
   onThroughMonthChange: () => {},
   onExport: () => {},
   isExporting: false,
+  onExportImage: () => {},
+  isExportingImage: false,
 };
 
 const grid = () =>

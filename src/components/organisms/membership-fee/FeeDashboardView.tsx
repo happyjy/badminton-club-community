@@ -4,6 +4,7 @@ import {
   Clock,
   Download,
   FileText,
+  ImageDown,
   LucideIcon,
   Settings,
   Users,
@@ -48,6 +49,9 @@ interface FeeDashboardViewProps {
   /** 보고 있는 해의 납부현황표를 엑셀로 내려받는다 */
   onExport: () => void;
   isExporting: boolean;
+  /** 보고 있는 해의 납부현황표를 카톡에 올릴 PNG로 만든다 */
+  onExportImage: () => void;
+  isExportingImage: boolean;
 }
 
 const SHORTCUTS: Array<{ path: string; label: string; icon: LucideIcon }> = [
@@ -82,6 +86,8 @@ export function FeeDashboardView({
   onThroughMonthChange,
   onExport,
   isExporting,
+  onExportImage,
+  isExportingImage,
 }: FeeDashboardViewProps) {
   const base = `/clubs/${clubId}/membership-fee`;
 
@@ -155,18 +161,32 @@ export function FeeDashboardView({
               `일반: ${dashboard.feeSettings.regularAmount.toLocaleString()}원 / 부부: ${dashboard.feeSettings.coupleAmount.toLocaleString()}원`
             }
             actions={
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                onClick={onExport}
-                pending={isExporting}
-                pendingText="내보내는 중…"
-                pendingPosition="left"
-              >
-                <Download aria-hidden className="mr-1 h-4 w-4" />
-                납부현황 내보내기
-              </Button>
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={onExport}
+                  pending={isExporting}
+                  pendingText="내보내는 중…"
+                  pendingPosition="left"
+                >
+                  <Download aria-hidden className="mr-1 h-4 w-4" />
+                  납부현황 내보내기
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={onExportImage}
+                  pending={isExportingImage}
+                  pendingText="만드는 중…"
+                  pendingPosition="left"
+                >
+                  <ImageDown aria-hidden className="mr-1 h-4 w-4" />
+                  이미지로 내보내기
+                </Button>
+              </div>
             }
           >
             <YearSelector year={year} onYearChange={onYearChange} />

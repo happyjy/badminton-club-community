@@ -127,27 +127,30 @@ describe('buildFeeStatusWorkbook', () => {
     expect(fillOf(monthCell(joinedInMarch, 6))).toBe(CELL_FILL.LEAVE);
   });
 
-  it('병가 사유는 이어진 병가의 첫 달 칸에 한 번만 적는다', async () => {
-    const sheet = await sheetOf([
-      member({
-        paidMonths: new Set(),
-        leavePeriods: [
-          {
-            startYear: 2026,
-            startMonth: 1,
-            endYear: 2026,
-            endMonth: 3,
-            reason: '무릎 부상',
-          },
-        ],
-      }),
-    ]);
-    const row = sheet.getRow(DATA_START);
+  it.each(['무릎 부상', '출산', '병가'])(
+    '병가 칸에는 사유(%s)를 적지 않고 색만 칠한다',
+    async (reason) => {
+      const sheet = await sheetOf([
+        member({
+          paidMonths: new Set(),
+          leavePeriods: [
+            {
+              startYear: 2026,
+              startMonth: 1,
+              endYear: 2026,
+              endMonth: 3,
+              reason,
+            },
+          ],
+        }),
+      ]);
+      const row = sheet.getRow(DATA_START);
 
-    expect(monthCell(row, 1).value).toBe('무릎 부상');
-    expect(monthCell(row, 2).value).toBeNull();
-    expect(monthCell(row, 3).value).toBeNull();
-  });
+      expect(fillOf(monthCell(row, 1))).toBe(CELL_FILL.LEAVE);
+      expect(monthCell(row, 1).value).toBeNull();
+      expect(monthCell(row, 2).value).toBeNull();
+    }
+  );
 
   it('직책이 있는 회원을 먼저 쓰고 비고에 직책을 적으며, 그 아래에 굵은 선을 긋는다', async () => {
     const sheet = await sheetOf([

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/router';
 
+import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 import { Button } from '@/components/atoms/buttons/Button';
@@ -34,6 +35,12 @@ import {
   StatusFilterProvider,
   useStatusFilter,
 } from '@/contexts/StatusFilterContext';
+import { renderFeeStatusImages } from '@/lib/membership-fee/feeStatusImage';
+import type {
+  FeeStatusSheetResponse,
+  FeeStatusSheetRow,
+} from '@/lib/membership-fee/feeStatusSheet';
+import type { CellStatus } from '@/lib/membership-fee/memberYearStatus';
 import type { ClubMemberWithUser } from '@/pages/clubs/[id]/members';
 import { Status } from '@/types/enums';
 import { GuestPostForList } from '@/types/guest.types';
@@ -63,6 +70,7 @@ const SCREENS = [
   { value: 'fee-member', label: '회원 상세 (회비)' },
   { value: 'fee-exemption', label: '회비 면제 시트' },
   { value: 'member-status-month', label: '탈퇴·재가입 달' },
+  { value: 'fee-status-image', label: '납부현황 이미지' },
 ] as const;
 
 /** 탈퇴·다시 가입 시트의 가짜 기본값 */
@@ -552,6 +560,8 @@ function FeeDashboardPreview() {
         onThroughMonthChange={setThroughMonth}
         onExport={() => toast.success('회비납부현황_2026_20261010.xlsx 저장')}
         isExporting={false}
+        onExportImage={() => toast.success('이미지 2장을 내려받았습니다.')}
+        isExportingImage={false}
         dashboard={{
           year,
           members: DASHBOARD_MEMBERS,
@@ -787,6 +797,136 @@ function MemberStatusMonthPreview() {
   );
 }
 
+/** 납부현황 이미지에 쓰는 가짜 회원 44명 (11월 기준: 12월은 빈칸). 이미지에는 탈퇴 회원이 없다 */
+function previewSheet(): FeeStatusSheetResponse {
+  // 실제 회원 이름을 쓰지 않는다 (저장소가 공개다). 성과 이름을 엮어 지어낸다.
+  const SURNAMES = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '임'];
+  const GIVEN = [
+    '가람',
+    '나래',
+    '다솜',
+    '라온',
+    '마루',
+    '바다',
+    '사랑',
+    '아름',
+  ];
+  const NAMES = Array.from(
+    { length: 40 },
+    (_, index) =>
+      `${SURNAMES[index % SURNAMES.length]}${GIVEN[Math.floor(index / 5) % GIVEN.length]}`
+  );
+  const month = (status: CellStatus) => status;
+  const cellsOf = (index: number): CellStatus[] =>
+    Array.from({ length: 12 }, (_, m) => {
+      if (m === 11) return month('FUTURE');
+      if (index % 9 === 4 && m < 4) return month('NONE');
+      if (index % 7 === 3 && (m === 8 || m === 9)) return month('UNPAID');
+      return month('PAID');
+    });
+  const rows: FeeStatusSheetRow[] = [
+    {
+      no: 1,
+      name: '한가온',
+      cells: cellsOf(0),
+      remark: '회장',
+      thickBottom: false,
+    },
+    {
+      no: 2,
+      name: '서이슬',
+      cells: Array<CellStatus>(11).fill('EXEMPT').concat('EXEMPT'),
+      remark: '총무 · 부부',
+      thickBottom: true,
+    },
+    ...NAMES.map((name, index) => {
+      const cells = cellsOf(index + 2);
+      if (index === 5) cells[2] = cells[3] = cells[4] = 'LEAVE';
+      return {
+        no: index + 3,
+        name,
+        cells,
+        remark: index % 11 === 6 ? '부부' : '',
+        thickBottom: false,
+      };
+    }),
+    {
+      no: 43,
+      name: '남궁가나다라',
+      cells: cellsOf(1),
+      remark: '',
+      thickBottom: false,
+    },
+    {
+      no: 44,
+      name: '문하늘',
+      cells: cellsOf(2),
+      remark: '',
+      thickBottom: false,
+    },
+  ];
+  return { year: 2026, asOf: '2026-11-26', stamp: '20261126', rows };
+}
+
+/**
+ * 카톡에 올리는 납부현황 이미지. 가짜 회원 44명으로 그린다.
+ * ?clubId=1&year=2026 이면 로그인한 관리자로 실제 데이터를 불러 그린다 (운영 데이터는 읽기만).
+ */
+function FeeStatusImagePreview() {
+  const router = useRouter();
+  const { clubId, year } = router.query;
+  const [urls, setUrls] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    let cancelled = false;
+    let created: string[] = [];
+    (async () => {
+      try {
+        const sheet =
+          typeof clubId === 'string'
+            ? (
+                await axios.get<{ data: { sheet: FeeStatusSheetResponse } }>(
+                  `/api/clubs/${clubId}/membership-fee/export-sheet${
+                    typeof year === 'string' ? `?year=${year}` : ''
+                  }`
+                )
+              ).data.data.sheet
+            : previewSheet();
+        const blobs = await renderFeeStatusImages(sheet);
+        created = blobs.map((blob) => URL.createObjectURL(blob));
+        if (!cancelled) setUrls(created);
+      } catch (err) {
+        if (!cancelled) setError(String(err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+      created.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [router.isReady, clubId, year]);
+
+  return (
+    <>
+      <PageHeader title="납부현황 이미지" />
+      {error && <p className="text-footnote text-negative">{error}</p>}
+      <div className="space-y-4">
+        {urls.map((url, index) => (
+          // 브라우저가 그린 PNG(blob 주소)라 next/image를 쓰지 않는다
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={url}
+            src={url}
+            alt={`납부현황 ${index + 1}쪽`}
+            className="w-full max-w-3xl rounded-md border border-border"
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
 function ExemptionSheetPreview() {
   const router = useRouter();
   const isEdit = router.query.mode === 'edit';
@@ -874,6 +1014,8 @@ export default function AdminPreviewPage() {
         <ExemptionSheetPreview />
       ) : screen === 'member-status-month' ? (
         <MemberStatusMonthPreview />
+      ) : screen === 'fee-status-image' ? (
+        <FeeStatusImagePreview />
       ) : (
         <TablePreview />
       )}

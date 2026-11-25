@@ -10,12 +10,15 @@ import {
   FeeDashboardView,
 } from '@/components/organisms/membership-fee/FeeDashboardView';
 import { PageHeader } from '@/components/organisms/PageHeader';
+import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import {
+  useBuildFeeStatusImages,
   useExportFeeStatus,
   usePaymentDashboard,
 } from '@/hooks/membership-fee/usePaymentDashboard';
 
+import { deliverFiles } from '@/lib/deliverFiles';
 import { withAuth } from '@/lib/withAuth';
 import { checkClubAdminPermission } from '@/utils/permissions';
 
@@ -43,6 +46,8 @@ function MembershipFeeDashboard() {
 
   const { data: dashboard, isLoading } = usePaymentDashboard(clubIdStr, year);
   const exportMutation = useExportFeeStatus(clubIdStr);
+  const imageMutation = useBuildFeeStatusImages(clubIdStr);
+  const confirm = useConfirm();
 
   const handleExport = async () => {
     try {
@@ -52,6 +57,30 @@ function MembershipFeeDashboard() {
       toast.error(
         error instanceof Error ? error.message : '내보내기에 실패했습니다.'
       );
+    }
+  };
+
+  /** 카톡에 올릴 PNG를 만들어, 휴대폰은 공유 창으로 PC는 내려받기로 넘긴다 */
+  const handleExportImage = async () => {
+    let files: File[];
+    try {
+      files = await imageMutation.mutateAsync(year);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : '이미지를 만들지 못했습니다.'
+      );
+      return;
+    }
+    const result = await deliverFiles(files, {
+      title: `${year}년 월회비 납부현황`,
+      confirmShare: () =>
+        confirm({
+          title: `이미지 ${files.length}장을 만들었습니다.`,
+          confirmLabel: '공유하기',
+        }),
+    });
+    if (result === 'downloaded') {
+      toast.success(`이미지 ${files.length}장을 내려받았습니다.`);
     }
   };
 
@@ -72,6 +101,8 @@ function MembershipFeeDashboard() {
           onThroughMonthChange={setThroughMonth}
           onExport={handleExport}
           isExporting={exportMutation.isPending}
+          onExportImage={handleExportImage}
+          isExportingImage={imageMutation.isPending}
         />
       )}
     </>
