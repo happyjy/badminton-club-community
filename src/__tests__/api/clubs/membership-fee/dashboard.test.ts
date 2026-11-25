@@ -62,6 +62,7 @@ async function dashboard(year = 2026) {
           amount: number;
         }[];
         yearTotal: number;
+        manualPayments: { count: number; amount: number };
       };
       feeSettings: { regularAmount: number; coupleAmount: number };
       latestUpload: {
@@ -227,6 +228,42 @@ describe('GET /api/clubs/[id]/membership-fee/dashboard', () => {
       paidCount: 1,
       totalCount: 4,
     });
+  });
+
+  it('회비 대상 아님 회원은 납부 현황·회원 수·면제 수에서 빠진다', async () => {
+    fakeDb.addMember({ id: 6, name: '바코치', feeExcluded: true });
+    fakeDb.state.exemptions.push({ clubMemberId: 6, year: 2026 });
+
+    const { data } = await dashboard();
+
+    expect(data.members.map((m) => m.name)).not.toContain('바코치');
+    expect(data.summary).toMatchObject({ totalMembers: 6, exemptMembers: 2 });
+  });
+
+  it('직접 추가한 납부는 완납으로 세되 총 수입에는 넣지 않는다', async () => {
+    fakeDb.addManualPayment({ clubMemberId: 1, year: 2026, month: 9 });
+
+    const { data, member } = await dashboard();
+
+    expect(member('가나다').payments[9]).toBe(true);
+    expect(data.summary.monthlyStats[8].amount).toBe(0);
+    expect(data.summary.yearTotal).toBe(25000 * 6 + 22500);
+    expect(data.summary.manualPayments).toEqual({ count: 1, amount: 25000 });
+  });
+
+  it('직접 추가가 없으면 0건이다', async () => {
+    const { data } = await dashboard();
+
+    expect(data.summary.manualPayments).toEqual({ count: 0, amount: 0 });
+  });
+
+  it('회비 대상 아님 회원의 통장 입금은 총 수입에 남는다', async () => {
+    fakeDb.addMember({ id: 6, name: '바코치', feeExcluded: true });
+    fakeDb.addPayment({ clubMemberId: 6, year: 2026, month: 9 });
+
+    const { data } = await dashboard();
+
+    expect(data.summary.yearTotal).toBe(25000 * 7 + 22500);
   });
 
   it('회원을 이름순으로 돌려준다', async () => {

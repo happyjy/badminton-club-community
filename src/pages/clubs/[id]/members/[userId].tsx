@@ -9,6 +9,10 @@ import { toast } from 'react-hot-toast';
 import { Skeleton } from '@/components/atoms/Skeleton';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import {
+  ManualPaymentFormValue,
+  ManualPaymentSection,
+} from '@/components/organisms/membership-fee/ManualPaymentSection';
+import {
   ClubMemberDetail,
   formatOrphanPayment,
   LeaveFormValue,
@@ -20,7 +24,15 @@ import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
 
 import { withAuth } from '@/lib/withAuth';
+import type { ManualPaymentItem } from '@/types/membership-fee.types';
 import { checkClubAdminPermission } from '@/utils/permissions';
+
+/** 서버가 알려 준 실패 사유. 없으면 null */
+const serverError = (err: unknown) =>
+  err && typeof err === 'object' && 'response' in err
+    ? ((err as { response?: { data?: { error?: string } } }).response?.data
+        ?.error ?? null)
+    : null;
 
 function MemberDetailPage() {
   const router = useRouter();
@@ -42,6 +54,22 @@ function MemberDetailPage() {
   const [feeEndInput, setFeeEndInput] = useState('');
   const [positionInput, setPositionInput] = useState('');
   const [positionOrderInput, setPositionOrderInput] = useState('');
+  const [manualPayments, setManualPayments] = useState<ManualPaymentItem[]>([]);
+
+  const memberApi =
+    typeof clubId === 'string' && typeof userId === 'string'
+      ? `/api/clubs/${clubId}/members/${userId}`
+      : null;
+
+  const fetchManualPayments = useCallback(async () => {
+    if (!memberApi) return;
+    try {
+      const res = await axios.get(`${memberApi}/manual-payments`);
+      setManualPayments(res.data?.data?.payments ?? []);
+    } catch {
+      setManualPayments([]);
+    }
+  }, [memberApi]);
 
   const fetchLeaves = useCallback(async () => {
     if (
@@ -109,6 +137,86 @@ function MemberDetailPage() {
     if (!member) return;
     fetchLeaves();
   }, [member, fetchLeaves]);
+
+  useEffect(() => {
+    if (!member) return;
+    fetchManualPayments();
+  }, [member, fetchManualPayments]);
+
+  /**
+   * 납부를 옮기거나 넣고 지운 뒤에 부른다. 같은 납부가 이월 안내와 직접 추가 목록 두 곳에 나올 수 있어 둘 다 다시 읽는다.
+   */
+  const refreshPayments = () => {
+    fetchLeaves();
+    fetchManualPayments();
+  };
+
+  const onToggleFeeExcluded = async (next: boolean) => {
+    if (!memberApi || !member) return;
+    setSaving(true);
+    try {
+      await axios.patch(`${memberApi}/fee-obligation`, { feeExcluded: next });
+      setMember({ ...member, feeExcluded: next });
+      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      toast.success(
+        next ? '회비 대상 아님으로 바꿨습니다.' : '회비 대상으로 바꿨습니다.'
+      );
+    } catch (err: unknown) {
+      toast.error(serverError(err) ?? '저장에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onSuggestAmount = async (year: number, month: number) => {
+    if (!memberApi) return null;
+    try {
+      const res = await axios.get(`${memberApi}/manual-payments/suggest`, {
+        params: { year, month },
+      });
+      return (res.data?.data?.amount as number | null) ?? null;
+    } catch {
+      return null;
+    }
+  };
+
+  const onAddManualPayment = async (value: ManualPaymentFormValue) => {
+    if (!memberApi) return false;
+    setSaving(true);
+    try {
+      await axios.post(`${memberApi}/manual-payments`, value);
+      toast.success('납부를 직접 추가했습니다.');
+      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      refreshPayments();
+      return true;
+    } catch (err: unknown) {
+      toast.error(serverError(err) ?? '저장에 실패했습니다.');
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onDeleteManualPayment = async (paymentId: string) => {
+    if (!memberApi) return;
+    const ok = await confirm({
+      title: '이 납부를 지울까요?',
+      confirmLabel: '삭제',
+      destructive: true,
+    });
+    if (!ok) return;
+    setSaving(true);
+    try {
+      await axios.delete(`${memberApi}/manual-payments/${paymentId}`);
+      toast.success('직접 추가한 납부를 지웠습니다.');
+      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      refreshPayments();
+    } catch (err: unknown) {
+      toast.error(serverError(err) ?? '삭제에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const onSaveFeeStart = async () => {
     if (
@@ -254,7 +362,7 @@ function MemberDetailPage() {
         toast.success(summary);
       }
       queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
-      fetchLeaves();
+      refreshPayments();
     } catch {
       toast.error('이월에 실패했습니다.');
     } finally {
@@ -313,7 +421,7 @@ function MemberDetailPage() {
           ? '휴회 기간을 수정했습니다.'
           : '휴회 기간을 등록했습니다.'
       );
-      fetchLeaves();
+      refreshPayments();
       const paymentsInRange: OrphanPayment[] =
         res.data?.data?.paymentsInRange ?? [];
       // 시트가 닫히는 것을 기다리게 하지 않는다
@@ -352,7 +460,7 @@ function MemberDetailPage() {
         `/api/clubs/${clubId}/members/${userId}/leaves/${leaveId}`
       );
       toast.success('휴회 기간을 삭제했습니다.');
-      fetchLeaves();
+      refreshPayments();
     } catch {
       toast.error('삭제에 실패했습니다.');
     } finally {
@@ -388,28 +496,38 @@ function MemberDetailPage() {
         backHref={backHref}
         wrapTitle
       />
-      <MemberFeeDetailView
-        member={member}
-        leaves={leaves}
-        saving={saving}
-        feeStartInput={feeStartInput}
-        onChangeFeeStart={setFeeStartInput}
-        onSaveFeeStart={onSaveFeeStart}
-        leftAtInput={leftAtInput}
-        onChangeLeftAt={setLeftAtInput}
-        feeEndInput={feeEndInput}
-        onChangeFeeEnd={setFeeEndInput}
-        onSaveLeftInfo={onSaveLeftInfo}
-        onSubmitLeave={onSubmitLeave}
-        onDeleteLeave={onDeleteLeave}
-        positionInput={positionInput}
-        onChangePosition={setPositionInput}
-        positionOrderInput={positionOrderInput}
-        onChangePositionOrder={setPositionOrderInput}
-        onSavePosition={onSavePosition}
-        orphanPayments={orphanPayments}
-        onShiftPayments={() => shiftPayments(orphanPayments)}
-      />
+      <div className="space-y-6">
+        <MemberFeeDetailView
+          member={member}
+          leaves={leaves}
+          saving={saving}
+          feeStartInput={feeStartInput}
+          onChangeFeeStart={setFeeStartInput}
+          onSaveFeeStart={onSaveFeeStart}
+          leftAtInput={leftAtInput}
+          onChangeLeftAt={setLeftAtInput}
+          feeEndInput={feeEndInput}
+          onChangeFeeEnd={setFeeEndInput}
+          onSaveLeftInfo={onSaveLeftInfo}
+          onSubmitLeave={onSubmitLeave}
+          onDeleteLeave={onDeleteLeave}
+          positionInput={positionInput}
+          onChangePosition={setPositionInput}
+          positionOrderInput={positionOrderInput}
+          onChangePositionOrder={setPositionOrderInput}
+          onSavePosition={onSavePosition}
+          orphanPayments={orphanPayments}
+          onShiftPayments={() => shiftPayments(orphanPayments)}
+          onToggleFeeExcluded={onToggleFeeExcluded}
+        />
+        <ManualPaymentSection
+          payments={manualPayments}
+          saving={saving}
+          onSuggestAmount={onSuggestAmount}
+          onAdd={onAddManualPayment}
+          onDelete={onDeleteManualPayment}
+        />
+      </div>
     </>
   );
 }

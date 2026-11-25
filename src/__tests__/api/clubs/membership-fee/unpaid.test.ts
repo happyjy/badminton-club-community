@@ -61,4 +61,10 @@ describe('GET /api/clubs/[id]/membership-fee/unpaid', () => {
   it('면제 기간의 달에는 미납 목록에 들지 않는다', async () => {
     expect(await unpaidNames(5)).toEqual(['가나다']);
   });
+
+  it('회비 대상 아님 회원은 미납자 목록에 없다', async () => {
+    fakeDb.addMember({ id: 4, name: '라코치', feeExcluded: true });
+
+    expect(await unpaidNames(3)).toEqual(['가나다', '나다라']);
+  });
 });

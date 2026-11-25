@@ -41,6 +41,7 @@ const DASHBOARD = {
     exemptMembers: 0,
     coupleGroups: 0,
     monthlyStats: [],
+    manualPayments: { count: 0, amount: 0 },
   },
   members: [member(1, '가온', 12), member(2, '나래', 2)],
 } as unknown as Dashboard;
@@ -292,6 +293,29 @@ describe('FeeDashboardView', () => {
     render(<FeeDashboardView {...base} />);
     expect(screen.getByText('일반: 30,000원 / 부부: 50,000원')).toBeTruthy();
     expect(screen.queryByRole('note')).toBeNull();
+  });
+
+  it('직접 추가가 있으면 총 수입 아래에 따로 적는다', () => {
+    render(
+      <FeeDashboardView
+        {...base}
+        dashboard={{
+          ...DASHBOARD,
+          summary: {
+            ...DASHBOARD.summary,
+            manualPayments: { count: 2, amount: 50000 },
+          },
+        }}
+      />
+    );
+    expect(
+      screen.getByText('직접 추가 2건 · 50,000원 (총 수입에 넣지 않음)')
+    ).toBeTruthy();
+  });
+
+  it('직접 추가가 없으면 따로 적지 않는다', () => {
+    render(<FeeDashboardView {...base} />);
+    expect(screen.queryByText(/직접 추가/)).toBeNull();
   });
 
   it('보기 방식을 바꾸면 알린다', async () => {

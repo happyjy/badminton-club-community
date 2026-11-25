@@ -93,6 +93,7 @@ export default withAuth(async function handler(
     const {
       members: memberInputs,
       amountsByMonth,
+      manualPayments,
       coupleGroupCount,
       exemptMemberCount,
     } = await loadMemberYearData(prisma, clubIdNumber, year);
@@ -170,6 +171,7 @@ export default withAuth(async function handler(
           coupleGroups: coupleGroupCount,
           monthlyStats,
           yearTotal,
+          manualPayments,
         },
         latestUpload,
       },

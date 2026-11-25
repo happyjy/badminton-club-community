@@ -62,6 +62,13 @@ function DashboardSummaryCard({ summary, year }: DashboardSummaryCardProps) {
           {summary.yearTotal.toLocaleString()}원
         </p>
         <p className="text-caption text-secondary">확정된 납부 내역 기준</p>
+        {summary.manualPayments.count > 0 && (
+          <p className="text-caption text-secondary">
+            직접 추가 {summary.manualPayments.count}건 ·{' '}
+            {summary.manualPayments.amount.toLocaleString('ko-KR')}원 (총 수입에
+            넣지 않음)
+          </p>
+        )}
       </div>
     </div>
   );

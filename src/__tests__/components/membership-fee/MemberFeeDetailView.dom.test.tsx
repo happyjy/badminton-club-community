@@ -63,6 +63,7 @@ const base: Props = {
   onSavePosition: () => {},
   orphanPayments: [],
   onShiftPayments: () => {},
+  onToggleFeeExcluded: () => {},
 };
 
 const LEFT_MEMBER = {
@@ -143,6 +144,47 @@ describe('MemberFeeDetailView — 회비 설정', () => {
     await click(screen.getByRole('button', { name: '저장' }));
     expect(onSaveLeftInfo).toHaveBeenCalled();
     expect(onSaveFeeStart).not.toHaveBeenCalled();
+  });
+
+  it('회비 대상 아님 체크를 보이고, 바꾸면 새 값으로 알린다', async () => {
+    const onToggleFeeExcluded = jest.fn<Props['onToggleFeeExcluded']>();
+    render(
+      <MemberFeeDetailView
+        {...base}
+        member={{ ...base.member, feeExcluded: false }}
+        onToggleFeeExcluded={onToggleFeeExcluded}
+      />
+    );
+    const checkbox = screen.getByLabelText(
+      '회비 대상 아님 (코치 등)'
+    ) as HTMLInputElement;
+    expect(checkbox.checked).toBe(false);
+    expect(
+      screen.getByText('켜면 납부 현황·엑셀·미납자 목록에서 빠집니다.')
+    ).toBeTruthy();
+
+    await click(checkbox);
+
+    expect(onToggleFeeExcluded).toHaveBeenCalledWith(true);
+  });
+
+  it('회비 대상 아님이면 체크된 채로 보이고, 끄면 false로 알린다', async () => {
+    const onToggleFeeExcluded = jest.fn<Props['onToggleFeeExcluded']>();
+    render(
+      <MemberFeeDetailView
+        {...base}
+        member={{ ...base.member, feeExcluded: true }}
+        onToggleFeeExcluded={onToggleFeeExcluded}
+      />
+    );
+    const checkbox = screen.getByLabelText(
+      '회비 대상 아님 (코치 등)'
+    ) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+
+    await click(checkbox);
+
+    expect(onToggleFeeExcluded).toHaveBeenCalledWith(false);
   });
 
   it('저장 중에는 저장을 누를 수 없다', () => {

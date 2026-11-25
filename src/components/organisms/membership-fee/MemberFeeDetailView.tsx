@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { Checkbox } from '@/components/atoms/inputs/Checkbox';
 import { Input } from '@/components/atoms/inputs/Input';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { FormField } from '@/components/molecules/form/FormField';
@@ -22,6 +23,8 @@ export interface ClubMemberDetail {
   position?: string | null;
   /** 직책 있는 회원끼리의 정렬 순서 */
   positionOrder?: number | null;
+  /** 회비 대상 아님 (코치 등) */
+  feeExcluded?: boolean;
 }
 
 export interface MemberLeaveItem {
@@ -79,6 +82,8 @@ interface MemberFeeDetailViewProps {
   /** 있으면 다음 의무월로 옮기라고 안내한다 */
   orphanPayments: OrphanPayment[];
   onShiftPayments: () => void;
+  /** 회비 대상 아님 체크를 바꾸면 새 값으로 부른다 (바로 저장) */
+  onToggleFeeExcluded: (next: boolean) => void;
 }
 
 const EMPTY_FORM: LeaveFormValue = {
@@ -127,6 +132,7 @@ export function MemberFeeDetailView({
   onSavePosition,
   orphanPayments,
   onShiftPayments,
+  onToggleFeeExcluded,
 }: MemberFeeDetailViewProps) {
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [leaveForm, setLeaveForm] = useState<LeaveFormValue>(EMPTY_FORM);
@@ -248,6 +254,21 @@ export function MemberFeeDetailView({
           >
             저장
           </Button>
+        </div>
+
+        {/* 저장 버튼과 상관없이 바로 저장한다 */}
+        <div className="space-y-1 px-4 py-3">
+          <label className="flex min-h-11 items-center text-body text-primary">
+            <Checkbox
+              checked={member.feeExcluded ?? false}
+              onChange={(e) => onToggleFeeExcluded(e.target.checked)}
+              disabled={saving}
+            />
+            회비 대상 아님 (코치 등)
+          </label>
+          <p className={hintClass}>
+            켜면 납부 현황·엑셀·미납자 목록에서 빠집니다.
+          </p>
         </div>
       </ListGroup>
 

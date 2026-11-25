@@ -87,6 +87,38 @@ describe('PATCH members/[userId]/fee-obligation — 직책', () => {
   );
 });
 
+describe('PATCH members/[userId]/fee-obligation — 회비 대상 아님', () => {
+  it('회비 대상 아님만 보내면 그 칸만 고친다', async () => {
+    await patch({ position: '총무', positionOrder: 3 });
+
+    const res = await patch({ feeExcluded: true });
+
+    expect(res.statusCode).toBe(200);
+    expect(saved()).toMatchObject({
+      feeExcluded: true,
+      feeObligationStartAt: START,
+      position: '총무',
+      positionOrder: 3,
+    });
+  });
+
+  it('다시 끌 수 있다', async () => {
+    await patch({ feeExcluded: true });
+
+    await patch({ feeExcluded: false });
+
+    expect(saved().feeExcluded).toBe(false);
+  });
+
+  it('회비 대상 아님이 불리언이 아니면 거부한다', async () => {
+    const res = await patch({ feeExcluded: 'yes' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('회비 대상 여부를 확인해주세요');
+    expect(saved().feeExcluded).toBe(false);
+  });
+});
+
 describe('PATCH members/[userId]/fee-obligation — 회비 입금 시작일', () => {
   it('시작일을 저장하고 직책은 건드리지 않는다', async () => {
     await patch({ position: '총무', positionOrder: 3 });
@@ -110,5 +142,65 @@ describe('PATCH members/[userId]/fee-obligation — 회비 입금 시작일', ()
 
     expect(res.statusCode).toBe(400);
     expect(saved().feeObligationStartAt).toEqual(START);
+  });
+});
+
+describe('PATCH members/[userId]/fee-obligation — 탈퇴일은 탈퇴 상태에만', () => {
+  it('탈퇴가 아닌 회원에 탈퇴일을 넣으면 거부한다', async () => {
+    const res = await patch({ leftAt: '2026-07-01T00:00:00.000Z' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('탈퇴한 회원만 탈퇴일을 넣을 수 있습니다');
+    expect(saved().leftAt ?? null).toBeNull();
+  });
+
+  it('탈퇴가 아닌 회원은 탈퇴일 null과 함께 시작일을 저장할 수 있다 (회원 상세 화면이 보내는 모양)', async () => {
+    const res = await patch({
+      feeObligationStartAt: '2026-03-01T00:00:00.000Z',
+      leftAt: null,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(saved().feeObligationStartAt).toEqual(
+      new Date('2026-03-01T00:00:00.000Z')
+    );
+  });
+
+  it('탈퇴 회원의 탈퇴일을 지우면 거부한다', async () => {
+    saved().status = 'LEFT';
+    saved().leftAt = new Date('2026-05-01T00:00:00.000Z');
+
+    const res = await patch({ leftAt: null });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('탈퇴월을 입력해주세요');
+    expect(saved().leftAt).toEqual(new Date('2026-05-01T00:00:00.000Z'));
+  });
+
+  it('탈퇴 회원의 탈퇴일은 바꿀 수 있다', async () => {
+    saved().status = 'LEFT';
+    saved().leftAt = new Date('2026-07-01T00:00:00.000Z');
+
+    const res = await patch({ leftAt: '2026-05-01T00:00:00.000Z' });
+
+    expect(res.statusCode).toBe(200);
+    expect(saved().leftAt).toEqual(new Date('2026-05-01T00:00:00.000Z'));
+  });
+
+  it('없는 회원은 404', async () => {
+    const res = buildRes();
+    await handler(
+      {
+        method: 'PATCH',
+        query: { id: String(CLUB_ID), userId: '9999' },
+        body: { position: '총무' },
+      } as unknown as NextApiRequest,
+      res as unknown as NextApiResponse
+    );
+
+    expect(res.statusCode).toBe(404);
+    expect((res as unknown as { body: { error?: string } }).body.error).toBe(
+      '회원을 찾을 수 없습니다'
+    );
   });
 });

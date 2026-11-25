@@ -6,8 +6,10 @@ import type { PrismaClient } from '@prisma/client';
 export interface MemberYearData {
   /** 그 해 현황에 나오는 회원 (활동 회원 + 그 해에 활동하다 탈퇴한 회원), 이름순 */
   members: MemberYearInput[];
-  /** 월별 납부 금액 합계 */
+  /** 월별 납부 금액 합계. 통장 입금에 묶인 납부만 (직접 추가는 통장에 없는 돈이다) */
   amountsByMonth: Map<number, number>;
+  /** 그 해에 직접 추가한 납부(통장 입금 없음)의 건수와 금액 */
+  manualPayments: { count: number; amount: number };
   coupleGroupCount: number;
   exemptMemberCount: number;
 }
@@ -21,10 +23,11 @@ export async function loadMemberYearData(
   clubId: number,
   year: number
 ): Promise<MemberYearData> {
-  // 활동 회원 + 해당 연도에 활동한 탈퇴 회원
+  // 활동 회원 + 해당 연도에 활동한 탈퇴 회원. 회비 대상 아님(코치 등)은 뺀다.
   const clubMembers = await prisma.clubMember.findMany({
     where: {
       clubId,
+      feeExcluded: false,
       OR: [
         { status: 'APPROVED' },
         {
@@ -81,7 +84,12 @@ export async function loadMemberYearData(
     }),
     prisma.membershipPayment.findMany({
       where: { clubMember: { clubId }, year },
-      select: { clubMemberId: true, month: true, amount: true },
+      select: {
+        clubMemberId: true,
+        month: true,
+        amount: true,
+        paymentRecordId: true,
+      },
     }),
   ]);
 
@@ -119,10 +127,17 @@ export async function loadMemberYearData(
 
   const paidMonthsOf = new Map<number, Set<number>>();
   const amountsByMonth = new Map<number, number>();
+  const manualPayments = { count: 0, amount: 0 };
   for (const payment of payments) {
+    // 직접 추가한 납부도 그 달은 낸 것으로 본다 (재무의 표와 같다)
     const paid = paidMonthsOf.get(payment.clubMemberId) ?? new Set<number>();
     paid.add(payment.month);
     paidMonthsOf.set(payment.clubMemberId, paid);
+    if (payment.paymentRecordId == null) {
+      manualPayments.count += 1;
+      manualPayments.amount += payment.amount;
+      continue;
+    }
     amountsByMonth.set(
       payment.month,
       (amountsByMonth.get(payment.month) ?? 0) + payment.amount
@@ -139,7 +154,10 @@ export async function loadMemberYearData(
       paidMonths: paidMonthsOf.get(member.id) ?? new Set<number>(),
     })),
     amountsByMonth,
+    manualPayments,
     coupleGroupCount: coupleGroups.length,
-    exemptMemberCount: exemptMonthsOfMember.size,
+    // 클럽 전체가 아니라 현황에 나오는 회원 가운데 면제가 있는 회원 수
+    exemptMemberCount: memberIds.filter((id) => exemptMonthsOfMember.has(id))
+      .length,
   };
 }

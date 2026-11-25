@@ -68,6 +68,7 @@ function emptyState(): State {
         name: '관리자',
         feeObligationStartAt: new Date(2025, 0, 1),
         leftAt: null,
+        feeExcluded: false,
       },
     ],
     feeTypes: RATES_2026.map((type) => ({ ...type, clubId: CLUB_ID })),
@@ -339,8 +340,16 @@ function createFakeFeeDb() {
     membershipPayment: {
       findMany: async ({ where }: { where?: Where } = {}) =>
         state.payments.filter((p) => matches(p, where)),
+      findFirst: async ({ where }: { where?: Where } = {}) =>
+        state.payments.find((p) => matches(p, where)) ?? null,
       create: async ({ data }: { data: Row }) => {
-        const payment = { id: nextId('pay'), period: 'MONTHLY', ...data };
+        // DB 기본값과 같다 (period MONTHLY, confirmedAt now())
+        const payment = {
+          id: nextId('pay'),
+          period: 'MONTHLY',
+          confirmedAt: new Date(),
+          ...data,
+        };
         state.payments.push(payment);
         return payment;
       },
@@ -393,6 +402,7 @@ function createFakeFeeDb() {
         status: 'APPROVED',
         feeObligationStartAt: new Date(2025, 0, 1),
         leftAt: null,
+        feeExcluded: false,
         ...member,
       });
     },
@@ -445,6 +455,23 @@ function createFakeFeeDb() {
         amount: 25000,
         period: 'MONTHLY',
         paymentRecordId: 'rec-seed',
+        ...data,
+      });
+      return id;
+    },
+    /** 직접 추가한 납부(입금 없음)를 넣고 그 id를 돌려준다 */
+    addManualPayment(
+      data: Row & { clubMemberId: number; year: number; month: number }
+    ): string {
+      const id = nextId('pay');
+      state.payments.push({
+        id,
+        amount: 25000,
+        period: 'MONTHLY',
+        paymentRecordId: null,
+        manualReason: '다른 계좌로 보냄',
+        confirmedById: ADMIN_MEMBER_ID,
+        confirmedAt: new Date(2026, 9, 1),
         ...data,
       });
       return id;

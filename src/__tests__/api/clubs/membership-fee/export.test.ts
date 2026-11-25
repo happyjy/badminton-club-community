@@ -66,6 +66,7 @@ beforeEach(() => {
     leftAt: null,
     position: '회장',
     positionOrder: 1,
+    feeExcluded: false,
   });
   fakeDb.addMember({ id: 1, name: '가나다' });
   fakeDb.addMember({
@@ -109,6 +110,16 @@ describe('GET /api/clubs/[id]/membership-fee/export', () => {
     const { names } = await namesIn(res.body);
     // '다음해'(내년부터 의무)와 '마옛날'(작년에 탈퇴)은 빠진다
     expect(names).toEqual(['나회장', '가나다', '라탈퇴']);
+  });
+
+  it('회비 대상 아님 회원은 엑셀에 싣지 않는다', async () => {
+    fakeDb.addMember({ id: 6, name: '바코치', feeExcluded: true });
+
+    const res = await exportYear('2026');
+
+    const { names } = await namesIn(res.body);
+    expect(names).not.toContain('바코치');
+    expect(names).toContain('가나다');
   });
 
   it('연도를 주지 않으면 올해 현황이다', async () => {

@@ -52,11 +52,12 @@ export default withAuth(async function handler(
   }
 
   try {
-    // 클럽 회원 조회 (APPROVED 상태만, 회비 의무 시작일 포함)
+    // 클럽 회원 조회 (APPROVED 상태만, 회비 의무 시작일 포함). 회비 대상 아님(코치 등)은 뺀다.
     const clubMembers = await prisma.clubMember.findMany({
       where: {
         clubId: clubIdNumber,
         status: 'APPROVED',
+        feeExcluded: false,
       },
       select: {
         id: true,

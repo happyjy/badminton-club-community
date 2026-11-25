@@ -172,6 +172,23 @@ export const memberLeaveSchema = z
 
 export type MemberLeaveSchema = z.infer<typeof memberLeaveSchema>;
 
+// 납부 직접 추가 (통장 입금 없이 낸 것으로 칠 달)
+export const manualPaymentSchema = z.object({
+  year: z.number().int().min(2020).max(2100),
+  month: z.number().int().min(1).max(12),
+  amount: z
+    .number({ invalid_type_error: '금액을 확인해주세요' })
+    .int('금액을 확인해주세요')
+    .min(1, '금액을 확인해주세요'),
+  reason: z
+    .string({ invalid_type_error: '사유를 입력해주세요' })
+    .trim()
+    .min(1, '사유를 입력해주세요')
+    .max(100, '사유는 100자까지 쓸 수 있습니다'),
+});
+
+export type ManualPaymentSchema = z.infer<typeof manualPaymentSchema>;
+
 // 입금 내역 수정 스키마
 export const paymentRecordKindSchema = z.enum([
   'FEE',

@@ -21,6 +21,7 @@ const base: Props = {
       exemptMembers: 0,
       coupleGroups: 0,
       monthlyStats: [],
+      manualPayments: { count: 0, amount: 0 },
     },
     members: [],
   } as unknown as Props['dashboard'],

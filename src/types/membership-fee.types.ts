@@ -184,13 +184,29 @@ export interface PaymentRecord {
 export interface MembershipPayment {
   id: string;
   clubMemberId: number;
-  paymentRecordId: string;
+  /** 입금 내역. 없으면 관리자가 직접 추가한 납부다 */
+  paymentRecordId: string | null;
   year: number;
   month: number;
   amount: number;
   period: FeePeriod;
   confirmedAt: Date;
   confirmedById: number;
+  /** 직접 추가한 납부의 사유. 입금에 묶인 납부는 null */
+  manualReason: string | null;
+}
+
+/** 직접 추가한 납부 (통장 입금 없음). 회원 상세의 목록 한 줄 */
+export interface ManualPaymentItem {
+  id: string;
+  year: number;
+  month: number;
+  amount: number;
+  /** 다른 계좌로 보냄·현금으로 받음·직접 쓴 글 */
+  reason: string;
+  /** ISO 문자열 */
+  confirmedAt: string;
+  confirmedByName: string | null;
 }
 
 // 회원 납부 현황
@@ -240,7 +256,10 @@ export interface DashboardSummary {
   exemptMembers: number;
   coupleGroups: number;
   monthlyStats: MonthlyStats[];
+  /** 통장 입금에 묶인 납부의 합계 */
   yearTotal: number;
+  /** 직접 추가한 납부(통장 입금 없음). 총 수입에 넣지 않고 따로 보인다 */
+  manualPayments: { count: number; amount: number };
 }
 
 // 최근 업로드 정보

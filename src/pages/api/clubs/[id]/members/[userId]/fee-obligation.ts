@@ -37,6 +37,16 @@ export default withAuth(async function handler(
     });
   }
 
+  const target = await prisma.clubMember.findUnique({
+    where: { clubId_userId: { clubId, userId } },
+  });
+  if (!target) {
+    return res.status(404).json({
+      error: '회원을 찾을 수 없습니다',
+      status: 404,
+    });
+  }
+
   const body = (req.body ?? {}) as Record<string, unknown>;
   // 보낸 항목만 고친다. 직책만 저장할 때 시작일이 지워지지 않게.
   const data: {
@@ -44,6 +54,7 @@ export default withAuth(async function handler(
     leftAt?: Date | null;
     position?: string | null;
     positionOrder?: number | null;
+    feeExcluded?: boolean;
   } = {};
 
   /** 날짜 항목을 읽는다. 비어 있으면 null, 날짜가 아니면 'invalid' */
@@ -73,7 +84,33 @@ export default withAuth(async function handler(
         status: 400,
       });
     }
+    // 탈퇴일은 탈퇴 상태에만 둔다. 그래서 탈퇴일을 읽는 곳(매칭·확정 계획·이월)이 상태를 다시 보지 않아도 맞다.
+    // 탈퇴·재가입은 회원 관리의 상태 변경에서 달을 골라 처리한다.
+    const isLeft = target.status === Status.LEFT;
+    if (leftAt && !isLeft) {
+      return res.status(400).json({
+        error: '탈퇴한 회원만 탈퇴일을 넣을 수 있습니다',
+        status: 400,
+      });
+    }
+    if (!leftAt && isLeft) {
+      return res.status(400).json({
+        error: '탈퇴월을 입력해주세요',
+        status: 400,
+      });
+    }
     data.leftAt = leftAt;
+  }
+
+  // 회비 대상 아님 (코치 등): 납부 현황·내보내기·미납자 목록에서 뺀다
+  if ('feeExcluded' in body) {
+    if (typeof body.feeExcluded !== 'boolean') {
+      return res.status(400).json({
+        error: '회비 대상 여부를 확인해주세요',
+        status: 400,
+      });
+    }
+    data.feeExcluded = body.feeExcluded;
   }
 
   // 직책: 납부현황 내보내기의 비고와 정렬에 쓴다
