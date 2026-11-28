@@ -21,27 +21,38 @@ export interface MemberYearData {
 export async function loadMemberYearData(
   prisma: PrismaClient,
   clubId: number,
-  year: number
+  year: number,
+  /**
+   * clubMemberId: 그 회원 한 명만 읽는다(납부 이력 화면).
+   * 상태·회비 대상 아님으로 거르지 않는다 — 휴가중·탈퇴 회원도 칸을 계산하고,
+   * 회비 대상 아님은 부르는 쪽이 다룬다.
+   */
+  options: { clubMemberId?: number } = {}
 ): Promise<MemberYearData> {
+  const { clubMemberId } = options;
   // 활동 회원 + 해당 연도에 활동한 탈퇴 회원. 회비 대상 아님(코치 등)은 뺀다.
+  const memberWhere =
+    clubMemberId != null
+      ? { clubId, id: clubMemberId }
+      : {
+          clubId,
+          feeExcluded: false,
+          OR: [
+            { status: 'APPROVED' },
+            {
+              status: 'LEFT',
+              leftAt: { gte: new Date(year, 0, 1) },
+              feeObligationStartAt: { lt: new Date(year + 1, 0, 1) },
+            },
+            {
+              status: 'LEFT',
+              leftAt: null,
+              feeObligationStartAt: { lt: new Date(year + 1, 0, 1) },
+            },
+          ],
+        };
   const clubMembers = await prisma.clubMember.findMany({
-    where: {
-      clubId,
-      feeExcluded: false,
-      OR: [
-        { status: 'APPROVED' },
-        {
-          status: 'LEFT',
-          leftAt: { gte: new Date(year, 0, 1) },
-          feeObligationStartAt: { lt: new Date(year + 1, 0, 1) },
-        },
-        {
-          status: 'LEFT',
-          leftAt: null,
-          feeObligationStartAt: { lt: new Date(year + 1, 0, 1) },
-        },
-      ],
-    },
+    where: memberWhere,
     select: {
       id: true,
       userId: true,
@@ -66,7 +77,7 @@ export async function loadMemberYearData(
       },
     }),
     prisma.feeExemption.findMany({
-      where: { clubMember: { clubId }, year },
+      where: { clubMember: { clubId }, year, clubMemberId },
       select: {
         clubMemberId: true,
         year: true,
@@ -83,7 +94,7 @@ export async function loadMemberYearData(
       },
     }),
     prisma.membershipPayment.findMany({
-      where: { clubMember: { clubId }, year },
+      where: { clubMember: { clubId }, year, clubMemberId },
       select: {
         clubMemberId: true,
         month: true,

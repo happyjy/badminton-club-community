@@ -5,6 +5,9 @@ import {
   PaymentRecordStatus,
 } from '@prisma/client';
 
+import type { FeeHistorySummary } from '@/lib/membership-fee/memberFeeHistory';
+import type { CellStatus } from '@/lib/membership-fee/memberYearStatus';
+
 export type { NonFeeKind, PaymentRecordKind };
 
 /** 입금자명·메모에서 읽은 월 힌트 */
@@ -207,6 +210,51 @@ export interface ManualPaymentItem {
   /** ISO 문자열 */
   confirmedAt: string;
   confirmedByName: string | null;
+}
+
+/** 납부 이력의 한 달에 걸린 납부 한 건 */
+export interface FeeHistoryPayment {
+  amount: number;
+  /** 묶인 통장 입금의 거래일시(ISO). 직접 추가면 null */
+  transactionDate: string | null;
+  /** 입금자명이 회원 이름과 다를 때만 (배우자·대신 낸 사람) */
+  depositorName: string | null;
+  /** 직접 추가의 사유. 임원이 직접 쓴 글은 임원에게만 */
+  manualReason: string | null;
+}
+
+/** 납부 이력의 한 달. 1~12월이 모두 오고, 숨기는 것은 화면이 정한다 */
+export interface FeeHistoryMonth {
+  month: number;
+  status: CellStatus;
+  leaveReason: string | null;
+  /** 그 달 1일에 부부였는가 */
+  isCouple: boolean;
+  payments: FeeHistoryPayment[];
+}
+
+export interface FeeHistoryLeave {
+  startYear: number;
+  startMonth: number;
+  endYear: number | null;
+  endMonth: number | null;
+  reason: string | null;
+}
+
+/** GET /api/clubs/[id]/members/[userId]/fee-history 의 data */
+export interface MemberFeeHistory {
+  member: { name: string | null; feeExcluded: boolean };
+  year: number;
+  /** 고를 수 있는 연도, 최근 해가 앞 */
+  years: number[];
+  /** 클럽 통장 입금 중 가장 늦은 거래일시(ISO). 올라온 내역이 없으면 null */
+  asOf: string | null;
+  summary: FeeHistorySummary;
+  months: FeeHistoryMonth[];
+  /** 올라왔지만 아직 확정하지 않은 이 회원의 회비 입금, 거래일 최근 순 */
+  pendingDeposits: { transactionDate: string; amount: number }[];
+  /** 고른 해와 겹치는 휴회 */
+  leaves: FeeHistoryLeave[];
 }
 
 // 회원 납부 현황
