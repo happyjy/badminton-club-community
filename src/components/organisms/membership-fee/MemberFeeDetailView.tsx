@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 import { Plus } from 'lucide-react';
 
@@ -84,6 +84,8 @@ interface MemberFeeDetailViewProps {
   onShiftPayments: () => void;
   /** 회비 대상 아님 체크를 바꾸면 새 값으로 부른다 (바로 저장) */
   onToggleFeeExcluded: (next: boolean) => void;
+  /** 납부 이력처럼 "휴회/병가 기간" 위에 끼울 내용 */
+  historySlot?: ReactNode;
 }
 
 const EMPTY_FORM: LeaveFormValue = {
@@ -133,6 +135,7 @@ export function MemberFeeDetailView({
   orphanPayments,
   onShiftPayments,
   onToggleFeeExcluded,
+  historySlot,
 }: MemberFeeDetailViewProps) {
   const [isLeaveOpen, setIsLeaveOpen] = useState(false);
   const [leaveForm, setLeaveForm] = useState<LeaveFormValue>(EMPTY_FORM);
@@ -309,6 +312,8 @@ export function MemberFeeDetailView({
           </Button>
         </div>
       </ListGroup>
+
+      {historySlot}
 
       <section>
         {orphanPayments.length > 0 && (

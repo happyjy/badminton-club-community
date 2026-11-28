@@ -44,6 +44,14 @@ describe('statusTone', () => {
     expect(statusTone('feeRecord', 'SKIPPED')).toBe('neutral');
   });
 
+  it('회비 달: 낸 달은 긍정, 미납은 부정, 나머지는 중립', () => {
+    expect(statusTone('feeMonth', 'PAID')).toBe('positive');
+    expect(statusTone('feeMonth', 'UNPAID')).toBe('negative');
+    for (const status of ['LEAVE', 'EXEMPT', 'NONE', 'FUTURE']) {
+      expect(statusTone('feeMonth', status)).toBe('neutral');
+    }
+  });
+
   it('입금 분류: 회비가 아닌 것은 눈에 띄지 않게, 가입비만 구분되게 한다', () => {
     expect(statusTone('paymentKind', 'FEE')).toBe('positive');
     expect(statusTone('paymentKind', 'JOINING_FEE')).toBe('warning');

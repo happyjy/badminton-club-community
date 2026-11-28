@@ -13,7 +13,6 @@ import {
   within,
 } from '@testing-library/react';
 import axios from 'axios';
-
 import { toast } from 'react-hot-toast';
 
 import MemberDetailPage from '@/pages/clubs/[id]/members/[userId]';
@@ -47,6 +46,33 @@ const MANUAL_SEP = {
   reason: '다른 계좌로 보냄',
   confirmedAt: '2026-11-23T01:00:00.000Z',
   confirmedByName: '관리자',
+};
+
+/** 납부 이력 (9월에 직접 추가한 납부가 휴회 칸에 걸려 있다) */
+const HISTORY = {
+  member: { name: '가나다', feeExcluded: false },
+  year: 2026,
+  years: [2026],
+  asOf: '2026-11-20T05:30:00.000Z',
+  summary: { unpaidCount: 0, unpaidAmount: 0, monthlyFee: [] },
+  months: [
+    {
+      month: 9,
+      status: 'LEAVE',
+      leaveReason: null,
+      isCouple: false,
+      payments: [
+        {
+          amount: 25000,
+          transactionDate: null,
+          depositorName: null,
+          manualReason: '다른 계좌로 보냄',
+        },
+      ],
+    },
+  ],
+  pendingDeposits: [],
+  leaves: [],
 };
 
 const getCalls = (suffix: string) =>
@@ -90,6 +116,9 @@ beforeEach(() => {
     if (url === `${API}/manual-payments`) {
       return { data: { data: { payments: [MANUAL_SEP] } } };
     }
+    if (url === `${API}/fee-history`) {
+      return { data: { data: HISTORY } };
+    }
     throw new Error(`예상하지 못한 요청: ${url}`);
   }) as unknown as typeof axios.get);
   mockedAxios.post.mockResolvedValue({
@@ -127,6 +156,26 @@ describe('회원 상세 — 이월 안내와 직접 추가한 납부', () => {
     await waitFor(() => expect(getCalls('/manual-payments')).toBe(2));
   });
 
+  it('납부 이력을 휴회/병가 기간 위에 보이고, 이월하면 다시 읽는다', async () => {
+    await renderPage();
+    const line = await screen.findByText(
+      '25,000원 · 직접 추가 · 다른 계좌로 보냄 · 의무 없는 달에 낸 회비'
+    );
+    expect(
+      line.compareDocumentPosition(screen.getByText('휴회/병가 기간')) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(getCalls('/fee-history')).toBe(1);
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: '다음 의무월로 이월' })
+      );
+    });
+
+    await waitFor(() => expect(getCalls('/fee-history')).toBe(2));
+  });
+
   it('직접 추가한 납부를 지우면 이월 안내도 다시 읽는다', async () => {
     await renderPage();
 
@@ -145,6 +194,54 @@ describe('회원 상세 — 이월 안내와 직접 추가한 납부', () => {
       `${API}/manual-payments/pay-9`
     );
     await waitFor(() => expect(getCalls('/leaves')).toBe(2));
+    await waitFor(() => expect(getCalls('/fee-history')).toBe(2));
+  });
+});
+
+describe('회원 상세 — 휴회를 바꾸면 납부 이력도 다시 읽는다', () => {
+  it('휴회 기간을 지우면 납부 이력을 다시 읽는다', async () => {
+    const answer = mockedAxios.get.getMockImplementation()!;
+    mockedAxios.get.mockImplementation((async (url: string) =>
+      url === `${API}/leaves`
+        ? {
+            data: {
+              data: {
+                leaves: [
+                  {
+                    id: 3,
+                    clubMemberId: 1,
+                    startYear: 2026,
+                    startMonth: 9,
+                    endYear: 2026,
+                    endMonth: 9,
+                    reason: null,
+                    createdAt: '2026-09-01T00:00:00.000Z',
+                  },
+                ],
+                orphanPayments: [],
+              },
+            },
+          }
+        : answer(url)) as unknown as typeof axios.get);
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemberDetailPage />
+      </QueryClientProvider>
+    );
+    await screen.findByText(/^1회차: 2026\.09/);
+    await waitFor(() => expect(getCalls('/fee-history')).toBe(1));
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(/^1회차: 2026\.09/));
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole('dialog')).getByRole('button', { name: '삭제' })
+      );
+    });
+
+    expect(mockedAxios.delete).toHaveBeenCalledWith(`${API}/leaves/3`);
+    await waitFor(() => expect(getCalls('/fee-history')).toBe(2));
   });
 });
 

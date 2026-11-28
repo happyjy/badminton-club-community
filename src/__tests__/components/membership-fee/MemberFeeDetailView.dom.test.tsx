@@ -396,3 +396,19 @@ describe('MemberFeeDetailView — 직책', () => {
     );
   });
 });
+
+describe('MemberFeeDetailView — 납부 이력 자리', () => {
+  it('historySlot을 주면 휴회/병가 기간보다 앞에 그린다', () => {
+    render(<MemberFeeDetailView {...base} historySlot={<p>이력 자리</p>} />);
+    const slot = screen.getByText('이력 자리');
+    const leaves = screen.getByText('휴회/병가 기간');
+    expect(
+      slot.compareDocumentPosition(leaves) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it('주지 않으면 아무것도 더하지 않는다', () => {
+    render(<MemberFeeDetailView {...base} />);
+    expect(screen.queryByText('이력 자리')).toBeNull();
+  });
+});

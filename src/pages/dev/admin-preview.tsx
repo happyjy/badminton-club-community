@@ -23,7 +23,9 @@ import {
   MemberFeeDetailView,
   MemberLeaveItem,
 } from '@/components/organisms/membership-fee/MemberFeeDetailView';
+import { MemberFeeHistoryView } from '@/components/organisms/membership-fee/MemberFeeHistoryView';
 import { PaymentRecordsView } from '@/components/organisms/membership-fee/PaymentRecordsView';
+import { PREVIEW_FEE_HISTORY } from '@/components/organisms/membership-fee/previewFeeHistory';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { BulkActionBar } from '@/components/organisms/table/BulkActionBar';
 import { DataTable, RowKey } from '@/components/organisms/table/DataTable';
@@ -672,6 +674,18 @@ function MemberFeePreview() {
             leftAt: '2026-06-15T00:00:00.000Z',
             feeExcluded,
           }}
+          historySlot={
+            <section>
+              <h2 className="px-4 pb-2 text-footnote text-secondary">
+                납부 이력
+              </h2>
+              <MemberFeeHistoryView
+                history={PREVIEW_FEE_HISTORY}
+                onChangeYear={() => {}}
+                showLeaves={false}
+              />
+            </section>
+          }
           leaves={leaves}
           saving={false}
           feeStartInput={feeStart}

@@ -1,6 +1,6 @@
 # 회원별 납부 현황
 
-> 화면: `/clubs/[id]/membership-fee` (회비 관리 대시보드)
+> 화면: `/clubs/[id]/membership-fee` (회비 관리 대시보드), `/clubs/[id]/my-fee` (내 회비), 회원 상세의 납부 이력
 > 소스: `src/pages/clubs/[id]/membership-fee/index.tsx`, `src/components/organisms/membership-fee/PaymentDashboardTable.tsx`, `src/lib/membership-fee/memberYearStatus.ts`, `src/pages/api/clubs/[id]/membership-fee/dashboard.ts`, `src/pages/api/clubs/[id]/membership-fee/export.ts`, `src/pages/api/clubs/[id]/membership-fee/unpaid.ts`
 
 이 폴더는 회비 관리 대시보드의 회원별 납부 현황 표 한 단위의 문서를 모은다.
@@ -32,3 +32,4 @@
 | [회비-대상-아님.md](./기능/회비-대상-아님.md) | 코치처럼 회비 대상이 아닌 회원을 납부 현황·내보내기·미납자 목록에서 빼기 |
 | [탈퇴-재가입-처리.md](./기능/탈퇴-재가입-처리.md) | 회원 관리에서 탈퇴로 바꿀 때 탈퇴월을, 탈퇴에서 되돌릴 때 다시 시작하는 달을 고르기, 탈퇴일은 탈퇴 상태에만 두기 |
 | [납부현황-이미지-내보내기.md](./기능/납부현황-이미지-내보내기.md) | 대시보드에서 납부현황표를 40명씩 나눈 PNG로 만들어 휴대폰은 카톡 공유, PC는 내려받기. 엑셀과 같은 줄 계산(`buildFeeStatusSheet`) |
+| [내-회비-납부-이력.md](./기능/내-회비-납부-이력.md) | 회원이 메뉴의 "내 회비"에서, 임원이 회원 상세에서 같은 달별 납부 이력·미납 요약·월 회비·확인 중 입금·반영 시각을 보기 |

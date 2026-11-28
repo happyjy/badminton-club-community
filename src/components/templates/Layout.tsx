@@ -117,6 +117,7 @@ export function Layout({ children }: LayoutProps) {
           clubMember?.role === 'ADMIN' &&
           clubMember?.status === Status.APPROVED,
         tournamentMenuEnabled: menuSettings?.tournamentMenuEnabled ?? true,
+        feeMenuEnabled: menuSettings?.feeMenuEnabled ?? false,
       })
     : [];
 

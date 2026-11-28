@@ -36,6 +36,32 @@ describe('getNavItems — 누가 무엇을 보는가', () => {
     expect(find(member, 'guest').label).toBe('게스트');
   });
 
+  it('회비를 앱으로 관리하는 클럽의 회원은 대회 뒤에 내 회비를 본다 (탭 아님)', () => {
+    const context = { ...member, feeMenuEnabled: true };
+    expect(keys(context)).toEqual([
+      'home',
+      'attendance',
+      'guest',
+      'board',
+      'tournaments',
+      'myFee',
+    ]);
+    const myFee = find(context, 'myFee');
+    expect(myFee.label).toBe('내 회비');
+    expect(myFee.href).toBe('/clubs/1/my-fee');
+    expect(myFee.section).toBe('main');
+    expect(myFee.tab).toBe(false);
+    expect(myFee.isActive('/clubs/1/my-fee')).toBe(true);
+  });
+
+  it('회비를 쓰지 않는 클럽이나 비회원에게는 내 회비가 없다', () => {
+    expect(keys({ ...member, feeMenuEnabled: false })).not.toContain('myFee');
+    expect(keys(member)).not.toContain('myFee');
+    expect(
+      keys({ ...member, isMember: false, feeMenuEnabled: true })
+    ).not.toContain('myFee');
+  });
+
   it('운영진은 관리 메뉴(회원·게스트 확인·회비 관리·클럽 설정)가 더해진다', () => {
     const admin = getNavItems({ ...member, isAdmin: true });
 

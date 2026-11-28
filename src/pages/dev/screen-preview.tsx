@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 
 import { Button } from '@/components/atoms/buttons/Button';
+import { OptionPicker } from '@/components/molecules/OptionPicker';
 import { SegmentedControl } from '@/components/molecules/SegmentedControl';
 import { BoardToolbar } from '@/components/organisms/board/BoardToolbar';
 import PostList from '@/components/organisms/board/PostList';
@@ -10,6 +11,8 @@ import {
   GuestApplicationItem,
   GuestApplicationList,
 } from '@/components/organisms/guest/GuestApplicationList';
+import { MemberFeeHistoryView } from '@/components/organisms/membership-fee/MemberFeeHistoryView';
+import { PREVIEW_FEE_HISTORY } from '@/components/organisms/membership-fee/previewFeeHistory';
 import { GuestApplicationModal } from '@/components/organisms/modal/join';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { SelectedIcon } from '@/components/organisms/workout/HelperSheet';
@@ -34,7 +37,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
   return { props: {} };
 };
 
-type Screen = 'attendance' | 'workout' | 'guest' | 'board';
+type Screen = 'attendance' | 'workout' | 'guest' | 'board' | 'my-fee';
 
 const ME = { id: 7, nickname: '나' } as User;
 const NAMES = [
@@ -260,7 +263,8 @@ export default function ScreenPreviewPage() {
   const screen: Screen =
     queryScreen === 'workout' ||
     queryScreen === 'guest' ||
-    queryScreen === 'board'
+    queryScreen === 'board' ||
+    queryScreen === 'my-fee'
       ? queryScreen
       : 'attendance';
 
@@ -355,8 +359,11 @@ export default function ScreenPreviewPage() {
         isMember: true,
         isAdmin,
         tournamentMenuEnabled: true,
+        feeMenuEnabled: true,
       })}
-      currentPath="/clubs/1/attendance"
+      currentPath={
+        screen === 'my-fee' ? '/clubs/1/my-fee' : '/clubs/1/attendance'
+      }
       isAuthenticated
       onLogin={() => {}}
       onLogout={() => {}}
@@ -365,13 +372,14 @@ export default function ScreenPreviewPage() {
         <p className="text-footnote text-secondary">
           개발용 미리보기 — 가짜 데이터예요. 눌러도 서버에 보내지 않아요.
         </p>
-        <SegmentedControl<Screen>
+        <OptionPicker<Screen>
           aria-label="미리 볼 화면"
           options={[
             { value: 'attendance', label: '출석체크' },
             { value: 'workout', label: '운동 상세' },
             { value: 'guest', label: '게스트' },
             { value: 'board', label: '게시판' },
+            { value: 'my-fee', label: '내 회비' },
           ]}
           value={screen}
           onChange={(next) =>
@@ -455,6 +463,15 @@ export default function ScreenPreviewPage() {
             sendPhoneVerificationCode={async () => ({})}
             verifyPhoneCode={async () => ({})}
             checkPhoneVerificationStatus={async () => {}}
+          />
+        </>
+      ) : screen === 'my-fee' ? (
+        <>
+          <PageHeader title="내 회비" />
+          <MemberFeeHistoryView
+            history={PREVIEW_FEE_HISTORY}
+            onChangeYear={() => {}}
+            showLeaves
           />
         </>
       ) : (

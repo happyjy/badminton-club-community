@@ -40,6 +40,8 @@ export interface NavContext {
   isAdmin: boolean;
   /** 클럽 설정에서 대회 메뉴를 켜 두었는가 */
   tournamentMenuEnabled: boolean;
+  /** 회비를 앱으로 관리하는 클럽인가 (활성 회비 유형이 있음). 없으면 false */
+  feeMenuEnabled?: boolean;
 }
 
 /** 쿼리·해시·끝 슬래시를 뗀 경로 */
@@ -58,6 +60,7 @@ export function getNavItems({
   isMember,
   isAdmin,
   tournamentMenuEnabled,
+  feeMenuEnabled = false,
 }: NavContext): NavItem[] {
   const base = `/clubs/${clubId}`;
   const items: NavItem[] = [];
@@ -121,6 +124,18 @@ export function getNavItems({
         section: 'main',
         tab: false,
         isActive: (path) => isUnder(path, `${base}/tournaments`),
+      });
+    }
+
+    if (feeMenuEnabled) {
+      items.push({
+        key: 'myFee',
+        label: '내 회비',
+        href: `${base}/my-fee`,
+        icon: Wallet,
+        section: 'main',
+        tab: false,
+        isActive: (path) => isUnder(path, `${base}/my-fee`),
       });
     }
   }
