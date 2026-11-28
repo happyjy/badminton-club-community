@@ -41,6 +41,15 @@ describe('formatDepositDate', () => {
   it('한국 시각의 월·일', () => {
     expect(formatDepositDate('2026-04-30T15:30:00Z')).toBe('5월 1일');
   });
+
+  it('보는 해와 입금한 해(한국 시각)가 다르면 연도를 붙인다', () => {
+    expect(formatDepositDate('2025-12-28T01:00:00Z', 2026)).toBe(
+      '2025년 12월 28일'
+    );
+    expect(formatDepositDate('2026-04-30T15:30:00Z', 2026)).toBe('5월 1일');
+    // 2026-01-01 00:10 KST — UTC로는 2025년이지만 한국 시각으로 같은 해
+    expect(formatDepositDate('2025-12-31T15:10:00Z', 2026)).toBe('1월 1일');
+  });
 });
 
 describe('formatUnpaidSummary', () => {

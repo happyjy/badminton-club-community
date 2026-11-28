@@ -53,10 +53,12 @@ export function formatAsOf(iso: string | null, now: Date = new Date()): string {
   return `통장 거래 ${yearPrefix}${at.month}월 ${at.day}일 ${meridiem} ${hour12}:${minute}까지 반영`;
 }
 
-/** "5월 1일" */
-export function formatDepositDate(iso: string): string {
+/** "5월 1일". 보는 해(viewYear)와 입금한 해가 다르면 "2025년 12월 28일" */
+export function formatDepositDate(iso: string, viewYear?: number): string {
   const at = kstParts(new Date(iso));
-  return `${at.month}월 ${at.day}일`;
+  const yearPrefix =
+    viewYear === undefined || at.year === viewYear ? '' : `${at.year}년 `;
+  return `${yearPrefix}${at.month}월 ${at.day}일`;
 }
 
 /** "2026년 미납 2달 · 50,000원" / 단가가 없으면 달 수만 / "2026년 미납 없음" */

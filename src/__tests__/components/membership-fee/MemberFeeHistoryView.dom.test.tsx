@@ -178,6 +178,22 @@ describe('MemberFeeHistoryView', () => {
     expect(onChangeYear).toHaveBeenCalledWith(2025);
   });
 
+  it('지난해에 미리 낸 입금은 입금일에 연도를 붙인다', () => {
+    renderView({
+      months: [
+        month(1, 'PAID', {
+          payments: [payment({ transactionDate: '2025-12-28T01:00:00Z' })],
+        }),
+      ],
+    });
+    expect(screen.getByText('25,000원 · 2025년 12월 28일 입금')).toBeTruthy();
+  });
+
+  it('보일 달이 하나도 없으면 빈 상자 대신 안내 줄을 보인다', () => {
+    renderView({ months: [month(1, 'NONE'), month(12, 'FUTURE')] });
+    expect(screen.getByText('이 해에는 회비를 낼 달이 없어요')).toBeTruthy();
+  });
+
   it('단가가 없으면 월 회비 줄을 숨긴다', () => {
     renderView({
       summary: { unpaidCount: 1, unpaidAmount: null, monthlyFee: [] },

@@ -32,10 +32,14 @@ const ym = (year: number, month: number) =>
   `${year}.${String(month).padStart(2, '0')}`;
 
 /** 한 납부의 한 줄: "25,000원 · 5월 1일 입금 · 입금자 OOO · 부부" */
-function paymentLine(month: FeeHistoryMonth, payment: FeeHistoryPayment) {
+function paymentLine(
+  year: number,
+  month: FeeHistoryMonth,
+  payment: FeeHistoryPayment
+) {
   const parts = [won(payment.amount)];
   if (payment.transactionDate) {
-    parts.push(`${formatDepositDate(payment.transactionDate)} 입금`);
+    parts.push(`${formatDepositDate(payment.transactionDate, year)} 입금`);
   } else {
     parts.push('직접 추가');
     if (payment.manualReason) parts.push(payment.manualReason);
@@ -107,7 +111,7 @@ export function MemberFeeHistoryView({
           {history.pendingDeposits.map((deposit) => (
             <ListRow
               key={`${deposit.transactionDate}-${deposit.amount}`}
-              title={`${formatDepositDate(deposit.transactionDate)} 입금 · ${won(deposit.amount)}`}
+              title={`${formatDepositDate(deposit.transactionDate, history.year)} 입금 · ${won(deposit.amount)}`}
               trailing={
                 <span className="text-footnote text-secondary">
                   재무님 확인 중
@@ -119,12 +123,17 @@ export function MemberFeeHistoryView({
       )}
 
       <ListGroup label={`${history.year}년 납부 이력`}>
+        {months.length === 0 && (
+          <ListRow title="이 해에는 회비를 낼 달이 없어요" />
+        )}
         {months.map((month) => {
           const lines = [
             ...(month.status === 'LEAVE' && month.leaveReason
               ? [month.leaveReason]
               : []),
-            ...month.payments.map((payment) => paymentLine(month, payment)),
+            ...month.payments.map((payment) =>
+              paymentLine(history.year, month, payment)
+            ),
           ];
           return (
             <ListRow
