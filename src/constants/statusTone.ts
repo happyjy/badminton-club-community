@@ -15,6 +15,7 @@ export type StatusDomain =
   | 'entryEvent'
   | 'tournament'
   | 'feeRecord'
+  | 'feeMonth'
   | 'paymentKind';
 
 const TONES: Record<StatusDomain, Record<string, Tone>> = {
@@ -55,6 +56,15 @@ const TONES: Record<StatusDomain, Record<string, Tone>> = {
     CONFIRMED: 'positive',
     ERROR: 'negative',
     SKIPPED: 'neutral',
+  },
+  // 납부 이력의 한 달 칸 (memberYearStatus의 CellStatus). 낸 달과 미납만 색을 준다.
+  feeMonth: {
+    PAID: 'positive',
+    UNPAID: 'negative',
+    LEAVE: 'neutral',
+    EXEMPT: 'neutral',
+    NONE: 'neutral',
+    FUTURE: 'neutral',
   },
   // 입금 분류. 회비가 아닌 건은 눈에 띄지 않게 두고, 금액이 큰 가입비만 구분되게 한다.
   paymentKind: {
