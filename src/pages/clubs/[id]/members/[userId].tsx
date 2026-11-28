@@ -20,8 +20,11 @@ import {
   MemberLeaveItem,
   OrphanPayment,
 } from '@/components/organisms/membership-fee/MemberFeeDetailView';
+import { MemberFeeHistorySection } from '@/components/organisms/membership-fee/MemberFeeHistorySection';
 import { PageHeader } from '@/components/organisms/PageHeader';
 import { useConfirm } from '@/components/organisms/sheet/ConfirmProvider';
+
+import { MEMBER_FEE_HISTORY_KEY } from '@/hooks/membership-fee/useMemberFeeHistory';
 
 import { withAuth } from '@/lib/withAuth';
 import type { ManualPaymentItem } from '@/types/membership-fee.types';
@@ -146,6 +149,14 @@ function MemberDetailPage() {
   /**
    * 납부를 옮기거나 넣고 지운 뒤에 부른다. 같은 납부가 이월 안내와 직접 추가 목록 두 곳에 나올 수 있어 둘 다 다시 읽는다.
    */
+  /** 회비 대시보드와 납부 이력 캐시를 비운다 */
+  const invalidateFeeViews = () => {
+    queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+    queryClient.invalidateQueries({
+      queryKey: [MEMBER_FEE_HISTORY_KEY, clubId],
+    });
+  };
+
   const refreshPayments = () => {
     fetchLeaves();
     fetchManualPayments();
@@ -157,7 +168,7 @@ function MemberDetailPage() {
     try {
       await axios.patch(`${memberApi}/fee-obligation`, { feeExcluded: next });
       setMember({ ...member, feeExcluded: next });
-      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      invalidateFeeViews();
       toast.success(
         next ? '회비 대상 아님으로 바꿨습니다.' : '회비 대상으로 바꿨습니다.'
       );
@@ -186,7 +197,7 @@ function MemberDetailPage() {
     try {
       await axios.post(`${memberApi}/manual-payments`, value);
       toast.success('납부를 직접 추가했습니다.');
-      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      invalidateFeeViews();
       refreshPayments();
       return true;
     } catch (err: unknown) {
@@ -209,7 +220,7 @@ function MemberDetailPage() {
     try {
       await axios.delete(`${memberApi}/manual-payments/${paymentId}`);
       toast.success('직접 추가한 납부를 지웠습니다.');
-      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      invalidateFeeViews();
       refreshPayments();
     } catch (err: unknown) {
       toast.error(serverError(err) ?? '삭제에 실패했습니다.');
@@ -236,7 +247,7 @@ function MemberDetailPage() {
             : null,
         }
       );
-      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      invalidateFeeViews();
       toast.success('회비 입금 시작월이 저장되었습니다.');
       if (member) {
         setMember({
@@ -278,7 +289,7 @@ function MemberDetailPage() {
           leftAt: effectiveLeftAt,
         }
       );
-      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      invalidateFeeViews();
       toast.success('탈퇴 정보가 저장되었습니다.');
       if (member) {
         setMember({
@@ -313,7 +324,7 @@ function MemberDetailPage() {
           positionOrder: position ? positionOrderInput || null : null,
         }
       );
-      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      invalidateFeeViews();
       toast.success('직책이 저장되었습니다.');
       if (!position) setPositionOrderInput('');
     } catch (err: unknown) {
@@ -362,7 +373,7 @@ function MemberDetailPage() {
       } else {
         toast.success(summary);
       }
-      queryClient.invalidateQueries({ queryKey: ['paymentDashboard', clubId] });
+      invalidateFeeViews();
       refreshPayments();
     } catch {
       toast.error('이월에 실패했습니다.');
@@ -423,6 +434,7 @@ function MemberDetailPage() {
           : '휴회 기간을 등록했습니다.'
       );
       refreshPayments();
+      invalidateFeeViews();
       const paymentsInRange: OrphanPayment[] =
         res.data?.data?.paymentsInRange ?? [];
       // 시트가 닫히는 것을 기다리게 하지 않는다
@@ -462,6 +474,7 @@ function MemberDetailPage() {
       );
       toast.success('휴회 기간을 삭제했습니다.');
       refreshPayments();
+      invalidateFeeViews();
     } catch {
       toast.error('삭제에 실패했습니다.');
     } finally {
@@ -520,6 +533,16 @@ function MemberDetailPage() {
           orphanPayments={orphanPayments}
           onShiftPayments={() => shiftPayments(orphanPayments)}
           onToggleFeeExcluded={onToggleFeeExcluded}
+          historySlot={
+            typeof clubId === 'string' ? (
+              <MemberFeeHistorySection
+                clubId={clubId}
+                userId={Number(userId)}
+                title="납부 이력"
+                showLeaves={false}
+              />
+            ) : null
+          }
         />
         <ManualPaymentSection
           payments={manualPayments}
