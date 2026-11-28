@@ -12,15 +12,22 @@ export default async function handler(
 
   if (req.method === 'GET') {
     try {
-      const settings = await prisma.clubCustomSettings.findUnique({
-        where: { clubId },
-        select: {
-          tournamentMenuEnabled: true,
-        },
-      });
+      const [settings, activeFeeTypes] = await Promise.all([
+        prisma.clubCustomSettings.findUnique({
+          where: { clubId },
+          select: {
+            tournamentMenuEnabled: true,
+          },
+        }),
+        // 회비를 앱으로 관리하는 클럽에만 회원 메뉴 "내 회비"를 보인다
+        prisma.feeType.count({ where: { clubId, isActive: true } }),
+      ]);
 
       // 설정 행이 없는 클럽은 기본값(메뉴 노출)으로 응답한다.
-      res.status(200).json(settings || { tournamentMenuEnabled: true });
+      res.status(200).json({
+        tournamentMenuEnabled: settings?.tournamentMenuEnabled ?? true,
+        feeMenuEnabled: activeFeeTypes > 0,
+      });
     } catch (error) {
       console.error('Error fetching menu settings:', error);
       res.status(500).json({ error: 'Failed to fetch menu settings' });

@@ -4,6 +4,8 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     clubMember: { findUnique: jest.fn() },
     clubCustomSettings: { findUnique: jest.fn(), upsert: jest.fn() },
+    // menu 조회가 "내 회비" 메뉴를 보일지 활성 회비 유형 수로 정한다
+    feeType: { count: jest.fn(async () => 0) },
   },
 }));
 
